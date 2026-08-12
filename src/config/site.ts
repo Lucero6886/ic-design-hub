@@ -29,8 +29,7 @@ export const SITE = {
    * Ví dụ: "https://username.github.io"
    * Có thể ghi đè lúc build bằng biến môi trường ASTRO_SITE (CI tự làm việc này).
    */
- siteUrl: "https://lucero6886.github.io",
- repoUrl: "https://github.com/Lucero6886/ic-design-hub",
+  siteUrl: "https://lucero6886.github.io",
 
   /**
    * Đường dẫn con khi deploy dạng project site GitHub Pages: "/TEN-REPO".
@@ -39,8 +38,8 @@ export const SITE = {
    */
   basePath: "/ic-design-hub",
 
-  /** URL repository GitHub — điền sau khi tạo repo. Cộng đồng (Discussions/Issues) dẫn từ đây. */
-  repoUrl: "https://github.com/USERNAME/ic-design-hub",
+  /** URL repository GitHub — cộng đồng (Discussions/Issues) dẫn từ đây. */
+  repoUrl: "https://github.com/Lucero6886/ic-design-hub",
 } as const;
 
 export const AUTHOR = {

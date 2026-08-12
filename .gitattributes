@@ -1,2 +1,8 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# ===== BẢO VỆ PROVENANCE =====
+# _source/ là hồ sơ xuất xứ BẤT BIẾN: git không được đụng tới từng byte
+# (không normalize line-ending, không diff text) — hash SHA-256 phải giữ nguyên.
+_source/** -text
+*.zip binary

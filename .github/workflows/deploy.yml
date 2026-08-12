@@ -37,6 +37,10 @@ jobs:
       - name: Configure Pages (lấy site/base đúng theo repo)
         id: pages
         uses: actions/configure-pages@v5
+        with:
+          # Tự bật GitHub Pages (chế độ GitHub Actions) nếu repo chưa bật —
+          # không cần thao tác tay trong Settings → Pages. Yêu cầu repo public.
+          enablement: true
 
       - name: Install
         run: npm ci
