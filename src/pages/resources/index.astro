@@ -1,0 +1,61 @@
+---
+import BaseLayout from "~/layouts/BaseLayout.astro";
+import { href, fmtDate } from "~/utils/url";
+import { getPublished, label } from "~/utils/content";
+
+const resources = await getPublished("resources");
+const kinds = ["tool", "software", "hdl-eda", "book", "paper", "reference", "course"] as const;
+const byKind = kinds
+  .map((k) => ({ kind: k, items: resources.filter((r) => r.data.kind === k) }))
+  .filter((g) => g.items.length > 0);
+---
+
+<BaseLayout
+  title="Tài nguyên"
+  description="Công cụ, sách, paper, phần mềm và tài liệu HDL/EDA được chọn lọc cho việc học và nghiên cứu thiết kế vi mạch."
+  path="resources/"
+>
+  <section class="hero">
+    <div class="wrap">
+      <div class="kicker">Resources</div>
+      <h1>Tài nguyên</h1>
+      <p class="sub">
+        Danh mục chọn lọc — mỗi tài nguyên ghi rõ <b>vì sao đáng dùng</b> và giấy phép/bản quyền
+        của bên thứ ba khi biết. Không phải danh sách link vô hồn.
+      </p>
+    </div>
+  </section>
+  <section class="section" style="padding-bottom:28px">
+    <div class="wrap">
+      {resources.length === 0 && (
+        <p class="muted">Chưa có tài nguyên nào. Gợi ý tài nguyên mới qua GitHub Issues (mẫu "Gợi ý tài nguyên").</p>
+      )}
+      {byKind.map((group) => (
+        <section aria-label={label(group.kind)}>
+          <h2 class="sec" style="margin-top:18px">{label(group.kind)}</h2>
+          <div class="grid cols-2">
+            {group.items.map((r) => (
+              <div class="card">
+                <h3>
+                  {r.data.url ? <a href={r.data.url} rel="noopener">{r.data.title}</a> : r.data.title}
+                </h3>
+                <p>{r.data.summary}</p>
+                <p class="small" style="color:var(--ink-soft)"><b>Vì sao đáng dùng:</b> {r.data.whyRecommended}</p>
+                <div class="meta">
+                  {r.data.license && <span class="badge gray">{r.data.license}</span>}
+                  {r.data.tags.slice(0, 4).map((t) => <a class="tag" href={href(`tags/${t}/`)}>#{t}</a>)}
+                  <span>{fmtDate(r.data.date)}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      ))}
+      <div class="co warn" style="margin-top:24px">
+        <b>Bản quyền bên thứ ba:</b> sách, paper, phần mềm và tài liệu liệt kê ở đây thuộc bản quyền
+        của chủ sở hữu tương ứng. Hub chỉ giới thiệu và dẫn nguồn — xem
+        <a href={href("about/copyright/")}>Bản quyền &amp; Attribution</a>.
+      </div>
+    </div>
+  </section>
+</BaseLayout>

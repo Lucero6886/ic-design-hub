@@ -1,0 +1,76 @@
+---
+import BaseLayout from "~/layouts/BaseLayout.astro";
+import { COMMUNITY, SITE } from "~/config/site";
+---
+
+<BaseLayout
+  title="Cộng đồng"
+  description="Cách tham gia cộng đồng IC Design: hỏi đáp trên GitHub Discussions, báo lỗi và đề xuất qua Issues, đóng góp nội dung qua Pull Request."
+  path="community/"
+>
+  <section class="hero">
+    <div class="wrap">
+      <div class="kicker">Community</div>
+      <h1>Cộng đồng</h1>
+      <p class="sub">
+        Hub là site tĩnh — phần "sống" của cộng đồng chạy trên hạ tầng GitHub của chính repo này:
+        Discussions để hỏi đáp, Issues để báo lỗi/đề xuất, Pull Request để đóng góp nội dung.
+      </p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <h2 class="sec">Hỏi đáp &amp; thảo luận — GitHub Discussions</h2>
+      <p class="sec-sub">Cần tài khoản GitHub (miễn phí). Chọn đúng chuyên mục để câu hỏi được trả lời nhanh.</p>
+      <div class="grid cols-2">
+        <div class="card"><h3>IC Design Q&amp;A</h3><p>Câu hỏi khái niệm: logic số, FSM, timing, FPGA/ASIC, design flow… Nêu rõ bạn đang ở tuần nào của giáo trình nếu liên quan.</p></div>
+        <div class="card"><h3>RTL / SystemVerilog Help</h3><p>Gỡ rối code: dán RTL + testbench + waveform/lỗi kèm điều bạn <b>dự đoán</b> và điều thực tế xảy ra.</p></div>
+        <div class="card"><h3>FPGA / Toolchain Help</h3><p>Cài đặt và vận hành công cụ: mô phỏng, tổng hợp, nạp board, đọc report.</p></div>
+        <div class="card"><h3>Research Questions &amp; Ideas</h3><p>Thảo luận EQ→RQ, ý tưởng nghiên cứu, thiết kế thí nghiệm, baseline. Phân biệt rõ giả thuyết với kết luận.</p></div>
+        <div class="card"><h3>Paper Reading</h3><p>Cùng đọc một paper: claim của paper là gì, bằng chứng ra sao, áp dụng được gì.</p></div>
+        <div class="card"><h3>Student Projects · Announcements · Feedback</h3><p>Trình bày project của bạn, theo dõi thông báo của chương trình, và góp ý cho hub.</p></div>
+      </div>
+      <p style="margin-top:14px">
+        <a class="btn primary" href={COMMUNITY.discussionsUrl()}>Mở GitHub Discussions</a>
+      </p>
+      <p class="muted small">
+        Nếu link chưa hoạt động: chủ repo cần bật Discussions một lần theo hướng dẫn trong
+        <code>docs/COMMUNITY_SETUP.md</code>.
+      </p>
+
+      <h2 class="sec" style="margin-top:30px">Báo lỗi &amp; đề xuất — GitHub Issues</h2>
+      <p>
+        Issues dùng cho việc <b>có thể hành động được</b>: báo lỗi kỹ thuật/nội dung, gợi ý tài
+        nguyên, đề xuất project, đề xuất bài viết, báo lỗi website. Mỗi loại có mẫu điền sẵn:
+      </p>
+      <ul>
+        <li><b>Báo lỗi nội dung/kỹ thuật</b> — chỉ rõ trang, trích nguyên văn, giải thích vì sao sai, kèm nguồn tin cậy.</li>
+        <li><b>Gợi ý tài nguyên</b> — kèm lý do "vì sao đáng dùng" và giấy phép nếu biết.</li>
+        <li><b>Đề xuất project</b> — vấn đề, mục tiêu học tập/nghiên cứu, phạm vi, công cụ.</li>
+        <li><b>Đề xuất bài viết/chủ đề</b> — chủ đề, đối tượng đọc, dàn ý sơ bộ.</li>
+        <li><b>Lỗi website</b> — link hỏng, hiển thị sai, vấn đề mobile/accessibility.</li>
+      </ul>
+      <p><a class="btn" href={COMMUNITY.newIssueUrl()}>Tạo issue mới</a></p>
+
+      <h2 class="sec" style="margin-top:30px" id="contribute">Đóng góp nội dung — Pull Request</h2>
+      <p>
+        Bài viết, ghi chú nghiên cứu, project và tài nguyên đều là file Markdown trong thư mục
+        <code>src/content/</code>. Quy trình: fork repo → tạo file từ template trong
+        <code>templates/</code> → điền frontmatter → mở Pull Request. PR template sẽ yêu cầu bạn
+        xác nhận nguồn gốc nội dung, bản quyền tư liệu sử dụng, và không kèm thông tin cá nhân/bí mật.
+      </p>
+      <div class="btn-row">
+        <a class="btn" href={COMMUNITY.contributingUrl()}>Đọc CONTRIBUTING.md</a>
+        <a class="btn" href={`${SITE.repoUrl}/blob/main/docs/AUTHORING_GUIDE.md`}>Hướng dẫn viết bài (AUTHORING_GUIDE)</a>
+      </div>
+
+      <h2 class="sec" style="margin-top:30px">Nguyên tắc ứng xử</h2>
+      <p>
+        Cộng đồng học thuật: tôn trọng, trung thực kỹ thuật, phê bình ý tưởng chứ không phê bình
+        con người, và không chia sẻ thông tin cá nhân của người khác. Chi tiết trong
+        <a href={`${SITE.repoUrl}/blob/main/CODE_OF_CONDUCT.md`}>CODE_OF_CONDUCT.md</a>.
+      </p>
+    </div>
+  </section>
+</BaseLayout>

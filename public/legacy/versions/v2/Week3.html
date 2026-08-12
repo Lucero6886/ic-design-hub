@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tuần 3 — Logic Gates in Real Systems | IC Design Mentoring</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        primary: '#2563eb',
+        secondary: '#f59e0b',
+        accent: '#10b981',
+        danger: '#ef4444',
+        dark: '#0f172a',
+        light: '#f8fafc'
+      },
+      fontFamily: { sans: ['Inter', 'sans-serif'] }
+    }
+  }
+}
+</script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Inter', sans-serif; }
+  pre, code, .mono { font-family: 'JetBrains Mono', monospace; }
+  section { scroll-margin-top: 90px; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  .code-block { background: #0f172a; color: #e2e8f0; border-radius: 0.75rem; padding: 1rem 1.25rem; overflow-x: auto; font-size: 0.85rem; line-height: 1.6; }
+  .kw { color: #a78bfa; font-weight: 600; }
+  .tp { color: #60a5fa; }
+  .cm { color: #86a694; font-style: italic; }
+  .nb { color: #fbbf24; }
+  .st { color: #fca5a5; }
+  .fn { color: #67e8f9; }
+  .quiz-opt { display: block; width: 100%; text-align: left; border: 1.5px solid #e2e8f0; border-radius: 0.6rem; padding: 0.55rem 0.9rem; transition: all .15s; background: #fff; font-size: 0.925rem; }
+  .quiz-opt:hover { border-color: #2563eb; background: #eff6ff; }
+  .opt-correct { background: #ecfdf5 !important; border-color: #10b981 !important; color: #047857; font-weight: 600; }
+  .opt-wrong { background: #fef2f2 !important; border-color: #ef4444 !important; color: #b91c1c; }
+  .opt-dim { opacity: 0.55; }
+  /* dây tín hiệu trong sơ đồ SVG */
+  .w-lo { stroke: #94a3b8; stroke-width: 2.5; fill: none; transition: all .2s; }
+  .w-hi { stroke: #f59e0b; stroke-width: 4; fill: none; transition: all .2s; }
+  .v-lo { fill: #64748b; font-weight: 600; }
+  .v-hi { fill: #b45309; font-weight: 800; }
+  .gate-body { fill: #eff6ff; stroke: #2563eb; stroke-width: 2.5; }
+  .lamp-off { fill: #cbd5e1; stroke: #94a3b8; stroke-width: 3; transition: all .2s; }
+  .lamp-on { fill: #ef4444; stroke: #b91c1c; stroke-width: 3; filter: drop-shadow(0 0 10px rgba(239,68,68,.8)); }
+  /* nút chọn cổng logic */
+  .gate-btn { border: 2px solid #e2e8f0; border-radius: 0.75rem; padding: 0.5rem 1rem; font-weight: 700; font-size: 0.85rem; background: #fff; color: #334155; transition: all .15s; }
+  .gate-btn:hover { border-color: #2563eb; color: #2563eb; }
+  .gate-btn.active { background: #2563eb; border-color: #2563eb; color: #fff; box-shadow: 0 4px 10px rgba(37,99,235,.3); }
+  /* hàng đang khớp trong bảng chân lý */
+  .tr-active { background: #fef3c7 !important; box-shadow: inset 3px 0 0 #f59e0b; }
+  .toggle-in { min-width: 64px; border-radius: 0.75rem; padding: 0.5rem 0.75rem; font-weight: 800; font-family: 'JetBrains Mono', monospace; border: 2px solid #e2e8f0; background: #fff; color: #64748b; transition: all .15s; }
+  .toggle-in.on { background: #fffbeb; border-color: #f59e0b; color: #b45309; }
+</style>
+</head>
+<body class="bg-slate-100 text-slate-800">
+<div id="lichub-nav-top" data-lichub="v2" role="navigation" aria-label="Điều hướng Learning Hub (bổ sung, không thuộc trang gốc)" style="background:#0f172a;color:#e2e8f0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:13.5px;line-height:1.6;padding:8px 16px;display:flex;flex-wrap:wrap;gap:4px 16px;align-items:center;border-bottom:3px solid #38bdf8"><a href="../../index.html" style="color:#7dd3fc;text-decoration:none;font-weight:600">⌂ Learning Hub</a><span style="font-size:11px;font-weight:700;letter-spacing:.04em;color:#38bdf8;border:1px solid #38bdf8;border-radius:6px;padding:1px 7px;white-space:nowrap">V2 · BẢN MỞ RỘNG</span><a href="index.html" style="color:#cbd5e1;text-decoration:none">Mục lục V2</a><span style="flex:1"></span><a href="Week2.html" style="color:#7dd3fc;text-decoration:none" title="From Idea to Chip">← Tuần 2</a><a href="Week4.html" style="color:#7dd3fc;text-decoration:none" title="Combinational Logic Circuits">Tuần 4 →</a><span aria-hidden="true" style="color:#475569">|</span><span style="display:inline-flex;gap:8px;align-items:center"><span style="color:#94a3b8">Chuyển bản:</span> <a href="../v1/index.html" style="color:#cbd5e1;text-decoration:none">V1</a> <b aria-current="true" style="color:#38bdf8">V2</b> <a href="../v3/index.html" style="color:#cbd5e1;text-decoration:none">V3</a></span></div>
+
+
+<!-- ===== STICKY NAV ===== -->
+<header class="sticky top-0 z-50 bg-white/95 backdrop-blur shadow-sm">
+  <div class="max-w-6xl mx-auto px-4">
+    <div class="flex items-center justify-between h-14">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-blue-800 text-white flex items-center justify-center"><i class="fa-solid fa-microchip"></i></div>
+        <div>
+          <p class="font-bold text-dark leading-tight">IC Design Mentoring</p>
+          <p class="text-xs text-slate-500 leading-tight">Tuần 3/12 — Logic Gates in Real Systems</p>
+        </div>
+      </div>
+      <span class="hidden md:inline-flex items-center gap-2 text-xs font-semibold bg-blue-50 text-primary px-3 py-1.5 rounded-full"><i class="fa-solid fa-shuffle"></i> AND · OR · NOT · Truth Table</span>
+    </div>
+    <nav class="flex gap-1 overflow-x-auto no-scrollbar pb-2 text-sm">
+      <a href="#hero" class="px-3 py-1 rounded-full whitespace-nowrap text-slate-600 hover:bg-blue-50 hover:text-primary">Tổng quan</a>
+      <a href="#learning-map" class="px-3 py-1 rounded-full whitespace-nowrap text-slate-600 hover:bg-blue-50 hover:text-primary">Lộ trình</a>
+      <a href="#before-session" class="px-3 py-1 rounded-full whitespace-nowrap text-slate-600 hover:bg-blue-50 hover:text-primary">Chuẩn bị</a>
+      <a href="#core-concepts" class="px-3 py-1 rounded-full whitespace-nowrap text-slate-600 hover:bg-blue-50 hover:text-primary">Khái niệm</a>
+      <a href="#demo" class="px-3 py-1 rounded-full whitespace-nowrap text-slate-600 hover:bg-blue-50 hover:text-primary">Demo</a>
+      <a href="#code-rtl" class="px-3 py-1 rounded-full whitespace-nowrap text-slate-600 hover:bg-blue-50 hover:text-primary">Code</a>
+      <a href="#quiz" class="px-3 py-1 rounded-full whitespace-nowrap text-slate-600 hover:bg-blue-50 hover:text-primary">Quiz</a>
+      <a href="#homework" class="px-3 py-1 rounded-full whitespace-nowrap text-slate-600 hover:bg-blue-50 hover:text-primary">Bài tập</a>
+      <a href="#vocabulary" class="px-3 py-1 rounded-full whitespace-nowrap text-slate-600 hover:bg-blue-50 hover:text-primary">Từ vựng</a>
+      <a href="#summary" class="px-3 py-1 rounded-full whitespace-nowrap text-slate-600 hover:bg-blue-50 hover:text-primary">Tổng kết</a>
+    </nav>
+  </div>
+  <div class="h-1 bg-slate-200"><div id="scrollProgress" class="h-full bg-primary transition-all duration-150" style="width:0%"></div></div>
+</header>
+
+<!-- ===== 1. HERO ===== -->
+<section id="hero" class="bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 text-white">
+  <div class="max-w-6xl mx-auto px-4 py-14 md:py-20">
+    <span class="inline-flex items-center gap-2 bg-white/10 border border-white/20 px-4 py-1.5 rounded-full text-sm font-semibold mb-5"><i class="fa-solid fa-shuffle text-amber-400"></i> Tuần 3 / 12 · Technical Talk</span>
+    <h1 class="text-3xl md:text-5xl font-extrabold leading-tight mb-3">Logic Gates in Real Systems</h1>
+    <h2 class="text-xl md:text-2xl font-semibold text-blue-200 mb-6">Cổng logic trong các hệ thống thực tế — cách kỹ sư mô tả những quyết định</h2>
+    <p class="max-w-3xl text-slate-300 leading-relaxed mb-8">Tuần trước bạn đã thấy cả dây chuyền từ ý tưởng đến con chip. Tuần này ta cầm lên <b class="text-amber-300">viên gạch nhỏ nhất của chặng RTL: cổng logic (logic gate)</b>. Đèn sáng khi nào? Còi báo động hú khi nào? Máy giặt được phép chạy khi nào? Mọi quyết định "nếu… và… hoặc… thì…" trong thế giới số đều được xây từ AND, OR, NOT. <b class="text-white">Cổng logic không phải lý thuyết trên giấy — chúng là công cụ ra quyết định có thật, bằng transistor thật, với độ trễ thật.</b></p>
+    <div class="grid md:grid-cols-2 gap-3 mb-8">
+      <div class="bg-white/10 border border-white/15 rounded-xl p-4 flex gap-3"><i class="fa-solid fa-table-cells text-amber-400 text-xl mt-1"></i><p class="text-sm text-slate-200"><b class="text-white">Mục tiêu 1.</b> Nắm 6 cổng cơ bản (AND, OR, NOT, NAND, NOR, XOR): ký hiệu, bảng chân lý (truth table), biểu thức logic.</p></div>
+      <div class="bg-white/10 border border-white/15 rounded-xl p-4 flex gap-3"><i class="fa-solid fa-bolt text-amber-400 text-xl mt-1"></i><p class="text-sm text-slate-200"><b class="text-white">Mục tiêu 2.</b> Hiểu đúng mức logic: 1/0 là <b>khoảng điện áp High/Low</b>, không phải "có điện / mất điện".</p></div>
+      <div class="bg-white/10 border border-white/15 rounded-xl p-4 flex gap-3"><i class="fa-solid fa-wand-magic-sparkles text-amber-400 text-xl mt-1"></i><p class="text-sm text-slate-200"><b class="text-white">Mục tiêu 3.</b> Chuyển một tình huống đời sống (báo động, đèn tự động…) thành input/output, bảng chân lý và biểu thức logic.</p></div>
+      <div class="bg-white/10 border border-white/15 rounded-xl p-4 flex gap-3"><i class="fa-solid fa-code text-amber-400 text-xl mt-1"></i><p class="text-sm text-slate-200"><b class="text-white">Mục tiêu 4.</b> Viết được dòng <span class="mono text-amber-200">assign</span> SystemVerilog cho biểu thức đó, và biết cổng logic có propagation delay (độ trễ lan truyền).</p></div>
+    </div>
+    <div class="grid md:grid-cols-2 gap-3 max-w-3xl">
+      <div class="bg-emerald-500/10 border border-emerald-400/30 rounded-xl p-4"><p class="text-xs uppercase tracking-wide text-emerald-300 font-bold mb-1"><i class="fa-solid fa-backward mr-1"></i> Nối từ Tuần 2</p><p class="text-sm text-slate-200">Bạn đã biết RTL là chặng số 3 của design flow. Cổng logic chính là thứ mà mỗi dòng RTL của bạn sẽ biến thành sau synthesis.</p></div>
+      <div class="bg-blue-500/10 border border-blue-400/30 rounded-xl p-4"><p class="text-xs uppercase tracking-wide text-blue-300 font-bold mb-1"><i class="fa-solid fa-forward mr-1"></i> Tuần sau — Tuần 4</p><p class="text-sm text-slate-200"><b>Combinational Logic Circuits:</b> ghép cổng thành các khối chức năng lớn hơn — MUX, decoder, adder — và học tư duy "think in blocks".</p></div>
+    </div>
+  </div>
+</section>
+
+<main class="max-w-6xl mx-auto px-4">
+
+<!-- ===== 2. LEARNING MAP ===== -->
+<section id="learning-map" class="py-12">
+  <div class="flex items-center gap-3 mb-6"><span class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-extrabold">2</span><h2 class="text-2xl md:text-3xl font-bold text-dark"><i class="fa-solid fa-map-location-dot text-primary mr-2"></i>Bản đồ học tập</h2></div>
+  <div class="grid md:grid-cols-3 gap-4 mb-6">
+    <div class="bg-white rounded-2xl shadow p-5 border-t-4 border-slate-300">
+      <p class="text-xs font-bold uppercase text-slate-400 mb-2">Tuần trước — Tuần 2</p>
+      <h3 class="font-bold text-dark mb-2"><i class="fa-solid fa-route text-slate-400 mr-1"></i> From Idea to Chip</h3>
+      <p class="text-sm text-slate-600">Design flow 8 chặng, front-end/back-end, artifact từng chặng. Bạn đã biết "bức tranh lớn" — giờ ta zoom vào viên gạch nhỏ nhất.</p>
+    </div>
+    <div class="bg-white rounded-2xl shadow-lg p-5 border-t-4 border-primary ring-2 ring-primary/20">
+      <p class="text-xs font-bold uppercase text-primary mb-2">Tuần này — Tuần 3</p>
+      <h3 class="font-bold text-dark mb-2"><i class="fa-solid fa-shuffle text-primary mr-1"></i> Logic Gates in Real Systems</h3>
+      <p class="text-sm text-slate-600">AND, OR, NOT, NAND, NOR, XOR; bảng chân lý; biểu thức logic; từ tình huống thực tế → mạch → dòng assign SystemVerilog đầu tiên.</p>
+    </div>
+    <div class="bg-white rounded-2xl shadow p-5 border-t-4 border-emerald-400">
+      <p class="text-xs font-bold uppercase text-emerald-500 mb-2">Tuần sau — Tuần 4</p>
+      <h3 class="font-bold text-dark mb-2"><i class="fa-solid fa-cubes text-emerald-500 mr-1"></i> Combinational Logic Circuits</h3>
+      <p class="text-sm text-slate-600">MUX, decoder, encoder, adder, comparator — ghép nhiều cổng thành khối chức năng, tư duy "think in blocks, not in gates".</p>
+    </div>
+  </div>
+  <div class="grid md:grid-cols-2 gap-4">
+    <div class="bg-blue-50 border border-blue-200 rounded-2xl p-5"><h4 class="font-bold text-primary mb-2"><i class="fa-solid fa-key mr-1"></i> Cần gì trước buổi học?</h4><ul class="text-sm text-slate-700 space-y-1.5 list-disc list-inside"><li>Biết hệ nhị phân ở mức "0 và 1 là hai giá trị" — không cần tính toán phức tạp.</li><li>Nhớ từ Tuần 1: transistor là công tắc điện tử — cổng logic được xây từ các công tắc đó.</li><li>Nhớ từ Tuần 2: RTL sau synthesis biến thành cổng logic thật / LUT.</li></ul></div>
+    <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-5"><h4 class="font-bold text-emerald-600 mb-2"><i class="fa-solid fa-arrow-trend-up mr-1"></i> Kiến thức tuần này dùng vào đâu?</h4><ul class="text-sm text-slate-700 space-y-1.5 list-disc list-inside"><li><b>Tuần 4:</b> mọi khối tổ hợp (MUX, adder…) đều là cổng ghép lại có tổ chức.</li><li><b>Tuần 7:</b> toán tử Verilog <span class="mono">&amp;</span>, <span class="mono">|</span>, <span class="mono">~</span>, <span class="mono">^</span> chính là 4 cổng hôm nay.</li><li><b>Tuần 9–11:</b> điều kiện chuyển trạng thái của FSM, logic giải mã LED, logic UART — tất cả viết bằng biểu thức logic.</li></ul></div>
+  </div>
+</section>
+
+<!-- ===== 3. BEFORE SESSION ===== -->
+<section id="before-session" class="py-12">
+  <div class="flex items-center gap-3 mb-6"><span class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-extrabold">3</span><h2 class="text-2xl md:text-3xl font-bold text-dark"><i class="fa-solid fa-clipboard-check text-primary mr-2"></i>Trước buổi học</h2></div>
+  <div class="bg-white rounded-2xl shadow p-6 mb-5">
+    <p class="text-slate-700 leading-relaxed">Tuần này chúng ta thảo luận <b>"Logic Gates in Real Systems"</b>. Mỗi bạn hãy chuẩn bị <b>một ví dụ đời sống có thể mô tả bằng logic</b>, kiểu: <i>"đèn sáng khi trời tối VÀ có người"</i>, <i>"chuông reo khi nút trước HOẶC nút sau được bấm"</i>. Mục tiêu không phải thuộc lòng 6 bảng chân lý, mà là nhìn thấy: <b>cổng logic là cách kỹ sư viết các quyết định thành mạch điện</b>.</p>
+  </div>
+  <div class="grid lg:grid-cols-2 gap-5">
+    <div class="bg-white rounded-2xl shadow p-6">
+      <div class="flex items-center justify-between mb-4"><h3 class="font-bold text-dark"><i class="fa-solid fa-list-check text-primary mr-2"></i>Checklist chuẩn bị</h3><span id="beforeCount" class="text-xs font-bold bg-blue-50 text-primary px-3 py-1 rounded-full">0/6 hoàn thành</span></div>
+      <div id="beforeChecklist" class="space-y-3 text-sm text-slate-700">
+        <label class="flex items-start gap-3 cursor-pointer"><input type="checkbox" class="mt-0.5 w-4 h-4 accent-blue-600"><span>Tra cứu nhanh: logic gate là gì? (2–3 câu là đủ)</span></label>
+        <label class="flex items-start gap-3 cursor-pointer"><input type="checkbox" class="mt-0.5 w-4 h-4 accent-blue-600"><span>Đọc trước cách hoạt động của <b>AND, OR, NOT</b> và tự lấy 1 ví dụ mỗi cổng.</span></label>
+        <label class="flex items-start gap-3 cursor-pointer"><input type="checkbox" class="mt-0.5 w-4 h-4 accent-blue-600"><span>Tìm hiểu sơ: NAND, NOR, XOR có ý nghĩa gì?</span></label>
+        <label class="flex items-start gap-3 cursor-pointer"><input type="checkbox" class="mt-0.5 w-4 h-4 accent-blue-600"><span>Nghĩ 1 tình huống thực tế dạng "nếu… và/hoặc… thì…" của chính bạn.</span></label>
+        <label class="flex items-start gap-3 cursor-pointer"><input type="checkbox" class="mt-0.5 w-4 h-4 accent-blue-600"><span>Tự hỏi: cổng logic liên hệ thế nào với Verilog và FPGA? (gợi ý: Tuần 2, chặng Synthesis)</span></label>
+        <label class="flex items-start gap-3 cursor-pointer"><input type="checkbox" class="mt-0.5 w-4 h-4 accent-blue-600"><span>Chuẩn bị 3 câu hỏi cho breakout room.</span></label>
+      </div>
+    </div>
+    <div class="space-y-5">
+      <div class="bg-white rounded-2xl shadow p-6">
+        <h3 class="font-bold text-dark mb-3"><i class="fa-solid fa-fire text-secondary mr-2"></i>3 câu hỏi khởi động</h3>
+        <ol class="space-y-2 text-sm text-slate-700 list-decimal list-inside">
+          <li>Đèn hành lang "sáng khi trời tối VÀ có người". Nếu thay VÀ bằng HOẶC, điều gì xảy ra? (Đèn sáng cả ban ngày khi có người đi qua — tốn điện vô ích!)</li>
+          <li>Công tắc cầu thang: hai công tắc ở hai đầu, gạt <b>bất kỳ</b> cái nào đèn cũng đổi trạng thái. Quan hệ giữa 2 công tắc và đèn là cổng gì? (Gợi ý: đèn sáng khi hai công tắc <b>khác nhau</b>.)</li>
+          <li>Khi nói "tín hiệu bằng 1", trong mạch điện thật điều đó nghĩa là gì? Có phải "dây đang có điện" không? (Câu trả lời chính xác nằm ở section 4!)</li>
+        </ol>
+      </div>
+      <div class="bg-amber-50 border border-amber-200 rounded-2xl p-6">
+        <h3 class="font-bold text-amber-700 mb-2"><i class="fa-solid fa-stopwatch mr-2"></i>Nhiệm vụ nhỏ (5–10 phút)</h3>
+        <p class="text-sm text-slate-700 leading-relaxed">Lấy tình huống <b>"đèn sân = trời tối VÀ có chuyển động"</b>. Kẻ bảng 3 cột: <span class="mono">toi</span>, <span class="mono">chuyen_dong</span>, <span class="mono">den</span>. Điền đủ 4 dòng (00, 01, 10, 11) và giá trị đèn ở mỗi dòng. Chúc mừng — bạn vừa tự tay lập <b>bảng chân lý (truth table)</b> đầu tiên! Mang theo bảng này vào breakout room.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- ===== 4. CORE CONCEPTS ===== -->
+<section id="core-concepts" class="py-12">
+  <div class="flex items-center gap-3 mb-6"><span class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-extrabold">4</span><h2 class="text-2xl md:text-3xl font-bold text-dark"><i class="fa-solid fa-lightbulb text-primary mr-2"></i>Khái niệm cốt lõi</h2></div>
+  <p class="text-slate-600 mb-6 max-w-3xl">Đi theo tầng: <b>trực giác → bản chất kỹ thuật → ví dụ đời sống → trong IC/FPGA/ASIC</b>, kèm cảnh báo hiểu sai. Bắt đầu từ câu hỏi nền tảng nhất: "1" và "0" thật ra là gì?</p>
+  <div class="space-y-5">
+
+    <div class="bg-white rounded-2xl shadow p-6">
+      <h3 class="font-bold text-lg text-dark mb-3"><span class="inline-flex w-7 h-7 rounded-lg bg-blue-100 text-blue-700 items-center justify-center text-sm font-extrabold mr-2">1</span>Mức logic 1/0 <span class="text-slate-500 font-medium">(logic level — High/Low)</span></h3>
+      <p class="text-sm text-slate-700 border-l-4 border-primary bg-blue-50/60 rounded-r-lg p-3 mb-3"><b class="text-primary">Hiểu trực giác:</b> 1 và 0 không phải "có điện / mất điện" — chúng là <b>hai khoảng điện áp</b> được quy ước, như hai làn đường được kẻ vạch rõ ràng trên cùng một con đường.</p>
+      <div class="grid md:grid-cols-2 gap-3 text-sm text-slate-700">
+        <div class="bg-slate-50 rounded-xl p-3"><p class="text-xs font-bold uppercase text-slate-500 mb-1"><i class="fa-solid fa-gears mr-1"></i>Bản chất kỹ thuật</p>Với nguồn 3.3V: mức <b>High (logic 1)</b> là vùng điện áp gần 3.3V, mức <b>Low (logic 0)</b> là vùng gần 0V; ở giữa là <b>vùng không xác định</b> mà tín hiệu không được "đứng lại". Mỗi công nghệ định nghĩa ngưỡng riêng (V<sub>IH</sub>, V<sub>IL</sub>). Logic 0 vẫn là một mức điện áp hợp lệ đang được mạch lái chủ động.</div>
+        <div class="bg-slate-50 rounded-xl p-3"><p class="text-xs font-bold uppercase text-slate-500 mb-1"><i class="fa-solid fa-mug-hot mr-1"></i>Ví dụ đời sống</p>Đèn giao thông chỉ có ý nghĩa khi rõ ràng ĐỎ hay XANH. Một bóng đèn "lưng chừng chớp mờ mờ" khiến ai cũng bối rối — đó chính là vùng cấm giữa High và Low.</div>
+        <div class="bg-slate-50 rounded-xl p-3"><p class="text-xs font-bold uppercase text-slate-500 mb-1"><i class="fa-solid fa-microchip mr-1"></i>Trong IC/FPGA/ASIC</p>Nhờ chia "vùng" thay vì đòi giá trị chính xác, mạch số <b>chống nhiễu rất tốt</b>: 3.1V hay 3.28V đều được đọc là 1. Đây là lý do thế giới số ổn định hơn thế giới analog.</div>
+        <div class="bg-red-50 rounded-xl p-3 border border-red-200"><p class="text-xs font-bold uppercase text-red-500 mb-1"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Hiểu sai phổ biến</p>"Logic 0 = mất điện." Sai — mất nguồn thì cả mạch ngừng hoạt động chứ không phải "đang xuất logic 0". 0 là một trạng thái làm việc bình thường.</div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow p-6">
+      <h3 class="font-bold text-lg text-dark mb-3"><span class="inline-flex w-7 h-7 rounded-lg bg-blue-100 text-blue-700 items-center justify-center text-sm font-extrabold mr-2">2</span>Logic Gate <span class="text-slate-500 font-medium">(cổng logic)</span></h3>
+      <p class="text-sm text-slate-700 border-l-4 border-primary bg-blue-50/60 rounded-r-lg p-3 mb-3"><b class="text-primary">Hiểu trực giác:</b> một "máy ra quyết định" bé xíu: nhìn các input, trả lời output theo <b>một luật cố định</b>, ngay lập tức về mặt chức năng (nhưng có độ trễ về mặt vật lý — xem section 9).</p>
+      <div class="grid md:grid-cols-2 gap-3 text-sm text-slate-700">
+        <div class="bg-slate-50 rounded-xl p-3"><p class="text-xs font-bold uppercase text-slate-500 mb-1"><i class="fa-solid fa-gears mr-1"></i>Bản chất kỹ thuật</p>Cổng logic được xây từ <b>transistor</b> (Tuần 1: công tắc điện tử). Trong công nghệ CMOS, một cổng NAND 2 ngõ vào cần 4 transistor. Cổng là phần tử <b>tổ hợp</b>: output chỉ phụ thuộc input <b>hiện tại</b>, không có trí nhớ.</div>
+        <div class="bg-slate-50 rounded-xl p-3"><p class="text-xs font-bold uppercase text-slate-500 mb-1"><i class="fa-solid fa-mug-hot mr-1"></i>Ví dụ đời sống</p>Luật gia đình: "được xem TV khi ĐÃ làm xong bài VÀ chưa quá 21 giờ" — một cổng AND hai ngõ vào, chạy trong đầu phụ huynh.</div>
+        <div class="bg-slate-50 rounded-xl p-3"><p class="text-xs font-bold uppercase text-slate-500 mb-1"><i class="fa-solid fa-microchip mr-1"></i>Trong IC/FPGA/ASIC</p>Một SoC hiện đại chứa <b>hàng tỉ cổng</b>. Thư viện standard cell của foundry chính là "bộ LEGO" các cổng; FPGA thì cài bảng chân lý của cổng vào LUT.</div>
+        <div class="bg-red-50 rounded-xl p-3 border border-red-200"><p class="text-xs font-bold uppercase text-red-500 mb-1"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Hiểu sai phổ biến</p>"Cổng logic là lý thuyết để thi môn Kỹ thuật số." Sai — nó là linh kiện vật lý thật, có diện tích, độ trễ, công suất; và là đơn vị tiền tệ của netlist ở Tuần 2.</div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow p-6">
+      <h3 class="font-bold text-lg text-dark mb-3"><span class="inline-flex w-7 h-7 rounded-lg bg-blue-100 text-blue-700 items-center justify-center text-sm font-extrabold mr-2">3</span>AND · OR · NOT <span class="text-slate-500 font-medium">(bộ ba nền tảng)</span></h3>
+      <p class="text-sm text-slate-700 border-l-4 border-primary bg-blue-50/60 rounded-r-lg p-3 mb-4"><b class="text-primary">Hiểu trực giác:</b> AND là người <b>nghiêm khắc</b> (tất cả phải đạt), OR là người <b>dễ tính</b> (một cái đạt là đủ), NOT là người <b>phản biện</b> (luôn nói ngược).</p>
+      <div class="grid md:grid-cols-3 gap-3 text-sm mb-3">
+        <div class="bg-slate-50 rounded-xl p-3"><p class="font-bold text-dark mb-1.5">AND — Y = A · B</p><table class="w-full text-center text-xs mono"><tr class="text-slate-400"><td>A</td><td>B</td><td class="font-bold">Y</td></tr><tr><td>0</td><td>0</td><td class="font-bold">0</td></tr><tr><td>0</td><td>1</td><td class="font-bold">0</td></tr><tr><td>1</td><td>0</td><td class="font-bold">0</td></tr><tr class="bg-emerald-50"><td>1</td><td>1</td><td class="font-bold text-emerald-600">1</td></tr></table><p class="text-xs text-slate-500 mt-1.5">Máy giặt chạy khi: cửa đóng <b>VÀ</b> nút Start.</p></div>
+        <div class="bg-slate-50 rounded-xl p-3"><p class="font-bold text-dark mb-1.5">OR — Y = A + B</p><table class="w-full text-center text-xs mono"><tr class="text-slate-400"><td>A</td><td>B</td><td class="font-bold">Y</td></tr><tr><td>0</td><td>0</td><td class="font-bold">0</td></tr><tr class="bg-emerald-50"><td>0</td><td>1</td><td class="font-bold text-emerald-600">1</td></tr><tr class="bg-emerald-50"><td>1</td><td>0</td><td class="font-bold text-emerald-600">1</td></tr><tr class="bg-emerald-50"><td>1</td><td>1</td><td class="font-bold text-emerald-600">1</td></tr></table><p class="text-xs text-slate-500 mt-1.5">Chuông reo khi: nút cổng trước <b>HOẶC</b> nút cổng sau.</p></div>
+        <div class="bg-slate-50 rounded-xl p-3"><p class="font-bold text-dark mb-1.5">NOT — Y = A′</p><table class="w-full text-center text-xs mono"><tr class="text-slate-400"><td>A</td><td class="font-bold">Y</td></tr><tr class="bg-emerald-50"><td>0</td><td class="font-bold text-emerald-600">1</td></tr><tr><td>1</td><td class="font-bold">0</td></tr></table><p class="text-xs text-slate-500 mt-1.5">Đèn "cửa đang MỞ" = đảo của cảm biến "cửa đã đóng". (Dấu ′ đọc là "đảo".)</p></div>
+      </div>
+      <div class="bg-red-50 rounded-xl p-3 border border-red-200 text-sm text-slate-700"><p class="text-xs font-bold uppercase text-red-500 mb-1"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Hiểu sai phổ biến</p>"OR nghĩa là chọn MỘT trong hai." Sai — OR logic là <b>inclusive</b> (bao gồm): cả hai cùng bằng 1 thì output vẫn là 1. "Chọn đúng một trong hai" là cổng XOR ở dưới.</div>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow p-6">
+      <h3 class="font-bold text-lg text-dark mb-3"><span class="inline-flex w-7 h-7 rounded-lg bg-blue-100 text-blue-700 items-center justify-center text-sm font-extrabold mr-2">4</span>NAND · NOR · XOR <span class="text-slate-500 font-medium">(bộ ba "nâng cao" mà thực ra rất đời thường)</span></h3>
+      <p class="text-sm text-slate-700 border-l-4 border-primary bg-blue-50/60 rounded-r-lg p-3 mb-3"><b class="text-primary">Hiểu trực giác:</b> NAND = AND rồi đảo (chỉ ra 0 khi tất cả là 1); NOR = OR rồi đảo (chỉ ra 1 khi tất cả là 0); XOR = "hai đứa <b>khác nhau</b> thì 1".</p>
+      <div class="grid md:grid-cols-2 gap-3 text-sm text-slate-700">
+        <div class="bg-slate-50 rounded-xl p-3"><p class="text-xs font-bold uppercase text-slate-500 mb-1"><i class="fa-solid fa-gears mr-1"></i>Bản chất kỹ thuật</p>NAND và NOR là <b>cổng vạn năng (universal gate)</b>: chỉ cần một loại NAND (hoặc NOR) là xây được mọi mạch số. Trong CMOS, NAND/NOR còn <b>nhỏ và nhanh hơn</b> AND/OR (vì AND = NAND + NOT). XOR: Y = A ⊕ B, bằng 1 khi A khác B.</div>
+        <div class="bg-slate-50 rounded-xl p-3"><p class="text-xs font-bold uppercase text-slate-500 mb-1"><i class="fa-solid fa-mug-hot mr-1"></i>Ví dụ đời sống</p><b>XOR</b> = công tắc cầu thang: hai công tắc hai đầu, đèn sáng khi hai công tắc ở vị trí <b>khác nhau</b>. <b>NOR</b> = đèn "standby" sáng khi <b>không</b> nút nào đang được bấm.</div>
+        <div class="bg-slate-50 rounded-xl p-3"><p class="text-xs font-bold uppercase text-slate-500 mb-1"><i class="fa-solid fa-microchip mr-1"></i>Trong IC/FPGA/ASIC</p>Bộ cộng (adder — Tuần 4) dùng XOR để tính tổng từng bit; bộ so sánh dùng XNOR (XOR đảo). "NAND flash" trong SSD/USB được đặt tên theo cấu trúc giống cổng NAND.</div>
+        <div class="bg-red-50 rounded-xl p-3 border border-red-200"><p class="text-xs font-bold uppercase text-red-500 mb-1"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Hiểu sai phổ biến</p>Nghĩ NAND = (A đảo) AND (B đảo). Sai — NAND là <b>đảo của kết quả AND</b>: (A · B)′. Còn (A′ · B′) = (A + B)′ — đó là định luật De Morgan, và là cổng NOR!</div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow p-6">
+      <h3 class="font-bold text-lg text-dark mb-3"><span class="inline-flex w-7 h-7 rounded-lg bg-blue-100 text-blue-700 items-center justify-center text-sm font-extrabold mr-2">5</span>Truth Table <span class="text-slate-500 font-medium">(bảng chân lý)</span></h3>
+      <p class="text-sm text-slate-700 border-l-4 border-primary bg-blue-50/60 rounded-r-lg p-3 mb-3"><b class="text-primary">Hiểu trực giác:</b> "bảng cửu chương" của một mạch: liệt kê <b>mọi</b> tổ hợp input có thể xảy ra và output tương ứng — không sót, không mơ hồ.</p>
+      <div class="grid md:grid-cols-2 gap-3 text-sm text-slate-700">
+        <div class="bg-slate-50 rounded-xl p-3"><p class="text-xs font-bold uppercase text-slate-500 mb-1"><i class="fa-solid fa-gears mr-1"></i>Bản chất kỹ thuật</p>Mạch có n input → bảng có <b>2<sup>n</sup> hàng</b> (2 input → 4 hàng, 3 input → 8 hàng). Mẹo không bỏ sót: đếm nhị phân từ 000 đến 111. Truth table là <b>đặc tả đầy đủ</b> của một mạch tổ hợp.</div>
+        <div class="bg-slate-50 rounded-xl p-3"><p class="text-xs font-bold uppercase text-slate-500 mb-1"><i class="fa-solid fa-mug-hot mr-1"></i>Ví dụ đời sống</p>Bảng giá vé liệt kê đủ mọi trường hợp: (người lớn / trẻ em) × (ngày thường / ngày lễ) = 4 dòng. Thiếu một dòng là nhân viên bán vé... cãi nhau với khách.</div>
+        <div class="bg-slate-50 rounded-xl p-3"><p class="text-xs font-bold uppercase text-slate-500 mb-1"><i class="fa-solid fa-microchip mr-1"></i>Trong IC/FPGA/ASIC</p><b>LUT (Look-Up Table)</b> trong FPGA đúng nghĩa đen là một bảng chân lý lưu trong bộ nhớ tí hon: synthesis "nén" logic của bạn thành nội dung bảng. Bạn viết truth table hàng ngày mà không biết đấy thôi!</div>
+        <div class="bg-red-50 rounded-xl p-3 border border-red-200"><p class="text-xs font-bold uppercase text-red-500 mb-1"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Hiểu sai phổ biến</p>Chỉ liệt kê "các trường hợp hay gặp". Sai — thiếu hàng nghĩa là spec mơ hồ (Tuần 2!), và kỹ sư verification sẽ hỏi ngay: "tổ hợp 1-0-1 thì output là gì?"</div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow p-6">
+      <h3 class="font-bold text-lg text-dark mb-3"><span class="inline-flex w-7 h-7 rounded-lg bg-blue-100 text-blue-700 items-center justify-center text-sm font-extrabold mr-2">6</span>Từ tình huống → Biểu thức logic <span class="text-slate-500 font-medium">(logic expression — kỹ năng quan trọng nhất tuần này)</span></h3>
+      <p class="text-sm text-slate-700 border-l-4 border-primary bg-blue-50/60 rounded-r-lg p-3 mb-3"><b class="text-primary">Hiểu trực giác:</b> dịch "tiếng người" sang "tiếng mạch": <b>VÀ → AND</b>, <b>HOẶC → OR</b>, <b>KHÔNG/TRỪ KHI → NOT</b>. Mỗi điều kiện là một tín hiệu 1-bit.</p>
+      <div class="grid md:grid-cols-2 gap-3 text-sm text-slate-700">
+        <div class="bg-slate-50 rounded-xl p-3"><p class="text-xs font-bold uppercase text-slate-500 mb-1"><i class="fa-solid fa-gears mr-1"></i>Bản chất kỹ thuật</p>Quy trình 4 bước: (1) chọn input — mỗi điều kiện một tín hiệu; (2) chọn output; (3) viết Y = f(input) bằng · + ′ ⊕; (4) kiểm tra lại bằng truth table. Biểu thức ↔ sơ đồ cổng ↔ truth table là <b>ba cách viết của cùng một mạch</b>.</div>
+        <div class="bg-slate-50 rounded-xl p-3"><p class="text-xs font-bold uppercase text-slate-500 mb-1"><i class="fa-solid fa-mug-hot mr-1"></i>Ví dụ đời sống</p>"Còi hú khi hệ thống được bật VÀ (cửa mở HOẶC cửa sổ mở HOẶC có chuyển động)" → <span class="mono">alarm = enable · (door + window + motion)</span> — chính là demo ở section 6.</div>
+        <div class="bg-slate-50 rounded-xl p-3"><p class="text-xs font-bold uppercase text-slate-500 mb-1"><i class="fa-solid fa-microchip mr-1"></i>Trong IC/FPGA/ASIC</p>Biểu thức dán vào SystemVerilog gần như nguyên văn: <span class="mono">assign alarm = enable &amp; (door | window | motion);</span> — đó là lý do kỹ năng này "ăn tiền" đến tận Tuần 11.</div>
+        <div class="bg-red-50 rounded-xl p-3 border border-red-200"><p class="text-xs font-bold uppercase text-red-500 mb-1"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Hiểu sai phổ biến</p>Chữ "hoặc" trong tiếng Việt đôi khi mang nghĩa loại trừ ("trà hoặc cà phê"). Kỹ sư phải hỏi lại: <i>"cả hai cùng xảy ra thì sao?"</i> — đó chính là tư duy làm spec của Tuần 2.</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ===== 5. SYSTEM VIEW ===== -->
+<section id="system-view" class="py-12">
+  <div class="flex items-center gap-3 mb-6"><span class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-extrabold">5</span><h2 class="text-2xl md:text-3xl font-bold text-dark"><i class="fa-solid fa-diagram-project text-primary mr-2"></i>Góc nhìn hệ thống: cổng logic đứng ở đâu?</h2></div>
+  <p class="text-slate-600 mb-5 max-w-3xl">Đây là "hồ sơ lý lịch" của khối kiến thức tuần này — mẫu câu hỏi mà từ nay ta sẽ dùng cho <b>mọi</b> khối mạch số:</p>
+  <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="bg-white rounded-2xl shadow p-5"><p class="text-xs font-bold uppercase text-slate-400 mb-1"><i class="fa-solid fa-location-dot text-primary mr-1"></i>Nằm ở đâu trong hệ thống số?</p><p class="text-sm text-slate-700">Bên trong <b>mọi khối tổ hợp</b>: MUX, decoder, adder (Tuần 4), logic chuyển trạng thái của FSM (Tuần 6), logic giải mã LED (Tuần 10)…</p></div>
+    <div class="bg-white rounded-2xl shadow p-5"><p class="text-xs font-bold uppercase text-slate-400 mb-1"><i class="fa-solid fa-arrow-right-to-bracket text-primary mr-1"></i>Input</p><p class="text-sm text-slate-700">1 đến n tín hiệu logic (mỗi tín hiệu mang mức High/Low). Trong ví dụ báo động: door, window, motion, enable.</p></div>
+    <div class="bg-white rounded-2xl shadow p-5"><p class="text-xs font-bold uppercase text-slate-400 mb-1"><i class="fa-solid fa-arrow-right-from-bracket text-primary mr-1"></i>Output</p><p class="text-sm text-slate-700">1 tín hiệu logic, được tính <b>chỉ từ input hiện tại</b> theo luật của cổng (bảng chân lý).</p></div>
+    <div class="bg-white rounded-2xl shadow p-5"><p class="text-xs font-bold uppercase text-slate-400 mb-1"><i class="fa-solid fa-shapes text-primary mr-1"></i>Tổ hợp hay tuần tự?</p><p class="text-sm text-slate-700"><b>Tổ hợp (combinational)</b> — không có trí nhớ, không lưu trạng thái. Mạch tuần tự (có nhớ) sẽ gặp ở Tuần 5.</p></div>
+    <div class="bg-white rounded-2xl shadow p-5"><p class="text-xs font-bold uppercase text-slate-400 mb-1"><i class="fa-regular fa-clock text-primary mr-1"></i>Cần clock?</p><p class="text-sm text-slate-700"><b>KHÔNG.</b> Cổng phản ứng theo input, không đợi nhịp. (Nhưng có độ trễ lan truyền — xem section 9.)</p></div>
+    <div class="bg-white rounded-2xl shadow p-5"><p class="text-xs font-bold uppercase text-slate-400 mb-1"><i class="fa-solid fa-rotate-left text-primary mr-1"></i>Cần reset?</p><p class="text-sm text-slate-700"><b>KHÔNG.</b> Không có trạng thái thì không có gì để reset. Reset chỉ cần khi mạch có phần tử nhớ (Tuần 5).</p></div>
+    <div class="bg-white rounded-2xl shadow p-5"><p class="text-xs font-bold uppercase text-slate-400 mb-1"><i class="fa-solid fa-code text-primary mr-1"></i>Viết Verilog thế nào?</p><p class="text-sm text-slate-700">Gán liên tục: <span class="mono">assign y = a &amp; b;</span> với toán tử <span class="mono">&amp;</span> (AND), <span class="mono">|</span> (OR), <span class="mono">~</span> (NOT), <span class="mono">^</span> (XOR).</p></div>
+    <div class="bg-white rounded-2xl shadow p-5"><p class="text-xs font-bold uppercase text-slate-400 mb-1"><i class="fa-solid fa-industry text-primary mr-1"></i>Synthesis ra phần cứng gì?</p><p class="text-sm text-slate-700">ASIC: cổng standard cell thật (AND2_X1, NOR2_X1…). FPGA: bảng chân lý nạp vào <b>LUT</b>. Cùng một hành vi, hai cách hiện thực.</p></div>
+  </div>
+</section>
+
+<!-- ===== 6. INTERACTIVE DEMO ===== -->
+<section id="demo" class="py-12">
+  <div class="flex items-center gap-3 mb-6"><span class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-extrabold">6</span><h2 class="text-2xl md:text-3xl font-bold text-dark"><i class="fa-solid fa-circle-play text-primary mr-2"></i>Demo tương tác</h2></div>
+
+  <!-- Demo A: hệ thống báo động -->
+  <div class="bg-white rounded-2xl shadow p-6 mb-6">
+    <h3 class="font-bold text-lg text-dark mb-1"><i class="fa-solid fa-bell text-danger mr-2"></i>Demo A — Hệ thống báo động chống trộm</h3>
+    <p class="text-sm text-slate-600 mb-4">Gạt các cảm biến và công tắc tổng, xem tín hiệu 0/1 chạy trên dây, cổng logic ra quyết định và còi báo động phản ứng. Thử đổi chế độ OR/AND để thấy cùng một hệ thống, khác luật logic là khác hẳn hành vi.</p>
+    <div class="grid lg:grid-cols-3 gap-5">
+      <div class="space-y-3">
+        <p class="text-xs font-bold uppercase text-slate-400">Cảm biến (input)</p>
+        <label class="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 cursor-pointer text-sm"><span><i class="fa-solid fa-door-open text-primary mr-2"></i><b>door</b> — cảm biến cửa</span><input id="cbDoor" type="checkbox" class="w-5 h-5 accent-amber-500"></label>
+        <label class="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 cursor-pointer text-sm"><span><i class="fa-solid fa-window-maximize text-primary mr-2"></i><b>window</b> — cảm biến cửa sổ</span><input id="cbWindow" type="checkbox" class="w-5 h-5 accent-amber-500"></label>
+        <label class="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 cursor-pointer text-sm"><span><i class="fa-solid fa-person-walking text-primary mr-2"></i><b>motion</b> — cảm biến chuyển động</span><input id="cbMotion" type="checkbox" class="w-5 h-5 accent-amber-500"></label>
+        <p class="text-xs font-bold uppercase text-slate-400 pt-2">Công tắc tổng</p>
+        <label class="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-xl px-4 py-2.5 cursor-pointer text-sm"><span><i class="fa-solid fa-power-off text-primary mr-2"></i><b>enable</b> — bật chế độ chống trộm</span><input id="cbEnable" type="checkbox" class="w-5 h-5 accent-blue-600"></label>
+        <p class="text-xs font-bold uppercase text-slate-400 pt-2">Chế độ ghép cảm biến</p>
+        <div class="flex gap-2">
+          <label class="flex-1 flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 cursor-pointer text-sm"><input type="radio" name="almMode" id="rOr" value="or" checked class="accent-blue-600"><span><b>OR</b> — một cảm biến là đủ</span></label>
+          <label class="flex-1 flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 cursor-pointer text-sm"><input type="radio" name="almMode" id="rAnd" value="and" class="accent-blue-600"><span><b>AND</b> — cần tất cả</span></label>
+        </div>
+        <div class="bg-slate-900 text-emerald-300 rounded-xl p-3 text-xs mono leading-relaxed"><p class="text-slate-400 mb-1">// Biểu thức đang chạy:</p><p id="almExpr">alarm = enable &amp; (door | window | motion)</p><p id="almCalc" class="text-amber-300 mt-1">= 0 &amp; (0 | 0 | 0) = 0</p></div>
+      </div>
+      <div class="lg:col-span-2">
+        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3 overflow-x-auto">
+          <svg viewBox="0 0 660 300" class="w-full min-w-[520px]" xmlns="http://www.w3.org/2000/svg" aria-label="Sơ đồ mạch báo động">
+            <text x="10" y="55" font-size="13" font-weight="700" fill="#334155">door</text>
+            <text x="10" y="95" font-size="13" font-weight="700" fill="#334155">window</text>
+            <text x="10" y="135" font-size="13" font-weight="700" fill="#334155">motion</text>
+            <text x="10" y="235" font-size="13" font-weight="700" fill="#334155">enable</text>
+            <polyline id="pDoor" class="w-lo" points="70,50 228,50"></polyline>
+            <polyline id="pWindow" class="w-lo" points="70,90 228,90"></polyline>
+            <polyline id="pMotion" class="w-lo" points="70,130 228,130"></polyline>
+            <polyline id="pEnable" class="w-lo" points="70,230 340,230 340,180 400,180"></polyline>
+            <polyline id="pS" class="w-lo" points="300,90 340,90 340,140 400,140"></polyline>
+            <polyline id="pAlarm" class="w-lo" points="462,160 545,160"></polyline>
+            <g id="g1or">
+              <path class="gate-body" d="M 225,55 Q 245,90 225,125 C 258,125 285,112 302,90 C 285,68 258,55 225,55 Z"></path>
+              <text x="256" y="95" font-size="13" font-weight="800" fill="#2563eb" text-anchor="middle">OR</text>
+            </g>
+            <g id="g1and" style="display:none">
+              <path class="gate-body" d="M 228,55 L 266,55 A 35,35 0 0 1 266,125 L 228,125 Z"></path>
+              <text x="256" y="95" font-size="13" font-weight="800" fill="#2563eb" text-anchor="middle">AND</text>
+            </g>
+            <path class="gate-body" d="M 400,132 L 434,132 A 28,28 0 0 1 434,188 L 400,188 Z"></path>
+            <text x="422" y="165" font-size="12" font-weight="800" fill="#2563eb" text-anchor="middle">AND</text>
+            <circle id="lampC" class="lamp-off" cx="580" cy="160" r="26"></circle>
+            <text id="lampTxt" x="580" y="167" font-size="20" font-weight="800" fill="#fff" text-anchor="middle">!</text>
+            <text x="580" y="205" font-size="12" font-weight="700" fill="#475569" text-anchor="middle">Còi báo động</text>
+            <text id="almStateTxt" x="580" y="222" font-size="11" font-weight="700" fill="#64748b" text-anchor="middle">im lặng</text>
+            <text id="tDoor" x="150" y="42" font-size="13" class="v-lo mono" text-anchor="middle">0</text>
+            <text id="tWindow" x="150" y="82" font-size="13" class="v-lo mono" text-anchor="middle">0</text>
+            <text id="tMotion" x="150" y="122" font-size="13" class="v-lo mono" text-anchor="middle">0</text>
+            <text id="tEnable" x="150" y="222" font-size="13" class="v-lo mono" text-anchor="middle">0</text>
+            <text id="tS" x="352" y="82" font-size="13" class="v-lo mono" text-anchor="middle">0</text>
+            <text id="tAlarm" x="504" y="150" font-size="13" class="v-lo mono" text-anchor="middle">0</text>
+          </svg>
+        </div>
+        <p class="text-xs text-slate-500 mt-2"><span class="inline-block w-4 h-1 bg-amber-500 rounded align-middle mr-1"></span>dây cam = mức 1 (khoảng điện áp High) · <span class="inline-block w-4 h-1 bg-slate-400 rounded align-middle mx-1"></span>dây xám = mức 0 (khoảng điện áp Low) — chú ý: 0 vẫn là điện áp hợp lệ, không phải "mất điện"!</p>
+        <div class="mt-3 bg-white border border-slate-200 rounded-xl overflow-hidden">
+          <p class="text-xs font-bold uppercase text-slate-500 px-3 pt-2 pb-1">Bảng chân lý (16 hàng — hàng vàng là tổ hợp hiện tại)</p>
+          <div class="max-h-56 overflow-y-auto">
+            <table class="w-full text-center text-xs mono">
+              <thead class="sticky top-0 bg-slate-100"><tr class="text-slate-500"><th class="py-1.5">door</th><th>window</th><th>motion</th><th>enable</th><th class="text-blue-600">S (cảm biến)</th><th class="text-red-500">alarm</th></tr></thead>
+              <tbody id="almTbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Demo B: truth table explorer -->
+  <div class="bg-white rounded-2xl shadow p-6">
+    <h3 class="font-bold text-lg text-dark mb-1"><i class="fa-solid fa-table-cells text-primary mr-2"></i>Demo B — Khám phá 6 cổng logic (Truth-Table Explorer)</h3>
+    <p class="text-sm text-slate-600 mb-4">Chọn một cổng để xem ký hiệu, bảng chân lý và biểu thức Boolean. Gạt A/B để thử từng tổ hợp — hàng tương ứng trong bảng sẽ sáng lên.</p>
+    <div id="gateBtnRow" class="flex flex-wrap gap-2 mb-5">
+      <button type="button" class="gate-btn active" data-gate="AND">AND</button>
+      <button type="button" class="gate-btn" data-gate="OR">OR</button>
+      <button type="button" class="gate-btn" data-gate="NOT">NOT</button>
+      <button type="button" class="gate-btn" data-gate="NAND">NAND</button>
+      <button type="button" class="gate-btn" data-gate="NOR">NOR</button>
+      <button type="button" class="gate-btn" data-gate="XOR">XOR</button>
+    </div>
+    <div class="grid md:grid-cols-3 gap-5">
+      <div>
+        <div id="gateSymbol" class="bg-slate-50 border border-slate-200 rounded-2xl p-2 mb-3"></div>
+        <div class="flex items-center gap-2 mb-2">
+          <button type="button" id="btnA" class="toggle-in">A = 0</button>
+          <span id="wrapB"><button type="button" id="btnB" class="toggle-in">B = 0</button></span>
+          <span class="text-slate-400 font-bold">→</span>
+          <span id="outY" class="min-w-[64px] text-center rounded-xl px-3 py-2 font-extrabold mono bg-slate-100 text-slate-500 border-2 border-slate-200">Y = 0</span>
+        </div>
+        <p class="text-xs text-slate-500">Gạt A/B để đổi 0 ↔ 1.</p>
+      </div>
+      <div class="text-sm text-slate-700">
+        <h4 id="gateName" class="font-extrabold text-dark text-lg mb-1">AND</h4>
+        <p id="gateDesc" class="mb-3">Output bằng 1 chỉ khi TẤT CẢ input bằng 1 — người gác cổng nghiêm khắc.</p>
+        <p class="text-xs font-bold uppercase text-slate-400 mb-1">Biểu thức Boolean</p>
+        <p id="gateExprTxt" class="mono bg-slate-100 rounded-lg px-3 py-1.5 inline-block mb-3">Y = A · B</p>
+        <p class="text-xs font-bold uppercase text-slate-400 mb-1">SystemVerilog</p>
+        <p id="gateVerilog" class="mono bg-slate-900 text-emerald-300 rounded-lg px-3 py-1.5 inline-block mb-3">assign y = a &amp; b;</p>
+        <p class="text-xs font-bold uppercase text-slate-400 mb-1">Ví dụ đời sống</p>
+        <p id="gateExample" class="text-slate-600">Máy giặt chỉ chạy khi cửa đã đóng VÀ nút Start được bấm.</p>
+      </div>
+      <div>
+        <p class="text-xs font-bold uppercase text-slate-400 mb-2">Bảng chân lý</p>
+        <table class="w-full text-center text-sm mono bg-slate-50 rounded-xl overflow-hidden">
+          <thead><tr class="bg-slate-200 text-slate-600" id="gateThead"><th class="py-2">A</th><th>B</th><th>Y</th></tr></thead>
+          <tbody id="gateTbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- ===== 7. ENGINEERING WORKFLOW ===== -->
+<section id="workflow" class="py-12">
+  <div class="flex items-center gap-3 mb-6"><span class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-extrabold">7</span><h2 class="text-2xl md:text-3xl font-bold text-dark"><i class="fa-solid fa-timeline text-primary mr-2"></i>Quy trình kỹ sư: từ tình huống đến FPGA</h2></div>
+  <p class="text-slate-600 mb-6 max-w-3xl">Đây là "flow thu nhỏ" của Tuần 2 áp cho bài toán logic tổ hợp. Hãy đi đúng thứ tự — <b>code xuất hiện ở bước 6, không phải bước 1</b>:</p>
+  <div class="bg-white rounded-2xl shadow p-6">
+    <ol class="relative border-l-2 border-blue-200 ml-4 space-y-5">
+      <li class="ml-6"><span class="absolute -left-[15px] w-7 h-7 rounded-full bg-blue-100 text-blue-700 text-xs font-extrabold flex items-center justify-center border-2 border-white shadow">1</span><p class="text-sm text-slate-700"><b class="text-dark">Tình huống (requirement):</b> "Còi hú khi hệ thống được bật và có ít nhất một cảm biến phát hiện đột nhập." — viết rõ ràng bằng tiếng Việt trước.</p></li>
+      <li class="ml-6"><span class="absolute -left-[15px] w-7 h-7 rounded-full bg-blue-100 text-blue-700 text-xs font-extrabold flex items-center justify-center border-2 border-white shadow">2</span><p class="text-sm text-slate-700"><b class="text-dark">Xác định Input/Output:</b> input: door, window, motion, enable (mỗi điều kiện một tín hiệu 1-bit); output: alarm.</p></li>
+      <li class="ml-6"><span class="absolute -left-[15px] w-7 h-7 rounded-full bg-blue-100 text-blue-700 text-xs font-extrabold flex items-center justify-center border-2 border-white shadow">3</span><p class="text-sm text-slate-700"><b class="text-dark">Lập bảng chân lý:</b> 4 input → 16 hàng (2<sup>4</sup>). Đếm nhị phân 0000 → 1111 để không sót hàng nào.</p></li>
+      <li class="ml-6"><span class="absolute -left-[15px] w-7 h-7 rounded-full bg-blue-100 text-blue-700 text-xs font-extrabold flex items-center justify-center border-2 border-white shadow">4</span><p class="text-sm text-slate-700"><b class="text-dark">Viết biểu thức logic:</b> alarm = enable · (door + window + motion). Đối chiếu lại với bảng chân lý: có khớp cả 16 hàng không?</p></li>
+      <li class="ml-6"><span class="absolute -left-[15px] w-7 h-7 rounded-full bg-blue-100 text-blue-700 text-xs font-extrabold flex items-center justify-center border-2 border-white shadow">5</span><p class="text-sm text-slate-700"><b class="text-dark">Vẽ sơ đồ cổng:</b> một cổng OR 3 ngõ vào + một cổng AND 2 ngõ vào — chính là hình trong Demo A.</p></li>
+      <li class="ml-6"><span class="absolute -left-[15px] w-7 h-7 rounded-full bg-teal-100 text-teal-700 text-xs font-extrabold flex items-center justify-center border-2 border-white shadow">6</span><p class="text-sm text-slate-700"><b class="text-dark">Viết RTL:</b> một dòng <span class="mono">assign</span> SystemVerilog (section 8). Biểu thức logic dịch gần như nguyên văn.</p></li>
+      <li class="ml-6"><span class="absolute -left-[15px] w-7 h-7 rounded-full bg-teal-100 text-teal-700 text-xs font-extrabold flex items-center justify-center border-2 border-white shadow">7</span><p class="text-sm text-slate-700"><b class="text-dark">Viết testbench + mô phỏng:</b> quét các tổ hợp input, soi waveform xem alarm có đúng bảng chân lý không — với 16 hàng, quét đủ 100% là chuyện nhỏ.</p></li>
+      <li class="ml-6"><span class="absolute -left-[15px] w-7 h-7 rounded-full bg-violet-100 text-violet-700 text-xs font-extrabold flex items-center justify-center border-2 border-white shadow">8</span><p class="text-sm text-slate-700"><b class="text-dark">Synthesis:</b> công cụ biến dòng assign thành cổng thật (ASIC) hoặc LUT (FPGA) — đúng như chặng 5 của flow Tuần 2.</p></li>
+      <li class="ml-6"><span class="absolute -left-[15px] w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 text-xs font-extrabold flex items-center justify-center border-2 border-white shadow">9</span><p class="text-sm text-slate-700"><b class="text-dark">Nạp bitstream lên board FPGA:</b> gạt switch làm cảm biến, LED làm còi — hệ thống báo động "thật" đầu tiên của bạn. (Nhớ Tuần 2: đây là <b>cấu hình FPGA</b>, không phải tape-out!)</p></li>
+    </ol>
+  </div>
+</section>
+
+<!-- ===== 8. CODE / RTL ===== -->
+<section id="code-rtl" class="py-12">
+  <div class="flex items-center gap-3 mb-6"><span class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-extrabold">8</span><h2 class="text-2xl md:text-3xl font-bold text-dark"><i class="fa-solid fa-code text-primary mr-2"></i>Code SystemVerilog: mạch báo động</h2></div>
+  <p class="text-slate-600 mb-6 max-w-3xl">Mạch <b>tổ hợp thuần túy</b> → dùng <span class="mono">assign</span> (gán liên tục). Chưa cần thuộc cú pháp — hãy nhìn thấy sự tương ứng 1-1: <b>biểu thức logic ↔ dòng code ↔ đám cổng</b>.</p>
+
+  <div class="bg-white rounded-2xl shadow p-6 mb-5">
+    <div class="flex items-center justify-between mb-3"><h3 class="font-bold text-dark"><i class="fa-solid fa-file-code text-primary mr-2"></i>Thiết kế (DUT — Design Under Test)</h3><button class="copy-btn text-xs font-semibold bg-slate-800 text-white px-3 py-1.5 rounded-lg hover:bg-slate-700" data-target="codeAlarm"><i class="fa-regular fa-copy mr-1"></i>Copy</button></div>
+<pre class="code-block" id="codeAlarm"><code><span class="cm">// ============================================================
+// alarm_system.sv — Hệ thống báo động (mạch TỔ HỢP, không clock)
+// Biểu thức: alarm = enable · (door + window + motion)
+// ============================================================</span>
+<span class="kw">module</span> <span class="fn">alarm_system</span> (
+  <span class="kw">input</span>  <span class="tp">logic</span> door,    <span class="cm">// 1 = cảm biến cửa bị kích hoạt</span>
+  <span class="kw">input</span>  <span class="tp">logic</span> window,  <span class="cm">// 1 = cảm biến cửa sổ bị kích hoạt</span>
+  <span class="kw">input</span>  <span class="tp">logic</span> motion,  <span class="cm">// 1 = phát hiện chuyển động</span>
+  <span class="kw">input</span>  <span class="tp">logic</span> enable,  <span class="cm">// 1 = chủ nhà bật chế độ chống trộm</span>
+  <span class="kw">output</span> <span class="tp">logic</span> alarm    <span class="cm">// 1 = còi hú</span>
+);
+
+  <span class="cm">// Gán liên tục: vế phải đổi là output "chảy" theo (sau độ trễ lan truyền).
+  // & là AND, | là OR — dịch nguyên văn từ biểu thức logic.</span>
+  <span class="kw">assign</span> alarm = enable &amp; (door | window | motion);
+
+<span class="kw">endmodule</span></code></pre>
+    <p class="text-sm text-slate-600 mt-3"><i class="fa-solid fa-microchip text-primary mr-1"></i><b>Synthesis ra gì?</b> Trên ASIC: đúng nghĩa đen một cổng OR 3 ngõ vào + một cổng AND 2 ngõ vào từ thư viện standard cell. Trên FPGA: cả biểu thức 4 input này nằm gọn trong <b>một LUT4</b> — bảng chân lý 16 hàng của bạn được nạp thẳng vào bộ nhớ tí hon đó.</p>
+  </div>
+
+  <div class="bg-white rounded-2xl shadow p-6 mb-5">
+    <div class="flex items-center justify-between mb-3"><h3 class="font-bold text-dark"><i class="fa-solid fa-vial text-accent mr-2"></i>Testbench khung (môi trường kiểm thử — chạy thử trên EDA Playground)</h3><button class="copy-btn text-xs font-semibold bg-slate-800 text-white px-3 py-1.5 rounded-lg hover:bg-slate-700" data-target="codeTb"><i class="fa-regular fa-copy mr-1"></i>Copy</button></div>
+<pre class="code-block" id="codeTb"><code><span class="cm">// alarm_system_tb.sv — Testbench: cấp input, quan sát output</span>
+<span class="kw">module</span> <span class="fn">alarm_system_tb</span>;
+
+  <span class="cm">// 1. Khai báo tín hiệu để nối vào thiết kế</span>
+  <span class="tp">logic</span> door, window, motion, enable, alarm;
+
+  <span class="cm">// 2. Gọi (instantiate) thiết kế cần kiểm tra</span>
+  <span class="fn">alarm_system</span> dut (
+    .door(door), .window(window), .motion(motion),
+    .enable(enable), .alarm(alarm)
+  );
+
+  <span class="cm">// 3. Kịch bản kích thích (stimulus)</span>
+  <span class="kw">initial begin</span>
+    enable = <span class="nb">0</span>; door = <span class="nb">0</span>; window = <span class="nb">0</span>; motion = <span class="nb">0</span>;
+    #<span class="nb">10</span> enable = <span class="nb">1</span>;            <span class="cm">// bật hệ thống, chưa cảm biến nào → alarm = 0</span>
+    #<span class="nb">10</span> door = <span class="nb">1</span>;              <span class="cm">// mở cửa → alarm phải = 1</span>
+    #<span class="nb">10</span> door = <span class="nb">0</span>; motion = <span class="nb">1</span>;  <span class="cm">// đổi sang chuyển động → vẫn = 1</span>
+    #<span class="nb">10</span> enable = <span class="nb">0</span>;            <span class="cm">// tắt hệ thống → alarm = 0 dù motion = 1</span>
+    #<span class="nb">10</span> <span class="kw">$finish</span>;              <span class="cm">// kết thúc mô phỏng</span>
+  <span class="kw">end</span>
+
+  <span class="cm">// 4. Tự động in mỗi khi có tín hiệu đổi giá trị</span>
+  <span class="kw">initial</span> <span class="kw">$monitor</span>(<span class="st">"t=%0t enable=%b door=%b window=%b motion=%b -&gt; alarm=%b"</span>,
+                   <span class="kw">$time</span>, enable, door, window, motion, alarm);
+
+<span class="kw">endmodule</span></code></pre>
+    <p class="text-sm text-slate-600 mt-3"><i class="fa-solid fa-circle-info text-primary mr-1"></i>Testbench là "phòng thí nghiệm ảo" của chặng Verification (Tuần 2). Nó <b>không được synthesis</b> thành phần cứng — chỉ dùng để mô phỏng. Dòng cuối của kịch bản chính là tình huống bẫy: hệ thống tắt thì dù có chuyển động còi vẫn phải im.</p>
+  </div>
+
+  <div class="grid md:grid-cols-2 gap-4">
+    <div class="bg-blue-50 border border-blue-200 rounded-2xl p-5 text-sm text-slate-700"><h4 class="font-bold text-primary mb-2"><i class="fa-solid fa-arrows-left-right mr-1"></i> Ba biến thể nhanh</h4><ul class="space-y-1.5 mono text-xs md:text-sm"><li>assign canh_bao = ~an_toan; <span class="text-slate-400">// NOT</span></li><li>assign khac_nhau = a ^ b; <span class="text-slate-400">// XOR: 1 khi a khác b</span></li><li>assign bao_chay = khoi &amp; nhiet; <span class="text-slate-400">// AND: giảm báo động giả</span></li></ul></div>
+    <div class="bg-amber-50 border border-amber-200 rounded-2xl p-5 text-sm text-slate-700"><h4 class="font-bold text-amber-700 mb-2"><i class="fa-solid fa-lightbulb mr-1"></i> Ghi nhớ tuần này</h4>Mạch tổ hợp đơn giản → <span class="mono">assign</span> là đủ. Các khối luôn dùng <span class="mono">always_comb</span>/<span class="mono">always_ff</span> sẽ đến ở Tuần 5–7, khi mạch bắt đầu "có trí nhớ". Đừng vội — nền móng trước, tầng lầu sau.</div>
+  </div>
+</section>
+
+<!-- ===== 9. WAVEFORM / TIMING ===== -->
+<section id="waveform" class="py-12">
+  <div class="flex items-center gap-3 mb-6"><span class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-extrabold">9</span><h2 class="text-2xl md:text-3xl font-bold text-dark"><i class="fa-solid fa-wave-square text-primary mr-2"></i>Timing: cổng logic KHÔNG đổi "ngay lập tức"</h2></div>
+  <p class="text-slate-600 mb-6 max-w-3xl">Tuần này chưa có clock — nhưng đã có <b>thời gian</b>. Transistor cần thời gian để chuyển mạch, nên mọi cổng logic đều có <b>propagation delay (độ trễ lan truyền, t<sub>pd</sub>)</b>: từ lúc input đổi đến lúc output ổn định ở giá trị mới.</p>
+
+  <div class="bg-white rounded-2xl shadow p-6 mb-5">
+    <h3 class="font-bold text-dark mb-3"><i class="fa-solid fa-hourglass-half text-primary mr-2"></i>Propagation delay qua một cổng</h3>
+    <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3 overflow-x-auto">
+      <svg viewBox="0 0 640 190" class="w-full min-w-[480px]" xmlns="http://www.w3.org/2000/svg" aria-label="Giản đồ độ trễ lan truyền">
+        <rect x="220" y="15" width="80" height="160" fill="#fef3c7" opacity="0.8"></rect>
+        <text x="30" y="65" font-size="13" font-weight="700" fill="#2563eb">A (input)</text>
+        <polyline points="110,80 220,80 220,45 610,45" fill="none" stroke="#2563eb" stroke-width="3"></polyline>
+        <text x="30" y="135" font-size="13" font-weight="700" fill="#10b981">Y (output)</text>
+        <polyline points="110,155 300,155 300,120 610,120" fill="none" stroke="#10b981" stroke-width="3"></polyline>
+        <line x1="220" y1="15" x2="220" y2="175" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="4 3"></line>
+        <line x1="300" y1="15" x2="300" y2="175" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="4 3"></line>
+        <text x="260" y="30" font-size="12" font-weight="800" fill="#b45309" text-anchor="middle">t_pd</text>
+        <text x="222" y="188" font-size="11" fill="#64748b">A đổi giá trị</text>
+        <text x="302" y="188" font-size="11" fill="#64748b">Y mới ổn định</text>
+      </svg>
+    </div>
+    <p class="text-sm text-slate-600 mt-3">Với công nghệ hiện đại, t<sub>pd</sub> của một cổng cỡ <b>vài chục đến vài trăm picosecond</b> — nhanh khủng khiếp nhưng <b>khác 0</b>. Tín hiệu đi qua chuỗi nhiều cổng thì các độ trễ <b>cộng dồn</b>: chuỗi dài nhất trong mạch gọi là <b>critical path (đường găng)</b> — chính nó quyết định mạch của bạn chạy nhanh tối đa bao nhiêu (Tuần 2: STA đo cái này!).</p>
+  </div>
+
+  <div class="bg-white rounded-2xl shadow p-6 mb-5">
+    <h3 class="font-bold text-dark mb-3"><i class="fa-solid fa-bolt text-secondary mr-2"></i>Glitch / Hazard: cú "nháy" sai tạm thời</h3>
+    <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3 overflow-x-auto">
+      <svg viewBox="0 0 640 170" class="w-full min-w-[480px]" xmlns="http://www.w3.org/2000/svg" aria-label="Giản đồ glitch">
+        <text x="30" y="55" font-size="13" font-weight="700" fill="#2563eb">A (input)</text>
+        <polyline points="110,35 250,35 250,70 610,70" fill="none" stroke="#2563eb" stroke-width="3"></polyline>
+        <text x="30" y="130" font-size="13" font-weight="700" fill="#ef4444">Y (output)</text>
+        <polyline points="110,105 290,105 290,140 330,140 330,105 610,105" fill="none" stroke="#ef4444" stroke-width="3"></polyline>
+        <ellipse cx="310" cy="140" rx="38" ry="18" fill="none" stroke="#f59e0b" stroke-width="2" stroke-dasharray="5 3"></ellipse>
+        <text x="310" y="165" font-size="12" font-weight="800" fill="#b45309" text-anchor="middle">glitch!</text>
+        <text x="440" y="130" font-size="11" fill="#64748b">…rồi mới ổn định giá trị đúng</text>
+      </svg>
+    </div>
+    <p class="text-sm text-slate-600 mt-3">Khi một tín hiệu đi tới output theo <b>hai con đường có độ trễ khác nhau</b> (ví dụ một nhánh qua cổng NOT, một nhánh đi thẳng), output có thể "nháy" sang giá trị sai trong tích tắc trước khi ổn định — gọi là <b>glitch (hazard)</b>. Trực giác cần nhớ: <b>output của mạch tổ hợp chỉ đáng tin sau khi mọi đường đã ổn định</b>. Ở Tuần 5, flip-flop + clock sẽ giải quyết chuyện này rất thanh lịch: "đợi hết nhiễu loạn rồi mới chốt giá trị".</p>
+  </div>
+
+  <div class="bg-blue-50 border border-blue-200 rounded-2xl p-5 text-sm text-slate-700"><i class="fa-solid fa-compass text-primary mr-1"></i> <b>Chưa có clock ở tuần này — và đó là chủ ý.</b> Mạch tổ hợp là "phản xạ tức thời có độ trễ"; Tuần 5 ta thêm nhịp tim (clock) và trí nhớ (flip-flop) để xây hệ thống tuần tự thật sự.</div>
+</section>
+
+<!-- ===== 10. ACTIVE LEARNING ===== -->
+<section id="active-learning" class="py-12">
+  <div class="flex items-center gap-3 mb-6"><span class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-extrabold">10</span><h2 class="text-2xl md:text-3xl font-bold text-dark"><i class="fa-solid fa-people-group text-primary mr-2"></i>Kịch bản buổi học 60 phút</h2></div>
+  <div class="bg-white rounded-2xl shadow p-6">
+    <div class="space-y-3">
+      <div class="flex gap-4 items-start"><span class="shrink-0 w-20 text-center text-xs font-extrabold bg-blue-100 text-blue-700 rounded-lg py-2">0–5'</span><div><p class="font-bold text-dark text-sm">Quick check-in</p><p class="text-sm text-slate-600">Mỗi bạn nêu tình huống "nếu… và/hoặc… thì…" đã chuẩn bị — mentor gom nhanh lên bảng, chưa sửa vội.</p></div></div>
+      <div class="flex gap-4 items-start"><span class="shrink-0 w-20 text-center text-xs font-extrabold bg-blue-100 text-blue-700 rounded-lg py-2">5–15'</span><div><p class="font-bold text-dark text-sm">Student presentation</p><p class="text-sm text-slate-600">Một nhóm trình bày 6 cổng + bảng chân lý theo cách hiểu của nhóm, kèm ví dụ đời sống tự nghĩ.</p></div></div>
+      <div class="flex gap-4 items-start"><span class="shrink-0 w-20 text-center text-xs font-extrabold bg-amber-100 text-amber-700 rounded-lg py-2">15–25'</span><div><p class="font-bold text-dark text-sm">Mentor correction</p><p class="text-sm text-slate-600">Sửa 3 điểm nóng: OR inclusive vs XOR; mức 1/0 là khoảng điện áp; output có độ trễ. Chạy Demo A đổi chế độ OR/AND cho cả lớp đoán trước kết quả.</p></div></div>
+      <div class="flex gap-4 items-start"><span class="shrink-0 w-20 text-center text-xs font-extrabold bg-emerald-100 text-emerald-700 rounded-lg py-2">25–45'</span><div><p class="font-bold text-dark text-sm">Breakout room (15–20')</p><p class="text-sm text-slate-600">Nhóm 3–5 bạn làm "Logic Card" cho một thiết bị thực tế (section 11).</p></div></div>
+      <div class="flex gap-4 items-start"><span class="shrink-0 w-20 text-center text-xs font-extrabold bg-violet-100 text-violet-700 rounded-lg py-2">45–55'</span><div><p class="font-bold text-dark text-sm">Group sharing</p><p class="text-sm text-slate-600">Mỗi nhóm 2 phút: đọc tình huống → biểu thức → một hàng "bẫy" trong truth table. Nhóm khác kiểm tra chéo.</p></div></div>
+      <div class="flex gap-4 items-start"><span class="shrink-0 w-20 text-center text-xs font-extrabold bg-slate-200 text-slate-700 rounded-lg py-2">55–60'</span><div><p class="font-bold text-dark text-sm">Wrap-up</p><p class="text-sm text-slate-600">Chốt: gates = công cụ mô tả quyết định; giao homework; nhá hàng Tuần 4: "ghép cổng thành khối — MUX là gì?"</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 11. BREAKOUT ROOM GUIDE ===== -->
+<section id="breakout" class="py-12">
+  <div class="flex items-center gap-3 mb-6"><span class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-extrabold">11</span><h2 class="text-2xl md:text-3xl font-bold text-dark"><i class="fa-solid fa-comments text-primary mr-2"></i>Hướng dẫn Breakout Room</h2></div>
+  <div class="grid lg:grid-cols-2 gap-5">
+    <div class="bg-white rounded-2xl shadow p-6">
+      <h3 class="font-bold text-dark mb-3"><i class="fa-solid fa-circle-question text-primary mr-2"></i>Câu hỏi thảo luận (phân tích, không học thuộc)</h3>
+      <ol class="space-y-3 text-sm text-slate-700 list-decimal list-inside">
+        <li>Chọn một thiết bị thực tế (máy giặt, thang máy, lò vi sóng, đèn sân…). Xác định <b>ít nhất 2 input và 1 output</b> — input nào là "điều kiện", output nào là "hành động"?</li>
+        <li>Output phụ thuộc input theo logic nào: AND, OR hay có cả NOT? Vì sao chọn vậy — điều gì xảy ra nếu chọn cổng khác?</li>
+        <li>Viết <b>biểu thức logic</b> cho thiết bị đó, rồi lập <b>truth table đầy đủ</b> (2 input → 4 hàng, 3 input → 8 hàng).</li>
+        <li>Tìm một hàng "bẫy" trong bảng: tổ hợp input mà người bình thường dễ đoán sai output. Đó là hàng mà verification sẽ nhắm vào!</li>
+        <li>(Nâng cao) Nếu khách hàng nói "hoặc" — nhóm hiểu là OR hay XOR? Đặt câu hỏi gì để làm rõ spec?</li>
+      </ol>
+    </div>
+    <div class="space-y-5">
+      <div class="bg-white rounded-2xl shadow p-6">
+        <h3 class="font-bold text-dark mb-3"><i class="fa-solid fa-user-group text-primary mr-2"></i>Vai trò trong nhóm</h3>
+        <div class="grid grid-cols-2 gap-3 text-sm">
+          <div class="bg-blue-50 rounded-xl p-3"><p class="font-bold text-blue-700"><i class="fa-solid fa-compass mr-1"></i>Facilitator</p><p class="text-slate-600 text-xs mt-1">Dẫn dắt, giữ nhịp: 5' chọn thiết bị, 10' làm bảng, 5' soát lại.</p></div>
+          <div class="bg-emerald-50 rounded-xl p-3"><p class="font-bold text-emerald-700"><i class="fa-solid fa-pen mr-1"></i>Note keeper</p><p class="text-slate-600 text-xs mt-1">Ghi Logic Card — sản phẩm nộp của nhóm.</p></div>
+          <div class="bg-violet-50 rounded-xl p-3"><p class="font-bold text-violet-700"><i class="fa-solid fa-bullhorn mr-1"></i>Reporter</p><p class="text-slate-600 text-xs mt-1">Trình bày 2 phút phần group sharing.</p></div>
+          <div class="bg-amber-50 rounded-xl p-3"><p class="font-bold text-amber-700"><i class="fa-solid fa-magnifying-glass mr-1"></i>Skeptic/Checker</p><p class="text-slate-600 text-xs mt-1">Dò từng hàng truth table: "tổ hợp này output thật sự là gì?"</p></div>
+        </div>
+      </div>
+      <div class="bg-emerald-50 border-2 border-emerald-300 rounded-2xl p-6">
+        <h3 class="font-bold text-emerald-700 mb-2"><i class="fa-solid fa-file-export mr-2"></i>Output nhóm phải nộp: "Logic Card"</h3>
+        <ul class="text-sm text-slate-700 space-y-1 list-disc list-inside">
+          <li><b>Situation:</b> mô tả tình huống 1–2 câu</li>
+          <li><b>Inputs:</b> tên tín hiệu + ý nghĩa mức 1/0 của từng tín hiệu</li>
+          <li><b>Output:</b> tên + ý nghĩa</li>
+          <li><b>Truth table:</b> đầy đủ 2<sup>n</sup> hàng</li>
+          <li><b>Logic expression:</b> Y = … (dùng · + ′ ⊕)</li>
+          <li><b>(Bonus)</b> một dòng <span class="mono">assign</span> SystemVerilog</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 12. COMMON MISTAKES ===== -->
+<section id="mistakes" class="py-12">
+  <div class="flex items-center gap-3 mb-6"><span class="w-10 h-10 rounded-xl bg-danger/10 text-danger flex items-center justify-center font-extrabold">12</span><h2 class="text-2xl md:text-3xl font-bold text-dark"><i class="fa-solid fa-triangle-exclamation text-danger mr-2"></i>Lỗi hiểu sai phổ biến</h2></div>
+  <div class="grid md:grid-cols-2 gap-4">
+    <div class="bg-white rounded-2xl shadow p-5 border-l-4 border-danger"><h4 class="font-bold text-danger mb-1.5"><i class="fa-solid fa-xmark mr-1"></i>"Logic 1 = có điện, logic 0 = mất điện"</h4><p class="text-sm text-slate-700 mb-2"><b>Vì sao sai:</b> cả 1 và 0 đều là mức điện áp hợp lệ được mạch lái chủ động (High ≈ gần nguồn, Low ≈ gần 0V). "Mất điện" là cả mạch ngừng chạy — chuyện hoàn toàn khác.</p><p class="text-sm text-slate-700"><b class="text-accent">Sửa đúng:</b> nói "mức High / mức Low" — hai khoảng điện áp được quy ước, có vùng cấm ở giữa.</p></div>
+    <div class="bg-white rounded-2xl shadow p-5 border-l-4 border-danger"><h4 class="font-bold text-danger mb-1.5"><i class="fa-solid fa-xmark mr-1"></i>"Output đổi ngay lập tức khi input đổi"</h4><p class="text-sm text-slate-700 mb-2"><b>Vì sao nguy hiểm:</b> bỏ qua propagation delay → sau này không hiểu vì sao mạch nhanh bị sai, không hiểu STA, không hiểu glitch.</p><p class="text-sm text-slate-700"><b class="text-accent">Sửa đúng:</b> mỗi cổng trễ vài chục–vài trăm ps; chuỗi cổng cộng dồn thành critical path — chính nó giới hạn tốc độ mạch.</p></div>
+    <div class="bg-white rounded-2xl shadow p-5 border-l-4 border-orange-400"><h4 class="font-bold text-orange-600 mb-1.5"><i class="fa-solid fa-xmark mr-1"></i>Nhầm OR đời thường với OR logic</h4><p class="text-sm text-slate-700 mb-2"><b>Vì sao sai:</b> "trà hoặc cà phê" ngoài đời thường ngầm hiểu là chọn MỘT (exclusive). OR logic là <b>inclusive</b>: cả hai cùng 1 → output vẫn 1. Chọn nhầm XOR/OR làm mạch sai đúng một hàng truth table — loại bug khó thấy nhất.</p><p class="text-sm text-slate-700"><b class="text-accent">Sửa đúng:</b> luôn hỏi "cả hai cùng xảy ra thì sao?" rồi mới chọn OR hay XOR.</p></div>
+    <div class="bg-white rounded-2xl shadow p-5 border-l-4 border-orange-400"><h4 class="font-bold text-orange-600 mb-1.5"><i class="fa-solid fa-xmark mr-1"></i>Lập truth table thiếu hàng, liệt kê lộn xộn</h4><p class="text-sm text-slate-700 mb-2"><b>Vì sao nguy hiểm:</b> thiếu hàng = spec mơ hồ = mạch có hành vi "không ai quyết định" ở tổ hợp đó.</p><p class="text-sm text-slate-700"><b class="text-accent">Sửa đúng:</b> n input → đúng 2<sup>n</sup> hàng, đếm nhị phân từ 00…0 tới 11…1 để không sót và không trùng.</p></div>
+    <div class="bg-white rounded-2xl shadow p-5 border-l-4 border-orange-400"><h4 class="font-bold text-orange-600 mb-1.5"><i class="fa-solid fa-xmark mr-1"></i>De Morgan nhầm: (A·B)′ = A′·B′ ?</h4><p class="text-sm text-slate-700 mb-2"><b>Vì sao sai:</b> đảo của AND <b>không phải</b> AND của các đảo. Đúng là: (A·B)′ = A′ + B′ và (A+B)′ = A′·B′ — khi dấu đảo "chui qua" ngoặc, AND đổi thành OR và ngược lại.</p><p class="text-sm text-slate-700"><b class="text-accent">Sửa đúng:</b> kiểm chứng bằng truth table 4 hàng — 2 phút là thấy ngay hai vế có khớp không.</p></div>
+    <div class="bg-white rounded-2xl shadow p-5 border-l-4 border-danger"><h4 class="font-bold text-danger mb-1.5"><i class="fa-solid fa-xmark mr-1"></i>"Cổng logic chỉ là lý thuyết trên giấy"</h4><p class="text-sm text-slate-700 mb-2"><b>Vì sao nguy hiểm:</b> học để thi rồi quên, không nối được với Verilog/FPGA — trong khi <span class="mono">assign y = a &amp; b;</span> sau synthesis là cổng/LUT thật, có delay và công suất thật.</p><p class="text-sm text-slate-700"><b class="text-accent">Sửa đúng:</b> mỗi lần viết một biểu thức, tự hỏi: "dòng này thành phần cứng gì?" — thói quen vàng của kỹ sư RTL.</p></div>
+  </div>
+</section>
+<!-- ===== 13. MINI-PROJECT CONNECTION ===== -->
+<section id="mini-project" class="py-12">
+  <div class="flex items-center gap-3 mb-6"><span class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-extrabold">13</span><h2 class="text-2xl md:text-3xl font-bold text-dark"><i class="fa-solid fa-rocket text-primary mr-2"></i>Kết nối Mini-project</h2></div>
+  <p class="text-slate-600 mb-6 max-w-3xl">Chỉ với cổng logic + <span class="mono">assign</span>, bạn đã đủ vũ khí cho những hệ thống "ra quyết định" thật sự. Mỗi đề tài dưới đây đi đúng flow thu nhỏ của section 7: <b>tình huống → I/O → truth table → biểu thức → assign → mô phỏng → FPGA</b>.</p>
+  <div class="grid md:grid-cols-3 gap-4">
+    <div class="bg-white rounded-2xl shadow p-5"><div class="w-10 h-10 rounded-xl bg-red-100 text-red-500 flex items-center justify-center mb-3"><i class="fa-solid fa-fire"></i></div><h4 class="font-bold text-dark mb-1">Báo cháy thông minh</h4><p class="text-sm text-slate-600">Còi hú khi có khói <b>VÀ</b> nhiệt cao (AND giúp giảm báo động giả do khói bếp): <span class="mono">bao_chay = khoi &amp; nhiet</span>. Nâng cao: thêm nút test — <span class="mono">(khoi &amp; nhiet) | test</span>.</p></div>
+    <div class="bg-white rounded-2xl shadow p-5"><div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-500 flex items-center justify-center mb-3"><i class="fa-solid fa-lightbulb"></i></div><h4 class="font-bold text-dark mb-1">Đèn sân tự động</h4><p class="text-sm text-slate-600">Đèn sáng khi trời tối <b>VÀ</b> có chuyển động: <span class="mono">den = toi &amp; chuyen_dong</span>. Thử đổi AND thành OR trên giấy — bạn sẽ thấy đèn sáng cả ban ngày, tốn điện vô ích.</p></div>
+    <div class="bg-white rounded-2xl shadow p-5"><div class="w-10 h-10 rounded-xl bg-violet-100 text-violet-500 flex items-center justify-center mb-3"><i class="fa-solid fa-lock"></i></div><h4 class="font-bold text-dark mb-1">Khóa cửa điện tử</h4><p class="text-sm text-slate-600">Mở khi thẻ hợp lệ <b>HOẶC</b> mã đúng, <b>VÀ</b> không ở chế độ khóa tuyệt đối: <span class="mono">mo = (the | ma) &amp; ~khoa_cung</span>. Chú ý OR inclusive: có cả thẻ lẫn mã vẫn mở.</p></div>
+    <div class="bg-white rounded-2xl shadow p-5"><div class="w-10 h-10 rounded-xl bg-blue-100 text-blue-500 flex items-center justify-center mb-3"><i class="fa-solid fa-bell"></i></div><h4 class="font-bold text-dark mb-1">Báo động chống trộm <span class="text-xs font-semibold text-slate-400">(demo hôm nay)</span></h4><p class="text-sm text-slate-600"><span class="mono">alarm = enable &amp; (door | window | motion)</span> — nạp lên board FPGA: switch làm cảm biến, LED làm còi. Một LUT4 duy nhất!</p></div>
+    <div class="bg-white rounded-2xl shadow p-5"><div class="w-10 h-10 rounded-xl bg-teal-100 text-teal-500 flex items-center justify-center mb-3"><i class="fa-solid fa-fan"></i></div><h4 class="font-bold text-dark mb-1">Quạt thông gió</h4><p class="text-sm text-slate-600">Quạt chạy khi nhiệt cao <b>HOẶC</b> độ ẩm cao: <span class="mono">quat = nong | am</span>. Hỏi kiểu kỹ sư: cả hai cùng cao thì sao? — OR inclusive trả lời luôn: vẫn chạy.</p></div>
+    <div class="bg-white rounded-2xl shadow p-5"><div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-500 flex items-center justify-center mb-3"><i class="fa-solid fa-droplet"></i></div><h4 class="font-bold text-dark mb-1">Tưới cây tự động</h4><p class="text-sm text-slate-600">Tưới khi đất khô <b>VÀ KHÔNG</b> đang mưa: <span class="mono">tuoi = dat_kho &amp; ~mua</span> — cổng NOT xuất hiện rất tự nhiên khi điều kiện là "trừ khi…".</p></div>
+  </div>
+  <div class="mt-5 bg-blue-50 border border-blue-200 rounded-2xl p-5 text-sm text-slate-700"><i class="fa-solid fa-lightbulb text-primary mr-1"></i> <b>Việc cần làm tuần này cho mini-project:</b> chọn 1 đề tài (báo cháy / đèn tự động / khóa cửa…) và hoàn thành "Logic Card" theo mẫu breakout room. Tuần 4 ta sẽ gói logic này thành "khối" có tổ chức, Tuần 7 viết thành module Verilog hoàn chỉnh, và Tuần 9–11 chạy trên FPGA thật.</div>
+</section>
+
+<!-- ===== 14. QUIZ ===== -->
+<section id="quiz" class="py-12">
+  <div class="flex items-center gap-3 mb-6"><span class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-extrabold">14</span><h2 class="text-2xl md:text-3xl font-bold text-dark"><i class="fa-solid fa-clipboard-question text-primary mr-2"></i>Quiz kiểm tra hiểu bài (10 câu)</h2></div>
+  <p class="text-slate-600 mb-5">Chọn đáp án — hệ thống chấm ngay và giải thích. Làm hết 10 câu rồi bấm <b>"Chấm tổng điểm"</b>.</p>
+  <div id="quizWrap" class="space-y-5"></div>
+  <div class="mt-6 flex flex-wrap items-center gap-3">
+    <button id="btnGrade" class="px-5 py-2.5 rounded-xl bg-primary text-white font-semibold hover:bg-blue-700 transition"><i class="fa-solid fa-square-check mr-1"></i> Chấm tổng điểm</button>
+    <button id="btnQuizReset" class="px-5 py-2.5 rounded-xl bg-slate-200 text-slate-700 font-semibold hover:bg-slate-300 transition"><i class="fa-solid fa-rotate-left mr-1"></i> Làm lại</button>
+    <div id="quizResult" class="text-sm font-bold text-dark"></div>
+  </div>
+</section>
+
+<!-- ===== 15. HOMEWORK ===== -->
+<section id="homework" class="py-12">
+  <div class="flex items-center gap-3 mb-6"><span class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-extrabold">15</span><h2 class="text-2xl md:text-3xl font-bold text-dark"><i class="fa-solid fa-house-laptop text-primary mr-2"></i>Bài tập về nhà — 3 mức</h2></div>
+  <div class="grid lg:grid-cols-3 gap-4">
+    <div class="bg-white rounded-2xl shadow p-6 border-t-4 border-emerald-400">
+      <p class="text-xs font-bold uppercase text-emerald-600 mb-2">Mức 1 · Nhận biết &amp; giải thích</p>
+      <h3 class="font-bold text-dark mb-3">6 cổng từ trí nhớ</h3>
+      <ul class="text-sm text-slate-700 space-y-2 mb-3">
+        <li><b>Yêu cầu nộp:</b> (a) ảnh chụp bảng chân lý 6 cổng (AND, OR, NOT, NAND, NOR, XOR) bạn tự viết tay kèm ký hiệu; (b) 3–4 câu giải thích vì sao logic 1/0 là <b>khoảng điện áp High/Low</b>, không phải "có điện/mất điện"; (c) 2 câu phân biệt OR và XOR kèm ví dụ đời sống.</li>
+        <li><b>Gợi ý:</b> viết xong mới mở Demo B để tự chấm; hàng nào sai thì gạt A/B trên demo để "nhìn thấy" vì sao.</li>
+      </ul>
+      <p class="text-xs text-slate-500 border-t pt-2"><b>Tiêu chí:</b> đủ 6 bảng đúng 100%; giải thích đúng bản chất điện áp; ví dụ OR/XOR không lẫn nhau.</p>
+    </div>
+    <div class="bg-white rounded-2xl shadow p-6 border-t-4 border-blue-400">
+      <p class="text-xs font-bold uppercase text-blue-600 mb-2">Mức 2 · Thiết kế &amp; lập bảng</p>
+      <h3 class="font-bold text-dark mb-3">Logic Card cho hệ thống của bạn</h3>
+      <ul class="text-sm text-slate-700 space-y-2 mb-3">
+        <li><b>Yêu cầu nộp:</b> 1 trang "Logic Card" cho hệ tự chọn (báo cháy / đèn tự động / khóa cửa…): tình huống 1–2 câu · input + ý nghĩa mức 1/0 của từng tín hiệu · output · truth table đủ 2<sup>n</sup> hàng · biểu thức logic · sơ đồ cổng vẽ tay.</li>
+        <li><b>Gợi ý:</b> bắt đầu với 2 input cho chắc, tự tin thì lên 3 input (8 hàng); nhờ một người bạn làm Skeptic dò từng hàng; chú ý câu hỏi "cả hai cùng xảy ra thì sao?"</li>
+      </ul>
+      <p class="text-xs text-slate-500 border-t pt-2"><b>Tiêu chí:</b> bảng đủ hàng không trùng/sót; biểu thức khớp bảng 100%; sơ đồ cổng khớp biểu thức.</p>
+    </div>
+    <div class="bg-white rounded-2xl shadow p-6 border-t-4 border-violet-400">
+      <p class="text-xs font-bold uppercase text-violet-600 mb-2">Mức 3 · RTL &amp; testbench</p>
+      <h3 class="font-bold text-dark mb-3">Từ Logic Card → mô phỏng</h3>
+      <ul class="text-sm text-slate-700 space-y-2 mb-3">
+        <li><b>Yêu cầu nộp:</b> file .sv chứa module (dùng <span class="mono">assign</span>, comment tiếng Việt) + testbench quét đủ mọi tổ hợp input, chạy trên EDA Playground (edaplayground.com); nộp code + ảnh log <span class="mono">$monitor</span>/waveform + 3 dòng nhận xét: kết quả mô phỏng có khớp truth table không.</li>
+        <li><b>Gợi ý:</b> bắt chước cặp <span class="mono">alarm_system</span> / <span class="mono">alarm_system_tb</span> ở section 8, đổi tên tín hiệu theo hệ của bạn; với n input, kịch bản quét 2<sup>n</sup> tổ hợp là "coverage 100%".</li>
+      </ul>
+      <p class="text-xs text-slate-500 border-t pt-2"><b>Tiêu chí:</b> mô phỏng chạy không lỗi; output khớp 100% bảng chân lý; comment rõ nghĩa.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 16. RUBRIC ===== -->
+<section id="rubric" class="py-12">
+  <div class="flex items-center gap-3 mb-6"><span class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-extrabold">16</span><h2 class="text-2xl md:text-3xl font-bold text-dark"><i class="fa-solid fa-table-list text-primary mr-2"></i>Rubric tự đánh giá</h2></div>
+  <div class="bg-white rounded-2xl shadow overflow-x-auto">
+    <table class="w-full text-sm min-w-[860px]">
+      <thead><tr class="bg-dark text-white text-left"><th class="px-4 py-3 rounded-tl-2xl w-52">Tiêu chí</th><th class="px-4 py-3">Chưa đạt</th><th class="px-4 py-3">Đạt cơ bản</th><th class="px-4 py-3">Khá</th><th class="px-4 py-3 rounded-tr-2xl">Tốt</th></tr></thead>
+      <tbody class="divide-y divide-slate-100 text-slate-700 align-top">
+        <tr><td class="px-4 py-3 font-semibold">Hiểu 6 cổng &amp; bảng chân lý</td><td class="px-4 py-3">Nhầm lẫn giữa các cổng cơ bản</td><td class="px-4 py-3">Thuộc AND/OR/NOT, còn lúng túng NAND/NOR/XOR</td><td class="px-4 py-3">Nắm cả 6 cổng: ký hiệu, bảng chân lý, biểu thức</td><td class="px-4 py-3">Giải thích được De Morgan và vì sao NAND/NOR là cổng vạn năng</td></tr>
+        <tr class="bg-slate-50/60"><td class="px-4 py-3 font-semibold">Hiểu mức logic 1/0</td><td class="px-4 py-3">Nói "1 = có điện, 0 = mất điện"</td><td class="px-4 py-3">Biết là mức điện áp nhưng chưa nêu được vùng cấm</td><td class="px-4 py-3">Giải thích đúng High/Low là hai khoảng điện áp + vùng không xác định ở giữa</td><td class="px-4 py-3">Liên hệ được với khả năng chống nhiễu của mạch số so với analog</td></tr>
+        <tr><td class="px-4 py-3 font-semibold">Từ tình huống → I/O → truth table</td><td class="px-4 py-3">Không lập được bảng</td><td class="px-4 py-3">Lập được bảng nhưng thiếu hàng hoặc lộn xộn</td><td class="px-4 py-3">Bảng đủ 2<sup>n</sup> hàng, output đúng mọi hàng</td><td class="px-4 py-3">Chủ động tìm hàng "bẫy", đặt câu hỏi làm rõ chỗ mơ hồ trong đề bài</td></tr>
+        <tr class="bg-slate-50/60"><td class="px-4 py-3 font-semibold">Viết biểu thức &amp; assign</td><td class="px-4 py-3">Chưa viết được biểu thức</td><td class="px-4 py-3">Viết được biểu thức nhưng chưa dịch sang Verilog</td><td class="px-4 py-3">Dịch đúng sang <span class="mono">assign</span> với &amp; | ~ ^</td><td class="px-4 py-3">Tự viết testbench nhỏ kiểm chứng biểu thức trên EDA Playground</td></tr>
+        <tr><td class="px-4 py-3 font-semibold">Tư duy timing</td><td class="px-4 py-3">Nghĩ output đổi "ngay lập tức"</td><td class="px-4 py-3">Biết có delay nhưng chưa giải thích được</td><td class="px-4 py-3">Giải thích được t<sub>pd</sub> và độ trễ cộng dồn qua chuỗi cổng (critical path)</td><td class="px-4 py-3">Giải thích được glitch do lệch đường trễ và vì sao clock + FF (Tuần 5) giải quyết được</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ===== 17. MENTOR NOTES ===== -->
+<section id="mentor-notes" class="py-12">
+  <div class="flex items-center gap-3 mb-6"><span class="w-10 h-10 rounded-xl bg-dark text-amber-400 flex items-center justify-center font-extrabold">17</span><h2 class="text-2xl md:text-3xl font-bold text-dark"><i class="fa-solid fa-chalkboard-user text-dark mr-2"></i>Ghi chú dành cho Mentor</h2></div>
+  <div class="bg-dark text-slate-200 rounded-2xl shadow-xl p-6 md:p-8 border-l-8 border-amber-400">
+    <div class="grid md:grid-cols-2 gap-6">
+      <div>
+        <h3 class="font-bold text-amber-400 mb-2"><i class="fa-solid fa-bullseye mr-1"></i> Nhấn mạnh điều gì?</h3>
+        <ul class="text-sm space-y-1.5 list-disc list-inside">
+          <li><b class="text-white">Cổng logic = công cụ mô tả quyết định</b>, không phải kiến thức để thi — luôn đi từ tình huống thật.</li>
+          <li>Mức 1/0 là <b class="text-white">khoảng điện áp High/Low</b>; logic 0 vẫn là mức được lái chủ động.</li>
+          <li>Biểu thức ↔ truth table ↔ sơ đồ cổng: ba cách viết của cùng một mạch.</li>
+          <li>Một dòng <span class="mono">assign</span> sau synthesis = cổng thật (ASIC) hoặc LUT (FPGA) — nối thẳng về chặng Synthesis của Tuần 2.</li>
+          <li>Output có propagation delay, không "tức thời" — gieo mầm cho STA và Tuần 5.</li>
+        </ul>
+        <h3 class="font-bold text-amber-400 mt-5 mb-2"><i class="fa-solid fa-person-falling-burst mr-1"></i> Sinh viên hay vấp ở đâu?</h3>
+        <ul class="text-sm space-y-1.5 list-disc list-inside">
+          <li>Nhầm OR đời thường (exclusive) với OR logic (inclusive) — cho cả lớp đoán hàng 1-1 của OR trước khi mở đáp án.</li>
+          <li>De Morgan sai dấu: (A·B)′ thành A′·B′ — bắt kiểm chứng bằng bảng 4 hàng ngay tại chỗ.</li>
+          <li>Truth table thiếu hàng — dạy mẹo đếm nhị phân 00…0 → 11…1.</li>
+          <li>Nói "0 = mất điện" — sửa ngay mỗi lần nghe được, không để trôi.</li>
+        </ul>
+      </div>
+      <div>
+        <h3 class="font-bold text-amber-400 mb-2"><i class="fa-solid fa-microphone-lines mr-1"></i> Câu vấn đáp gợi ý (kèm đáp án kỳ vọng)</h3>
+        <div class="space-y-3 text-sm">
+          <div class="bg-white/5 rounded-xl p-3 border border-white/10"><p class="font-semibold text-white">"Công tắc cầu thang là cổng gì? Vì sao không phải OR?"</p><p class="text-slate-300 mt-1">Kỳ vọng: XOR — đèn sáng khi hai công tắc ở vị trí khác nhau; nếu là OR thì khi cả hai cùng bật đèn vẫn sáng, không đổi trạng thái được từ đầu kia.</p></div>
+          <div class="bg-white/5 rounded-xl p-3 border border-white/10"><p class="font-semibold text-white">"Logic 0 có phải là 0 volt tuyệt đối, hay 'mất điện' không?"</p><p class="text-slate-300 mt-1">Kỳ vọng: không — là một khoảng điện áp Low (dưới ngưỡng V<sub>IL</sub>) được mạch lái chủ động; mất nguồn thì cả mạch ngừng hoạt động, là chuyện khác.</p></div>
+          <div class="bg-white/5 rounded-xl p-3 border border-white/10"><p class="font-semibold text-white">"Dòng assign y = a &amp; b; sau synthesis trở thành gì trên FPGA? Trên ASIC?"</p><p class="text-slate-300 mt-1">Kỳ vọng: FPGA — bảng chân lý nạp vào một LUT; ASIC — một standard cell AND từ thư viện foundry. Cùng hành vi, hai cách hiện thực.</p></div>
+          <div class="bg-white/5 rounded-xl p-3 border border-white/10"><p class="font-semibold text-white">"Input đổi thì output đổi ngay lập tức đúng không?"</p><p class="text-slate-300 mt-1">Kỳ vọng: không — có propagation delay cỡ ps; qua chuỗi cổng thì cộng dồn thành critical path, và có thể glitch trước khi ổn định.</p></div>
+        </div>
+        <h3 class="font-bold text-amber-400 mt-5 mb-2"><i class="fa-solid fa-link mr-1"></i> Nối sang Tuần 4 thế nào?</h3>
+        <p class="text-sm text-slate-300">"Một cổng ra một quyết định bé xíu. Nhưng chọn 1 trong 2 nguồn dữ liệu? Cộng hai số? Giải mã địa chỉ? Ta không xếp từng cổng thủ công nữa — ta ghép chúng thành <b class="text-white">khối chức năng</b>: MUX, adder, decoder. Tuần sau học tư duy 'think in blocks, not in gates'." Giao mỗi bạn để ý một thiết bị có chức năng "chọn kênh" (remote TV, switch HDMI…).</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 18. KEY VOCABULARY ===== -->
+<section id="vocabulary" class="py-12">
+  <div class="flex items-center gap-3 mb-6"><span class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-extrabold">18</span><h2 class="text-2xl md:text-3xl font-bold text-dark"><i class="fa-solid fa-book text-primary mr-2"></i>Từ vựng chuyên ngành</h2></div>
+  <div class="bg-white rounded-2xl shadow overflow-x-auto">
+    <table class="w-full text-sm min-w-[900px]">
+      <thead><tr class="bg-dark text-white text-left"><th class="px-4 py-3 rounded-tl-2xl">English term</th><th class="px-4 py-3">Nghĩa tiếng Việt</th><th class="px-4 py-3">Giải thích kỹ thuật</th><th class="px-4 py-3 rounded-tr-2xl">Câu ví dụ</th></tr></thead>
+      <tbody class="divide-y divide-slate-100 text-slate-700 align-top">
+        <tr><td class="px-4 py-2.5 font-bold text-primary">Logic gate</td><td class="px-4 py-2.5">Cổng logic</td><td class="px-4 py-2.5">Phần tử tổ hợp xây từ transistor, tính output từ input hiện tại theo một luật cố định</td><td class="px-4 py-2.5 italic">A modern SoC contains billions of logic gates.</td></tr>
+        <tr class="bg-slate-50/60"><td class="px-4 py-2.5 font-bold text-primary">Logic level (High/Low)</td><td class="px-4 py-2.5">Mức logic (cao/thấp)</td><td class="px-4 py-2.5">Hai khoảng điện áp quy ước cho 1 và 0, có vùng không xác định ở giữa</td><td class="px-4 py-2.5 italic">A voltage near 3.3 V is read as a High logic level.</td></tr>
+        <tr><td class="px-4 py-2.5 font-bold text-primary">Truth table</td><td class="px-4 py-2.5">Bảng chân lý</td><td class="px-4 py-2.5">Liệt kê đủ 2<sup>n</sup> tổ hợp input và output tương ứng — đặc tả đầy đủ của mạch tổ hợp</td><td class="px-4 py-2.5 italic">Write the truth table before writing any RTL.</td></tr>
+        <tr class="bg-slate-50/60"><td class="px-4 py-2.5 font-bold text-primary">Boolean expression</td><td class="px-4 py-2.5">Biểu thức logic</td><td class="px-4 py-2.5">Cách viết mạch bằng các phép · (AND), + (OR), ′ (NOT), ⊕ (XOR)</td><td class="px-4 py-2.5 italic">The Boolean expression maps directly to an assign statement.</td></tr>
+        <tr><td class="px-4 py-2.5 font-bold text-primary">AND gate</td><td class="px-4 py-2.5">Cổng VÀ</td><td class="px-4 py-2.5">Output = 1 chỉ khi mọi input = 1; Verilog: <span class="mono">&amp;</span></td><td class="px-4 py-2.5 italic">The washing machine starts only when both conditions are true — an AND gate.</td></tr>
+        <tr class="bg-slate-50/60"><td class="px-4 py-2.5 font-bold text-primary">OR gate</td><td class="px-4 py-2.5">Cổng HOẶC</td><td class="px-4 py-2.5">Output = 1 khi ít nhất một input = 1 (inclusive); Verilog: <span class="mono">|</span></td><td class="px-4 py-2.5 italic">An OR gate still outputs 1 when both inputs are 1.</td></tr>
+        <tr><td class="px-4 py-2.5 font-bold text-primary">NOT gate (inverter)</td><td class="px-4 py-2.5">Cổng đảo</td><td class="px-4 py-2.5">Đảo giá trị logic: 0 ↔ 1; Verilog: <span class="mono">~</span></td><td class="px-4 py-2.5 italic">An inverter is the simplest CMOS gate, built from two transistors.</td></tr>
+        <tr class="bg-slate-50/60"><td class="px-4 py-2.5 font-bold text-primary">NAND / NOR gate</td><td class="px-4 py-2.5">Cổng VÀ-đảo / HOẶC-đảo</td><td class="px-4 py-2.5">Đảo của AND / OR; là các cổng vạn năng — một loại đủ xây mọi mạch số</td><td class="px-4 py-2.5 italic">NAND is a universal gate: any circuit can be built from NANDs alone.</td></tr>
+        <tr><td class="px-4 py-2.5 font-bold text-primary">XOR gate</td><td class="px-4 py-2.5">Cổng HOẶC loại trừ</td><td class="px-4 py-2.5">Output = 1 khi hai input khác nhau; Verilog: <span class="mono">^</span>; dùng trong adder, comparator</td><td class="px-4 py-2.5 italic">The adder uses an XOR gate to compute the sum bit.</td></tr>
+        <tr class="bg-slate-50/60"><td class="px-4 py-2.5 font-bold text-primary">Combinational logic</td><td class="px-4 py-2.5">Logic tổ hợp</td><td class="px-4 py-2.5">Mạch mà output chỉ phụ thuộc input hiện tại — không trí nhớ, không clock, không reset</td><td class="px-4 py-2.5 italic">Combinational logic needs no clock, unlike sequential logic.</td></tr>
+        <tr><td class="px-4 py-2.5 font-bold text-primary">Propagation delay</td><td class="px-4 py-2.5">Độ trễ lan truyền</td><td class="px-4 py-2.5">Thời gian từ khi input đổi đến khi output ổn định (t<sub>pd</sub>); cộng dồn thành critical path</td><td class="px-4 py-2.5 italic">The propagation delay of each gate limits the maximum speed.</td></tr>
+        <tr class="bg-slate-50/60"><td class="px-4 py-2.5 font-bold text-primary">Glitch (hazard)</td><td class="px-4 py-2.5">Xung nhiễu tạm thời</td><td class="px-4 py-2.5">Output "nháy" sai trong tích tắc do tín hiệu đến theo các đường có độ trễ khác nhau</td><td class="px-4 py-2.5 italic">A glitch appeared because the two paths had different delays.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ===== 19. FINAL SUMMARY ===== -->
+<section id="summary" class="py-12">
+  <div class="flex items-center gap-3 mb-6"><span class="w-10 h-10 rounded-xl bg-accent/10 text-accent flex items-center justify-center font-extrabold">19</span><h2 class="text-2xl md:text-3xl font-bold text-dark"><i class="fa-solid fa-flag-checkered text-accent mr-2"></i>Tổng kết tuần 3</h2></div>
+  <div class="grid lg:grid-cols-2 gap-5 mb-5">
+    <div class="bg-white rounded-2xl shadow p-6">
+      <h3 class="font-bold text-dark mb-3"><i class="fa-solid fa-star text-amber-400 mr-2"></i>5 điều cần nhớ</h3>
+      <ol class="space-y-2.5 text-sm text-slate-700">
+        <li class="flex gap-2"><span class="shrink-0 w-6 h-6 rounded-full bg-accent/10 text-accent text-xs font-extrabold flex items-center justify-center">1</span>Cổng logic là "máy ra quyết định" xây từ transistor: <b>AND</b> nghiêm khắc, <b>OR</b> dễ tính (inclusive!), <b>NOT</b> phản biện; NAND/NOR là cổng vạn năng, XOR bắt sự "khác nhau".</li>
+        <li class="flex gap-2"><span class="shrink-0 w-6 h-6 rounded-full bg-accent/10 text-accent text-xs font-extrabold flex items-center justify-center">2</span>Mức 1/0 là <b>hai khoảng điện áp High/Low</b> được quy ước — không phải "có điện/mất điện"; nhờ chia vùng mà mạch số chống nhiễu tốt.</li>
+        <li class="flex gap-2"><span class="shrink-0 w-6 h-6 rounded-full bg-accent/10 text-accent text-xs font-extrabold flex items-center justify-center">3</span>Truth table 2<sup>n</sup> hàng là đặc tả đầy đủ của mạch tổ hợp; biểu thức ↔ bảng ↔ sơ đồ cổng là <b>ba cách viết của cùng một mạch</b>.</li>
+        <li class="flex gap-2"><span class="shrink-0 w-6 h-6 rounded-full bg-accent/10 text-accent text-xs font-extrabold flex items-center justify-center">4</span>Biểu thức dịch thẳng sang RTL: <span class="mono">assign alarm = enable &amp; (door | window | motion);</span> — synthesis biến nó thành cổng thật (ASIC) hoặc LUT (FPGA).</li>
+        <li class="flex gap-2"><span class="shrink-0 w-6 h-6 rounded-full bg-accent/10 text-accent text-xs font-extrabold flex items-center justify-center">5</span>Cổng có <b>propagation delay</b> và có thể <b>glitch</b> — output chỉ đáng tin khi mọi đường đã ổn định; Tuần 5 clock + flip-flop sẽ "chốt" giá trị đúng lúc.</li>
+      </ol>
+    </div>
+    <div class="space-y-5">
+      <div class="bg-white rounded-2xl shadow p-6">
+        <h3 class="font-bold text-dark mb-3"><i class="fa-solid fa-person-circle-question text-primary mr-2"></i>3 câu tự phản tỉnh</h3>
+        <ul class="text-sm text-slate-700 space-y-2 list-disc list-inside">
+          <li>Mình đã "nhìn thấy" biểu thức logic trong một tình huống đời thường nào hôm nay chưa — và viết ra được không?</li>
+          <li>Nếu ai đó nói "logic 0 nghĩa là không có điện", mình sẽ sửa lại cho họ bằng lời giải thích nào?</li>
+          <li>Cổng nào mình vẫn phải nhìn lại bảng chân lý mới nhớ — và mình sẽ luyện nó bằng ví dụ thực tế nào?</li>
+        </ul>
+      </div>
+      <div class="bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 text-white rounded-2xl p-6">
+        <i class="fa-solid fa-quote-left text-amber-400 text-2xl mb-2"></i>
+        <p class="italic leading-relaxed">"Mỗi dòng assign bạn viết là một đám cổng thật sẽ mọc lên trên silicon — hãy viết như một kiến trúc sư hiểu vật liệu của mình, đừng viết như một người đánh máy."</p>
+        <p class="text-right text-sm text-blue-200 mt-2">— Mentor, IC Design Mentoring</p>
+      </div>
+    </div>
+  </div>
+  <div class="bg-emerald-50 border-2 border-emerald-300 rounded-2xl p-6">
+    <div class="flex items-center justify-between mb-4"><h3 class="font-bold text-emerald-700"><i class="fa-solid fa-list-check mr-2"></i>Sau buổi học, tôi có thể…</h3><span id="sumCount" class="text-xs font-bold bg-white text-emerald-600 px-3 py-1 rounded-full border border-emerald-200">0/6</span></div>
+    <div id="sumChecklist" class="grid md:grid-cols-2 gap-3 text-sm text-slate-700">
+      <label class="flex items-start gap-3 cursor-pointer bg-white rounded-xl p-3 border border-emerald-100"><input type="checkbox" class="mt-0.5 w-4 h-4 accent-emerald-600"><span>Vẽ ký hiệu và viết bảng chân lý của cả 6 cổng từ trí nhớ.</span></label>
+      <label class="flex items-start gap-3 cursor-pointer bg-white rounded-xl p-3 border border-emerald-100"><input type="checkbox" class="mt-0.5 w-4 h-4 accent-emerald-600"><span>Giải thích đúng: mức 1/0 là khoảng điện áp High/Low, không phải "có điện/mất điện".</span></label>
+      <label class="flex items-start gap-3 cursor-pointer bg-white rounded-xl p-3 border border-emerald-100"><input type="checkbox" class="mt-0.5 w-4 h-4 accent-emerald-600"><span>Chuyển một tình huống "nếu… và/hoặc…" thành input/output + truth table đầy đủ.</span></label>
+      <label class="flex items-start gap-3 cursor-pointer bg-white rounded-xl p-3 border border-emerald-100"><input type="checkbox" class="mt-0.5 w-4 h-4 accent-emerald-600"><span>Viết biểu thức logic và dòng <span class="mono">assign</span> SystemVerilog tương ứng.</span></label>
+      <label class="flex items-start gap-3 cursor-pointer bg-white rounded-xl p-3 border border-emerald-100"><input type="checkbox" class="mt-0.5 w-4 h-4 accent-emerald-600"><span>Phân biệt OR (inclusive) với XOR bằng một ví dụ thực tế.</span></label>
+      <label class="flex items-start gap-3 cursor-pointer bg-white rounded-xl p-3 border border-emerald-100"><input type="checkbox" class="mt-0.5 w-4 h-4 accent-emerald-600"><span>Giải thích propagation delay và glitch cho một người bạn không học ngành.</span></label>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ===== FOOTER ===== -->
+<footer class="bg-dark text-slate-300 mt-8">
+  <div class="max-w-6xl mx-auto px-4 py-8">
+    <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+      <a href="Week2.html" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 transition text-sm font-semibold"><i class="fa-solid fa-arrow-left"></i> Tuần 2: From Idea to Chip</a>
+      <p class="text-sm text-slate-400 text-center">Chương trình Mentoring Thiết kế Vi mạch số — 12 tuần</p>
+      <a href="Week4.html" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary hover:bg-blue-700 transition text-sm font-semibold text-white">Tuần 4: Combinational Logic <i class="fa-solid fa-arrow-right"></i></a>
+    </div>
+    <p class="text-center text-xs text-slate-500 mt-6">Bản quyền © Khoa Điện - Điện tử, Trường Kỹ thuật Phenikaa, Đại học Phenikaa · Giảng viên: ThS. Đinh Văn Nam</p>
+  </div>
+</footer>
+<script>
+// ============ 1. Thanh tiến độ cuộn trang ============
+(function () {
+  var bar = document.getElementById('scrollProgress');
+  window.addEventListener('scroll', function () {
+    var h = document.documentElement;
+    var max = h.scrollHeight - h.clientHeight;
+    bar.style.width = (max > 0 ? (h.scrollTop / max) * 100 : 0) + '%';
+  });
+})();
+
+// ============ 2. Checklist tương tác ============
+function bindChecklist(listId, countId, suffix) {
+  var list = document.getElementById(listId);
+  var count = document.getElementById(countId);
+  if (!list || !count) return;
+  var boxes = list.querySelectorAll('input[type="checkbox"]');
+  function update() {
+    var n = 0;
+    boxes.forEach(function (b) { if (b.checked) n++; });
+    count.textContent = n + '/' + boxes.length + (suffix || '');
+  }
+  boxes.forEach(function (b) { b.addEventListener('change', update); });
+  update();
+}
+bindChecklist('beforeChecklist', 'beforeCount', ' hoàn thành');
+bindChecklist('sumChecklist', 'sumCount', '');
+
+// ============ 3. Demo A: hệ thống báo động ============
+(function () {
+  var elD = document.getElementById('cbDoor');
+  var elW = document.getElementById('cbWindow');
+  var elM = document.getElementById('cbMotion');
+  var elE = document.getElementById('cbEnable');
+  var rOr = document.getElementById('rOr');
+  var rAnd = document.getElementById('rAnd');
+  var tbody = document.getElementById('almTbody');
+
+  function setWire(id, v) {
+    document.getElementById(id).setAttribute('class', v ? 'w-hi' : 'w-lo');
+  }
+  function setVal(id, v) {
+    var el = document.getElementById(id);
+    el.textContent = v;
+    el.setAttribute('class', (v ? 'v-hi' : 'v-lo') + ' mono');
+  }
+  function combineS(d, w, m, orMode) {
+    return orMode ? (d | w | m) : (d & w & m);
+  }
+  function buildTable(orMode, cur) {
+    var html = '';
+    for (var d = 0; d <= 1; d++)
+      for (var w = 0; w <= 1; w++)
+        for (var m = 0; m <= 1; m++)
+          for (var e = 0; e <= 1; e++) {
+            var s = combineS(d, w, m, orMode);
+            var a = e & s;
+            var isCur = (d === cur.d && w === cur.w && m === cur.m && e === cur.e);
+            html += '<tr class="' + (isCur ? 'tr-active' : '') + '">' +
+              '<td class="py-1">' + d + '</td><td>' + w + '</td><td>' + m + '</td><td>' + e + '</td>' +
+              '<td class="font-bold text-blue-600">' + s + '</td>' +
+              '<td class="font-bold ' + (a ? 'text-red-500' : 'text-slate-400') + '">' + a + '</td></tr>';
+          }
+    tbody.innerHTML = html;
+  }
+  function update() {
+    var d = elD.checked ? 1 : 0, w = elW.checked ? 1 : 0, m = elM.checked ? 1 : 0, e = elE.checked ? 1 : 0;
+    var orMode = rOr.checked;
+    var s = combineS(d, w, m, orMode);
+    var a = e & s;
+    var op = orMode ? '|' : '&';
+    document.getElementById('g1or').style.display = orMode ? '' : 'none';
+    document.getElementById('g1and').style.display = orMode ? 'none' : '';
+    document.getElementById('almExpr').textContent = 'alarm = enable & (door ' + op + ' window ' + op + ' motion)';
+    document.getElementById('almCalc').textContent = '= ' + e + ' & (' + d + ' ' + op + ' ' + w + ' ' + op + ' ' + m + ') = ' + a;
+    setWire('pDoor', d); setWire('pWindow', w); setWire('pMotion', m); setWire('pEnable', e);
+    setWire('pS', s); setWire('pAlarm', a);
+    setVal('tDoor', d); setVal('tWindow', w); setVal('tMotion', m); setVal('tEnable', e);
+    setVal('tS', s); setVal('tAlarm', a);
+    document.getElementById('lampC').setAttribute('class', a ? 'lamp-on' : 'lamp-off');
+    var st = document.getElementById('almStateTxt');
+    st.textContent = a ? 'ĐANG HÚ!' : 'im lặng';
+    st.setAttribute('fill', a ? '#b91c1c' : '#64748b');
+    buildTable(orMode, { d: d, w: w, m: m, e: e });
+  }
+  [elD, elW, elM, elE, rOr, rAnd].forEach(function (el) { el.addEventListener('change', update); });
+  update();
+})();
+
+// ============ 4. Demo B: khám phá 6 cổng logic ============
+(function () {
+  var gateData = {
+    AND:  { desc: 'Output bằng 1 chỉ khi TẤT CẢ input bằng 1 — người gác cổng nghiêm khắc.',
+            expr: 'Y = A · B', ver: 'assign y = a & b;',
+            ex: 'Máy giặt chỉ chạy khi cửa đã đóng VÀ nút Start được bấm.',
+            two: true, fn: function (a, b) { return a & b; } },
+    OR:   { desc: 'Output bằng 1 khi ÍT NHẤT MỘT input bằng 1. OR là inclusive: cả hai cùng bằng 1 thì output vẫn là 1.',
+            expr: 'Y = A + B', ver: 'assign y = a | b;',
+            ex: 'Chuông reo khi nút cổng trước HOẶC nút cổng sau được bấm (bấm cả hai vẫn reo).',
+            two: true, fn: function (a, b) { return a | b; } },
+    NOT:  { desc: 'Đảo giá trị: 0 thành 1, 1 thành 0. Còn gọi là inverter — cổng CMOS đơn giản nhất (2 transistor).',
+            expr: 'Y = A′', ver: 'assign y = ~a;',
+            ex: 'Đèn "cửa đang MỞ" là đảo của cảm biến "cửa đã đóng".',
+            two: false, fn: function (a) { return a ? 0 : 1; } },
+    NAND: { desc: 'AND rồi đảo: chỉ ra 0 khi tất cả input bằng 1. Cổng vạn năng — chỉ dùng NAND là xây được mọi mạch số.',
+            expr: 'Y = (A · B)′', ver: 'assign y = ~(a & b);',
+            ex: 'Đèn nhắc nhở tắt CHỈ KHI dây an toàn đã cài VÀ cửa đã đóng — cả hai ổn thì đèn mới im.',
+            two: true, fn: function (a, b) { return (a & b) ? 0 : 1; } },
+    NOR:  { desc: 'OR rồi đảo: chỉ ra 1 khi tất cả input bằng 0. Cũng là cổng vạn năng.',
+            expr: 'Y = (A + B)′', ver: 'assign y = ~(a | b);',
+            ex: 'Đèn standby sáng khi KHÔNG có nút nào đang được bấm.',
+            two: true, fn: function (a, b) { return (a | b) ? 0 : 1; } },
+    XOR:  { desc: 'Bằng 1 khi hai input KHÁC nhau — "hoặc loại trừ". Viên gạch của bộ cộng và bộ so sánh (Tuần 4).',
+            expr: 'Y = A ⊕ B', ver: 'assign y = a ^ b;',
+            ex: 'Công tắc cầu thang: đèn sáng khi hai công tắc ở vị trí khác nhau.',
+            two: true, fn: function (a, b) { return a ^ b; } }
+  };
+  var curGate = 'AND', valA = 0, valB = 0;
+  var btnAEl = document.getElementById('btnA');
+  var btnBEl = document.getElementById('btnB');
+
+  function gateSvg(g, a, b, y) {
+    var wa = a ? 'w-hi' : 'w-lo', wb = b ? 'w-hi' : 'w-lo', wy = y ? 'w-hi' : 'w-lo';
+    var s = '<svg viewBox="0 0 220 120" class="w-full" xmlns="http://www.w3.org/2000/svg" aria-label="Ký hiệu cổng ' + g + '">';
+    if (g === 'NOT') {
+      s += '<polyline class="' + wa + '" points="15,60 78,60"></polyline>';
+      s += '<path class="gate-body" d="M 78,34 L 78,86 L 122,60 Z"></path>';
+      s += '<circle class="gate-body" cx="129" cy="60" r="6"></circle>';
+      s += '<polyline class="' + wy + '" points="135,60 205,60"></polyline>';
+      s += '<text x="18" y="50" font-size="12" font-weight="800" fill="#334155">A</text>';
+      s += '<text x="190" y="50" font-size="12" font-weight="800" fill="#334155">Y</text>';
+      s += '<text x="95" y="108" font-size="12" font-weight="800" fill="#2563eb" text-anchor="middle">NOT</text>';
+    } else {
+      var outX;
+      s += '<polyline class="' + wa + '" points="15,42 75,42"></polyline>';
+      s += '<polyline class="' + wb + '" points="15,78 75,78"></polyline>';
+      if (g === 'AND' || g === 'NAND') {
+        s += '<path class="gate-body" d="M 72,30 L 104,30 A 30,30 0 0 1 104,90 L 72,90 Z"></path>';
+        outX = 134;
+      } else {
+        if (g === 'XOR') s += '<path d="M 60,30 Q 80,60 60,90" fill="none" stroke="#2563eb" stroke-width="2.5"></path>';
+        s += '<path class="gate-body" d="M 68,30 Q 88,60 68,90 C 98,90 122,78 136,60 C 122,42 98,30 68,30 Z"></path>';
+        outX = 136;
+      }
+      if (g === 'NAND' || g === 'NOR') {
+        s += '<circle class="gate-body" cx="' + (outX + 6) + '" cy="60" r="6"></circle>';
+        outX += 12;
+      }
+      s += '<polyline class="' + wy + '" points="' + outX + ',60 205,60"></polyline>';
+      s += '<text x="18" y="32" font-size="12" font-weight="800" fill="#334155">A</text>';
+      s += '<text x="18" y="98" font-size="12" font-weight="800" fill="#334155">B</text>';
+      s += '<text x="190" y="50" font-size="12" font-weight="800" fill="#334155">Y</text>';
+      s += '<text x="95" y="65" font-size="12" font-weight="800" fill="#2563eb" text-anchor="middle">' + g + '</text>';
+    }
+    return s + '</svg>';
+  }
+
+  function updateGate() {
+    var g = gateData[curGate];
+    var y = g.two ? g.fn(valA, valB) : g.fn(valA);
+    document.getElementById('gateSymbol').innerHTML = gateSvg(curGate, valA, valB, y);
+    btnAEl.textContent = 'A = ' + valA;
+    btnAEl.className = 'toggle-in' + (valA ? ' on' : '');
+    btnBEl.textContent = 'B = ' + valB;
+    btnBEl.className = 'toggle-in' + (valB ? ' on' : '');
+    document.getElementById('wrapB').style.display = g.two ? '' : 'none';
+    var outEl = document.getElementById('outY');
+    outEl.textContent = 'Y = ' + y;
+    outEl.className = 'min-w-[64px] text-center rounded-xl px-3 py-2 font-extrabold mono border-2 ' +
+      (y ? 'bg-amber-50 text-amber-700 border-amber-400' : 'bg-slate-100 text-slate-500 border-slate-200');
+    document.getElementById('gateName').textContent = curGate;
+    document.getElementById('gateDesc').textContent = g.desc;
+    document.getElementById('gateExprTxt').textContent = g.expr;
+    document.getElementById('gateVerilog').textContent = g.ver;
+    document.getElementById('gateExample').textContent = g.ex;
+    document.getElementById('gateThead').innerHTML = g.two
+      ? '<th class="py-2">A</th><th>B</th><th>Y</th>'
+      : '<th class="py-2">A</th><th>Y</th>';
+    var rows = '';
+    if (g.two) {
+      for (var a2 = 0; a2 <= 1; a2++)
+        for (var b2 = 0; b2 <= 1; b2++) {
+          var yy = g.fn(a2, b2);
+          rows += '<tr class="' + ((a2 === valA && b2 === valB) ? 'tr-active' : '') + '"><td class="py-1.5">' + a2 + '</td><td>' + b2 +
+            '</td><td class="font-bold ' + (yy ? 'text-emerald-600' : 'text-slate-500') + '">' + yy + '</td></tr>';
+        }
+    } else {
+      for (var a3 = 0; a3 <= 1; a3++) {
+        var y3 = g.fn(a3);
+        rows += '<tr class="' + (a3 === valA ? 'tr-active' : '') + '"><td class="py-1.5">' + a3 +
+          '</td><td class="font-bold ' + (y3 ? 'text-emerald-600' : 'text-slate-500') + '">' + y3 + '</td></tr>';
+      }
+    }
+    document.getElementById('gateTbody').innerHTML = rows;
+  }
+
+  document.querySelectorAll('#gateBtnRow .gate-btn').forEach(function (b) {
+    b.addEventListener('click', function () {
+      document.querySelectorAll('#gateBtnRow .gate-btn').forEach(function (x) { x.classList.remove('active'); });
+      b.classList.add('active');
+      curGate = b.getAttribute('data-gate');
+      updateGate();
+    });
+  });
+  btnAEl.addEventListener('click', function () { valA = valA ? 0 : 1; updateGate(); });
+  btnBEl.addEventListener('click', function () { valB = valB ? 0 : 1; updateGate(); });
+  updateGate();
+})();
+
+// ============ 5. Nút Copy code ============
+document.querySelectorAll('.copy-btn').forEach(function (btn) {
+  btn.addEventListener('click', function () {
+    var el = document.getElementById(btn.getAttribute('data-target'));
+    if (!el) return;
+    var text = el.innerText;
+    function ok() {
+      var old = btn.innerHTML;
+      btn.innerHTML = '<i class="fa-solid fa-check mr-1"></i>Đã copy!';
+      setTimeout(function () { btn.innerHTML = old; }, 1600);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(ok, function () { fallbackCopy(text, ok); });
+    } else { fallbackCopy(text, ok); }
+  });
+});
+function fallbackCopy(text, cb) {
+  var ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand('copy'); } catch (e) {}
+  document.body.removeChild(ta);
+  cb();
+}
+
+// ============ 6. Quiz ============
+var quizData = [
+  { q: 'Đèn hành lang sáng khi "trời tối VÀ có người đi qua". Quan hệ logic giữa hai điều kiện và đèn là cổng gì?',
+    opts: ['OR — một điều kiện là đủ', 'AND — cần cả hai điều kiện đồng thời', 'XOR — hai điều kiện phải khác nhau', 'NOT — đảo điều kiện'],
+    ans: 1, exp: 'Đèn chỉ sáng khi CẢ HAI điều kiện cùng đúng → cổng AND: den = toi · co_nguoi. Nếu dùng OR, đèn sẽ sáng cả ban ngày khi có người.' },
+  { q: 'Cổng XOR 2 ngõ vào cho output bằng 1 khi nào?',
+    opts: ['Khi cả hai input bằng 1', 'Khi hai input KHÁC nhau', 'Khi cả hai input bằng 0', 'Khi ít nhất một input bằng 1'],
+    ans: 1, exp: 'XOR = "hoặc loại trừ": Y = 1 khi A khác B (01 hoặc 10). Cả hai cùng 1 thì XOR ra 0 — khác với OR (inclusive) ra 1.' },
+  { q: 'Phát biểu nào ĐÚNG về mức logic 0?',
+    opts: ['Là trạng thái "mất điện" của mạch', 'Là một khoảng điện áp Low hợp lệ đang được mạch lái chủ động', 'Là điện áp âm', 'Là trạng thái hỏng của transistor'],
+    ans: 1, exp: 'Logic 0 = khoảng điện áp Low (gần 0V, dưới ngưỡng quy định) — một trạng thái làm việc bình thường. "Mất điện" là cả mạch ngừng hoạt động, chuyện hoàn toàn khác.' },
+  { q: 'Một mạch tổ hợp có 3 input. Truth table đầy đủ có bao nhiêu hàng?',
+    opts: ['3 hàng', '6 hàng', '8 hàng', '9 hàng'],
+    ans: 2, exp: 'n input → 2 lũy thừa n hàng. Với n = 3: 2×2×2 = 8 hàng (đếm nhị phân 000 → 111 để không sót).' },
+  { q: 'NAND của A và B nghĩa là gì?',
+    opts: ['(A đảo) AND (B đảo)', 'Đảo của kết quả A·B, tức (A·B)′', 'A·B cộng thêm 1', 'Giống hệt NOR'],
+    ans: 1, exp: 'NAND = NOT của AND: chỉ ra 0 khi cả A và B đều bằng 1. Còn (A′)·(B′) = (A+B)′ chính là NOR — đó là định luật De Morgan.' },
+  { q: 'Vì sao NAND (và NOR) được gọi là cổng vạn năng (universal gate)?',
+    opts: ['Vì chúng chuyển mạch nhanh nhất', 'Vì chỉ cần một loại NAND (hoặc NOR) là xây dựng được mọi hàm logic', 'Vì chúng có nhiều ngõ vào nhất', 'Vì chúng không có độ trễ lan truyền'],
+    ans: 1, exp: 'Từ NAND có thể tạo NOT (nối chung 2 ngõ vào), rồi AND, OR… nên một loại cổng là đủ xây mọi mạch số. Trong CMOS, NAND/NOR còn nhỏ và nhanh hơn AND/OR.' },
+  { q: 'Với assign alarm = enable &amp; (door | window | motion); khi enable=1, door=0, window=1, motion=0 thì alarm bằng bao nhiêu?',
+    opts: ['0', '1', 'Không xác định', 'Phụ thuộc vào clock'],
+    ans: 1, exp: 'alarm = 1 & (0 | 1 | 0) = 1 & 1 = 1. Mạch tổ hợp không cần clock — output tính thẳng từ input hiện tại (sau độ trễ lan truyền).' },
+  { q: 'Propagation delay (độ trễ lan truyền) của cổng logic là gì?',
+    opts: ['Thời gian từ lúc cấp nguồn đến lúc mạch chạy', 'Khoảng thời gian từ khi input đổi đến khi output ổn định ở giá trị mới', 'Thời gian của một chu kỳ clock', 'Thời gian nạp bitstream vào FPGA'],
+    ans: 1, exp: 'Transistor cần thời gian chuyển mạch nên output KHÔNG đổi "ngay lập tức". Độ trễ qua chuỗi cổng cộng dồn thành critical path — giới hạn tốc độ tối đa của mạch.' },
+  { q: 'Glitch (hazard) trong mạch tổ hợp là gì?',
+    opts: ['Output sai vĩnh viễn do cổng bị hỏng', 'Cú "nháy" sai tạm thời do tín hiệu tới output theo các đường có độ trễ khác nhau, trước khi ổn định', 'Hiện tượng do điện áp nguồn quá cao', 'Lỗi chỉ xảy ra trong mạch có clock'],
+    ans: 1, exp: 'Khi một tín hiệu đến output qua hai đường trễ lệch nhau (VD: một nhánh qua NOT), output có thể nháy sai trong tích tắc rồi mới ổn định. Tuần 5: flip-flop + clock sẽ "đợi hết nhiễu loạn rồi mới chốt".' },
+  { q: 'Trên FPGA, một biểu thức logic 4 input như mạch báo động thường được hiện thực bằng gì sau synthesis?',
+    opts: ['Một LUT (Look-Up Table) chứa bảng chân lý của biểu thức', 'Một flip-flop', 'Một khối bộ nhớ DDR', 'Một core CPU mềm'],
+    ans: 0, exp: 'LUT đúng nghĩa đen là bảng chân lý lưu trong bộ nhớ tí hon: synthesis "nén" biểu thức 4 input vào một LUT4. Trên ASIC, cùng biểu thức đó thành các cổng standard cell.' }
+];
+
+var quizWrap = document.getElementById('quizWrap');
+var quizState = new Array(quizData.length).fill(null);
+
+quizData.forEach(function (item, qi) {
+  var card = document.createElement('div');
+  card.className = 'bg-white rounded-2xl shadow p-6';
+  var optsHtml = item.opts.map(function (o, oi) {
+    return '<button type="button" class="quiz-opt mb-2" data-q="' + qi + '" data-o="' + oi + '"><b>' + String.fromCharCode(65 + oi) + '.</b> ' + o + '</button>';
+  }).join('');
+  card.innerHTML = '<p class="font-bold text-dark mb-3">Câu ' + (qi + 1) + '. ' + item.q + '</p>' + optsHtml +
+    '<div id="quizExp' + qi + '" class="hidden mt-2 text-sm rounded-xl p-3"></div>';
+  quizWrap.appendChild(card);
+});
+
+quizWrap.addEventListener('click', function (e) {
+  var btn = e.target.closest('.quiz-opt');
+  if (!btn) return;
+  var qi = parseInt(btn.getAttribute('data-q'), 10);
+  var oi = parseInt(btn.getAttribute('data-o'), 10);
+  if (quizState[qi] !== null) return; // đã trả lời
+  quizState[qi] = oi;
+  var item = quizData[qi];
+  var opts = quizWrap.querySelectorAll('.quiz-opt[data-q="' + qi + '"]');
+  opts.forEach(function (b, k) {
+    b.disabled = true;
+    if (k === item.ans) b.classList.add('opt-correct');
+    else if (k === oi) b.classList.add('opt-wrong');
+    else b.classList.add('opt-dim');
+  });
+  var exp = document.getElementById('quizExp' + qi);
+  exp.classList.remove('hidden');
+  if (oi === item.ans) {
+    exp.className = 'mt-2 text-sm rounded-xl p-3 bg-emerald-50 text-emerald-800 border border-emerald-200';
+    exp.innerHTML = '<b><i class="fa-solid fa-circle-check mr-1"></i>Chính xác!</b> ' + item.exp;
+  } else {
+    exp.className = 'mt-2 text-sm rounded-xl p-3 bg-red-50 text-red-800 border border-red-200';
+    exp.innerHTML = '<b><i class="fa-solid fa-circle-xmark mr-1"></i>Chưa đúng.</b> Đáp án đúng là <b>' + String.fromCharCode(65 + item.ans) + '</b>. ' + item.exp;
+  }
+});
+
+document.getElementById('btnGrade').addEventListener('click', function () {
+  var answered = quizState.filter(function (v) { return v !== null; }).length;
+  var correct = quizState.reduce(function (acc, v, i) { return acc + (v === quizData[i].ans ? 1 : 0); }, 0);
+  var res = document.getElementById('quizResult');
+  if (answered < quizData.length) {
+    res.innerHTML = '<span class="text-amber-600"><i class="fa-solid fa-circle-exclamation mr-1"></i>Bạn mới trả lời ' + answered + '/' + quizData.length + ' câu — làm nốt rồi chấm nhé!</span>';
+    return;
+  }
+  var msg = correct >= 9 ? 'Xuất sắc! Bạn đã nắm chắc cổng logic và bảng chân lý.' : correct >= 7 ? 'Tốt! Xem lại các câu sai một lượt nhé.' : correct >= 5 ? 'Tạm ổn — nên chơi lại Demo B với từng cổng và đọc lại section 4.' : 'Hãy đọc lại bài và làm lại quiz — đặc biệt phần OR/XOR và mức logic 1/0.';
+  res.innerHTML = '<span class="' + (correct >= 7 ? 'text-accent' : 'text-danger') + '"><i class="fa-solid fa-trophy mr-1"></i>Kết quả: ' + correct + '/' + quizData.length + ' câu đúng.</span> <span class="text-slate-600 font-medium">' + msg + '</span>';
+});
+
+document.getElementById('btnQuizReset').addEventListener('click', function () {
+  quizState = new Array(quizData.length).fill(null);
+  document.getElementById('quizResult').textContent = '';
+  quizWrap.querySelectorAll('.quiz-opt').forEach(function (b) {
+    b.disabled = false;
+    b.classList.remove('opt-correct', 'opt-wrong', 'opt-dim');
+  });
+  quizData.forEach(function (_, qi) {
+    var exp = document.getElementById('quizExp' + qi);
+    exp.className = 'hidden mt-2 text-sm rounded-xl p-3';
+    exp.innerHTML = '';
+  });
+});
+</script>
+</body>
+</html>

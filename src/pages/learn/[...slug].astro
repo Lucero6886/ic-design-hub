@@ -1,0 +1,55 @@
+---
+import EntryLayout from "~/layouts/EntryLayout.astro";
+import { render } from "astro:content";
+import { href } from "~/utils/url";
+import { getPublished } from "~/utils/content";
+
+export async function getStaticPaths() {
+  const paths = await getPublished("learning-paths");
+  return paths.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+const d = entry.data;
+---
+
+<EntryLayout
+  title={d.title}
+  summary={d.summary}
+  path={`learn/${entry.id}/`}
+  crumbs={[
+    { label: "Trang chủ", url: href("") },
+    { label: "Học", url: href("learn/") },
+    { label: d.title },
+  ]}
+  date={d.date}
+  updated={d.updated}
+  author={d.author}
+  lang={d.lang}
+  track={d.track}
+  tags={d.tags}
+  badges={[
+    { text: "Lộ trình học", tone: "acc" },
+    ...(d.duration ? [{ text: d.duration, tone: "gray" as const }] : []),
+  ]}
+  attribution={d.attribution}
+  references={d.references}
+  relatedArticles={d.relatedArticles}
+  relatedProjects={d.relatedProjects}
+  relatedResearch={d.relatedResearch}
+>
+  <div slot="before-body">
+    {d.audience && <p class="co info"><b>Dành cho:</b> {d.audience}</p>}
+    <h2>Các chặng của lộ trình</h2>
+    <ol>
+      {d.steps.map((s) => (
+        <li style="margin:8px 0">
+          <a href={s.url.startsWith("http") ? s.url : href(s.url)}>{s.label}</a>
+          {s.note && <span class="muted"> — {s.note}</span>}
+        </li>
+      ))}
+    </ol>
+  </div>
+  <Content />
+</EntryLayout>

@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="Giảng Viên Đinh Văn Nam">
+<meta name="copyright" content="© 2026 · Bản quyền thuộc về Giảng Viên Đinh Văn Nam, Khoa Điện-Điện Tử, Trường Kỹ Thuật, Đại học Phenikaa">
+<meta name="description" content="IC Design Mentoring — Version 3, Phase 1 (12 tuần). Khoa Điện – Điện tử · Trường Kỹ thuật · Đại học Phenikaa. Biên soạn: Giảng Viên Đinh Văn Nam.">
+<title>Tuần 2 — From Idea to Chip | IC Design Mentoring v3</title>
+<link rel="stylesheet" href="css/style.css">
+<script src="js/app.js" defer></script>
+</head>
+<body data-week="02">
+
+<!-- ================= TOP BAR ================= -->
+<header class="topbar">
+  <div class="topbar-in">
+    <a class="brand" href="index.html"><span class="logo">IC</span>
+      <span>IC Design Mentoring<small>Tuần 2/12 · From Idea to Chip</small></span></a>
+    <nav class="layer-chips">
+      <a class="chip" href="../../index.html" title="Learning Hub — cổng ba phiên bản giáo trình; đây là V3, bản hiện hành được khuyến nghị">⌂ Hub · V3</a>
+      <a class="chip chip-a" href="#layer-a"><span class="dot"></span>A · Trước buổi</a>
+      <a class="chip chip-b" href="#layer-b"><span class="dot"></span>B · Buổi học 60′</a>
+      <a class="chip chip-c" href="#layer-c"><span class="dot"></span>C · Lab</a>
+      <a class="chip chip-d" href="#layer-d"><span class="dot"></span>D · Sau buổi</a>
+      <a class="chip" href="index.html">Mục lục</a>
+    </nav>
+    <span class="mentor-sw" title="Hiện/ẩn nội dung dành riêng cho mentor"><span class="tr"></span> Mentor</span>
+  </div>
+  <div class="scrollbar"><div></div></div>
+</header>
+
+<!-- ================= HERO ================= -->
+<section class="hero">
+  <div class="wrap">
+    <div class="pill-row">
+      <span class="pill">Tuần 2 / 12</span>
+      <span class="pill acc">Design flow · bản đồ toàn khóa</span>
+      <span class="pill">Khoa Điện – Điện tử · ĐH Phenikaa</span>
+    </div>
+    <h1>From Idea to Chip</h1>
+    <p class="sub">Từ ý tưởng đến con chip — mỗi chặng một artifact</p>
+    <p>Tuần trước bạn biết chip là gì và ai làm ra nó — đó là "nhân vật". Tuần này là "cốt truyện": một ý tưởng đi qua những chặng nào để thành silicon, hoặc thành cấu hình nạp lên FPGA? Bạn sẽ nắm engineering flow 8 chặng, và điều quan trọng nhất: mỗi chặng giao ra một <b>artifact</b> (sản phẩm bàn giao) cụ thể. Bài học lớn nhất: thiết kế giỏi không bắt đầu từ gõ code — code chỉ xuất hiện ở chặng thứ ba.</p>
+    <div class="outcomes">
+      <div class="outcome"><b>Mục tiêu 1.</b> Kể đúng 8 chặng của engineering flow và gọi tên artifact tồn tại ở mỗi chặng (spec, block diagram, RTL, testbench, netlist, bitstream/GDSII).</div>
+      <div class="outcome"><b>Mục tiêu 2.</b> Viết được requirement (yêu cầu) ĐO ĐƯỢC; phân biệt requirement với specification (đặc tả) và với cách hiện thực.</div>
+      <div class="outcome"><b>Mục tiêu 3.</b> Chỉ đúng chỗ flow FPGA và flow ASIC đi chung, chỗ rẽ nhánh — và vì sao bitstream khác hẳn GDSII.</div>
+      <div class="outcome"><b>Mục tiêu 4.</b> Phân biệt 5 nấc: simulation ≠ synthesis ≠ implementation ≠ configuration ≠ hardware test — mỗi nấc trả lời một câu hỏi khác nhau.</div>
+    </div>
+    <div class="pos">
+      <div><b>Tuần trước — T1.</b> Chip là gì: chuỗi trừu tượng transistor → gate → block → system, IC/SoC, các vai trò kỹ sư.</div>
+      <div><b>Tuần này — T2.</b> Hành trình của một thiết kế: 8 chặng, artifact từng chặng, hai đích đến FPGA vs ASIC.</div>
+      <div><b>Tuần sau — T3.</b> Xuống tầng nhỏ nhất của chặng RTL: cổng logic và truth table — "ngữ pháp" đầu tiên của phần cứng.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= LAYER A ================= -->
+<section id="layer-a" class="layer layer-a">
+  <div class="wrap layer-head">
+    <div class="band">
+      <span class="layer-badge">A</span>
+      <h2>Trước buổi học</h2>
+      <span class="time">⏱ 15–25 phút · chỉ cần đọc phần này</span>
+    </div>
+    <p class="lead">Bạn KHÔNG cần đọc Layer C trước buổi học. Chuẩn bị đủ ở đây là bạn sẵn sàng thảo luận. Layer C dành cho lúc thực hành sau buổi.</p>
+  </div>
+  <div class="wrap layer-body">
+    <div class="grid2">
+      <div class="card">
+        <h3>Vì sao tuần này quan trọng</h3>
+        <p>Không biết flow thì học RTL như học từ vựng mà không có ngữ pháp: thuộc nhiều mà không xếp thành câu. Từ T3 trở đi, <b>mỗi tuần đều được định vị "ta đang ở chặng nào của flow"</b>; và ở T9–11 bạn sẽ tự đi flow thu nhỏ requirement → RTL → verification → FPGA trên project của chính mình.</p>
+        <p class="small muted"><b>Điều kiện tiên quyết:</b> T1 — chuỗi trừu tượng, IC/SoC, phân biệt sơ bộ FPGA (cấu hình lại được) và ASIC (cố định).</p>
+      </div>
+      <div class="card">
+        <h3>Hoạt động chuẩn bị (10′)</h3>
+        <p>Chọn một tính năng quen thuộc trên điện thoại (ví dụ: đồng hồ báo thức). Viết ra giấy <b>3 dòng requirement</b> — điều nó PHẢI làm, không phải cách nó làm. Tự kiểm từng dòng: <b>có đo được không?</b> ("dễ dùng" — không đo được; "reo đúng giờ đã đặt, sai lệch dưới 1 giây" — đo được). Mang tờ giấy đến buổi học.</p>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Khái niệm thiết yếu — đọc chậm, 5 ý</h3>
+      <ul>
+        <li><b>Requirement &amp; Specification:</b> requirement = điều hệ thống phải làm; specification = bản cam kết chi tiết, <b>định lượng, đo được</b> — chuẩn để verification đối chiếu từng điều khoản.</li>
+        <li><b>Architecture (kiến trúc)</b> = chia hệ thành các khối (block) + định nghĩa <b>interface</b> giữa chúng (tên tín hiệu, độ rộng, ý nghĩa) — chưa có dòng code nào.</li>
+        <li><b>RTL</b> = mô tả hiện thực bằng HDL (ngôn ngữ mô tả phần cứng, ví dụ SystemVerilog); mỗi dòng suy ra phần cứng chạy song song — không phải lệnh chạy lần lượt.</li>
+        <li><b>Verification (kiểm chứng)</b> = thu thập <b>bằng chứng</b> rằng RTL khớp spec bằng testbench + simulation (mô phỏng chỉ khẳng định "không sai ở những gì đã kiểm"; muốn <em>chứng minh</em> theo nghĩa toán học phải dùng formal verification — Phase 2); thực tế thường chiếm <b>quá nửa công sức</b> dự án.</li>
+        <li><b>Synthesis</b> sinh ra <b>netlist tương đương đã tối ưu</b>; sau đó rẽ nhánh: ASIC đi tiếp physical design → GDSII → tape-out → foundry; FPGA đi place &amp; route → <b>bitstream</b> nạp xuống board.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>2 câu hỏi tự chẩn đoán</h3>
+      <p class="small muted">Trả lời trong đầu trước, rồi mới mở đáp án. Nếu sai cũng không sao — buổi học sẽ xử lý đúng chỗ này.</p>
+      <details class="reveal"><summary>1. Chip ASIC chạy sai, lỗi bị phát hiện SAU tape-out. Team sửa thế nào?</summary>
+        <div class="rv-body">Không sửa được trên silicon đã in. Lỗi nặng đồng nghĩa <b>respin</b>: sửa thiết kế, làm lại bộ mask rất đắt, chờ fab thêm nhiều tháng. Vì thế verification phải nặng ký <em>trước</em> tape-out. Nếu là FPGA: chỉ cần sửa RTL, synthesis lại, <b>nạp lại cấu hình</b> trong vài phút.</div>
+      </details>
+      <details class="reveal"><summary>2. Bitstream và GDSII khác nhau gì?</summary>
+        <div class="rv-body"><b>Bitstream</b> = file cấu hình nạp lên FPGA — đảo lại được, gần như miễn phí mỗi lần nạp. <b>GDSII</b> = dữ liệu hình học (layout) gửi foundry để làm mask chế tạo ASIC — điểm không quay lại. Đây là hai artifact "cuối flow" của hai con đường khác nhau, không bao giờ được đánh đồng.</div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ================= LAYER B ================= -->
+<section id="layer-b" class="layer layer-b">
+  <div class="wrap layer-head">
+    <div class="band">
+      <span class="layer-badge">B</span>
+      <h2>Buổi mentoring 60 phút</h2>
+      <span class="time">🗺 Mentor Session Guide</span>
+    </div>
+    <p class="lead">Kịch bản buổi học — mentor điều phối theo timeline này, không cần đọc hết Layer C để đứng lớp. Học viên nhìn vào đây để biết mình sẽ làm gì.</p>
+  </div>
+  <div class="wrap layer-body">
+    <div class="card">
+      <div class="timeline">
+        <div class="tl-row">
+          <span class="tl-time">0–5′</span>
+          <h4>Retrieval — kiểm tra tuần 1</h4>
+          <ul>
+            <li>Chuỗi trừu tượng từ transistor đến hệ thống gồm những tầng nào?</li>
+            <li>SoC là gì — khác gì "bo mạch có nhiều chip"?</li>
+            <li>Vì sao vật liệu bán dẫn đặc biệt so với dẫn điện/cách điện thuần túy?</li>
+          </ul>
+        </div>
+        <div class="tl-row">
+          <span class="tl-time">5–15′</span>
+          <h4>Học viên giải thích</h4>
+          <p>2–3 học viên đọc 3 dòng requirement báo thức đã chuẩn bị. Cả lớp soi từng dòng: "đo được chưa? kiểm bằng cách nào?". Mentor chưa sửa vội — ghi các dòng mơ hồ lên bảng cho phần sau.</p>
+        </div>
+        <div class="tl-row">
+          <span class="tl-time">15–25′</span>
+          <h4>Mentor sửa &amp; giảng sâu</h4>
+          <p>Chốt 3 điều bắt buộc đúng: (1) thiết kế bắt đầu từ <b>requirement đo được</b> — code chỉ xuất hiện ở chặng 3; (2) flow là <b>dây chuyền artifact</b>: spec → block diagram → RTL → testbench/báo cáo → netlist → bitstream/GDSII; (3) FPGA và ASIC <b>dùng chung artifact đến hết verification; từ synthesis đã khác thư viện đích (LUT/FF vs standard cell) và rẽ nhánh hẳn ở implementation</b> rồi rẽ nhánh — bitstream nạp lại trong vài phút, GDSII là điểm không quay lại.</p>
+        </div>
+        <div class="tl-row">
+          <span class="tl-time">25–45′</span>
+          <h4>Active design — thiết kế trên giấy (nhóm 2–3 người)</h4>
+          <p><b>Đề bài:</b> máy đếm người vào phòng, hiển thị trên LED. Chưa ai được viết code — đây là <b>design-before-code</b> lần đầu của khóa.</p>
+          <ul>
+            <li>Viết 3 requirement <b>đo được</b> (mỗi dòng có con số hoặc điều kiện kiểm được).</li>
+            <li>Vẽ block diagram 3–4 khối; <b>mỗi mũi tên ghi tên tín hiệu</b>.</li>
+            <li>Nếu làm thật đến FPGA: liệt kê artifact sẽ tồn tại ở từng chặng.</li>
+          </ul>
+          <p class="small muted">Artifact nhóm: 1 tờ giấy có 3 requirement + block diagram + danh sách artifact theo chặng.</p>
+        </div>
+        <div class="tl-row">
+          <span class="tl-time">45–55′</span>
+          <h4>Chia sẻ &amp; tranh luận kỹ thuật</h4>
+          <p>Hai nhóm trình bày; nhóm khác đóng vai <b>verification engineer</b> soi "requirement này đo được không?" ("đếm nhanh" — không; "cập nhật trong 1 giây" — có). Câu ép suy nghĩ: hai người vào cùng lúc, requirement nhóm bạn nói gì? Mũi tên giữa hai khối mang tín hiệu gì, rộng mấy bit? Chạy FPGA thì artifact cuối là file gì?</p>
+        </div>
+        <div class="tl-row">
+          <span class="tl-time">55–60′</span>
+          <h4>Chốt &amp; giao việc</h4>
+          <ul>
+            <li><b>Nhớ:</b> flow = dây chuyền artifact; code ở chặng 3; bitstream ≠ GDSII.</li>
+            <li><b>Tránh:</b> requirement kiểu "nhanh, đẹp, dễ dùng" — không đo được thì không kiểm chứng được.</li>
+            <li><b>Artifact sau buổi:</b> bảng "8 chặng → artifact → ai làm → FPGA/ASIC khác gì" + block diagram sạch (Layer D).</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <p class="mentor-hint">💡 Bật công tắc <b>Mentor</b> trên thanh tiêu đề để xem ghi chú dành riêng cho mentor (đáp án kỳ vọng, câu hỏi cứu nguy, mở rộng cho học viên giỏi).</p>
+
+    <div class="mentor-only">
+      <div class="mentor-box">
+        <span class="mtag">Mentor only · Tuần 2</span>
+        <h3>Ghi chú vận hành buổi học</h3>
+        <div class="grid2">
+          <div>
+            <h4>Mục tiêu mentor cần chốt được</h4>
+            <ul class="small">
+              <li>Học viên kể flow bằng <b>artifact</b> ("chặng này giao gì"), không phải thuộc lòng tên 8 chặng.</li>
+              <li>Viết được requirement đo được — nền của mọi bản spec W9–11.</li>
+              <li>Chỉ đúng điểm rẽ nhánh FPGA/ASIC; bitstream vs GDSII.</li>
+            </ul>
+            <h4>Hiểu sai kinh điển (chờ sẵn)</h4>
+            <ul class="small">
+              <li>"RTL là phần mềm chạy trên chip" — sai: RTL <b>mô tả phần cứng</b> tồn tại song song; T3–7 sẽ thấm dần.</li>
+              <li>"Verification = chạy thử một lần" — sai: là chặng <b>chứng minh khớp spec</b>, thường chiếm quá nửa công sức.</li>
+              <li>"Synthesis = compile như gcc" — sai: synthesis sinh <b>mạng cổng/LUT tương đương đã tối ưu</b> theo thư viện đích.</li>
+              <li>"Nạp FPGA = tape-out mini" — hai hành động khác bản chất và chi phí.</li>
+            </ul>
+          </div>
+          <div>
+            <h4>Câu hỏi chẩn đoán → đáp án tốt → hỏi tiếp</h4>
+            <p class="small"><b>Hỏi:</b> "Spec khác requirement chỗ nào?"<br>
+            <b>Đáp tốt:</b> requirement nói hệ thống phải làm gì; spec là bản cam kết chi tiết, định lượng — làm chuẩn cho verification đối chiếu.<br>
+            <b>Hỏi tiếp (nếu trả lời đúng):</b> "Một bản spec đạt chuẩn khi người khác làm được gì?" → viết được thiết kế <em>và</em> test mà không cần hỏi lại tác giả.</p>
+            <p class="small"><b>Cứu nguy (nếu bí):</b> flow xây nhà: nhu cầu (requirement) → bản vẽ (spec/architecture) → thi công (RTL/implementation) → nghiệm thu (verification/test). Không ai xây trước rồi hỏi chủ nhà muốn gì.</p>
+            <p class="small"><b>Mở rộng học viên giỏi:</b> "Vì sao công nghiệp tách front-end/back-end?" → chuyên môn hóa sâu + điểm bàn giao rõ ràng bằng artifact: <b>netlist + constraints</b>. Front-end lo "chip làm gì", back-end lo "chip nằm thế nào trên silicon".</p>
+          </div>
+        </div>
+        <div class="co co-warn small"><b>Nhịp buổi học.</b> Đừng giảng chi tiết từng chặng — Layer C lo việc đó; dồn thời gian cho breakout 25–45′. Đi từng nhóm, hỏi "dòng này đo bằng cách nào?", đừng cho đáp án sớm. Nhóm bí: gợi ý 3 khối detector — counter — display. Nhóm nhanh: thêm requirement cho tình huống hai người vào sát nhau.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= LAYER C ================= -->
+<section id="layer-c" class="layer layer-c">
+  <div class="wrap layer-head">
+    <div class="band">
+      <span class="layer-badge">C</span>
+      <h2>Technical Lab — Deep Dive</h2>
+      <span class="time">🔬 Tự học sâu · sau buổi hoặc khi thực hành</span>
+    </div>
+    <p class="lead">Toàn bộ kỹ thuật chi tiết nằm ở đây, chia thành mục gập/mở. Không bắt buộc đọc hết một lần — đi theo thứ tự khi làm bài tập.</p>
+  </div>
+  <div class="wrap layer-body">
+    <div class="dd-tools"><button data-dd="open">Mở tất cả</button><button data-dd="close">Đóng tất cả</button></div>
+
+    <!-- C1 -->
+    <details class="dd" open>
+      <summary><span class="no">C1</span> Requirement &amp; Specification — cam kết đo được <span class="est">~8′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <p><b>Requirement</b> là điều hệ thống phải làm, nhìn từ người dùng. <b>Specification</b> là bản cam kết kỹ thuật chi tiết viết ra từ requirement: chức năng, interface, ràng buộc — tất cả <b>định lượng</b>. Spec là "hợp đồng" mà chặng verification sẽ đối chiếu từng điều khoản; viết mơ hồ thì không có gì để đối chiếu.</p>
+        <div class="tblwrap">
+        <table class="tbl">
+          <tr><th>Viết mơ hồ (không kiểm được)</th><th>Viết đo được (kiểm được)</th></tr>
+          <tr><td>"Đếm người chính xác"</td><td>"Đếm đúng cả khi hai người vào cách nhau 0,5 giây" (ví dụ minh họa)</td></tr>
+          <tr><td>"Hiển thị nhanh"</td><td>"Hiển thị cập nhật trong vòng 1 giây sau khi có người đi qua"</td></tr>
+          <tr><td>"Chạy ổn định"</td><td>"Chạy liên tục 24 giờ không sai số đếm"</td></tr>
+        </table>
+        </div>
+        <p class="small">Mẹo tự kiểm: với mỗi dòng, hỏi <em>"tôi sẽ kiểm tra nó bằng thí nghiệm nào?"</em>. Không nghĩ ra thí nghiệm → dòng đó chưa phải requirement, mới là lời quảng cáo.</p>
+        <div class="co co-info"><b>Chuẩn của một spec tốt:</b> người khác đọc xong viết được thiết kế <em>và</em> viết được test mà không cần hỏi lại bạn. Đây cũng là mầm phân biệt <b>"làm được"</b> (thiết kế chạy) và <b>"kiểm chứng được"</b> (chứng minh nó chạy đúng cam kết) — hai việc rất khác nhau.</div>
+      </div>
+    </details>
+
+    <!-- C2 -->
+    <details class="dd">
+      <summary><span class="no">C2</span> Architecture — chia khối &amp; định nghĩa interface <span class="est">~8′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <p><b>Architecture</b> = phân hoạch hệ thống thành các khối chức năng và định nghĩa cách chúng nói chuyện. Giống bản vẽ mặt bằng của kiến trúc sư: chưa xây viên gạch nào nhưng quyết định phần lớn chất lượng công trình. Artifact của chặng này: <b>block diagram + định nghĩa interface</b>.</p>
+        <p>Block diagram mức 1 của máy đếm người (đề bài Layer B):</p>
+<pre class="code standalone"><code>sensor_a ──►┌──────────┐ inc/dec ┌─────────┐ count[6:0] ┌─────────────┐──► seg[6:0]
+sensor_b ──►│ detector │────────►│ counter │───────────►│ display_drv │──► an[1:0]
+            └──────────┘         └─────────┘            └─────────────┘</code></pre>
+        <p><b>Mỗi mũi tên là một interface phải định nghĩa</b> — tên tín hiệu, độ rộng, ý nghĩa:</p>
+        <ul class="small">
+          <li><code>inc</code>, <code>dec</code> (1 bit mỗi tín hiệu): báo "một người vừa vào / vừa ra" — detector quyết định, counter chỉ việc tin.</li>
+          <li><code>count[6:0]</code>: số người hiện tại, 0–99 — counter lái, display_drv đọc.</li>
+          <li><code>seg[6:0]</code>, <code>an[1:0]</code>: điều khiển LED 7 đoạn ra thế giới ngoài.</li>
+        </ul>
+        <p class="small">Đặt tên và độ rộng ngay bây giờ để hai người làm hai khối <em>song song</em> mà ghép vẫn khớp — cùng logic đó, công nghiệp tách front-end/back-end và bàn giao bằng artifact. Bỏ qua kiến trúc, "cứ code rồi tính" → khối chồng chéo, sửa một chỗ vỡ mười chỗ.</p>
+      </div>
+    </details>
+
+    <!-- C3 -->
+    <details class="dd">
+      <summary><span class="no">C3</span> RTL &amp; Verification — mô tả và chứng minh <span class="est">~10′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <p><b>RTL</b> (Register Transfer Level) mô tả hiện thực bằng HDL. Nhớ lại cổng AND ở T1: <code>assign y = a &amp;&nbsp;b;</code> — dòng này không phải "lệnh chạy xong rồi thôi"; nó mô tả một cổng AND <em>tồn tại và hoạt động liên tục</em>. Mọi dòng RTL đều suy ra phần cứng chạy song song — khác hẳn chương trình C/Python chạy lần lượt. T3–T7 bạn sẽ học viết; tuần này chỉ cần định vị: RTL là artifact của chặng 3.</p>
+        <p><b>Verification</b> = chứng minh RTL khớp spec. Công cụ chính: <b>testbench</b> — "máy kiểm tra tự động" cấp input theo kịch bản và soi output so với kỳ vọng; <b>waveform</b> (giản đồ sóng) là bằng chứng khách quan để đối chiếu. Trong công nghiệp, verification thường chiếm <b>quá nửa công sức</b> dự án — vì "viết ra một thiết kế" dễ hơn nhiều so với "chứng minh nó đúng trong mọi tình huống spec cam kết".</p>
+        <p class="small">Bài học lịch sử một câu: bug phép chia FDIV của Pentium (1994) lọt ra thị trường khiến Intel tốn khoảng 475 triệu USD thu hồi — giá của một lỗi không bị chặn trước tape-out.</p>
+        <div class="co co-info"><b>Định vị cho tuần sau:</b> T5 bạn sẽ tự viết testbench đầu tiên; T9 testbench của bạn sẽ có invariant check ("luôn có ít nhất một hướng ĐỎ"). Tuần này chỉ cần trả lời đúng: testbench là artifact của chặng nào, và nó đối chiếu với tài liệu nào.</div>
+      </div>
+    </details>
+
+    <!-- C4 -->
+    <details class="dd">
+      <summary><span class="no">C4</span> Synthesis → netlist, rồi rẽ nhánh FPGA / ASIC <span class="est">~12′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <p><b>Synthesis</b> nhận RTL + constraints (ràng buộc tần số, I/O) + thư viện đích, giao ra <b>netlist</b>: danh sách các cell thật (cổng/LUT/FF) và dây nối giữa chúng, kèm báo cáo ước lượng timing/tài nguyên.</p>
+        <div class="co co-fix"><span class="tag">Hiệu chỉnh kỹ thuật so với v2</span> Bản v2 mô tả synthesis là "dịch" RTL thành cổng — dễ hiểu nhầm thành dịch 1-1 từng dòng. Chính xác: synthesis sinh ra netlist <b>tương đương về hành vi nhưng đã tối ưu</b> — rút gọn biểu thức Boole, gom nhân tử chung, bỏ logic thừa — rồi map sang thư viện đích: <b>LUT + FF</b> trên FPGA, <b>standard cell</b> trên ASIC. Cùng một RTL, hai netlist khác nhau; cấu trúc cổng bạn "nhìn thấy" trong code không được cam kết giữ nguyên. Xem <code>TECHNICAL_AUDIT.md</code> mục 5.4.</div>
+        <p>Ví dụ nhỏ — bạn viết RTL như sau (3 phép toán):</p>
+<pre class="code standalone"><code>assign y = (a &amp; b) | (a &amp; c);   // 2 AND + 1 OR như bạn viết?</code></pre>
+        <div class="wr">
+          <p><b>Dự đoán trước:</b> netlist sau synthesis sẽ có đúng 2 cổng AND + 1 cổng OR? Nghĩ xong hãy bấm.</p>
+          <button class="wr-btn wbtn alt" data-label="Hiện đáp án">Hiện đáp án</button>
+          <div class="wr-ans"><div class="co co-ok"><b>Không chắc — và thường là không.</b> Tool có thể biến đổi thành <code>a &amp; (b | c)</code> — 2 cổng, hành vi giống hệt; trên FPGA, cả biểu thức 3 đầu vào thường nằm gọn trong <b>1 LUT</b>. Netlist minh họa (thư viện standard cell):
+<pre class="code standalone"><code>OR2_X1  U1 ( .A1(b), .A2(c), .ZN(n1) );   // b | c
+AND2_X1 U2 ( .A1(a), .A2(n1), .ZN(y)  );  // a &amp; n1  — hết if/else, chỉ còn cell + dây</code></pre>
+          Synthesis cam kết <em>hành vi tương đương</em>, không cam kết <em>cấu trúc y nguyên</em>.</div></div>
+        </div>
+        <p><b>Sau synthesis, flow rẽ nhánh.</b> <b>ASIC:</b> physical design (floorplan → place → clock tree → route → kiểm tra signoff) → layout <b>GDSII</b> → <b>tape-out</b> gửi foundry làm mask, chế tạo wafer — nhiều tháng, không quay lại được. <b>FPGA:</b> place &amp; route trên tài nguyên <em>có sẵn</em> của con FPGA → <b>bitstream</b> → nạp xuống board = cấu hình lại, sai thì sửa RTL nạp lại trong vài phút. Chặng 1–4 gọi là <b>front-end</b> ("chip làm gì"), phía sau của nhánh ASIC là <b>back-end</b> ("chip nằm thế nào trên silicon"); synthesis là cầu nối, hai bên bàn giao bằng netlist + constraints.</p>
+        <div class="tblwrap">
+        <table class="tbl">
+          <tr><th>Chặng</th><th>Artifact giao ra</th><th>FPGA vs ASIC</th></tr>
+          <tr><td>1. Requirement &amp; Specification</td><td>Tài liệu spec đo được</td><td>Giống nhau</td></tr>
+          <tr><td>2. Architecture</td><td>Block diagram + định nghĩa interface</td><td>Giống nhau</td></tr>
+          <tr><td>3. RTL Design</td><td>File RTL (.sv)</td><td>Giống nhau — một RTL cho cả hai đường</td></tr>
+          <tr><td>4. Verification</td><td>Testbench + báo cáo pass + waveform</td><td>Giống nhau</td></tr>
+          <tr><td>5. Synthesis</td><td>Netlist + báo cáo ước lượng</td><td>Map sang LUT/FF (FPGA) vs standard cell (ASIC)</td></tr>
+          <tr><td>6. Implementation</td><td>FPGA: thiết kế đã place &amp; route → bitstream · ASIC: layout GDSII đã signoff</td><td>Cùng tên chặng, công cụ và bài toán khác hẳn</td></tr>
+          <tr><td>7. Fabrication / Configuration</td><td>FPGA: board đã nạp cấu hình · ASIC: mask, wafer, chip mẫu</td><td>Vài phút, đảo được · nhiều tháng, cố định</td></tr>
+          <tr><td>8. Test / Bring-up</td><td>Báo cáo chạy thật trên phần cứng</td><td>FPGA: sửa RTL, nạp lại · ASIC: lỗi nặng = respin</td></tr>
+        </table>
+        </div>
+        <p class="small muted">Càng đi về sau, artifact càng "gần silicon" và càng đắt để sửa — vì vậy kỹ sư giỏi dồn công sức làm đúng từ những artifact đầu tiên.</p>
+      </div>
+    </details>
+
+    <!-- C5 -->
+    <details class="dd">
+      <summary><span class="no">C5</span> 5 nấc kiểm tra — mỗi nấc trả lời một câu hỏi <span class="est">~8′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <p>Người mới hay gộp mọi thứ thành "chạy thử". Thực ra có <b>5 nấc khác nhau</b>, mỗi nấc trả lời một câu hỏi riêng — trộn lẫn chúng là nguồn gốc của những kết luận sai kiểu "mô phỏng đẹp rồi, chip chắc chắn chạy".</p>
+        <div class="tblwrap">
+        <table class="tbl">
+          <tr><th>Nấc</th><th>Trả lời câu hỏi gì?</th></tr>
+          <tr><td>1. Behavioral/RTL simulation</td><td>"Logic của tôi có làm đúng điều spec nói không?" — trong thế giới mô phỏng, chưa dính phần cứng thật.</td></tr>
+          <tr><td>2. Synthesis</td><td>"RTL này suy ra mạng cổng/LUT tương đương nào, ước chừng đủ tài nguyên và có triển vọng đạt tần số không?"</td></tr>
+          <tr><td>3. Implementation</td><td>"Đặt lên silicon/FPGA cụ thể ở đâu, đi dây thế nào — với độ trễ dây thật có kịp timing không?"</td></tr>
+          <tr><td>4. Programming/Configuration (FPGA) · Fabrication (ASIC)</td><td>"Thiết kế đã nằm trong phần cứng thật chưa?"</td></tr>
+          <tr><td>5. Hardware test / bring-up</td><td>"Trong thế giới thật — nhiễu, nút bấm, dây cáp — nó còn chạy đúng không?"</td></tr>
+        </table>
+        </div>
+        <details class="reveal"><summary>Mini-exercise 1. Một lỗi LOGIC (đếm sai khi hai người vào liền nhau) — phát hiện ở nấc nào là rẻ nhất?</summary>
+          <div class="rv-body">Nấc 1 — simulation: sửa RTL, chạy lại trong vài phút, debug trên waveform nhìn được từng tín hiệu. Càng xuống thấp càng đắt: sau synthesis/implementation phải chạy lại cả chuỗi; sau fabrication (ASIC) là respin. Đó là lý do "mô phỏng kỹ trước, phần cứng sau" — và là lý do dù nạp FPGA gần như miễn phí, người ta vẫn mô phỏng trước khi nạp.</div>
+        </details>
+        <details class="reveal"><summary>Mini-exercise 2. Waveform mô phỏng đẹp — kết luận được chip chạy đúng tần số mong muốn chưa?</summary>
+          <div class="rv-body">Chưa. Simulation hành vi trả lời câu hỏi <em>logic</em>; câu hỏi <em>tần số</em> thuộc nấc implementation, nơi có độ trễ dây thật, và được trả lời bằng STA (Static Timing Analysis — Phase 2). Hai bằng chứng khác nhau cho hai cam kết khác nhau trong spec.</div>
+        </details>
+      </div>
+    </details>
+
+    <!-- C6 vocab -->
+    <details class="dd">
+      <summary><span class="no">C6</span> Từ vựng kỹ thuật tuần 2 <span class="est">~5′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <div class="tblwrap">
+        <table class="tbl vocab">
+          <tr><th>Thuật ngữ</th><th>Nghĩa</th><th>Câu ví dụ (EN)</th></tr>
+          <tr><td>Requirement</td><td>Yêu cầu — điều hệ thống phải làm, viết đo được</td><td class="en">Each requirement must be testable.</td></tr>
+          <tr><td>Specification</td><td>Đặc tả — bản cam kết chi tiết, định lượng</td><td class="en">The verification plan is derived from the specification.</td></tr>
+          <tr><td>Architecture</td><td>Kiến trúc — chia hệ thành khối + cách kết nối</td><td class="en">The architecture splits the design into three blocks.</td></tr>
+          <tr><td>Interface</td><td>Giao diện giữa hai khối: tên tín hiệu, độ rộng, ý nghĩa</td><td class="en">The two blocks communicate through a simple interface.</td></tr>
+          <tr><td>RTL</td><td>Mức mô tả phần cứng bằng HDL (register transfer level)</td><td class="en">She writes RTL in SystemVerilog for the counter block.</td></tr>
+          <tr><td>Testbench</td><td>Môi trường kiểm thử tự động: cấp input, soi output</td><td class="en">The testbench checks every case in the spec.</td></tr>
+          <tr><td>Verification</td><td>Kiểm chứng — chứng minh RTL khớp spec</td><td class="en">Verification consumes most of the project effort.</td></tr>
+          <tr><td>Synthesis</td><td>Sinh netlist tương đương đã tối ưu theo thư viện đích</td><td class="en">After synthesis, we check the resource report.</td></tr>
+          <tr><td>Netlist</td><td>Danh sách cell (cổng/LUT/FF) + dây nối giữa chúng</td><td class="en">The netlist is handed off to the back-end team.</td></tr>
+          <tr><td>Tape-out</td><td>Gửi GDSII cho foundry làm mask — điểm không quay lại</td><td class="en">The team celebrated after a successful tape-out.</td></tr>
+          <tr><td>Bitstream</td><td>File cấu hình nạp lên FPGA — đảo lại được</td><td class="en">Download the bitstream to the FPGA board.</td></tr>
+        </table>
+        </div>
+      </div>
+    </details>
+  </div>
+</section>
+
+<!-- ================= LAYER D ================= -->
+<section id="layer-d" class="layer layer-d">
+  <div class="wrap layer-head">
+    <div class="band">
+      <span class="layer-badge">D</span>
+      <h2>Sau buổi học</h2>
+      <span class="time">📝 Quiz 5 câu · bài tập · phản tư</span>
+    </div>
+  </div>
+  <div class="wrap layer-body">
+
+    <div class="card">
+      <h3>Quiz tự kiểm tra — 5 câu</h3>
+      <p class="small muted">Chọn đáp án; chấm ngay và hiện giải thích. Câu hỏi kiểu dự đoán/suy luận — nếu sai, quay lại đúng mục Layer C được ghi trong giải thích.</p>
+      <div class="quiz" id="quiz">
+        <div class="qz-item" data-answer="C">
+          <p class="qz-q">1. Nhóm bạn báo cáo "verification xong rồi". Artifact nào là bằng chứng đúng của chặng này?</p>
+          <button class="qz-opt" data-key="A">File RTL .sv đã compile không còn lỗi cú pháp</button>
+          <button class="qz-opt" data-key="B">Netlist do tool sinh ra không có cảnh báo</button>
+          <button class="qz-opt" data-key="C">Testbench + báo cáo cho thấy các chức năng trong spec đã được kiểm và pass, kèm waveform làm bằng chứng</button>
+          <button class="qz-opt" data-key="D">Bảng requirement đã viết lại cho đo được</button>
+          <div class="qz-expl"><b>Giải thích:</b> verification = chứng minh RTL khớp spec; bằng chứng là testbench + kết quả pass đối chiếu được với từng điều khoản spec. Compile sạch chỉ chứng minh cú pháp đúng — "làm được" chưa phải "kiểm chứng được". Xem C3.</div>
+        </div>
+        <div class="qz-item" data-answer="A">
+          <p class="qz-q">2. Bạn mở một file thấy toàn dòng kiểu <code>AND2_X1 U2 ( .A1(a), .A2(n1), .ZN(y) );</code> — chỉ còn cell và dây nối, không còn if/else. File này là artifact xuất hiện sau chặng nào?</p>
+          <button class="qz-opt" data-key="A">Synthesis — đây là netlist</button>
+          <button class="qz-opt" data-key="B">Architecture — đây là block diagram viết dạng chữ</button>
+          <button class="qz-opt" data-key="C">Verification — đây là log mô phỏng</button>
+          <button class="qz-opt" data-key="D">Fabrication — đây chính là GDSII</button>
+          <div class="qz-expl"><b>Giải thích:</b> netlist = danh sách cell thật + kết nối, giao ra sau synthesis; nó tương đương hành vi với RTL nhưng đã tối ưu. GDSII là dữ liệu hình học của layout, không phải danh sách cổng dạng text. Xem C4.</div>
+        </div>
+        <div class="qz-item" data-answer="D">
+          <p class="qz-q">3. Cùng một RTL: hôm nay bạn nạp lên FPGA để demo, năm sau công ty tape-out ASIC. Phát biểu nào đúng về hai "file cuối" của hai con đường?</p>
+          <button class="qz-opt" data-key="A">Cả hai đều là GDSII, chỉ khác dung lượng</button>
+          <button class="qz-opt" data-key="B">Bitstream gửi cho foundry làm mask; GDSII nạp xuống board</button>
+          <button class="qz-opt" data-key="C">Hai file giống hệt nhau vì sinh từ cùng một RTL</button>
+          <button class="qz-opt" data-key="D">Bitstream là file cấu hình FPGA, nạp lại được trong vài phút; GDSII là dữ liệu hình học gửi foundry làm mask — điểm không quay lại</button>
+          <div class="qz-expl"><b>Giải thích:</b> hai đường chung nhau đến hết synthesis rồi rẽ nhánh ở implementation; artifact cuối khác hẳn về bản chất và chi phí sửa sai. Đánh đồng "nạp FPGA" với "tape-out" là hiểu sai kinh điển. Xem C4.</div>
+        </div>
+        <div class="qz-item" data-answer="B">
+          <p class="qz-q">4. Vì sao một bug logic phát hiện SAU tape-out lại đắt hơn rất nhiều so với phát hiện khi mô phỏng?</p>
+          <button class="qz-opt" data-key="A">Vì tool mô phỏng tính phí theo số lần chạy lại</button>
+          <button class="qz-opt" data-key="B">Vì silicon đã in không sửa được — lỗi nặng buộc respin: sửa thiết kế, làm lại mask, chờ fab thêm nhiều tháng; ở mô phỏng chỉ cần sửa RTL rồi chạy lại</button>
+          <button class="qz-opt" data-key="C">Vì sau tape-out đội front-end đã chuyển dự án khác nên không ai hiểu code</button>
+          <button class="qz-opt" data-key="D">Vì bug sau tape-out luôn nằm ở phần mềm, ngoài tầm của phần cứng</button>
+          <div class="qz-expl"><b>Giải thích:</b> chi phí sửa một lỗi tăng dần theo chặng vì artifact ngày càng "gần silicon"; rẻ nhất ở nấc simulation — đó là lý do verification chiếm quá nửa công sức và FPGA được dùng làm prototype nạp lại được. Xem C5.</div>
+        </div>
+        <div class="qz-item" data-answer="A">
+          <p class="qz-q">5. Requirement nào dưới đây viết ĐÚNG chuẩn đo được?</p>
+          <button class="qz-opt" data-key="A">"Hiển thị phải cập nhật trong vòng 1 giây sau khi có người đi qua cửa"</button>
+          <button class="qz-opt" data-key="B">"Hệ thống phải chạy nhanh và mượt"</button>
+          <button class="qz-opt" data-key="C">"Màn hình phải đẹp, dễ nhìn từ xa"</button>
+          <button class="qz-opt" data-key="D">"Tiết kiệm điện nhất có thể"</button>
+          <div class="qz-expl"><b>Giải thích:</b> đo được = có con số/điều kiện mà verification kiểm tra được bằng một thí nghiệm cụ thể. "Nhanh", "đẹp", "nhất có thể" không chỉ ra thí nghiệm nào — không kiểm chứng được thì không đưa vào spec. Xem C1.</div>
+        </div>
+        <div class="qz-bar"><span class="qz-score"></span><span class="qz-verdict"></span><button class="qz-reset">Làm lại</button></div>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <h3>Bài tập bắt buộc <span class="badge badge-req">nộp trước buổi 3</span></h3>
+        <p><b>Bảng cá nhân "8 chặng → artifact"</b> cho đề bài máy đếm người của nhóm bạn.</p>
+        <ul class="small">
+          <li>Kẻ bảng 8 hàng × 4 cột: <b>chặng → artifact giao ra → ai làm (vai trò kỹ sư) → FPGA hay ASIC khác gì</b>. Tự viết từ trí nhớ trước, sau đó mới đối chiếu C4.</li>
+          <li>Vẽ lại <b>block diagram sạch</b> từ bản nháp của nhóm: 3–4 khối, mỗi mũi tên có tên tín hiệu + độ rộng bit.</li>
+          <li>Kèm 3 requirement đo được đã sửa sau góp ý ở buổi học.</li>
+        </ul>
+        <p class="small"><b>Nộp (deliverable):</b> 1 trang bảng 8 chặng + 1 block diagram + 3 dòng requirement.</p>
+      </div>
+      <div class="card">
+        <h3>Thử thách nâng cao <span class="badge badge-opt">tự chọn</span></h3>
+        <p><b>Giải phẫu một chip thật:</b> chọn một chip bạn từng nghe tên (ESP32 hoặc SoC trong điện thoại của bạn). <b>Trước khi tra cứu</b>, tự đoán block diagram mức 1 (5–8 khối) — nó phải có những khối gì để làm được việc của nó? Sau đó mở tài liệu công khai của hãng, so với bản đoán và ghi lại <b>3 điểm mình đoán sai</b> + 1 câu "vì sao mình đoán sai chỗ đó". Đây chính là bài tập đọc kiến trúc — kỹ năng của chặng 2.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Rubric tuần 2</h3>
+      <div class="tblwrap">
+      <table class="tbl rubric">
+        <tr><th>Tiêu chí</th><th>Trọng số</th><th>Đạt khi…</th></tr>
+        <tr><td>Hiểu khái niệm</td><td class="pct">25%</td><td>Giải thích được vì sao thiết kế bắt đầu từ requirement (code ở chặng 3); phân biệt requirement/spec; nói đúng 5 nấc simulation → hardware test.</td></tr>
+        <tr><td>Kiến trúc</td><td class="pct">20%</td><td>Kể đúng thứ tự 8 chặng, chỉ đúng điểm rẽ nhánh FPGA/ASIC và vùng front-end/back-end.</td></tr>
+        <tr><td>Thiết kế đúng</td><td class="pct">20%</td><td>Block diagram máy đếm người chia khối hợp lý; mỗi mũi tên interface có tên tín hiệu và độ rộng.</td></tr>
+        <tr><td>Kiểm chứng/đối chiếu</td><td class="pct">20%</td><td>Ghép đúng artifact với từng chặng (spec → block diagram → RTL → testbench → netlist → bitstream/GDSII); 3 requirement đều đo được.</td></tr>
+        <tr><td>Giao tiếp kỹ thuật</td><td class="pct">15%</td><td>Trình bày bảng của mình mạch lạc bằng đúng thuật ngữ (netlist, bitstream, tape-out…); trả lời được "kiểm dòng này bằng thí nghiệm nào?".</td></tr>
+      </table>
+      </div>
+      <p class="small muted">Thuộc tên 8 chặng chưa phải điểm tối đa — phải gọi đúng artifact của từng chặng và giải thích được vì sao thứ tự như vậy.</p>
+    </div>
+
+    <div class="card">
+      <h3>Tổng kết tuần 2</h3>
+      <div class="ican">
+        <div><b>I can explain</b>① Vì sao thiết kế bắt đầu từ requirement đo được và code chỉ xuất hiện ở chặng 3. ② Flow là dây chuyền artifact: spec → block diagram → RTL → testbench/báo cáo → netlist → bitstream/GDSII. ③ Synthesis sinh netlist tương đương đã tối ưu (không "dịch 1-1"), và bitstream khác GDSII ở đâu.</div>
+        <div><b>I can design</b>Viết 3 requirement đo được + block diagram có interface đặt tên, độ rộng cho một hệ nhỏ (máy đếm người) — trước khi có bất kỳ dòng code nào.</div>
+        <div><b>I can verify</b>Soi một bản spec và chỉ ra chỗ mơ hồ — chỗ hai người có thể hiểu hai kiểu, hoặc không có thí nghiệm nào kiểm được (vai verification engineer).</div>
+        <div><b>I can connect</b>T9–11 bạn sẽ tự đi flow thu nhỏ requirement → RTL → verification → FPGA trên project đèn giao thông; từ T3, mỗi tuần đều bắt đầu bằng câu "ta đang ở chặng nào của flow".</div>
+        <div class="unsure"><b>I am still unsure about…</b><textarea class="reflect" id="unsure2" placeholder="Điều tôi giải thích được tuần này mà tuần trước chưa giải thích được là… / Điều tôi còn mơ hồ là… (tự động lưu trên máy bạn)"></textarea></div>
+        <div class="nextwk"><b>Next week</b>Bạn đã thấy cả bản đồ. T3 cầm lên "viên gạch" nhỏ nhất của chặng RTL: cổng logic, truth table, biểu thức Boole — và biến một tình huống đời thực thành mạch đầu tiên của bạn.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="weeknav">
+      <a href="Week01.html"><small>← Tuần trước</small><b>T1 · Why Semiconductor?</b></a>
+      <a class="next" href="Week03.html"><small>Tuần sau →</small><b>T3 · Logic Gates &amp; Boolean Thinking</b></a>
+    </div>
+    <div class="footer">
+      <b>IC Design Mentoring — Version 3 · Phase 1</b>
+      <span class="org">Khoa Điện – Điện tử · Trường Kỹ thuật · Đại học Phenikaa</span>
+      <span>Biên soạn: <b style="display:inline">Giảng Viên Đinh Văn Nam</b></span>
+      <span class="cr">© 2026 · Bản quyền thuộc về Giảng Viên Đinh Văn Nam, Khoa Điện-Điện Tử, Trường Kỹ Thuật, Đại học Phenikaa. Tài liệu phục vụ đào tạo — vui lòng giữ nguyên thông tin tác giả khi chia sẻ.</span>
+      <span class="cr">Hoạt động offline — không cần Internet.</span>
+    </div>
+  </div>
+</footer>
+</body>
+</html>

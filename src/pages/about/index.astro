@@ -1,0 +1,63 @@
+---
+import BaseLayout from "~/layouts/BaseLayout.astro";
+import { AUTHOR, LEGACY, SITE } from "~/config/site";
+import { href } from "~/utils/url";
+---
+
+<BaseLayout
+  title="Giới thiệu"
+  description="Về IC Design Learning & Research Hub: mục đích, người phụ trách, nguyên tắc phiên bản hóa nội dung và cách đóng góp."
+  path="about/"
+>
+  <div class="wrap">
+    <nav class="crumbs" aria-label="Breadcrumb"><a href={href("")}>Trang chủ</a> / <span>Giới thiệu</span></nav>
+    <article class="prose" style="margin-top:10px">
+      <h1>Về hub này</h1>
+
+      <h2>Hub này là gì?</h2>
+      <p>
+        <b>{SITE.title}</b> là nơi tập trung tài nguyên học tập, mentoring và nghiên cứu
+        thiết kế vi mạch (Digital IC Design · RTL · FPGA · ASIC) bằng tiếng Việt, phục vụ ba việc:
+      </p>
+      <ul>
+        <li><b>Học</b> — giáo trình IC Design Foundations 12 tuần có phiên bản hóa, lộ trình học có hướng dẫn, bài viết kỹ thuật.</li>
+        <li><b>Thực hành</b> — project học tập và project nghiên cứu, mỗi project là một đối tượng tri thức đầy đủ.</li>
+        <li><b>Nghiên cứu</b> — lộ trình nghiên cứu, ghi chú, đọc paper, và cầu nối từ câu hỏi kỹ thuật sang câu hỏi nghiên cứu (EQ→RQ).</li>
+      </ul>
+
+      <h2>Người phụ trách</h2>
+      <p>
+        <b>{AUTHOR.name}</b> — {AUTHOR.affiliation}. Hub được xây dựng và duy trì như một sáng kiến
+        giáo dục để mentor sinh viên đi từ nền tảng IC design, qua thực hành kỹ thuật, tới nghiên
+        cứu độc lập.
+      </p>
+
+      <h2>Nguyên tắc nội dung</h2>
+      <ul>
+        <li><b>Chính xác kỹ thuật trước, mượt lời sau.</b> Phát biểu kỹ thuật đi kèm phạm vi, giả định và giới hạn; phân biệt FPGA với ASIC, mô phỏng RTL với synthesis với STA với chạy thật trên phần cứng.</li>
+        <li><b>Phiên bản lưu trữ là bất biến.</b> Giáo trình cũ (V1, V2) không bị viết lại; hiệu chỉnh tạo phiên bản mới. Xem <a href={href("learn/evolution/")}>Tiến hóa giáo trình</a>.</li>
+        <li><b>Không bịa nội dung.</b> Chủ đề chưa có tài liệu thật được đánh dấu "Định hướng" thay vì lấp bằng bài viết rỗng. Nguồn chưa kiểm chứng được ghi rõ "cần kiểm chứng".</li>
+        <li><b>Mức bằng chứng ghi trên từng nội dung nghiên cứu</b> — kiến thức đã xác lập ≠ kinh nghiệm kỹ thuật ≠ giả thuyết ≠ câu hỏi mở.</li>
+        <li><b>Riêng tư của sinh viên:</b> không công bố tên/email/điểm số/dữ liệu chưa công bố khi chưa có sự đồng ý rõ ràng.</li>
+      </ul>
+
+      <h2>Trích dẫn</h2>
+      <p>Khi chia sẻ hoặc trích dẫn nội dung của hub, vui lòng giữ nguyên thông tin tác giả và đơn vị:</p>
+      <blockquote>
+        "{SITE.title}, {AUTHOR.name}, {AUTHOR.affiliation}."
+        — kèm URL của trang được trích dẫn và phiên bản giáo trình (nếu trích giáo trình).
+      </blockquote>
+      <p>
+        Chi tiết đầy đủ về bản quyền, tư liệu bên thứ ba và đóng góp của sinh viên:
+        <a href={href("about/copyright/")}>Bản quyền &amp; Attribution</a>.
+      </p>
+
+      <h2>Liên kết</h2>
+      <ul>
+        <li><a href={href(LEGACY.hubIndex)}>Learning Hub phiên bản trước (lưu trữ nguyên trạng)</a></li>
+        <li><a href={href("community/")}>Cách tham gia cộng đồng &amp; đóng góp</a></li>
+        <li><a href={SITE.repoUrl}>Repository trên GitHub</a></li>
+      </ul>
+    </article>
+  </div>
+</BaseLayout>

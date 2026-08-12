@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="Giảng Viên Đinh Văn Nam">
+<meta name="copyright" content="© 2026 · Bản quyền thuộc về Giảng Viên Đinh Văn Nam, Khoa Điện-Điện Tử, Trường Kỹ Thuật, Đại học Phenikaa">
+<meta name="description" content="IC Design Mentoring — Version 3, Phase 1 (12 tuần). Khoa Điện – Điện tử · Trường Kỹ thuật · Đại học Phenikaa. Biên soạn: Giảng Viên Đinh Văn Nam.">
+<title>Tuần 9 — Project A: FSM Traffic Controller | IC Design Mentoring v3</title>
+<link rel="stylesheet" href="css/style.css">
+<script src="js/app.js" defer></script>
+</head>
+<body data-week="09">
+
+<header class="topbar">
+  <div class="topbar-in">
+    <a class="brand" href="index.html"><span class="logo">IC</span>
+      <span>IC Design Mentoring<small>Tuần 9/12 · Project A — Traffic Controller</small></span></a>
+    <nav class="layer-chips">
+      <a class="chip" href="../../index.html" title="Learning Hub — cổng ba phiên bản giáo trình; đây là V3, bản hiện hành được khuyến nghị">⌂ Hub · V3</a>
+      <a class="chip chip-a" href="#layer-a"><span class="dot"></span>A · Trước buổi</a>
+      <a class="chip chip-b" href="#layer-b"><span class="dot"></span>B · Buổi học 60′</a>
+      <a class="chip chip-c" href="#layer-c"><span class="dot"></span>C · Lab</a>
+      <a class="chip chip-d" href="#layer-d"><span class="dot"></span>D · Sau buổi</a>
+      <a class="chip" href="index.html">Mục lục</a>
+    </nav>
+    <span class="mentor-sw" title="Hiện/ẩn nội dung dành riêng cho mentor"><span class="tr"></span> Mentor</span>
+  </div>
+  <div class="scrollbar"><div></div></div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <div class="pill-row">
+      <span class="pill">Tuần 9 / 12</span>
+      <span class="pill acc">Project tích hợp · tuần 1/3</span>
+      <span class="pill">Khoa Điện – Điện tử · ĐH Phenikaa</span>
+    </div>
+    <h1>Project A — FSM Traffic Controller</h1>
+    <p class="sub">Từ yêu cầu an toàn giao thông đến controller + datapath chạy được</p>
+    <p>Mọi thứ bạn học 8 tuần qua hội tụ ở đây. Ba tuần tới, cả lớp xây <b>MỘT hệ thống lớn dần</b>: tuần này là trái tim — FSM điều khiển 4 pha đèn + timer datapath; T10 gắn màn hình 7 đoạn; T11 gắn UART báo trạng thái về PC. Vì vậy <b>interface tuần này là hợp đồng</b>: đặt đúng từ đầu, hai tuần sau chỉ nối thêm, không đập lại.</p>
+    <div class="outcomes">
+      <div class="outcome"><b>Mục tiêu 1.</b> Đi trọn chuỗi thiết kế: requirement → specification → state diagram → RTL → testbench → waveform.</div>
+      <div class="outcome"><b>Mục tiêu 2.</b> Tách đúng controller (FSM 4 pha) và datapath (timer đếm lùi) — và giải thích vì sao tách.</div>
+      <div class="outcome"><b>Mục tiêu 3.</b> Dùng tick 1 Hz như clock-enable chuẩn công nghiệp — hiểu vì sao KHÔNG tạo "clock 1 Hz" mới.</div>
+      <div class="outcome"><b>Mục tiêu 4.</b> Phát biểu và tự động kiểm tra <b>safety invariant</b>: hai hướng không bao giờ cùng rời đèn đỏ.</div>
+    </div>
+    <div class="pos">
+      <div><b>Tuần trước — T8.</b> FPGA vs ASIC: bạn biết RTL sẽ "đổ" vào LUT/FF nào.</div>
+      <div><b>Tuần này — T9.</b> Xây lõi hệ thống: tick_gen + traffic_ctrl (FSM + timer), kèm invariant check.</div>
+      <div><b>Tuần sau — T10.</b> Nối màn hình 7 đoạn vào <code>time_left</code> — hệ thống bắt đầu "nhìn thấy được".</div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= LAYER A ================= -->
+<section id="layer-a" class="layer layer-a">
+  <div class="wrap layer-head">
+    <div class="band">
+      <span class="layer-badge">A</span>
+      <h2>Trước buổi học</h2>
+      <span class="time">⏱ 15–25 phút · chỉ cần đọc phần này</span>
+    </div>
+    <p class="lead">Bạn KHÔNG cần đọc Layer C trước buổi học. Đọc spec dưới đây và đến lớp với câu hỏi — buổi học sẽ thiết kế trên giấy trước khi ai đó gõ code.</p>
+  </div>
+  <div class="wrap layer-body">
+    <div class="grid2">
+      <div class="card">
+        <h3>Vì sao tuần này quan trọng</h3>
+        <p>Đây là lần đầu bạn làm đúng nghề: nhận <b>yêu cầu</b>, viết <b>spec</b>, thiết kế <b>kiến trúc</b>, hiện thực <b>RTL</b>, và <b>chứng minh</b> nó đúng bằng mô phỏng. Sản phẩm tuần này được dùng lại nguyên vẹn trong 3 tuần cuối — kể cả buổi bảo vệ T12.</p>
+        <p class="small muted"><b>Điều kiện tiên quyết:</b> T5 (counter), T6 (FSM 3 khối), T7 (style RTL).</p>
+      </div>
+      <div class="card">
+        <h3>Hoạt động chuẩn bị (10–15′)</h3>
+        <p>Đọc <b>spec ở ô dưới</b>. Viết ra giấy: (1) <b>2 câu hỏi</b> bạn muốn chất vấn spec (chỗ nào chưa rõ, thiếu gì?); (2) đoán số state cần thiết. Mang đến lớp — spec thật ngoài đời luôn phải được chất vấn.</p>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Spec rút gọn — Bộ điều khiển đèn giao thông ngã tư</h3>
+      <ul>
+        <li>Ngã tư hai hướng: Bắc–Nam (NS) và Đông–Tây (EW), mỗi hướng một cột đèn {đỏ, vàng, xanh}.</li>
+        <li>Chu trình: NS xanh <b>GREEN_TICKS</b> giây → NS vàng <b>YELLOW_TICKS</b> giây → EW xanh → EW vàng → lặp lại. Thời lượng là <b>parameter</b> (mặc định 10/3, mỗi pha ≤ 15 giây).</li>
+        <li><b>An toàn (bất biến — invariant):</b> ở mọi trạng thái ổn định (được kiểm ở mọi cạnh clock sau reset), ít nhất một hướng đang ĐỎ — không bao giờ hai hướng cùng rời đèn đỏ. Bảo đảm bằng cấu trúc: khối output gán mặc định ĐỎ–ĐỎ trước <code>case</code>, mỗi nhánh chỉ ghi đè đúng một hướng.</li>
+        <li>Sau reset: hệ ở pha NS xanh, thời lượng nạp đầy — hành vi <b>xác định</b>, không phụ thuộc may rủi.</li>
+        <li>Clock hệ thống 50 MHz; nhịp giây lấy từ bộ chia (tick 1 Hz). Xuất thêm <code>phase</code> và <code>time_left</code> cho các tầng sau (T10 hiển thị, T11 UART).</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>2 câu hỏi tự chẩn đoán</h3>
+      <details class="reveal"><summary>1. Pha xanh dài 10 giây — có nên làm FSM 10 state, mỗi giây một state?</summary>
+        <div class="rv-body">Không. Thời gian là việc của <b>datapath</b> (timer đếm lùi); FSM chỉ cần biết "pha nào" — 4 state. Nhét thời gian vào state thì đổi 10 s → 15 s phải vẽ lại FSM; tách ra thì chỉ đổi parameter. Đây là tinh thần controller–datapath của T6.</div>
+      </details>
+      <details class="reveal"><summary>2. Điều gì TUYỆT ĐỐI không được xảy ra, dù code có bug gì đi nữa?</summary>
+        <div class="rv-body">Hai hướng cùng rời đèn đỏ (cùng xanh/vàng) — va chạm thật ngoài đời. Đây là <b>safety invariant</b>: ta sẽ viết nó thành một dòng kiểm tra tự động trong testbench, chạy ở MỌI cạnh clock.</div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ================= LAYER B ================= -->
+<section id="layer-b" class="layer layer-b">
+  <div class="wrap layer-head">
+    <div class="band">
+      <span class="layer-badge">B</span>
+      <h2>Buổi mentoring 60 phút</h2>
+      <span class="time">🗺 Mentor Session Guide</span>
+    </div>
+    <p class="lead">Buổi này thiết kế TRÊN GIẤY đến nơi đến chốn. Code là việc của Layer C sau buổi học.</p>
+  </div>
+  <div class="wrap layer-body">
+    <div class="card">
+      <div class="timeline">
+        <div class="tl-row">
+          <span class="tl-time">0–5′</span>
+          <h4>Retrieval — kiểm tra tuần 8</h4>
+          <ul>
+            <li><code>always_ff</code> của bạn sẽ thành tài nguyên nào trên FPGA?</li>
+            <li>Mô phỏng pass có nghĩa là chip chạy đúng tần số không?</li>
+            <li>Vì sao project khóa này prototype trên FPGA?</li>
+          </ul>
+        </div>
+        <div class="tl-row">
+          <span class="tl-time">5–15′</span>
+          <h4>Học viên chất vấn spec</h4>
+          <p>Thu các câu hỏi spec đã chuẩn bị (Layer A). Lớp cùng phân loại: câu nào spec đã trả lời, câu nào spec <em>thiếu</em> (ví dụ: có pha "vàng cả hai hướng" không? nút bộ hành? — ghi nhận là mở rộng, không làm tuần này). Bài học: kỹ sư đọc spec bằng bút đỏ.</p>
+        </div>
+        <div class="tl-row">
+          <span class="tl-time">15–25′</span>
+          <h4>Mentor chốt kiến trúc</h4>
+          <p>Vẽ sơ đồ 2 khối: <b>controller</b> (FSM 4 pha) + <b>datapath</b> (timer đếm lùi) + tick_gen phía trước. Chốt 3 điều: (1) tick là <b>enable</b>, mọi FF vẫn đóng theo <code>posedge clk</code> 50 MHz — cấm <code>@(posedge tick)</code>; (2) sự kiện chuyển pha duy nhất: <code>tick &amp;&amp; timer_done</code>; (3) invariant sẽ nằm trong testbench, chạy mọi cạnh.</p>
+        </div>
+        <div class="tl-row">
+          <span class="tl-time">25–45′</span>
+          <h4>Active design — thiết kế trên giấy (nhóm 2–3 người)</h4>
+          <ul>
+            <li>Vẽ <b>state diagram</b> 4 pha + điều kiện chuyển (chỉ một loại sự kiện!).</li>
+            <li>Lập <b>bảng output</b>: state → (ns_light, ew_light) — kiểm tra invariant ngay trên bảng.</li>
+            <li>Thiết kế <b>timer</b>: nạp giá trị nào khi chuyển pha (vì sao N−1?), đếm lùi khi nào, <code>timer_done</code> so sánh với gì?</li>
+            <li><b>Dự đoán</b>: với GREEN=3, YELLOW=2, vẽ tay 12 tick đầu: state + timer + đèn.</li>
+          </ul>
+          <p class="small muted">Artifact nhóm: 1 tờ gồm diagram + bảng output (có cột kiểm invariant) + waveform 12 tick dự đoán.</p>
+        </div>
+        <div class="tl-row">
+          <span class="tl-time">45–55′</span>
+          <h4>Chia sẻ &amp; tranh luận kỹ thuật</h4>
+          <p>Hai nhóm trình bày. Câu hỏi ép suy nghĩ: reset giữa pha GREEN_EW thì hệ về đâu, vì sao "xác định" quan trọng? Nếu timer nạp N thay vì N−1 thì pha dài mấy giây (đếm thử!)? Bảng output của nhóm có hàng nào vi phạm invariant không?</p>
+        </div>
+        <div class="tl-row">
+          <span class="tl-time">55–60′</span>
+          <h4>Chốt &amp; giao việc</h4>
+          <ul>
+            <li><b>Nhớ:</b> FSM quyết định "pha nào", timer lo "bao lâu"; tick là enable, không phải clock.</li>
+            <li><b>Tránh:</b> code trước khi diagram + bảng được duyệt.</li>
+            <li><b>Artifact sau buổi:</b> RTL + testbench có invariant + waveform chú thích 1 chu kỳ đèn trọn vẹn (Layer D).</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <p class="mentor-hint">💡 Bật công tắc <b>Mentor</b> trên thanh tiêu đề để xem ghi chú dành riêng cho mentor.</p>
+
+    <div class="mentor-only">
+      <div class="mentor-box">
+        <span class="mtag">Mentor only · Tuần 9</span>
+        <h3>Ghi chú vận hành buổi học</h3>
+        <div class="grid2">
+          <div>
+            <h4>Mục tiêu mentor cần chốt được</h4>
+            <ul class="small">
+              <li>Mọi nhóm nói được VÌ SAO tách controller/datapath (đổi thời lượng không sửa FSM).</li>
+              <li>Không nhóm nào định tạo "clock 1 Hz" — bắt được là dạy lại clock-enable ngay.</li>
+              <li>Invariant được phát biểu như mệnh đề luôn-đúng, không phải "test case".</li>
+            </ul>
+            <h4>Hiểu sai kinh điển (chờ sẵn)</h4>
+            <ul class="small">
+              <li>Mỗi giây một state (bùng nổ trạng thái).</li>
+              <li><code>@(posedge tick)</code> hoặc lấy <code>cnt[25]</code> làm clock — derived clock: thêm miền clock ngoài phân tích, dễ skew/glitch; người mới chưa học CDC thì tuyệt đối tránh.</li>
+              <li>Nạp N thay vì N−1 (pha dài N+1 giây — bắt lỗi bằng đếm tay).</li>
+              <li>Kiểm tra an toàn bằng mắt nhìn waveform thay vì check tự động.</li>
+            </ul>
+          </div>
+          <div>
+            <h4>Câu hỏi chẩn đoán → đáp án tốt → hỏi tiếp</h4>
+            <p class="small"><b>Hỏi:</b> "tick_gen bản chất là gì, phần cứng nào?"<br>
+            <b>Đáp tốt:</b> counter ~26 bit đếm 0..DIV−1 + comparator, phát xung enable rộng đúng 1 chu kỳ clk mỗi giây; thêm 1 FF cho tick.<br>
+            <b>Hỏi tiếp:</b> "Vì sao không dùng thẳng cnt[25] làm clock cho FSM?" → derived clock, mọi FF phải chung một clock; tick chỉ là dữ liệu điều khiển (enable).</p>
+            <p class="small"><b>Cứu nguy (nếu bí):</b> dàn nhạc — nhạc trưởng (clk 50 MHz) vung đũa cho TẤT CẢ; tick chỉ là nốt "đến phách mạnh" trên bản nhạc. Không ai được tự chế nhạc trưởng riêng.</p>
+            <p class="small"><b>Mở rộng học viên giỏi:</b> "Muốn thêm pha ĐỎ CẢ HAI HƯỚNG 1 giây giữa các lần đổi hướng (all-red clearance) thì kiến trúc đổi gì?" → thêm 2 state, bảng output thêm 2 hàng đỏ–đỏ, timer thêm giá trị nạp; invariant KHÔNG đổi — thấy được giá trị của kiến trúc tách bạch.</p>
+          </div>
+        </div>
+        <div class="co co-warn small"><b>Nhịp buổi học.</b> Kỷ luật "chưa duyệt giấy chưa gõ code" tuần này là bài học lớn ngang RTL. Nhóm xong sớm: cho làm câu all-red ở trên (chỉ trên giấy). Đảm bảo mỗi nhóm TỰ đếm được "nạp N−1, đếm N nhịp" bằng ngón tay trên waveform dự đoán.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= LAYER C ================= -->
+<section id="layer-c" class="layer layer-c">
+  <div class="wrap layer-head">
+    <div class="band">
+      <span class="layer-badge">C</span>
+      <h2>Technical Lab — Deep Dive</h2>
+      <span class="time">🔬 RTL đầy đủ · testbench · waveform</span>
+    </div>
+    <p class="lead">Toàn bộ RTL của tuần — đọc theo thứ tự sau khi đã có bản thiết kế giấy. Interface ở C1 là <b>hợp đồng cố định</b> cho cả T10–T11.</p>
+  </div>
+  <div class="wrap layer-body">
+    <div class="dd-tools"><button data-dd="open">Mở tất cả</button><button data-dd="close">Đóng tất cả</button></div>
+
+    <details class="dd" open>
+      <summary><span class="no">C1</span> Kiến trúc &amp; hợp đồng interface (dùng cho cả 3 tuần) <span class="est">~8′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <pre class="code standalone" data-nohl><code>┌─ tick_gen ───────────────────────────────────────────────────────────────┐
+│  vào : clk, rst_n                                                        │
+│  ra  : tick  — xung ENABLE rộng đúng 1 chu kỳ clk, phát 1 lần mỗi giây   │
+└──────────────────────────────────────────────────────────────────────────┘
+                        │ tick
+                        ▼
+┌─ traffic_ctrl ───────────────────────────────────────────────────────────┐
+│  vào : clk, rst_n, tick                                                  │
+│  ra  : ns_light[2:0], ew_light[2:0] → LED đèn giao thông                 │
+│        phase[1:0], time_left[3:0]   → T9 chưa dùng: để dành T10 và T11   │
+│  trong: CONTROLLER (FSM 4 pha)  ↔  DATAPATH (timer đếm lùi)              │
+└──────────────────────────────────────────────────────────────────────────┘
+
+clk và rst_n đi tới CẢ HAI khối — toàn hệ nằm trong MỘT miền clock duy nhất.
+tick chỉ là tín hiệu cho phép cập nhật, KHÔNG phải clock thứ hai.</code></pre>
+        <figure class="figure">
+          <img src="assets/fig-controller-datapath.svg" alt="Bên trong traffic_ctrl: controller là FSM ba khối gửi next_state sang datapath; datapath là timer gửi timer_done ngược lại">
+          <figcaption>Bên trong <code>traffic_ctrl</code> — controller ra lệnh bằng <code>next_state</code>, datapath báo về bằng <code>timer_done</code>. Đây là mô hình controller–datapath kinh điển; xem thêm <code>PROJECT_GUIDE.md</code> §2.5.</figcaption>
+        </figure>
+        <p><b>Hợp đồng:</b> mã đèn <code>{đỏ, vàng, xanh}</code> (LAMP_RED=3'b100…); <code>phase</code> = mã pha 2 bit; <code>time_left</code> = giá trị timer hiện tại (đếm lùi về 0). T10 chỉ <em>nối thêm</em> seg7 vào <code>time_left</code>; T11 nối UART vào <code>phase</code> + <code>time_left</code>. Không tuần nào được sửa interface này — nếu buộc phải sửa, đó là bài học về chi phí đổi hợp đồng.</p>
+        <div class="widget" data-widget="traffic" data-green="6" data-yellow="2" data-seg="0">
+          <div class="wtitle">Chạy thử hành vi đích (GREEN=6, YELLOW=2)</div>
+          <div class="wnote">Mỗi lần bấm tick = một giây trôi. Dự đoán trước: sau reset, tick thứ mấy thì NS chuyển vàng? Chu kỳ trọn vẹn dài bao nhiêu tick? (6+2+6+2 = 16). Để ý: không thời điểm nào cả hai hướng cùng rời đỏ.</div>
+        </div>
+      </div>
+    </details>
+
+    <details class="dd">
+      <summary><span class="no">C2</span> tick_gen — clock-enable chuẩn công nghiệp <span class="est">~10′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <div class="rtl-frame">
+          <div class="rtl-head"><span class="ftag ftag-rtl">RTL</span><span class="fname">tick_gen.sv</span><span class="muted">· synthesizable</span></div>
+<pre class="code"><code>module tick_gen #(
+  parameter int unsigned DIV = 50_000_000  // 50 MHz → 1 Hz; mô phỏng đặt nhỏ (vd 10)
+)(
+  input  logic clk,     // clock hệ thống DUY NHẤT của toàn thiết kế
+  input  logic rst_n,   // reset bất đồng bộ, tích cực mức thấp
+  output logic tick     // xung enable RỘNG ĐÚNG 1 CHU KỲ clk, mỗi giây một lần
+);
+  // Counter 0..DIV-1: cần $clog2(DIV) FF (~26 FF cho 50 triệu)
+  logic [$clog2(DIV)-1:0] cnt;
+
+  always_ff @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
+      cnt  &lt;= '0;
+      tick &lt;= 1'b0;
+    end else if (cnt == DIV-1) begin
+      cnt  &lt;= '0;
+      tick &lt;= 1'b1;   // bật đúng 1 chu kỳ, tắt ở nhánh dưới
+    end else begin
+      cnt  &lt;= cnt + 1'b1;
+      tick &lt;= 1'b0;
+    end
+  end
+  // LƯU Ý SỐNG CÒN: tick là ENABLE cho FF khác dùng.
+  // TUYỆT ĐỐI không viết @(posedge tick), không lấy cnt[25] làm "clock 1 Hz".
+  // Mọi FF trong thiết kế đều đóng theo posedge clk 50 MHz duy nhất.
+endmodule</code></pre>
+          <div class="rtl-meta">
+            <div><b>1 · Mục đích</b>Đổi thang thời gian từ 20 ns (chu kỳ clock) sang 1 giây (nhịp người) mà không tạo miền clock mới.</div>
+            <div><b>2 · Interface</b><code>clk</code>, <code>rst_n</code> vào; <code>tick</code> ra — enable 1 chu kỳ.</div>
+            <div><b>3 · Phần cứng suy ra</b>~26 FF (counter) + comparator + 1 FF (tick). Trên FPGA: một cột FF + vài LUT.</div>
+            <div><b>4 · Chiến lược test</b>Đặt DIV=10, đếm khoảng cách giữa hai xung tick (phải đúng 10 chu kỳ), đo độ rộng tick (đúng 1 chu kỳ).</div>
+            <div><b>5 · Waveform kỳ vọng</b>cnt răng cưa 0→9; tick là gai đơn rộng 1 chu kỳ. Lưu ý: <code>tick</code> là output đã qua thanh ghi nên nó lên 1 ở chu kỳ NGAY SAU khi cnt đạt 9 — tức tick=1 trùng với cnt==0; khoảng cách hai gai vẫn đúng DIV chu kỳ.</div>
+            <div><b>6 · Bug kinh điển</b>Quên tắt tick ở nhánh else (tick dính mức 1); so sánh cnt==DIV (không bao giờ tới); dùng tick làm clock.</div>
+          </div>
+        </div>
+      </div>
+    </details>
+
+    <details class="dd">
+      <summary><span class="no">C3</span> traffic_ctrl — controller + datapath trong một module <span class="est">~20′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <div class="co co-fix"><span class="tag">Hiệu chỉnh kỹ thuật so với v2</span> v2 chú thích "4 state → 2 bit → 2 flip-flop" như điều chắc chắn. Chính xác hơn: RTL <b>biểu diễn</b> state bằng 2 bit; công cụ synthesis có thể giữ nguyên hoặc <b>mã hóa lại</b> (ví dụ one-hot trên FPGA) tùy tool và cài đặt tối ưu. Xem <code>TECHNICAL_AUDIT.md</code> mục 5.2.</div>
+        <div class="rtl-frame">
+          <div class="rtl-head"><span class="ftag ftag-rtl">RTL</span><span class="fname">traffic_ctrl.sv</span><span class="muted">· synthesizable · interface cố định cho T9–T11</span></div>
+<pre class="code"><code>module traffic_ctrl #(
+  parameter int unsigned GREEN_TICKS  = 10, // giây xanh (&le; 15 để timer 4 bit đủ)
+  parameter int unsigned YELLOW_TICKS = 3   // giây vàng
+)(
+  input  logic       clk,        // clock 50 MHz duy nhất
+  input  logic       rst_n,      // reset bất đồng bộ mức thấp
+  input  logic       tick,       // enable 1 Hz từ tick_gen (KHÔNG phải clock)
+  output logic [2:0] ns_light,   // {đỏ, vàng, xanh} hướng Bắc-Nam
+  output logic [2:0] ew_light,   // {đỏ, vàng, xanh} hướng Đông-Tây
+  output logic [1:0] phase,      // mã pha — T10 (display) và T11 (UART) dùng
+  output logic [3:0] time_left   // giây còn lại của pha — T10/T11 dùng
+);
+  // Trạng thái: RTL biểu diễn bằng 2 bit; synthesis có thể giữ hoặc mã hóa lại.
+  typedef enum logic [1:0] {
+    GREEN_NS  = 2'd0,
+    YELLOW_NS = 2'd1,
+    GREEN_EW  = 2'd2,
+    YELLOW_EW = 2'd3
+  } state_t;
+  state_t state, next_state;
+
+  localparam logic [2:0] LAMP_RED    = 3'b100;
+  localparam logic [2:0] LAMP_YELLOW = 3'b010;
+  localparam logic [2:0] LAMP_GREEN  = 3'b001;
+
+  // ================= DATAPATH: timer đếm lùi =================
+  // 4 FF + mạch trừ 1 + MUX nạp lại + comparator == 0
+  logic [3:0] timer, timer_load;
+  logic       timer_done;
+
+  assign timer_done = (timer == 4'd0);          // comparator (tổ hợp)
+
+  // Giá trị nạp = thời lượng PHA KẾ TIẾP trừ 1 (nạp N-1, đếm N nhịp)
+  always_comb begin
+    case (next_state)
+      GREEN_NS, GREEN_EW: timer_load = 4'(GREEN_TICKS  - 1);
+      default:            timer_load = 4'(YELLOW_TICKS - 1);
+    endcase
+  end
+
+  // Thanh ghi timer: chỉ cập nhật khi tick = 1 (clock enable — không đụng clock)
+  always_ff @(posedge clk or negedge rst_n) begin
+    if (!rst_n)
+      timer &lt;= 4'(GREEN_TICKS - 1);   // reset: nạp thời lượng pha đầu
+    else if (tick)
+      timer &lt;= timer_done ? timer_load : timer - 4'd1;
+  end
+
+  // ================= CONTROLLER: FSM 3 khối chuẩn =================
+  // Khối 1 — STATE REGISTER (tuần tự, non-blocking, khởi tạo xác định)
+  always_ff @(posedge clk or negedge rst_n) begin
+    if (!rst_n)                  state &lt;= GREEN_NS;   // pha khởi động an toàn
+    else if (tick &amp;&amp; timer_done) state &lt;= next_state; // chỉ chuyển đúng nhịp giây
+  end
+
+  // Khối 2 — NEXT-STATE LOGIC (tổ hợp, default trước case → không latch)
+  always_comb begin
+    next_state = state;
+    case (state)
+      GREEN_NS : next_state = YELLOW_NS;
+      YELLOW_NS: next_state = GREEN_EW;
+      GREEN_EW : next_state = YELLOW_EW;
+      YELLOW_EW: next_state = GREEN_NS;
+      default  : next_state = GREEN_NS;  // state lạ → kéo về pha an toàn
+    endcase
+  end
+
+  // Khối 3 — OUTPUT LOGIC kiểu Moore (tổ hợp, default ĐỎ–ĐỎ bảo vệ invariant)
+  always_comb begin
+    ns_light = LAMP_RED;
+    ew_light = LAMP_RED;
+    case (state)
+      GREEN_NS : ns_light = LAMP_GREEN;
+      YELLOW_NS: ns_light = LAMP_YELLOW;
+      GREEN_EW : ew_light = LAMP_GREEN;
+      YELLOW_EW: ew_light = LAMP_YELLOW;
+      default  : ;                       // giữ default đỏ–đỏ
+    endcase
+  end
+
+  // Xuất cho các tầng T10/T11 — chỉ là dây nối, không thêm phần cứng đáng kể
+  assign phase     = state;
+  assign time_left = timer;
+endmodule</code></pre>
+          <div class="rtl-meta">
+            <div><b>1 · Mục đích</b>Hiện thực trọn spec Layer A: 4 pha tuần hoàn, thời lượng parameter, invariant giữ bằng default đỏ–đỏ.</div>
+            <div><b>2 · Interface</b>Đúng hợp đồng C1 — cố định cho T10/T11.</div>
+            <div><b>3 · Phần cứng suy ra</b>State register (2 FF theo biểu diễn RTL — tool có thể mã hóa lại) + 4 FF timer + trừ-1/MUX/comparator + logic tổ hợp output.</div>
+            <div><b>4 · Chiến lược test</b>DIV nhỏ + GREEN=6/YELLOW=2; kiểm invariant mọi cạnh; đo mỗi pha đúng số tick; reset giữa chừng phải về GREEN_NS nạp đầy.</div>
+            <div><b>5 · Waveform kỳ vọng</b>time_left răng cưa lùi 5..0 (GREEN=6); state đổi tại tick có timer_done; đèn đổi cùng state (Moore).</div>
+            <div><b>6 · Bug kinh điển</b>Nạp N thay N−1; chuyển state khi chỉ có timer_done (thiếu tick); nhét thời gian vào state; quên default output.</div>
+          </div>
+        </div>
+        <p class="small"><b>Vì sao nạp theo <code>next_state</code>?</b> Tại tick chuyển pha, state và timer cùng cập nhật một cạnh clock: timer phải nạp thời lượng của pha <em>sắp vào</em>, nên MUX chọn theo <code>next_state</code>. Tự kiểm chứng trên waveform dự đoán 12 tick của nhóm bạn.</p>
+      </div>
+    </details>
+
+    <details class="dd">
+      <summary><span class="no">C4</span> Testbench + invariant check — verification thật sự <span class="est">~15′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <p>Điểm mới so với T5: ngoài kịch bản kích thích, testbench có <b>một dòng canh bất biến ở mọi cạnh clock</b>. Mắt người xem waveform có thể sót; dòng check thì không. Đây là mầm của formal property — Phase 2 sẽ gặp lại.</p>
+        <div class="rtl-frame">
+          <div class="rtl-head"><span class="ftag ftag-tb">TESTBENCH</span><span class="fname">tb_traffic.sv</span><span class="muted">· chỉ để mô phỏng</span></div>
+<pre class="code"><code>module tb_traffic;
+  logic clk = 1'b0, rst_n;
+  logic tick;
+  logic [2:0] ns_light, ew_light;
+  logic [1:0] phase;
+  logic [3:0] time_left;
+
+  // DIV=10: "1 giây" chỉ dài 10 chu kỳ — chạy nhanh, logic không đổi
+  tick_gen #(.DIV(10)) u_tick (.clk, .rst_n, .tick);
+  traffic_ctrl #(.GREEN_TICKS(6), .YELLOW_TICKS(2)) dut
+    (.clk, .rst_n, .tick, .ns_light, .ew_light, .phase, .time_left);
+
+  always #5 clk = ~clk;   // chu kỳ 10 ns — chỉ tồn tại trong mô phỏng
+
+  // ===== SAFETY INVARIANT: mọi cạnh clock, ít nhất một hướng ĐỎ =====
+  always @(posedge clk) if (rst_n)
+    if (!(ns_light == 3'b100 || ew_light == 3'b100))
+      $error("VI PHAM INVARIANT: ns=%b ew=%b (t=%0t)", ns_light, ew_light, $time);
+
+  initial begin
+    rst_n = 0;
+    repeat (3) @(posedge clk);       // giữ reset vài chu kỳ
+    rst_n = 1;
+    repeat (200) @(posedge clk);     // hơn 1 vòng đèn (16 tick × 10 chu kỳ)
+    // Thử reset giữa chừng: hệ phải về GREEN_NS, timer nạp đầy — XÁC ĐỊNH
+    rst_n = 0; repeat (2) @(posedge clk); rst_n = 1;
+    repeat (200) @(posedge clk);
+    $finish;
+  end
+
+  initial $monitor("t=%0t phase=%0d time_left=%0d ns=%b ew=%b",
+                   $time, phase, time_left, ns_light, ew_light);
+endmodule</code></pre>
+          <div class="rtl-meta">
+            <div><b>Test plan</b>➊ reset → ➋ &gt;1 vòng đèn đủ 4 pha → ➌ reset giữa chừng (hành vi xác định) → ➍ chạy tiếp. Invariant canh xuyên suốt.</div>
+            <div><b>Điểm học</b>Invariant ≠ test case: test case hỏi "kịch bản này đúng không", invariant hỏi "mệnh đề này CÓ BAO GIỜ sai không". Một thiết kế tốt có cả hai.</div>
+          </div>
+        </div>
+      </div>
+    </details>
+
+    <details class="dd">
+      <summary><span class="no">C5</span> Đọc waveform hệ thống — dự đoán rồi đối chiếu <span class="est">~10′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <p>Waveform kỳ vọng quanh thời điểm chuyển pha (GREEN=6, YELLOW=2 — mỗi ô ngang là 1 tick):</p>
+        <div class="wavebox">
+          <svg viewBox="0 0 700 212" width="700" height="212">
+            <g transform="translate(90,14)">
+              <line class="wv-mark" x1="240" y1="0" x2="240" y2="168"/>
+              <line class="wv-mark" x1="160" y1="0" x2="160" y2="168"/>
+              <line class="wv-mark" x1="480" y1="0" x2="480" y2="168"/>
+              <!-- tick lane: gai mỗi 40px -->
+              <polyline class="wv-sig" points="0,30 6,30 6,14 12,14 12,30 46,30 46,14 52,14 52,30 86,30 86,14 92,14 92,30 126,30 126,14 132,14 132,30 166,30 166,14 172,14 172,30 206,30 206,14 212,14 212,30 246,30 246,14 252,14 252,30 286,30 286,14 292,14 292,30 326,30 326,14 332,14 332,30 366,30 366,14 372,14 372,30 406,30 406,14 412,14 412,30 446,30 446,14 452,14 452,30 486,30 486,14 492,14 492,30 526,30 526,14 532,14 532,30 560,30"/>
+              <!-- time_left values -->
+              <g>
+                <line class="wv-grid" x1="0" y1="76" x2="560" y2="76"/>
+                <line class="wv-grid" x1="0" y1="56" x2="560" y2="56"/>
+                <text class="wv-val" x="10" y="70">3</text>
+                <text class="wv-val" x="50" y="70">2</text>
+                <text class="wv-val" x="90" y="70">1</text>
+                <text class="wv-val" x="130" y="70">0</text>
+                <text class="wv-val" x="170" y="70">1</text>
+                <text class="wv-val" x="210" y="70">0</text>
+                <text class="wv-val" x="250" y="70">5</text>
+                <text class="wv-val" x="290" y="70">4</text>
+                <text class="wv-val" x="330" y="70">3</text>
+                <text class="wv-val" x="370" y="70">2</text>
+                <text class="wv-val" x="410" y="70">1</text>
+                <text class="wv-val" x="450" y="70">0</text>
+                <text class="wv-val" x="488" y="70">1</text>
+                <text class="wv-val" x="528" y="70">0</text>
+                <line class="wv-grid" x1="40" y1="56" x2="40" y2="76"/><line class="wv-grid" x1="80" y1="56" x2="80" y2="76"/><line class="wv-grid" x1="120" y1="56" x2="120" y2="76"/><line class="wv-grid" x1="160" y1="56" x2="160" y2="76"/><line class="wv-grid" x1="200" y1="56" x2="200" y2="76"/><line class="wv-grid" x1="240" y1="56" x2="240" y2="76"/><line class="wv-grid" x1="280" y1="56" x2="280" y2="76"/><line class="wv-grid" x1="320" y1="56" x2="320" y2="76"/><line class="wv-grid" x1="360" y1="56" x2="360" y2="76"/><line class="wv-grid" x1="400" y1="56" x2="400" y2="76"/><line class="wv-grid" x1="440" y1="56" x2="440" y2="76"/><line class="wv-grid" x1="480" y1="56" x2="480" y2="76"/><line class="wv-grid" x1="520" y1="56" x2="520" y2="76"/>
+              </g>
+              <!-- state lane -->
+              <g>
+                <line class="wv-grid" x1="0" y1="120" x2="560" y2="120"/>
+                <line class="wv-grid" x1="0" y1="100" x2="560" y2="100"/>
+                <line class="wv-grid" x1="160" y1="100" x2="160" y2="120"/>
+                <line class="wv-grid" x1="240" y1="100" x2="240" y2="120"/>
+                <line class="wv-grid" x1="480" y1="100" x2="480" y2="120"/>
+                <text class="wv-val" x="30" y="114">GREEN_NS (cuối)</text>
+                <text class="wv-val" x="166" y="114">YELLOW_NS</text>
+                <text class="wv-val" x="322" y="114">GREEN_EW</text>
+                <text class="wv-val" x="484" y="114">YELLOW_EW</text>
+              </g>
+              <!-- lamp lane -->
+              <g>
+                <line class="wv-grid" x1="0" y1="164" x2="560" y2="164"/>
+                <line class="wv-grid" x1="0" y1="144" x2="560" y2="144"/>
+                <line class="wv-grid" x1="160" y1="144" x2="160" y2="164"/>
+                <line class="wv-grid" x1="240" y1="144" x2="240" y2="164"/>
+                <line class="wv-grid" x1="480" y1="144" x2="480" y2="164"/>
+                <text class="wv-val" x="18" y="158">ns=XANH · ew=ĐỎ</text>
+                <text class="wv-val" x="166" y="158">ns=VÀNG</text>
+                <text class="wv-val" x="290" y="158">ns=ĐỎ · ew=XANH</text>
+                <text class="wv-val" x="484" y="158">ew=VÀNG</text>
+              </g>
+              <text class="wv-note" x="196" y="188">chuyển pha tại tick có timer_done</text>
+            </g>
+            <text class="wv-lab" x="10" y="40">tick</text>
+            <text class="wv-lab" x="10" y="84">time_left</text>
+            <text class="wv-lab" x="10" y="128">state</text>
+            <text class="wv-lab" x="10" y="172">đèn</text>
+          </svg>
+        </div>
+        <div class="wr">
+          <p><b>Predict-before-check.</b> Reset được thả khi hệ đang ở GREEN_EW với time_left = 3. Ngay sau đó, state và time_left bằng bao nhiêu? Nghĩ xong hãy bấm.</p>
+          <button class="wr-btn wbtn alt" data-label="Hiện đáp án">Hiện đáp án</button>
+          <div class="wr-ans"><div class="co co-ok">state = GREEN_NS, time_left = GREEN_TICKS−1 (nạp đầy). Reset bất đồng bộ tác động ngay, không đợi tick — và kết quả <b>xác định</b>, đó chính là yêu cầu của spec. Nếu kết quả "tùy lúc" → thiết kế sai.</div></div>
+        </div>
+      </div>
+    </details>
+
+    <details class="dd">
+      <summary><span class="no">C6</span> Săn bug: hai lỗi kinh điển của tuần <span class="est">~8′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <p><b>Đề:</b> một nhóm nộp đoạn state register + timer dưới đây (GREEN=10). Có <b>2 dòng lỗi</b>. Bấm vào dòng bạn nghi ngờ.</p>
+        <pre class="code bughunt"><code><span class="bh-line">  always_ff @(posedge clk or negedge rst_n) begin</span>
+<span class="bh-line">    if (!rst_n) state &lt;= GREEN_NS;</span>
+<span class="bh-line" data-bug data-msg="Thiếu điều kiện tick! Chuyển pha ngay khi timer_done còn treo → state nhảy mỗi CHU KỲ CLOCK (20 ns) thay vì mỗi giây. Phải là: else if (tick &amp;&amp; timer_done) state &lt;= next_state;">    else if (timer_done) state &lt;= next_state;</span>
+<span class="bh-line">  end</span>
+<span class="bh-line">  always_ff @(posedge clk or negedge rst_n) begin</span>
+<span class="bh-line" data-bug data-msg="Nạp N thay vì N−1 ở nhánh reset: pha xanh ĐẦU TIÊN sau reset đếm 10,9,…,0 = 11 nhịp → dài 11 giây, còn các pha sau vẫn đúng 10 giây vì timer_load không đổi. Bug chỉ lộ một lần sau reset — càng khó thấy, càng phải đếm tay trên waveform. Phải nạp GREEN_TICKS-1.">    if (!rst_n) timer &lt;= 4'(GREEN_TICKS);</span>
+<span class="bh-line">    else if (tick) timer &lt;= timer_done ? timer_load : timer - 4'd1;</span>
+<span class="bh-line">  end</span></code></pre>
+        <div class="bh-out">Chưa tìm thấy lỗi nào — bấm vào dòng code để kiểm tra. Có đúng 2 dòng lỗi.</div>
+      </div>
+    </details>
+
+    <details class="dd">
+      <summary><span class="no">C7</span> Từ vựng kỹ thuật tuần 9 <span class="est">~5′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <div class="tblwrap">
+        <table class="tbl vocab">
+          <tr><th>Thuật ngữ</th><th>Nghĩa</th><th>Câu ví dụ (EN)</th></tr>
+          <tr><td>Controller</td><td>Phần ra quyết định (FSM)</td><td class="en">The controller decides the current phase.</td></tr>
+          <tr><td>Datapath</td><td>Phần xử lý/đếm/lưu dữ liệu</td><td class="en">The timer belongs to the datapath.</td></tr>
+          <tr><td>Clock enable</td><td>Tín hiệu cho phép FF cập nhật, không đụng clock</td><td class="en">The 1 Hz tick is a clock enable, not a clock.</td></tr>
+          <tr><td>Derived clock</td><td>Clock chế từ logic — anti-pattern với người mới</td><td class="en">Avoid derived clocks in beginner designs.</td></tr>
+          <tr><td>Safety invariant</td><td>Mệnh đề an toàn phải luôn đúng</td><td class="en">The invariant forbids two green lights.</td></tr>
+          <tr><td>Assertion / check</td><td>Dòng kiểm tự động trong mô phỏng</td><td class="en">The testbench asserts the invariant every cycle.</td></tr>
+          <tr><td>Parameter</td><td>Hằng cấu hình lúc build</td><td class="en">Phase durations are parameters.</td></tr>
+          <tr><td>Load value (N−1)</td><td>Giá trị nạp để đếm đúng N nhịp</td><td class="en">Load N-1 to count N ticks.</td></tr>
+          <tr><td>Deterministic reset</td><td>Sau reset, hành vi xác định duy nhất</td><td class="en">Reset brings the FSM to a deterministic state.</td></tr>
+          <tr><td>Integration contract</td><td>Interface cố định giữa các phần/tuần</td><td class="en">Week 10 builds on this integration contract.</td></tr>
+        </table>
+        </div>
+      </div>
+    </details>
+  </div>
+</section>
+
+<!-- ================= LAYER D ================= -->
+<section id="layer-d" class="layer layer-d">
+  <div class="wrap layer-head">
+    <div class="band">
+      <span class="layer-badge">D</span>
+      <h2>Sau buổi học</h2>
+      <span class="time">📝 Quiz 5 câu · bài tập · phản tư</span>
+    </div>
+  </div>
+  <div class="wrap layer-body">
+
+    <div class="card">
+      <h3>Quiz tự kiểm tra — 5 câu</h3>
+      <div class="quiz" id="quiz">
+        <div class="qz-item" data-answer="A">
+          <p class="qz-q">1. Vì sao dùng tick (enable) thay vì tạo "clock 1 Hz" cho FSM?</p>
+          <button class="qz-opt" data-key="A">Giữ mọi FF trên MỘT miền clock đã được phân tích — clock chế từ logic dễ glitch/skew và vượt ngoài kiến thức CDC của người mới</button>
+          <button class="qz-opt" data-key="B">Vì FPGA không cho phép có 2 tín hiệu clock</button>
+          <button class="qz-opt" data-key="C">Vì tick tiết kiệm flip-flop hơn</button>
+          <button class="qz-opt" data-key="D">Vì clock 1 Hz quá chậm nên mạch không chạy</button>
+          <div class="qz-expl"><b>Giải thích:</b> vấn đề không phải "không thể" mà là "không an toàn khi chưa học clock domain": derived clock tạo miền clock mới ngoài phân tích timing. Chuẩn công nghiệp cho nhịp chậm: clock enable. Xem C2.</div>
+        </div>
+        <div class="qz-item" data-answer="C">
+          <p class="qz-q">2. Timer nạp GREEN_TICKS−1 = 9 rồi đếm lùi về 0. Pha xanh dài bao nhiêu giây, và nếu nạp 10 thì sao?</p>
+          <button class="qz-opt" data-key="A">9 giây; nạp 10 thì đúng 10 giây</button>
+          <button class="qz-opt" data-key="B">10 giây; nạp 10 cũng 10 giây vì timer_done chặn lại</button>
+          <button class="qz-opt" data-key="C">10 giây (đếm 9,8,…,0 = 10 nhịp); nạp 10 thành 11 giây — lỗi off-by-one kinh điển</button>
+          <button class="qz-opt" data-key="D">Không xác định được nếu thiếu waveform</button>
+          <div class="qz-expl"><b>Giải thích:</b> số nhịp = số giá trị đi qua = N khi nạp N−1. Đếm bằng ngón tay: 9,8,7,6,5,4,3,2,1,0 — đúng 10. Bài săn bug C6 có đúng lỗi này.</div>
+        </div>
+        <div class="qz-item" data-answer="B">
+          <p class="qz-q">3. Dòng invariant trong testbench khác gì một test case thông thường?</p>
+          <button class="qz-opt" data-key="A">Không khác — chỉ là cách viết gọn hơn</button>
+          <button class="qz-opt" data-key="B">Test case kiểm một kịch bản cụ thể; invariant canh một mệnh đề ở MỌI cạnh clock, mọi kịch bản — sót lỗi khó hơn nhiều</button>
+          <button class="qz-opt" data-key="C">Invariant chỉ chạy được trên board thật</button>
+          <button class="qz-opt" data-key="D">Invariant thay thế được toàn bộ test case</button>
+          <div class="qz-expl"><b>Giải thích:</b> hai công cụ bổ sung nhau: kịch bản tạo tình huống, invariant canh an toàn xuyên suốt. (D sai: vẫn cần kịch bản để ĐẨY hệ vào đủ tình huống.) Xem C4.</div>
+        </div>
+        <div class="qz-item" data-answer="D">
+          <p class="qz-q">4. Đang ở GREEN_EW thì rst_n kéo xuống 0 rồi thả. Hệ ở đâu, và vì sao điều đó quan trọng?</p>
+          <button class="qz-opt" data-key="A">Quay lại GREEN_EW với thời gian còn lại cũ</button>
+          <button class="qz-opt" data-key="B">Ở pha ngẫu nhiên — chấp nhận được vì hiếm khi reset</button>
+          <button class="qz-opt" data-key="C">Cả hai hướng cùng xanh trong 1 chu kỳ rồi mới về GREEN_NS</button>
+          <button class="qz-opt" data-key="D">GREEN_NS với timer nạp đầy — hành vi xác định, spec yêu cầu; thanh ghi trạng thái điều khiển phải khởi tạo xác định</button>
+          <div class="qz-expl"><b>Giải thích:</b> reset là "về vạch xuất phát đã định". Với đèn giao thông, khởi động không xác định = nguy hiểm thật. Lưu ý cách nói chính xác về khởi tạo theo công nghệ ở T5-C6. Xem C5 (bài predict).</div>
+        </div>
+        <div class="qz-item" data-answer="C">
+          <p class="qz-q">5. Khối state register (<code>logic [1:0]</code>) sau synthesis chắc chắn thành đúng 2 flip-flop?</p>
+          <button class="qz-opt" data-key="A">Đúng — 2 bit luôn là 2 FF</button>
+          <button class="qz-opt" data-key="B">Sai — luôn thành 4 FF one-hot trên FPGA</button>
+          <button class="qz-opt" data-key="C">Không chắc — RTL chỉ mô tả biểu diễn 2 bit; công cụ có thể giữ nguyên hoặc mã hóa lại (vd one-hot) tùy cài đặt tối ưu</button>
+          <button class="qz-opt" data-key="D">Không FF nào vì state là enum</button>
+          <div class="qz-expl"><b>Giải thích:</b> đây là điểm đã hiệu chỉnh so với v2 (mục 5.2): mô tả RTL và hiện thực sau synthesis là hai tầng khác nhau. Hành vi không đổi; ánh xạ vật lý thuộc quyền công cụ. Xem C3.</div>
+        </div>
+        <div class="qz-bar"><span class="qz-score"></span><span class="qz-verdict"></span><button class="qz-reset">Làm lại</button></div>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <h3>Bài tập bắt buộc <span class="badge badge-req">nộp trước buổi 10</span></h3>
+        <p>Hoàn thành <b>Project A trọn chuỗi</b> — thứ tự bắt buộc:</p>
+        <ul class="small">
+          <li>① State diagram + bảng output (có cột kiểm invariant) — bản đã sửa sau buổi học.</li>
+          <li>② Gõ lại <code>tick_gen.sv</code>, <code>traffic_ctrl.sv</code> (không copy-paste), giữ NGUYÊN interface C1.</li>
+          <li>③ <code>tb_traffic.sv</code> với invariant + kịch bản reset giữa chừng.</li>
+          <li>④ Mô phỏng, chụp waveform <b>một chu kỳ đèn trọn vẹn</b>, chú thích tay: 4 lần chuyển pha + 1 chỗ chứng minh invariant giữ vững.</li>
+        </ul>
+        <p class="small"><b>Nộp:</b> diagram + bảng, 3 file .sv, ảnh waveform chú thích, 3 dòng "dự đoán của tôi lệch ở đâu".</p>
+      </div>
+      <div class="card">
+        <h3>Thử thách nâng cao <span class="badge badge-opt">tự chọn</span></h3>
+        <p><b>All-red clearance:</b> thêm pha đỏ–đỏ 1 giây giữa mỗi lần đổi hướng (chuẩn an toàn thực tế). Nộp: state diagram MỚI (6 state) + bảng output + liệt kê đúng những dòng RTL phải sửa. <em>Chỉ cần thiết kế giấy — code là tùy chọn.</em> Câu hỏi kèm: invariant có cần sửa không? (Không — đó là dấu hiệu invariant được phát biểu đúng mức trừu tượng.)</p>
+        <div class="eqrq">
+          <div class="eq"><b>Câu hỏi kỹ thuật</b>Timer nên rộng bao nhiêu bit?</div>
+          <div class="arr">→</div>
+          <div class="rq"><b>Câu hỏi nghiên cứu</b>Bit width ảnh hưởng thế nào tới diện tích, công suất, timing, và dải thời lượng biểu diễn được? Thí nghiệm khả dĩ: quét width 4→8→16 trên cùng thiết kế, so LUT/FF/f_max từ báo cáo synthesis. (Mở rộng: invariant kiểm bằng mô phỏng — có cách nào <em>chứng minh</em> nó đúng với mọi kịch bản? Đó là formal verification, Phase 2.)</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Rubric tuần 9</h3>
+      <div class="tblwrap">
+      <table class="tbl rubric">
+        <tr><th>Tiêu chí</th><th>Trọng số</th><th>Đạt khi…</th></tr>
+        <tr><td>Hiểu khái niệm</td><td class="pct">25%</td><td>Giải thích được vì sao tách controller/datapath và vì sao tick là enable chứ không phải clock.</td></tr>
+        <tr><td>Kiến trúc</td><td class="pct">20%</td><td>Diagram → bảng → RTL nhất quán; interface đúng hợp đồng C1; thiết kế giấy có trước code.</td></tr>
+        <tr><td>RTL đúng</td><td class="pct">20%</td><td>FSM 3 khối chuẩn, default đủ, N−1 đúng, chuyển pha đúng <code>tick &amp;&amp; timer_done</code>; compile sạch không latch.</td></tr>
+        <tr><td>Verification</td><td class="pct">20%</td><td>Invariant chạy mọi cạnh; kịch bản có reset giữa chừng; waveform chú thích đủ 4 chuyển pha.</td></tr>
+        <tr><td>Giao tiếp kỹ thuật</td><td class="pct">15%</td><td>Trình bày được một quyết định thiết kế (vd vì sao nạp theo next_state) như một lựa chọn có lý do.</td></tr>
+      </table>
+      </div>
+      <p class="small muted">Code chạy được chưa phải điểm tối đa — phải giải thích được vì sao nó đúng.</p>
+    </div>
+
+    <div class="card">
+      <h3>Tổng kết tuần 9</h3>
+      <div class="ican">
+        <div><b>I can explain</b>① Vì sao kiến trúc tách controller/datapath chịu được thay đổi spec. ② tick-enable vs derived clock. ③ Safety invariant là gì và vì sao check tự động đáng tin hơn mắt người.</div>
+        <div><b>I can design</b>Từ spec → state diagram → bảng output → RTL FSM 3 khối + timer, giữ đúng hợp đồng interface.</div>
+        <div><b>I can verify</b>Testbench có invariant chạy mọi cạnh + kịch bản reset giữa chừng; chú thích waveform làm bằng chứng.</div>
+        <div><b>I can connect</b><code>phase</code> và <code>time_left</code> đã chờ sẵn: T10 cắm màn hình, T11 cắm UART — hệ thống lớn dần trên đúng module tuần này.</div>
+        <div class="unsure"><b>I am still unsure about…</b><textarea class="reflect" id="unsure9" placeholder="Điều tôi giải thích được tuần này mà tuần trước chưa giải thích được là… / Điều tôi còn mơ hồ là… (tự động lưu trên máy bạn)"></textarea></div>
+        <div class="nextwk"><b>Next week</b>Hệ của bạn chạy đúng nhưng "câm". T10: nối <code>time_left</code> vào LED 7 đoạn — bài học đầu tiên về tích hợp module qua interface có sẵn.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="weeknav">
+      <a href="Week08.html"><small>← Tuần trước</small><b>T8 · FPGA vs ASIC</b></a>
+      <a class="next" href="Week10.html"><small>Tuần sau →</small><b>T10 · Project B — Counter &amp; 7-Segment</b></a>
+    </div>
+    <div class="footer">
+      <b>IC Design Mentoring — Version 3 · Phase 1</b>
+      <span class="org">Khoa Điện – Điện tử · Trường Kỹ thuật · Đại học Phenikaa</span>
+      <span>Biên soạn: <b style="display:inline">Giảng Viên Đinh Văn Nam</b></span>
+      <span class="cr">© 2026 · Bản quyền thuộc về Giảng Viên Đinh Văn Nam, Khoa Điện-Điện Tử, Trường Kỹ Thuật, Đại học Phenikaa. Tài liệu phục vụ đào tạo — vui lòng giữ nguyên thông tin tác giả khi chia sẻ.</span>
+      <span class="cr">Hoạt động offline — không cần Internet.</span>
+    </div>
+  </div>
+</footer>
+</body>
+</html>

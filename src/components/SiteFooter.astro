@@ -1,0 +1,47 @@
+---
+import { SITE, AUTHOR, COPYRIGHT, NAV, LEGACY, COMMUNITY } from "~/config/site";
+import { href } from "~/utils/url";
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="cols">
+      <div>
+        <h4>{SITE.title}</h4>
+        <p style="margin:0 0 6px">
+          Tài liệu học tập, mentoring và nghiên cứu thiết kế vi mạch bằng tiếng Việt.
+        </p>
+        <p style="margin:0" class="muted small">
+          {AUTHOR.affiliationDisplay} · Phụ trách: <b>{AUTHOR.name}</b>
+        </p>
+      </div>
+      <div>
+        <h4>Khu vực</h4>
+        <ul>
+          {NAV.slice(0, 6).map((item) => (
+            <li><a href={href(item.href)}>{item.label}</a></li>
+          ))}
+        </ul>
+      </div>
+      <div>
+        <h4>Giáo trình & cộng đồng</h4>
+        <ul>
+          <li><a href={href(LEGACY.v3)}>Giáo trình hiện hành (V3)</a></li>
+          <li><a href={href("learn/evolution/")}>Tiến hóa giáo trình V1→V3</a></li>
+          <li><a href={COMMUNITY.discussionsUrl()}>GitHub Discussions</a></li>
+          <li><a href={href("about/copyright/")}>Bản quyền & trích dẫn</a></li>
+          <li><a href={href("rss.xml")}>RSS</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="legal">
+      <p style="margin:0">{COPYRIGHT.notice(year)}</p>
+      <p style="margin:6px 0 0">
+        Tài liệu phục vụ đào tạo — vui lòng giữ nguyên thông tin tác giả khi chia sẻ hoặc trích dẫn.
+        Tư liệu bên thứ ba giữ nguyên bản quyền của chủ sở hữu tương ứng —
+        xem <a href={href("about/copyright/")}>Bản quyền &amp; Attribution</a>.
+      </p>
+    </div>
+  </div>
+</footer>

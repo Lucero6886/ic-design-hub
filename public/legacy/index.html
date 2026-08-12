@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="Giảng Viên Đinh Văn Nam">
+<meta name="copyright" content="© 2026 · Bản quyền thuộc về Giảng Viên Đinh Văn Nam, Khoa Điện-Điện Tử, Trường Kỹ Thuật, Đại học Phenikaa">
+<meta name="description" content="IC Design Mentoring Learning Hub — cổng truy cập ba phiên bản giáo trình 12 tuần nhập môn thiết kế vi mạch (Digital IC Design · RTL · FPGA · System Thinking). Khoa Điện – Điện tử, Trường Kỹ thuật, Đại học Phenikaa.">
+<title>IC Design Mentoring — Learning Hub | ĐH Phenikaa</title>
+<link rel="stylesheet" href="assets/css/site.css">
+<script src="assets/js/search-index.js" defer></script>
+<script src="assets/js/site.js" defer></script>
+</head>
+<body>
+
+<div id="icdh-legacy-banner" style="background:#12314a;color:#cfe3f5;font:14px/1.5 system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;padding:9px 16px;text-align:center">
+Bạn đang xem <b>Learning Hub phiên bản lưu trữ</b> (cổng V1/V2/V3 nguyên trạng). Hub mới — bài viết, project, nghiên cứu, cộng đồng — ở đây: <a href="../" style="color:#8ec4ee;font-weight:700">Về IC Design Learning &amp; Research Hub →</a>
+</div>
+<header class="topbar">
+  <div class="topbar-in">
+    <a class="brand" href="index.html"><span class="logo">IC</span>
+      <span>IC Design Mentoring<small>Learning Hub · 3 phiên bản giáo trình</small></span></a>
+    <nav class="nav" aria-label="Điều hướng chính">
+      <a href="index.html" aria-current="page">Trang chủ</a>
+      <a href="versions/v1/index.html">V1</a>
+      <a href="versions/v2/index.html">V2</a>
+      <a href="versions/v3/index.html">V3</a>
+      <a href="evolution.html">Tiến hóa</a>
+      <a href="about.html">Giới thiệu</a>
+      <a href="#search">Tìm kiếm</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <div class="kicker">Learning Hub</div>
+    <h1>IC Design Mentoring</h1>
+    <p class="sub">Digital IC Design · RTL · FPGA · System Thinking — giáo trình mentoring 12 tuần, tiếng Việt</p>
+    <p style="max-width:820px">Trang này là cổng truy cập <b>ba trạng thái lịch sử</b> của cùng một giáo trình. Chúng không bị gộp làm một và không bị viết lại cho giống nhau: mỗi phiên bản được lưu trữ nguyên trạng để học viên, giảng viên và mentor vừa dùng được bản hiện hành, vừa thấy được giáo trình đã tiến hóa như thế nào. <b>Version 3 là bản khuyến nghị dùng hiện nay.</b></p>
+    <div class="pill-row">
+      <span class="pill">Khoa Điện – Điện tử · Trường Kỹ thuật · Đại học Phenikaa</span>
+      <span class="pill">Biên soạn: Giảng Viên Đinh Văn Nam</span>
+      <span class="pill">Phase 1 · 12 tuần</span>
+    </div>
+  </div>
+</section>
+
+<main class="wrap">
+
+  <h2 id="versions">Chọn phiên bản giáo trình</h2>
+  <div class="vgrid">
+
+    <article class="vcard">
+      <div class="vhead"><span class="badge b-v1">V1 · BẢN GỐC</span></div>
+      <h3>Version 1 — Original Baseline</h3>
+      <p class="vmeta">Lưu trữ lịch sử · đóng gói <b>07/2026</b> · <b>11 tuần</b> khả dụng</p>
+      <p class="avail-warn">⚠ Tuần 5 không có trong bản lưu trữ gốc — không được tạo bù.</p>
+      <ul>
+        <li>Điểm khởi đầu của chương trình: mỗi tuần là một <b>phiếu điều phối buổi sinh hoạt 60 phút</b> (checklist, agenda, nhiệm vụ nhóm, từ vựng, lời khuyên mentor).</li>
+        <li>Hữu ích để hiểu chương trình bắt đầu từ đâu và để tham khảo format buổi học.</li>
+        <li>Chưa có quiz, rubric hay nội dung tự học; các trang không liên kết với nhau (hub bổ sung thanh điều hướng, nội dung gốc giữ nguyên).</li>
+      </ul>
+      <div class="vfoot">
+        <a class="btn" href="versions/v1/index.html">Vào Version 1</a>
+        <a class="btn" href="versions/v1/VERSION_NOTES.html">Ghi chú phiên bản</a>
+      </div>
+    </article>
+
+    <article class="vcard">
+      <div class="vhead"><span class="badge b-v2">V2 · BẢN MỞ RỘNG</span></div>
+      <h3>Version 2 — Expanded Curriculum</h3>
+      <p class="vmeta">Lưu trữ lịch sử · đóng gói <b>07/2026</b> · <b>đủ 12 tuần</b></p>
+      <ul>
+        <li>Bước nhảy vọt so với V1: từ phiếu điều phối thành <b>giáo trình tự học tương tác</b> ~6.300–10.100 từ/tuần, khung 18 section thống nhất.</li>
+        <li>Mỗi khái niệm trình bày 5 tầng (định nghĩa → bản chất → ví dụ đời sống → ví dụ trong IC → lỗi hiểu sai); thêm quiz chấm tự động, RTL chất lượng công nghiệp, rubric, mentor notes, homework 3 mức.</li>
+        <li>Cần Internet để hiển thị đúng (phụ thuộc CDN — đặc điểm lịch sử được giữ nguyên).</li>
+      </ul>
+      <div class="vfoot">
+        <a class="btn" href="versions/v2/index.html">Vào Version 2</a>
+        <a class="btn" href="versions/v2/VERSION_NOTES.html">Ghi chú phiên bản</a>
+      </div>
+    </article>
+
+    <article class="vcard rec">
+      <div class="vhead"><span class="badge b-v3">V3 · HIỆN HÀNH</span><span class="rec-tag">KHUYẾN NGHỊ</span></div>
+      <h3>Version 3 — Current Recommended</h3>
+      <p class="vmeta">Bản hiện hành · phát hành <b>08/2026</b> · <b>12 tuần</b> + 8 tài liệu vận hành · đã audit kỹ thuật</p>
+      <ul>
+        <li>Tái cấu trúc theo <b>mô hình 4 lớp</b>: A trước buổi (15–25′) · B buổi mentoring 60′ · C lab đào sâu · D sau buổi.</li>
+        <li>Tuần 9–11 là <b>một project tích hợp</b> (Smart Traffic Controller FPGA: FSM + 7-segment + UART); Tuần 12 là capstone + cầu nối nghiên cứu.</li>
+        <li>Hoạt động <b>offline hoàn toàn</b>; lưu tiến độ; chế độ mentor; RTL đã biên dịch &amp; mô phỏng thật (Icarus Verilog); kèm Technical Audit và Validation Report.</li>
+      </ul>
+      <div class="vfoot">
+        <a class="btn primary" href="versions/v3/index.html">Vào Version 3</a>
+        <a class="btn" href="versions/v3/CURRICULUM_MAP.html">Curriculum Map</a>
+        <a class="btn" href="versions/v3/MENTOR_GUIDE.html">Mentor Guide</a>
+      </div>
+    </article>
+  </div>
+
+  <div class="co co-info"><b>Nguyên tắc của hub:</b> phiên bản đã lưu trữ là bất biến. Hiệu chỉnh trong tương lai sẽ tạo phiên bản mới (V4) hoặc bản vá có ghi chép, không viết đè lịch sử — xem <a href="docs/VERSIONING_POLICY.md">chính sách phiên bản</a>.</div>
+
+  <h2 id="paths">Ba lối vào theo vai trò</h2>
+  <div class="grid3">
+    <div class="card">
+      <div class="pathtag">HỌC — LEARN</div>
+      <h3>Học viên</h3>
+      <ul>
+        <li>Học theo <a href="versions/v3/index.html">Version 3</a>: vào trang tuần, đọc <b>Layer A</b> trước buổi (15–25′), dự buổi 60′, làm <b>Layer C</b> sau buổi rồi tự đánh giá ở <b>Layer D</b>.</li>
+        <li>Tiến độ (quiz, checklist, ô phản tư) tự lưu trên máy của bạn — mở lại trang là còn.</li>
+        <li>Lộ trình và điều kiện tiên quyết từng tuần: <a href="versions/v3/CURRICULUM_MAP.html">Curriculum Map</a>. Project 3 tuần cuối: <a href="versions/v3/PROJECT_GUIDE.html">Project Guide</a>.</li>
+        <li>V1/V2 không dành cho tự học hiện nay — chúng là tư liệu lịch sử.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="pathtag">DẠY — TEACH</div>
+      <h3>Giảng viên</h3>
+      <ul>
+        <li>Toàn cảnh 12 tuần, chuẩn đầu ra, trọng số rubric (25/20/20/20/15): <a href="versions/v3/CURRICULUM_MAP.html">Curriculum Map</a>.</li>
+        <li>Chuỗi kiến thức: nền tảng → logic tổ hợp → tuần tự → FSM → RTL sạch → FPGA/ASIC → project tích hợp → capstone.</li>
+        <li>Rà soát chất lượng nội dung: <a href="versions/v3/TECHNICAL_AUDIT.html">Technical Audit</a> · <a href="versions/v3/VALIDATION_REPORT.html">Validation Report</a>.</li>
+        <li>Xem giáo trình đã phát triển thế nào qua ba phiên bản: <a href="evolution.html">trang Tiến hóa</a>.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="pathtag">DẪN DẮT — MENTOR</div>
+      <h3>Mentor</h3>
+      <ul>
+        <li>Cách chuẩn bị, khung 60′, kỹ thuật chẩn đoán hiểu sai: <a href="versions/v3/MENTOR_GUIDE.html">Mentor Guide</a>.</li>
+        <li>Trong mỗi trang tuần V3: bật công tắc <b>“Mentor”</b> (góc phải topbar) để hiện mục tiêu cần chốt, hiểu sai kinh điển chờ sẵn, câu chẩn đoán kèm đáp án kỳ vọng, kịch bản cứu nguy.</li>
+        <li>Milestone và tiêu chí nghiệm thu project T9–11: <a href="versions/v3/PROJECT_GUIDE.html">Project Guide</a>.</li>
+        <li>Cầu nối sang mentoring nghiên cứu (EQ→RQ, Tuần 12): xem <a href="evolution.html#research">mục Research Bridge</a>.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2 id="search">Tìm kiếm trong cả ba phiên bản</h2>
+  <p class="muted small">Tìm theo tiêu đề và đề mục của mọi trang tuần và tài liệu. Gõ được không dấu (ví dụ <code>tuan tu</code>, <code>fsm</code>, <code>uart</code>). Kết quả luôn ghi rõ phiên bản.</p>
+  <div class="searchbox">
+    <input id="search-input" type="search" placeholder="Ví dụ: FSM, uart, mạch tuần tự, latch…" aria-label="Từ khóa tìm kiếm">
+    <div class="scope" role="group" aria-label="Phạm vi tìm kiếm">
+      <button type="button" data-scope="all" aria-pressed="true">Tất cả</button>
+      <button type="button" data-scope="v1" aria-pressed="false">V1</button>
+      <button type="button" data-scope="v2" aria-pressed="false">V2</button>
+      <button type="button" data-scope="v3" aria-pressed="false">V3</button>
+    </div>
+  </div>
+  <ul id="search-results"></ul>
+  <p id="search-empty" role="status" aria-live="polite"></p>
+  <noscript><p class="muted small">Tìm kiếm cần JavaScript. Không có JavaScript, bạn vẫn duyệt được toàn bộ nội dung qua các trang phiên bản ở trên.</p></noscript>
+
+  <h2>Giáo trình đã tiến hóa như thế nào?</h2>
+  <p style="max-width:820px">Từ phiếu điều phối buổi học (V1), qua giáo trình tự học 18 section (V2), đến hệ thống 4 lớp có project tích hợp và audit kỹ thuật (V3). Trang Tiến hóa so sánh ba phiên bản trên 11 phương diện — dựa hoàn toàn trên tư liệu gốc, không suy diễn.</p>
+  <p><a class="btn" href="evolution.html">Xem trang Tiến hóa V1 → V2 → V3</a></p>
+
+  <div class="footer">
+    <b>IC Design Mentoring — Learning Hub</b>
+    <span class="org">Khoa Điện – Điện tử · Trường Kỹ thuật · Đại học Phenikaa · Biên soạn: <b>Giảng Viên Đinh Văn Nam</b></span>
+    <span class="org">© 2026 · Bản quyền thuộc về Giảng Viên Đinh Văn Nam, Khoa Điện-Điện Tử, Trường Kỹ Thuật, Đại học Phenikaa. Tài liệu phục vụ đào tạo — vui lòng giữ nguyên thông tin tác giả khi chia sẻ hoặc trích dẫn.</span>
+  </div>
+</main>
+</body>
+</html>

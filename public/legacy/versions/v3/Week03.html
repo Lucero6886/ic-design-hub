@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="Giảng Viên Đinh Văn Nam">
+<meta name="copyright" content="© 2026 · Bản quyền thuộc về Giảng Viên Đinh Văn Nam, Khoa Điện-Điện Tử, Trường Kỹ Thuật, Đại học Phenikaa">
+<meta name="description" content="IC Design Mentoring — Version 3, Phase 1 (12 tuần). Khoa Điện – Điện tử · Trường Kỹ thuật · Đại học Phenikaa. Biên soạn: Giảng Viên Đinh Văn Nam.">
+<title>Tuần 3 — Logic Gates &amp; Boolean Thinking | IC Design Mentoring v3</title>
+<link rel="stylesheet" href="css/style.css">
+<script src="js/app.js" defer></script>
+</head>
+<body data-week="03">
+
+<!-- ================= TOP BAR ================= -->
+<header class="topbar">
+  <div class="topbar-in">
+    <a class="brand" href="index.html"><span class="logo">IC</span>
+      <span>IC Design Mentoring<small>Tuần 3/12 · Logic Gates &amp; Boolean Thinking</small></span></a>
+    <nav class="layer-chips">
+      <a class="chip" href="../../index.html" title="Learning Hub — cổng ba phiên bản giáo trình; đây là V3, bản hiện hành được khuyến nghị">⌂ Hub · V3</a>
+      <a class="chip chip-a" href="#layer-a"><span class="dot"></span>A · Trước buổi</a>
+      <a class="chip chip-b" href="#layer-b"><span class="dot"></span>B · Buổi học 60′</a>
+      <a class="chip chip-c" href="#layer-c"><span class="dot"></span>C · Lab</a>
+      <a class="chip chip-d" href="#layer-d"><span class="dot"></span>D · Sau buổi</a>
+      <a class="chip" href="index.html">Mục lục</a>
+    </nav>
+    <span class="mentor-sw" title="Hiện/ẩn nội dung dành riêng cho mentor"><span class="tr"></span> Mentor</span>
+  </div>
+  <div class="scrollbar"><div></div></div>
+</header>
+
+<!-- ================= HERO ================= -->
+<section class="hero">
+  <div class="wrap">
+    <div class="pill-row">
+      <span class="pill">Tuần 3 / 12</span>
+      <span class="pill acc">Nền tảng số · tư duy Boole</span>
+      <span class="pill">Khoa Điện – Điện tử · ĐH Phenikaa</span>
+    </div>
+    <h1>Logic Gates &amp; Boolean Thinking</h1>
+    <p class="sub">Cổng logic &amp; tư duy Boole — cách kỹ sư viết quyết định thành mạch điện</p>
+    <p>Tuần 2 bạn đã thấy cả dây chuyền từ ý tưởng đến con chip. Tuần này ta cầm lên <b>viên gạch nhỏ nhất của chặng RTL: cổng logic (logic gate)</b>. Mọi quyết định "nếu… và… hoặc… thì…" — chuông báo động, đèn sân, khóa cửa — đều dựng từ AND, OR, NOT. Kỹ năng lõi của tuần: biến một tình huống bằng lời thành <b>truth table → biểu thức Boole → mạch cổng</b> — đúng chuỗi mà FSM ở T6 và T9 sẽ dùng lại.</p>
+    <div class="outcomes">
+      <div class="outcome"><b>Mục tiêu 1.</b> Đọc và tự lập truth table (bảng chân lý) cho 7 cổng cơ bản: AND, OR, NOT, NAND, NOR, XOR, XNOR.</div>
+      <div class="outcome"><b>Mục tiêu 2.</b> Chuyển một tình huống đời thực thành chuỗi: chọn biến → truth table 2<sup>n</sup> hàng → biểu thức Boole → mạch cổng.</div>
+      <div class="outcome"><b>Mục tiêu 3.</b> Dùng De Morgan mức nhập môn và chứng minh hai mạch tương đương bằng cách đối chiếu hai truth table.</div>
+      <div class="outcome"><b>Mục tiêu 4.</b> Giải thích mức logic 1/0 là khoảng điện áp quy ước; đọc dòng <code>assign</code> đầu tiên và trả lời "phần cứng nào được suy ra?".</div>
+    </div>
+    <div class="pos">
+      <div><b>Tuần trước — T2.</b> From Idea to Chip: design flow 8 chặng — bạn biết RTL nằm ở chặng nào, verification để làm gì.</div>
+      <div><b>Tuần này — T3.</b> Viên gạch nhỏ nhất của RTL: cổng logic, truth table, biểu thức Boole — kỹ năng tình huống → mạch.</div>
+      <div><b>Tuần sau — T4.</b> Gói cổng thành khối (MUX, adder, comparator) và viết RTL tổ hợp đầu tiên bằng <code>always_comb</code>.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= LAYER A ================= -->
+<section id="layer-a" class="layer layer-a">
+  <div class="wrap layer-head">
+    <div class="band">
+      <span class="layer-badge">A</span>
+      <h2>Trước buổi học</h2>
+      <span class="time">⏱ 15–25 phút · chỉ cần đọc phần này</span>
+    </div>
+    <p class="lead">Bạn KHÔNG cần đọc Layer C trước buổi học. Chuẩn bị đủ ở đây là bạn sẵn sàng thảo luận. Layer C dành cho lúc thực hành sau buổi.</p>
+  </div>
+  <div class="wrap layer-body">
+    <div class="grid2">
+      <div class="card">
+        <h3>Vì sao tuần này quan trọng</h3>
+        <p>Mọi <b>next-state logic</b> và <b>output logic</b> của FSM (T6) — kể cả bộ điều khiển đèn giao thông T9 — đều là tổ hợp cổng. Ai nghĩ được bằng truth table là nghĩ được phần cứng: bảng ↔ biểu thức ↔ mạch chỉ là ba cách viết của <b>cùng một hàm logic</b>.</p>
+        <p class="small muted"><b>Điều kiện tiên quyết:</b> T2 — biết RTL nằm ở chặng nào của design flow và synthesis biến RTL thành cổng/LUT.</p>
+      </div>
+      <div class="card">
+        <h3>Hoạt động chuẩn bị (10′)</h3>
+        <p>Viết <b>bằng lời</b> điều kiện chuông báo động của nhà bạn (ví dụ: <i>"reo khi cửa mở VÀ hệ thống đang bật, HOẶC nút khẩn cấp được bấm"</i>). Ghi ra giấy, gạch chân các chữ VÀ / HOẶC / KHÔNG — tờ giấy này là nguyên liệu cho breakout ở buổi học.</p>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Khái niệm thiết yếu — đọc chậm, 5 ý</h3>
+      <ul>
+        <li><b>Mức logic 1/0</b> là quy ước điện áp: High và Low là <b>hai khoảng điện áp</b>, không phải "có điện / mất điện". Logic 0 vẫn là một mức được mạch lái chủ động.</li>
+        <li><b>Gate (cổng logic)</b> = hàm logic nhỏ nhất, xây từ transistor (T1): nhìn input hiện tại, trả output theo một luật cố định — không trí nhớ, không clock.</li>
+        <li><b>AND / OR / NOT đủ để dựng mọi hàm logic</b> — mọi quyết định số phức tạp đến đâu cũng phân rã về ba cổng này.</li>
+        <li><b>XOR</b> = "khác nhau thì 1" — công tắc cầu thang: đèn sáng khi hai công tắc ở vị trí khác nhau.</li>
+        <li><b>Truth table</b> = <b>ĐẶC TẢ đầy đủ</b> của một hàm logic: n input → đúng 2<sup>n</sup> hàng, không sót, không mơ hồ.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>2 câu hỏi tự chẩn đoán</h3>
+      <p class="small muted">Trả lời trong đầu trước, rồi mới mở đáp án. Nếu sai cũng không sao — buổi học sẽ xử lý đúng chỗ này.</p>
+      <details class="reveal"><summary>1. Mạch có 3 input thì truth table cần mấy hàng? Vì sao là con số đó?</summary>
+        <div class="rv-body">2<sup>3</sup> = <b>8 hàng</b> — mỗi input có 2 giá trị, 3 input tạo 2×2×2 tổ hợp. Mẹo không sót: đếm nhị phân 000 → 111. Thiếu một hàng nghĩa là spec mơ hồ (bài học T2).</div>
+      </details>
+      <details class="reveal"><summary>2. Vì sao NAND được gọi là "cổng vạn năng" (universal gate)?</summary>
+        <div class="rv-body">Chỉ bằng cách ghép các cổng NAND, ta dựng được NOT, AND, OR — tức dựng được <b>mọi</b> hàm logic. (Mức nhận biết là đủ; thử thách nâng cao ở Layer D sẽ cho bạn tự dựng cả ba.)</div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ================= LAYER B ================= -->
+<section id="layer-b" class="layer layer-b">
+  <div class="wrap layer-head">
+    <div class="band">
+      <span class="layer-badge">B</span>
+      <h2>Buổi mentoring 60 phút</h2>
+      <span class="time">🗺 Mentor Session Guide</span>
+    </div>
+    <p class="lead">Kịch bản buổi học — mentor điều phối theo timeline này, không cần đọc hết Layer C để đứng lớp. Học viên nhìn vào đây để biết mình sẽ làm gì.</p>
+  </div>
+  <div class="wrap layer-body">
+    <div class="card">
+      <div class="timeline">
+        <div class="tl-row">
+          <span class="tl-time">0–5′</span>
+          <h4>Retrieval — kiểm tra tuần 2</h4>
+          <ul>
+            <li>Kể 3 chặng đầu của design flow và artifact của mỗi chặng.</li>
+            <li>Verification làm gì — và kiểm tra dựa vào tài liệu nào?</li>
+            <li>Nạp cấu hình FPGA khác chế tạo (fab) ASIC ở chỗ nào?</li>
+          </ul>
+        </div>
+        <div class="tl-row">
+          <span class="tl-time">5–15′</span>
+          <h4>Học viên giải thích</h4>
+          <p>2–3 học viên đọc điều kiện chuông báo đã chuẩn bị. Cả lớp cùng tách: đâu là input, đâu là output, chữ "hoặc" trong câu là loại nào? Mentor gom các câu lên bảng, <b>chưa sửa vội</b>.</p>
+        </div>
+        <div class="tl-row">
+          <span class="tl-time">15–25′</span>
+          <h4>Mentor sửa &amp; giảng sâu</h4>
+          <p>Chốt 3 điều bắt buộc đúng: (1) <b>OR logic là inclusive</b> — hàng "cả hai cùng 1" vẫn ra 1; "hoặc" đời thường nhiều khi là XOR, phải hỏi lại spec; (2) mức 1/0 là <b>khoảng điện áp quy ước</b> — logic 0 không phải "mất điện"; (3) truth table 2<sup>n</sup> hàng là <b>đặc tả đầy đủ</b> — thiếu hàng = spec mơ hồ.</p>
+        </div>
+        <div class="tl-row">
+          <span class="tl-time">25–45′</span>
+          <h4>Active design — từ lời nói đến mạch (nhóm 2–3 người)</h4>
+          <p><b>Đề bài:</b> lấy điều kiện chuông báo nhóm đã chuẩn bị, chuẩn hóa thành <b>3 biến input</b> → lập truth table <b>8 hàng</b> → rút biểu thức Boole → vẽ mạch cổng.</p>
+          <ul>
+            <li>Mỗi điều kiện một tín hiệu 1-bit; ghi rõ ý nghĩa mức 1 của từng tín hiệu.</li>
+            <li>Xong thì <b>ĐỔI bảng cho nhóm khác</b>: nhóm nhận che cột output, <b>dự đoán 2 hàng bất kỳ</b> rồi mở ra đối chiếu (predict → đối chiếu).</li>
+          </ul>
+          <p class="small muted">Artifact nhóm: 1 tờ giấy đủ chuỗi tình huống → bảng 8 hàng → biểu thức → mạch cổng.</p>
+        </div>
+        <div class="tl-row">
+          <span class="tl-time">45–55′</span>
+          <h4>Chia sẻ &amp; tranh luận kỹ thuật</h4>
+          <p>Hai nhóm trình bày. Câu hỏi ép suy nghĩ: chữ "hoặc" của nhóm bạn là OR hay XOR — <b>hàng nào trong bảng</b> cho biết? Hai nhóm rút ra hai biểu thức khác nhau cho cùng tình huống — phân xử bằng cách nào? Hàng nào trong bảng là hàng "bẫy" mà người thường dễ đoán sai?</p>
+        </div>
+        <div class="tl-row">
+          <span class="tl-time">55–60′</span>
+          <h4>Chốt &amp; giao việc</h4>
+          <ul>
+            <li><b>Nhớ:</b> truth table là đặc tả; bảng ↔ biểu thức ↔ mạch là ba cách viết của cùng một hàm.</li>
+            <li><b>Tránh:</b> dịch "hoặc" thành OR mà chưa hỏi "cả hai cùng xảy ra thì sao?".</li>
+            <li><b>Artifact sau buổi:</b> Logic Card cá nhân ≥3 biến + quiz (Layer D).</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <p class="mentor-hint">💡 Bật công tắc <b>Mentor</b> trên thanh tiêu đề để xem ghi chú dành riêng cho mentor (đáp án kỳ vọng, câu hỏi cứu nguy, mở rộng cho học viên giỏi).</p>
+
+    <div class="mentor-only">
+      <div class="mentor-box">
+        <span class="mtag">Mentor only · Tuần 3</span>
+        <h3>Ghi chú vận hành buổi học</h3>
+        <div class="grid2">
+          <div>
+            <h4>Mục tiêu mentor cần chốt được</h4>
+            <ul class="small">
+              <li>Học viên tự lập bảng 8 hàng không sót (đếm nhị phân 000 → 111).</li>
+              <li>Phân biệt OR/XOR bằng đúng hàng "1 1" — không phải bằng cảm giác.</li>
+              <li>Thấy được bảng ↔ biểu thức ↔ mạch là một; truth table là đặc tả, không phải bài tập.</li>
+            </ul>
+            <h4>Hiểu sai kinh điển (chờ sẵn)</h4>
+            <ul class="small">
+              <li>"OR = hoặc cái này hoặc cái kia, <em>không cả hai</em>" — đó là XOR. OR inclusive: hàng 1-1 vẫn ra 1.</li>
+              <li>"Truth table chỉ để học, thực tế không dùng" — sai: nó là đặc tả và là cơ sở kiểm chứng; LUT trong FPGA đúng nghĩa đen là một truth table lưu trong bộ nhớ.</li>
+              <li>"Logic 0 = mất điện" — 0 là mức điện áp hợp lệ được lái chủ động.</li>
+              <li>De Morgan sai dấu: (A·B)′ thành A′·B′ — bắt kiểm chứng bằng bảng 4 hàng tại chỗ.</li>
+            </ul>
+          </div>
+          <div>
+            <h4>Câu hỏi chẩn đoán → đáp án tốt → hỏi tiếp</h4>
+            <p class="small"><b>Hỏi:</b> "Cùng một truth table có thể có hai mạch khác nhau không?"<br>
+            <b>Đáp tốt:</b> Có — hai mạch <b>tương đương logic</b>: cùng hành vi, khác chi phí (số cổng, độ trễ).<br>
+            <b>Hỏi tiếp (nếu trả lời đúng):</b> "Vậy ai chọn dạng rẻ nhất?" → công cụ synthesis tối ưu tự động; T4 và T8 sẽ quay lại chuyện chi phí này.</p>
+            <p class="small"><b>Cứu nguy (nếu bí):</b> truth table = "bảng cửu chương" của hàm logic — liệt kê đủ mọi trường hợp, tra là ra, không cần cãi nhau. Bảng cửu chương thiếu một ô thì học sinh loạn; bảng chân lý thiếu một hàng thì mạch loạn.</p>
+            <p class="small"><b>Mở rộng học viên giỏi:</b> phát biểu 2 luật De Morgan rồi yêu cầu <b>chứng minh bằng truth table 4 hàng ngay tại chỗ</b>. Hỏi thêm: dùng De Morgan để chỉ ra "không cửa nào mở" = "cửa đóng VÀ cửa sổ đóng".</p>
+          </div>
+        </div>
+        <div class="co co-warn small"><b>Nhịp buổi học.</b> Không giảng quá 10 phút liên tục. Phần 25–45′ là lõi: đi từng nhóm, chỉ vào một hàng bất kỳ và hỏi "hàng này nghĩa là gì ngoài đời?" — đừng cho đáp án sớm. Nhóm nhanh: thêm biến thứ 4 (nút khẩn cấp) — bảng thành mấy hàng? (16), biểu thức đổi thế nào?</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= LAYER C ================= -->
+<section id="layer-c" class="layer layer-c">
+  <div class="wrap layer-head">
+    <div class="band">
+      <span class="layer-badge">C</span>
+      <h2>Technical Lab — Deep Dive</h2>
+      <span class="time">🔬 Tự học sâu · sau buổi hoặc khi thực hành</span>
+    </div>
+    <p class="lead">Toàn bộ kỹ thuật chi tiết nằm ở đây, chia thành mục gập/mở. Không bắt buộc đọc hết một lần — đi theo thứ tự khi làm bài tập.</p>
+  </div>
+  <div class="wrap layer-body">
+    <div class="dd-tools"><button data-dd="open">Mở tất cả</button><button data-dd="close">Đóng tất cả</button></div>
+
+    <!-- C1 -->
+    <details class="dd" open>
+      <summary><span class="no">C1</span> Mức logic &amp; cổng logic — hai viên gạch đầu tiên <span class="est">~8′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <p><b>Mức logic (logic level).</b> Với nguồn 3.3V: <b>High (logic 1)</b> là vùng điện áp gần 3.3V, <b>Low (logic 0)</b> là vùng gần 0V; ở giữa là <b>vùng không xác định</b> mà tín hiệu không được "đứng lại". Mỗi công nghệ định ngưỡng riêng (V<sub>IH</sub>, V<sub>IL</sub>). Nhờ chia <em>vùng</em> thay vì đòi giá trị chính xác, mạch số chống nhiễu rất tốt: 3.1V hay 3.28V đều được đọc là 1 — đây là lý do thế giới số ổn định hơn analog. Ví dụ đời sống: đèn giao thông chỉ có ý nghĩa khi rõ ĐỎ hay XANH; bóng đèn "chớp mờ lưng chừng" chính là vùng cấm.</p>
+        <div class="co co-danger"><b>"Logic 0 = mất điện" — sai.</b> Cả 1 và 0 đều là mức điện áp hợp lệ được mạch <em>lái chủ động</em>. Mất nguồn thì cả mạch ngừng hoạt động — chuyện hoàn toàn khác với "đang xuất logic 0".</div>
+        <p><b>Cổng logic (logic gate)</b> là "máy ra quyết định" bé nhất: nhìn các input, trả output theo <b>một luật cố định</b>. Nó được xây từ transistor (T1: công tắc điện tử) — NAND 2 ngõ vào trong CMOS cần 4 transistor. Cổng là phần tử <b>tổ hợp (combinational)</b>: output chỉ phụ thuộc input <em>hiện tại</em> — không trí nhớ, không clock, không reset (chưa có gì để nhớ thì chưa có gì để reset — T5 mới cần). Một SoC hiện đại chứa hàng tỉ cổng; thư viện standard cell của foundry là "bộ LEGO" các cổng, còn FPGA cài truth table của cổng vào LUT.</p>
+        <p class="small muted">Cổng có <b>propagation delay</b> — độ trễ lan truyền từ input đến output (T4 sẽ đo đếm nghiêm túc). Tuần này chỉ cần nhớ: "ngay lập tức" về chức năng, "khác 0" về thời gian.</p>
+      </div>
+    </details>
+
+    <!-- C2 -->
+    <details class="dd">
+      <summary><span class="no">C2</span> Bảy cổng cơ bản — truth table đầy đủ <span class="est">~12′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <p><b>Bộ ba nền tảng.</b> AND nghiêm khắc (tất cả phải đạt), OR dễ tính (một cái đạt là đủ), NOT phản biện (luôn nói ngược). Ba cổng này đủ dựng mọi hàm logic.</p>
+        <div class="grid3">
+          <div>
+            <p class="small"><b>AND — Y = A·B</b></p>
+            <table class="tbl mono"><tr><th>A</th><th>B</th><th>Y</th></tr>
+              <tr><td>0</td><td>0</td><td>0</td></tr><tr><td>0</td><td>1</td><td>0</td></tr>
+              <tr><td>1</td><td>0</td><td>0</td></tr><tr><td>1</td><td>1</td><td><b>1</b></td></tr></table>
+            <p class="small muted">Máy giặt chạy khi cửa đóng VÀ nút Start.</p>
+          </div>
+          <div>
+            <p class="small"><b>OR — Y = A+B</b></p>
+            <table class="tbl mono"><tr><th>A</th><th>B</th><th>Y</th></tr>
+              <tr><td>0</td><td>0</td><td>0</td></tr><tr><td>0</td><td>1</td><td><b>1</b></td></tr>
+              <tr><td>1</td><td>0</td><td><b>1</b></td></tr><tr><td>1</td><td>1</td><td><b>1</b></td></tr></table>
+            <p class="small muted">Chuông reo khi nút cổng trước HOẶC nút cổng sau.</p>
+          </div>
+          <div>
+            <p class="small"><b>NOT — Y = A′</b></p>
+            <table class="tbl mono"><tr><th>A</th><th>Y</th></tr>
+              <tr><td>0</td><td><b>1</b></td></tr><tr><td>1</td><td>0</td></tr></table>
+            <p class="small muted">Đèn "cửa đang MỞ" = đảo của cảm biến "cửa đã đóng". Dấu ′ đọc là "đảo".</p>
+          </div>
+        </div>
+        <p style="margin-top:14px"><b>Bộ bốn dẫn xuất</b> — đặt bốn bảng cạnh nhau để so:</p>
+        <div class="tblwrap">
+        <table class="tbl mono">
+          <tr><th>A</th><th>B</th><th>NAND (A·B)′</th><th>NOR (A+B)′</th><th>XOR A⊕B</th><th>XNOR (A⊕B)′</th></tr>
+          <tr><td>0</td><td>0</td><td><b>1</b></td><td><b>1</b></td><td>0</td><td><b>1</b></td></tr>
+          <tr><td>0</td><td>1</td><td><b>1</b></td><td>0</td><td><b>1</b></td><td>0</td></tr>
+          <tr><td>1</td><td>0</td><td><b>1</b></td><td>0</td><td><b>1</b></td><td>0</td></tr>
+          <tr><td>1</td><td>1</td><td>0</td><td>0</td><td>0</td><td><b>1</b></td></tr>
+        </table>
+        </div>
+        <ul>
+          <li><b>NAND</b> = AND rồi đảo — chỉ ra 0 khi tất cả là 1. <b>Cổng vạn năng</b>: ghép NAND dựng được NOT/AND/OR; trong CMOS, NAND/NOR còn nhỏ và nhanh hơn AND/OR (vì AND = NAND + NOT).</li>
+          <li><b>NOR</b> = OR rồi đảo — chỉ ra 1 khi tất cả là 0. Đèn "standby" sáng khi không nút nào đang bấm.</li>
+          <li><b>XOR</b> = "khác nhau thì 1" — công tắc cầu thang; adder (T4) dùng XOR tính bit tổng.</li>
+          <li><b>XNOR</b> = "giống nhau thì 1" — phép <b>so khớp từng bit</b>: bit nhận trùng bit gửi thì ra 1; comparator (T4) xây từ XNOR.</li>
+        </ul>
+        <div class="co co-warn"><b>Bẫy số một của tuần:</b> "hoặc" đời thường ("trà hoặc cà phê") thường ngầm hiểu loại trừ — đó là XOR. <b>OR logic là inclusive</b>: cả hai cùng 1 vẫn ra 1. Chọn nhầm OR/XOR làm mạch sai đúng <em>một hàng</em> truth table — loại bug khó thấy nhất. Câu hỏi phản xạ của kỹ sư: "cả hai cùng xảy ra thì sao?"</div>
+      </div>
+    </details>
+
+    <!-- C3 -->
+    <details class="dd">
+      <summary><span class="no">C3</span> Case study: hệ thống báo động — từ lời nói đến mạch <span class="est">~15′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <p><b>Tình huống (requirement):</b> <i>"Còi hú khi hệ thống đang được bật VÀ có cửa ra vào mở HOẶC cửa sổ mở."</i> Ta đi đúng chuỗi 4 bước — chuỗi này dùng lại cho mọi bài logic tổ hợp về sau.</p>
+        <p><b>Bước 1 — chọn biến.</b> Mỗi điều kiện một tín hiệu 1-bit, ghi rõ ý nghĩa mức 1: <code>armed</code> (1 = chủ nhà đã bật chế độ chống trộm), <code>door</code> (1 = cửa ra vào mở), <code>window</code> (1 = cửa sổ mở). Output: <code>alarm</code> (1 = còi hú).</p>
+        <p><b>Bước 2 — truth table.</b> 3 input → 2<sup>3</sup> = 8 hàng, đếm nhị phân 000 → 111. Đừng đọc đáp án — <b>tự điền cột alarm</b> theo tình huống ở trên:</p>
+        <div class="widget" data-widget="tt">
+          <div class="wtitle">Tự điền truth table hệ báo động (predict trước, kiểm tra sau)</div>
+          <div class="wnote">Bấm vào từng ô "?" ở cột alarm để xoay ? → 0 → 1. Điền đủ 8 ô rồi bấm Kiểm tra — ô đỏ là ô cần suy luận lại.</div>
+          <div class="tblwrap">
+          <table class="tbl">
+            <tr><th>armed</th><th>door</th><th>window</th><th>alarm = ?</th></tr>
+            <tr><td>0</td><td>0</td><td>0</td><td class="tt-cell" data-exp="0"></td></tr>
+            <tr><td>0</td><td>0</td><td>1</td><td class="tt-cell" data-exp="0"></td></tr>
+            <tr><td>0</td><td>1</td><td>0</td><td class="tt-cell" data-exp="0"></td></tr>
+            <tr><td>0</td><td>1</td><td>1</td><td class="tt-cell" data-exp="0"></td></tr>
+            <tr><td>1</td><td>0</td><td>0</td><td class="tt-cell" data-exp="0"></td></tr>
+            <tr><td>1</td><td>0</td><td>1</td><td class="tt-cell" data-exp="1"></td></tr>
+            <tr><td>1</td><td>1</td><td>0</td><td class="tt-cell" data-exp="1"></td></tr>
+            <tr><td>1</td><td>1</td><td>1</td><td class="tt-cell" data-exp="1"></td></tr>
+          </table>
+          </div>
+          <button class="tt-check wbtn">Kiểm tra</button> <span class="tt-out small"></span>
+        </div>
+        <p><b>Bước 3 — rút biểu thức.</b> Nhìn các hàng alarm = 1 (101, 110, 111): tất cả đều có <code>armed</code> = 1 và <em>ít nhất một</em> cửa mở → <b>alarm = armed · (door + window)</b>. Đối chiếu ngược lại đủ 8 hàng: khớp 100% mới được đi tiếp.</p>
+        <p><b>Bước 4 — vẽ mạch.</b> Biểu thức dịch thẳng thành 2 cổng: <code>door</code> và <code>window</code> vào một cổng <b>OR</b>; kết quả cùng <code>armed</code> vào một cổng <b>AND</b> → <code>alarm</code>.</p>
+        <div class="co co-info"><b>Hàng đáng giá nhất: 1-1-1.</b> Cả cửa lẫn cửa sổ cùng mở — còi vẫn hú (OR inclusive). Nếu chủ nhà thật sự muốn "chỉ một trong hai" (rất hiếm!), spec phải nói rõ và cổng phải đổi thành XOR. Hỏi lại khách hàng "cả hai cùng xảy ra thì sao?" chính là tư duy làm spec của T2.</div>
+      </div>
+    </details>
+
+    <!-- C4 -->
+    <details class="dd">
+      <summary><span class="no">C4</span> Biến đổi &amp; tương đương — De Morgan nhập môn <span class="est">~10′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <p><b>Cùng hàm, khác mạch.</b> Áp luật phân phối cho biểu thức C3: <code>armed·(door+window)</code> = <code>armed·door + armed·window</code>. Dạng đầu cần 2 cổng, dạng sau cần 3 cổng (2 AND + 1 OR) — nhưng chúng là <b>một hàm logic</b>. Bằng chứng: hai bảng trùng nhau từng hàng.</p>
+        <div class="tblwrap">
+        <table class="tbl mono">
+          <tr><th>armed</th><th>door</th><th>window</th><th>armed·(door+window)</th><th>armed·door + armed·window</th></tr>
+          <tr><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+          <tr><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td></tr>
+          <tr><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td></tr>
+          <tr><td>0</td><td>1</td><td>1</td><td>0</td><td>0</td></tr>
+          <tr><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+          <tr><td>1</td><td>0</td><td>1</td><td><b>1</b></td><td><b>1</b></td></tr>
+          <tr><td>1</td><td>1</td><td>0</td><td><b>1</b></td><td><b>1</b></td></tr>
+          <tr><td>1</td><td>1</td><td>1</td><td><b>1</b></td><td><b>1</b></td></tr>
+        </table>
+        </div>
+        <p>Đây là mầm của tư duy "bằng chứng": <b>muốn khẳng định hai mạch tương đương (equivalent circuit), lập hai bảng và so từng hàng</b>. Chỉ cần một hàng lệch là hai mạch khác nhau — và hàng đó chính là bằng chứng. Hai mạch tương đương thì hành vi như nhau nhưng <em>chi phí</em> (số cổng, độ trễ) có thể khác — lý do tồn tại của tối ưu logic (T4, T8).</p>
+        <p><b>De Morgan — hai luật đổi vai AND/OR khi dấu đảo "chui qua" ngoặc:</b></p>
+        <p class="center"><code>(A·B)′ = A′ + B′</code> &nbsp;&nbsp;·&nbsp;&nbsp; <code>(A+B)′ = A′ · B′</code></p>
+        <p>Trực giác: "KHÔNG (cả hai cùng xảy ra)" nghĩa là "ít nhất một cái không xảy ra". Ví dụ từ case study: đèn báo an toàn <code>safe = (door + window)′</code> — theo De Morgan bằng <code>door′ · window′</code>: "không cửa nào mở" = "cửa đóng VÀ cửa sổ đóng". Hai cách nói, một hàm.</p>
+        <div class="wr">
+          <p><b>Predict-before-check.</b> Tự lập bảng 4 hàng cho <code>(A·B)′</code> và cho <code>A′ + B′</code>. Hai cột có trùng nhau không? Nghĩ xong hãy bấm.</p>
+          <button class="wr-btn wbtn alt" data-label="Hiện đáp án">Hiện đáp án</button>
+          <div class="wr-ans"><div class="co co-ok">Trùng từng hàng: A B = 00 → 1, 1; 01 → 1, 1; 10 → 1, 1; 11 → <b>0, 0</b>. Luật 1 được chứng minh trong 2 phút — đó là sức mạnh của truth table làm "trọng tài".</div></div>
+        </div>
+        <div class="co co-warn"><b>Lỗi kinh điển:</b> (A·B)′ = A′·B′ — <b>sai</b>. Đảo của AND không phải AND của các đảo: khi dấu đảo chui qua ngoặc, AND phải đổi thành OR. Nghi ngờ ở đâu, lập bảng 4 hàng ở đó.</div>
+      </div>
+    </details>
+
+    <!-- C5 -->
+    <details class="dd">
+      <summary><span class="no">C5</span> RTL Peek: dòng <code>assign</code> đầu tiên (guided) <span class="est">~8′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <p>Chưa cần thuộc cú pháp — chỉ cần <b>nhìn thấy sự tương ứng</b>: biểu thức Boole ↔ dòng code ↔ đám cổng. <code>&amp;</code> là AND, <code>|</code> là OR, <code>~</code> là NOT, <code>^</code> là XOR.</p>
+        <div class="rtl-frame">
+          <div class="rtl-head"><span class="ftag ftag-rtl">RTL</span><span class="fname">alarm_system.sv</span><span class="muted">· synthesizable · mạch tổ hợp, không clock</span></div>
+<pre class="code"><code>module alarm_system (
+  input  logic armed,   // 1 = chủ nhà đã bật chế độ chống trộm
+  input  logic door,    // 1 = cảm biến cửa ra vào bị kích hoạt
+  input  logic window,  // 1 = cảm biến cửa sổ bị kích hoạt
+  output logic alarm    // 1 = còi hú
+);
+  // Gán liên tục: input đổi là output "chảy" theo (sau độ trễ lan truyền)
+  // Biểu thức Boole dịch gần như nguyên văn: · thành &amp; , + thành |
+  assign alarm = armed &amp; (door | window);
+endmodule</code></pre>
+          <div class="rtl-meta">
+            <div><b>1 · Mục đích</b>Hiện thực đúng truth table 8 hàng của C3 — một mạch tổ hợp thuần túy.</div>
+            <div><b>2 · Interface</b>3 input 1-bit, 1 output. Không có <code>clk</code>, không <code>rst_n</code> — chưa có gì để nhớ thì chưa cần nhịp và chưa cần reset (T5).</div>
+            <div><b>3 · Phần cứng suy ra</b>Ở mức biểu thức: đúng 2 cổng — 1 OR + 1 AND. Trên FPGA: cả hàm 3 input nằm gọn trong <b>một LUT</b> chứa đúng 8 hàng truth table của bạn.</div>
+            <div><b>4 · Chiến lược test</b>Mạch nhỏ → quét đủ cả 8 tổ hợp input (coverage 100%), đối chiếu từng hàng với bảng C3.</div>
+            <div><b>5 · Waveform kỳ vọng</b>Không có nhịp: <code>alarm</code> bám theo input, đổi ngay tại cùng thời điểm mô phỏng với input (trong mô phỏng RTL, độ trễ = 0; độ trễ lan truyền thật chỉ thấy ở mô phỏng mức cổng hoặc trên phần cứng). Đặc biệt soi hàng bẫy: <code>armed</code>=0 thì mở cửa kiểu gì alarm cũng phẳng ở 0.</div>
+            <div><b>6 · Bug kinh điển</b>Thiếu ngoặc: <code>assign alarm = armed &amp; door | window;</code> thành (armed·door)+window — còi hú dù chưa bật hệ thống, vì <code>&amp;</code> ưu tiên cao hơn <code>|</code>. Và nhầm <code>|</code> với <code>^</code> (OR với XOR).</div>
+          </div>
+        </div>
+        <div class="co co-fix"><span class="tag">Hiệu chỉnh kỹ thuật so với v2</span> Bản v2 viết synthesis tạo ra "đúng nghĩa đen" từng cổng như sơ đồ bạn vẽ. Chính xác hơn: synthesis sinh <b>mạng cổng/LUT tương đương đã tối ưu</b> — công cụ được phép biến đổi cấu trúc (như hai dạng ở C4), miễn <b>truth table không đổi</b>. Hành vi là hợp đồng; cấu trúc là lựa chọn của tool.</div>
+        <p class="small muted"><b>Nối sang T4:</b> một biểu thức → một dòng <code>assign</code> là đủ. Khi khối tổ hợp có nhiều nhánh lựa chọn (MUX, decoder…), ta chuyển sang <code>always_comb</code> — cú pháp học ở T4.</p>
+      </div>
+    </details>
+
+    <!-- C6 vocab -->
+    <details class="dd">
+      <summary><span class="no">C6</span> Từ vựng kỹ thuật tuần 3 <span class="est">~5′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <div class="tblwrap">
+        <table class="tbl vocab">
+          <tr><th>Thuật ngữ</th><th>Nghĩa</th><th>Câu ví dụ (EN)</th></tr>
+          <tr><td>Logic level (High/Low)</td><td>Mức logic — hai khoảng điện áp quy ước cho 1 và 0</td><td class="en">A voltage near 3.3 V is read as a High logic level.</td></tr>
+          <tr><td>Logic gate</td><td>Cổng logic — hàm logic nhỏ nhất, xây từ transistor</td><td class="en">A modern SoC contains billions of logic gates.</td></tr>
+          <tr><td>Truth table</td><td>Bảng chân lý — đặc tả đầy đủ 2<sup>n</sup> hàng của hàm logic</td><td class="en">Write the truth table before writing any RTL.</td></tr>
+          <tr><td>Boolean expression</td><td>Biểu thức Boole — viết mạch bằng các phép · + ′ ⊕</td><td class="en">The Boolean expression maps directly to an assign statement.</td></tr>
+          <tr><td>AND / OR / NOT</td><td>Bộ ba nền tảng — đủ để dựng mọi hàm logic</td><td class="en">Any digital function can be built from AND, OR, and NOT.</td></tr>
+          <tr><td>XOR gate</td><td>Cổng HOẶC loại trừ — ra 1 khi hai input khác nhau</td><td class="en">The adder uses an XOR gate to compute the sum bit.</td></tr>
+          <tr><td>XNOR gate</td><td>Cổng XOR đảo — ra 1 khi hai input giống nhau (so khớp bit)</td><td class="en">A comparator checks equality with XNOR gates.</td></tr>
+          <tr><td>De Morgan's law</td><td>Luật De Morgan — dấu đảo chui qua ngoặc, AND ↔ OR đổi chỗ</td><td class="en">Apply De Morgan's law to rewrite the inverted condition.</td></tr>
+          <tr><td>Equivalent circuit</td><td>Mạch tương đương — cùng truth table, có thể khác chi phí</td><td class="en">The two equivalent circuits differ only in gate count.</td></tr>
+          <tr><td>Don't care</td><td>Tổ hợp input mà output được phép tùy ý (ghi X) — cho tool thêm chỗ tối ưu</td><td class="en">Unused input combinations are marked as don't care.</td></tr>
+        </table>
+        </div>
+      </div>
+    </details>
+  </div>
+</section>
+
+<!-- ================= LAYER D ================= -->
+<section id="layer-d" class="layer layer-d">
+  <div class="wrap layer-head">
+    <div class="band">
+      <span class="layer-badge">D</span>
+      <h2>Sau buổi học</h2>
+      <span class="time">📝 Quiz 5 câu · bài tập · phản tư</span>
+    </div>
+  </div>
+  <div class="wrap layer-body">
+
+    <div class="card">
+      <h3>Quiz tự kiểm tra — 5 câu</h3>
+      <p class="small muted">Chọn đáp án; chấm ngay và hiện giải thích. Câu hỏi kiểu dự đoán/suy luận — nếu sai, quay lại đúng mục Layer C được ghi trong giải thích.</p>
+      <div class="quiz" id="quiz">
+        <div class="qz-item" data-answer="C">
+          <p class="qz-q">1. Spec mới: "Quạt chạy khi trời nóng VÀ có người trong phòng, HOẶC khi nút ép buộc (force) được bấm." Biểu thức nào đúng?</p>
+          <button class="qz-opt" data-key="A">fan = hot · (person + force)</button>
+          <button class="qz-opt" data-key="B">fan = hot · person · force</button>
+          <button class="qz-opt" data-key="C">fan = (hot · person) + force</button>
+          <button class="qz-opt" data-key="D">fan = (hot + person) · force</button>
+          <div class="qz-expl"><b>Giải thích:</b> "HOẶC nút ép buộc" đứng ngang hàng với cả cụm điều kiện — force một mình phải đủ bật quạt. Kiểm chứng bằng hàng hot=0, person=0, force=1: chỉ đáp án C ra 1, ba đáp án kia ra 0 (sai spec). Một hàng truth table đủ làm trọng tài. Xem C3.</div>
+        </div>
+        <div class="qz-item" data-answer="A">
+          <p class="qz-q">2. Bạn cần mạch báo "bit nhận được KHÁC bit đã gửi" để phát hiện lỗi truyền, và mạch ngược lại báo "hai bit giống nhau". Cặp cổng nào đúng?</p>
+          <button class="qz-opt" data-key="A">XOR báo khác nhau; XNOR báo giống nhau</button>
+          <button class="qz-opt" data-key="B">OR báo khác nhau; NOR báo giống nhau</button>
+          <button class="qz-opt" data-key="C">AND báo khác nhau; NAND báo giống nhau</button>
+          <button class="qz-opt" data-key="D">XNOR báo khác nhau; XOR báo giống nhau</button>
+          <div class="qz-expl"><b>Giải thích:</b> XOR = "khác nhau thì 1" — đúng nghĩa phát hiện sai lệch; XNOR đảo lại = "giống nhau thì 1" — phép so khớp bit của comparator (T4). OR không phân biệt được: hàng 1-1 vẫn ra 1 dù hai bit giống nhau. Xem C2.</div>
+        </div>
+        <div class="qz-item" data-answer="D">
+          <p class="qz-q">3. Áp De Morgan: (A · B)′ biến thành biểu thức nào?</p>
+          <button class="qz-opt" data-key="A">A′ · B′</button>
+          <button class="qz-opt" data-key="B">A + B</button>
+          <button class="qz-opt" data-key="C">(A′ + B′)′</button>
+          <button class="qz-opt" data-key="D">A′ + B′</button>
+          <div class="qz-expl"><b>Giải thích:</b> dấu đảo chui qua ngoặc thì AND đổi thành OR và từng biến bị đảo: (A·B)′ = A′ + B′. Đáp án A là lỗi kinh điển — A′·B′ lại bằng (A+B)′ (luật thứ hai). Nghi ngờ thì lập bảng 4 hàng — 2 phút là phân xử xong. Xem C4.</div>
+        </div>
+        <div class="qz-item" data-answer="B">
+          <p class="qz-q">4. Hai nhóm nộp hai mạch khác nhau — nhóm X dùng 2 cổng, nhóm Y dùng 3 cổng — nhưng hai truth table trùng nhau từng hàng. Kết luận đúng là gì?</p>
+          <button class="qz-opt" data-key="A">Một trong hai nhóm chắc chắn làm sai — mỗi hàm chỉ có một mạch</button>
+          <button class="qz-opt" data-key="B">Hai mạch tương đương logic: cùng hành vi, khác chi phí — synthesis được phép chọn dạng tối ưu</button>
+          <button class="qz-opt" data-key="C">Truth table không đủ thông tin để so sánh hai mạch tổ hợp</button>
+          <button class="qz-opt" data-key="D">Chỉ khi số cổng bằng nhau thì hai mạch mới cùng hành vi</button>
+          <div class="qz-expl"><b>Giải thích:</b> truth table là đặc tả <em>hành vi</em>; nhiều cấu trúc cổng có thể hiện thực cùng một hành vi — như armed·(door+window) và armed·door + armed·window. Bảng trùng nhau = tương đương; khác nhau chỉ ở chi phí (số cổng, độ trễ). Xem C4.</div>
+        </div>
+        <div class="qz-item" data-answer="A">
+          <p class="qz-q">5. Mạch majority: y = 1 khi <b>ít nhất hai</b> trong ba input (a, b, c) bằng 1. Dự đoán hàng a=1, b=0, c=0 — và hàng này phân biệt majority với cổng nào?</p>
+          <button class="qz-opt" data-key="A">y = 0 — và chính hàng này phân biệt majority với OR 3 ngõ vào (OR sẽ ra 1)</button>
+          <button class="qz-opt" data-key="B">y = 1 — vì majority hoạt động giống OR</button>
+          <button class="qz-opt" data-key="C">y = 0 — và hàng này phân biệt majority với AND 3 ngõ vào</button>
+          <button class="qz-opt" data-key="D">y = 1 — vì a = 1 là đủ để quyết định</button>
+          <div class="qz-expl"><b>Giải thích:</b> chỉ một input bằng 1 → chưa đủ "đa số" → y = 0; OR lại ra 1 ở đúng hàng này — một hàng duy nhất đủ chứng minh hai hàm khác nhau. Đáp án C sai vì ở hàng 100 AND cũng ra 0 (giống majority) — muốn phân biệt với AND phải chỉ hàng 110. Xem C3, C4.</div>
+        </div>
+        <div class="qz-bar"><span class="qz-score"></span><span class="qz-verdict"></span><button class="qz-reset">Làm lại</button></div>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <h3>Bài tập bắt buộc <span class="badge badge-req">nộp trước buổi 4</span></h3>
+        <p><b>Logic Card cá nhân</b> — tự chọn 1 tình huống đời thực có <b>≥ 3 biến input</b> (khóa cửa, báo cháy, tưới cây, thang máy…).</p>
+        <ul class="small">
+          <li>Mô tả tình huống bằng lời (1–2 câu), gạch chân VÀ / HOẶC / KHÔNG.</li>
+          <li>Chọn biến: tên tín hiệu + ý nghĩa mức 1 của từng tín hiệu.</li>
+          <li>Truth table đủ 2<sup>n</sup> hàng (đếm nhị phân, không sót không trùng).</li>
+          <li>Biểu thức Boole + mạch cổng vẽ tay — ba thứ phải nhất quán 100%.</li>
+        </ul>
+        <p class="small"><b>Nộp (deliverable):</b> 1 trang Logic Card + đoạn tự giải thích <b>2 hàng "khó"</b> — hai tổ hợp mà người thường dễ đoán sai output, vì sao đáp án của bạn đúng.</p>
+      </div>
+      <div class="card">
+        <h3>Thử thách nâng cao <span class="badge badge-opt">tự chọn</span></h3>
+        <p><b>NAND vạn năng:</b> dựng NOT, AND, OR <b>chỉ bằng cổng NAND</b>. Với mỗi mạch: vẽ sơ đồ + lập truth table kiểm chứng trùng với cổng gốc từng hàng. Gợi ý khởi động: NOT A = NAND(A, A).</p>
+        <p class="small">Câu hỏi kèm theo: sau khi tự dựng cả ba, hãy giải thích vì sao chỉ một loại cổng đủ xây <em>mọi</em> mạch số — và điều đó tiện gì cho người làm thư viện standard cell?</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Rubric tuần 3</h3>
+      <div class="tblwrap">
+      <table class="tbl rubric">
+        <tr><th>Tiêu chí</th><th>Trọng số</th><th>Đạt khi…</th></tr>
+        <tr><td>Hiểu khái niệm</td><td class="pct">25%</td><td>Giải thích đúng mức 1/0 là khoảng điện áp; phân biệt OR/XOR bằng đúng hàng 1-1; nói được vì sao truth table 2<sup>n</sup> hàng là đặc tả đầy đủ.</td></tr>
+        <tr><td>Kiến trúc</td><td class="pct">20%</td><td>Chọn biến hợp lý: mỗi điều kiện một tín hiệu 1-bit, ý nghĩa mức 1 ghi rõ; mạch cổng có cấu trúc theo đúng biểu thức.</td></tr>
+        <tr><td>Thiết kế đúng</td><td class="pct">20%</td><td>Bảng / biểu thức / mạch nhất quán với nhau — ba cách viết của cùng một hàm, khớp đủ 2<sup>n</sup> hàng.</td></tr>
+        <tr><td>Kiểm chứng/đối chiếu</td><td class="pct">20%</td><td>Biết dùng truth table làm trọng tài: kiểm tra chéo bảng của nhóm khác, chỉ ra được <em>hàng chứng minh</em> khi khẳng định đúng/sai hay tương đương.</td></tr>
+        <tr><td>Giao tiếp kỹ thuật</td><td class="pct">15%</td><td>Trình bày Logic Card mạch lạc: đọc tình huống → chỉ hàng "bẫy" → giải thích vì sao chọn OR chứ không phải XOR (hoặc ngược lại).</td></tr>
+      </table>
+      </div>
+      <p class="small muted">Bảng điền đúng chưa phải điểm tối đa — phải chỉ được hàng chứng minh vì sao nó đúng.</p>
+    </div>
+
+    <div class="card">
+      <h3>Tổng kết tuần 3</h3>
+      <div class="ican">
+        <div><b>I can explain</b>① Mức 1/0 là hai khoảng điện áp quy ước — logic 0 không phải "mất điện". ② Vì sao truth table 2<sup>n</sup> hàng là đặc tả đầy đủ của một hàm logic. ③ OR inclusive khác XOR ở đúng hàng 1-1, và De Morgan đổi AND ↔ OR khi dấu đảo chui qua ngoặc.</div>
+        <div><b>I can design</b>Từ tình huống đời thực ≥3 biến, đi trọn chuỗi: chọn biến → truth table 8 hàng → biểu thức Boole → mạch cổng.</div>
+        <div><b>I can verify</b>Chứng minh hai mạch tương đương (hoặc khác nhau) bằng cách đối chiếu hai truth table — và chỉ ra đúng hàng làm bằng chứng.</div>
+        <div><b>I can connect</b>Next-state logic và output logic của đèn giao thông T9 chính là những cổng này — FSM chỉ là "truth table có trí nhớ" mà T5–T6 sẽ lắp thêm.</div>
+        <div class="unsure"><b>I am still unsure about…</b><textarea class="reflect" id="unsure3" placeholder="Điều tôi giải thích được tuần này mà tuần trước chưa giải thích được là… / Điều tôi còn mơ hồ là… (tự động lưu trên máy bạn)"></textarea></div>
+        <div class="nextwk"><b>Next week</b>Bạn đã nghĩ được bằng cổng. T4 gói cổng thành <b>KHỐI</b> có tên tuổi — MUX, adder, comparator — và bạn viết RTL tổ hợp đầu tiên bằng <code>always_comb</code>.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="weeknav">
+      <a href="Week02.html"><small>← Tuần trước</small><b>T2 · From Idea to Chip</b></a>
+      <a class="next" href="Week04.html"><small>Tuần sau →</small><b>T4 · Combinational Building Blocks</b></a>
+    </div>
+    <div class="footer">
+      <b>IC Design Mentoring — Version 3 · Phase 1</b>
+      <span class="org">Khoa Điện – Điện tử · Trường Kỹ thuật · Đại học Phenikaa</span>
+      <span>Biên soạn: <b style="display:inline">Giảng Viên Đinh Văn Nam</b></span>
+      <span class="cr">© 2026 · Bản quyền thuộc về Giảng Viên Đinh Văn Nam, Khoa Điện-Điện Tử, Trường Kỹ Thuật, Đại học Phenikaa. Tài liệu phục vụ đào tạo — vui lòng giữ nguyên thông tin tác giả khi chia sẻ.</span>
+      <span class="cr">Hoạt động offline — không cần Internet.</span>
+    </div>
+  </div>
+</footer>
+</body>
+</html>

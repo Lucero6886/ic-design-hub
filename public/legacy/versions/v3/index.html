@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="Giảng Viên Đinh Văn Nam">
+<meta name="copyright" content="© 2026 · Bản quyền thuộc về Giảng Viên Đinh Văn Nam, Khoa Điện-Điện Tử, Trường Kỹ Thuật, Đại học Phenikaa">
+<meta name="description" content="IC Design Mentoring — Version 3, Phase 1 (12 tuần). Khoa Điện – Điện tử · Trường Kỹ thuật · Đại học Phenikaa. Biên soạn: Giảng Viên Đinh Văn Nam.">
+<title>IC Design Mentoring v3 — Mục lục chương trình 12 tuần</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body data-week="00">
+
+<header class="topbar">
+  <div class="topbar-in">
+    <a class="brand" href="index.html"><span class="logo">IC</span>
+      <span>IC Design Mentoring<small>Version 3 · Phase 1 · 12 tuần</small></span></a>
+    <nav class="layer-chips">
+      <a class="chip" href="../../index.html" title="Learning Hub — cổng ba phiên bản giáo trình; đây là V3, bản hiện hành được khuyến nghị">⌂ Hub · V3</a>
+      <a class="chip" href="#weeks">12 tuần</a>
+      <a class="chip" href="#howto">Cách dùng</a>
+      <a class="chip" href="#docs">Tài liệu</a>
+      <a class="chip" href="#project">Project</a>
+    </nav>
+  </div>
+  <div class="scrollbar"><div></div></div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <div class="pill-row">
+      <span class="pill">Phase 1 · 12 tuần</span>
+      <span class="pill acc">Digital IC / FPGA Design</span>
+      <span class="pill">Khoa Điện – Điện tử · ĐH Phenikaa</span>
+    </div>
+    <h1>IC Design Mentoring — Version 3</h1>
+    <p class="sub">Từ trừu tượng hóa số đến một hệ thống FPGA tích hợp do chính bạn xây</p>
+    <p><b>Chuẩn đầu ra Phase 1:</b> sau 12 tuần, học viên có thể đọc một đặc tả đơn giản, phân rã hệ thống số thành các khối chức năng, viết RTL cơ bản bằng SystemVerilog, viết testbench đơn giản, đọc waveform mô phỏng, hiểu synthesis ở mức nền tảng, và tích hợp một thiết kế đồng bộ nhỏ phù hợp để prototype trên FPGA. Chương trình cung cấp <b>nền tảng</b> — không tuyên bố biến bạn thành kỹ sư IC hoàn chỉnh trong 12 tuần.</p>
+    <div class="outcomes">
+      <div class="outcome"><b>Tuần 1–2.</b> Bức tranh ngành + engineering flow: ý tưởng đi thế nào để thành chip.</div>
+      <div class="outcome"><b>Tuần 3–6.</b> Nền tảng số: cổng logic → khối tổ hợp → mạch tuần tự → FSM.</div>
+      <div class="outcome"><b>Tuần 7–8.</b> Kỷ luật RTL SystemVerilog + FPGA vs ASIC.</div>
+      <div class="outcome"><b>Tuần 9–12.</b> MỘT project tích hợp lớn dần (traffic controller → display → UART) + bảo vệ capstone.</div>
+    </div>
+    <div class="hero-credit">
+      <b>Khoa Điện – Điện tử · Trường Kỹ thuật · Đại học Phenikaa</b><span class="sep">|</span>Biên soạn: <b>Giảng Viên Đinh Văn Nam</b><br>
+      © 2026 · Bản quyền thuộc về Giảng Viên Đinh Văn Nam, Khoa Điện-Điện Tử, Trường Kỹ Thuật, Đại học Phenikaa.
+    </div>
+  </div>
+</section>
+
+<section id="howto" class="layer layer-a">
+  <div class="wrap layer-head">
+    <div class="band"><span class="layer-badge">?</span><h2>Cách dùng bộ tài liệu</h2></div>
+  </div>
+  <div class="wrap layer-body">
+    <div class="grid2">
+      <div class="card">
+        <h3>Mỗi tuần có 4 lớp</h3>
+        <ul>
+          <li><b style="color:var(--la)">A · Trước buổi học</b> — 15–25 phút. Chỉ cần đọc phần này trước khi đến lớp.</li>
+          <li><b style="color:var(--lb)">B · Buổi mentoring 60′</b> — kịch bản buổi học cho cả mentor và học viên.</li>
+          <li><b style="color:var(--lc)">C · Technical Lab</b> — kỹ thuật sâu, RTL, testbench, widget tương tác. Dùng khi tự học/thực hành, KHÔNG bắt buộc đọc trước.</li>
+          <li><b style="color:var(--ld)">D · Sau buổi học</b> — quiz 5 câu, bài tập có deliverable, rubric, phản tư.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Ba điều nên biết</h3>
+        <ul>
+          <li><b>Tiến độ tự lưu trên máy bạn</b> (checklist, điểm quiz, ô phản tư) — mở lại trang là còn nguyên. Xóa dữ liệu trình duyệt sẽ mất tiến độ.</li>
+          <li><b>Công tắc "Mentor"</b> trên mỗi trang mở ghi chú dành riêng cho người dẫn buổi học (đáp án kỳ vọng, câu hỏi cứu nguy…).</li>
+          <li><b>Hoạt động offline</b> — toàn bộ chương trình không cần Internet; chỉ cần giữ nguyên thư mục (css/, js/ đi cùng các file HTML).</li>
+        </ul>
+      </div>
+    </div>
+    <div class="co co-info"><b>Tài liệu cho người vận hành chương trình</b> nằm ở mục <a href="#docs">Tài liệu vận hành</a> bên dưới — mỗi tài liệu có bản HTML để đọc trên trình duyệt và bản <code>.md</code> văn bản gốc trong cùng thư mục.</div>
+  </div>
+</section>
+
+<section id="docs" class="layer layer-b">
+  <div class="wrap layer-head">
+    <div class="band"><span class="layer-badge">📚</span><h2>Tài liệu vận hành</h2></div>
+    <p class="lead">Bấm để đọc ngay trên trình duyệt. Mỗi trang có mục lục riêng và điều hướng qua lại giữa các tài liệu; bản văn bản <code>.md</code> tương ứng vẫn nằm cùng thư mục để chỉnh sửa.</p>
+  </div>
+  <div class="wrap layer-body">
+    <div class="wkgrid">
+      <a class="doccard" href="README.html"><b>README — Hướng dẫn sử dụng</b><span>Bắt đầu từ đây: cách dùng, cấu trúc thư mục, chương trình 12 tuần.</span><span class="fn">README.md</span></a>
+      <a class="doccard" href="CURRICULUM_MAP.html"><b>Bản đồ chương trình 12 tuần</b><span>Khái niệm, kỹ năng, artifact, điều kiện tiên quyết và các vòng xoáy học tập.</span><span class="fn">CURRICULUM_MAP.md</span></a>
+      <a class="doccard" href="MENTOR_GUIDE.html"><b>Cẩm nang cho mentor</b><span>Chuẩn bị, khung 60 phút, chẩn đoán hiểu sai, lớp lệch trình độ, mentoring nghiên cứu.</span><span class="fn">MENTOR_GUIDE.md</span></a>
+      <a class="doccard" href="PROJECT_GUIDE.html"><b>Đặc tả project Tuần 9–11</b><span>Smart Traffic Controller: spec, kiến trúc, interface từng module, milestone, verification.</span><span class="fn">PROJECT_GUIDE.md</span></a>
+      <a class="doccard" href="TECHNICAL_AUDIT.html"><b>Hiệu chỉnh kỹ thuật v2 → v3</b><span>Từng phát biểu chưa chính xác của Version 2 và bản đúng đã dùng trong Version 3.</span><span class="fn">TECHNICAL_AUDIT.md</span></a>
+      <a class="doccard" href="CHANGELOG_V2_TO_V3.html"><b>Nhật ký thay đổi v2 → v3</b><span>Thay đổi có ý nghĩa, nhóm theo 7 hạng mục.</span><span class="fn">CHANGELOG_V2_TO_V3.md</span></a>
+      <a class="doccard" href="VALIDATION_REPORT.html"><b>Báo cáo kiểm định</b><span>Kết quả kiểm cấu trúc, render offline và mô phỏng RTL thật.</span><span class="fn">VALIDATION_REPORT.md</span></a>
+      <a class="doccard" href="implementation-notes.html"><b>Ghi chú triển khai</b><span>Toàn cảnh hệ thống, các điểm khác đặc tả kèm lý do, cách bảo trì và mở rộng.</span><span class="fn">implementation-notes.md</span></a>
+    </div>
+  </div>
+</section>
+
+<section id="weeks" class="layer layer-c">
+  <div class="wrap layer-head">
+    <div class="band"><span class="layer-badge">12</span><h2>Mười hai tuần</h2></div>
+    <p class="lead">Thanh tiến độ hiện điểm quiz đã làm trên máy này.</p>
+  </div>
+  <div class="wrap layer-body">
+    <div class="wkgrid" id="wkgrid">
+      <a class="wkcard" href="Week01.html" data-w="01"><span class="wkno">Tuần 1</span><h3>Why Semiconductor? Why IC Design?</h3><p>Chuỗi trừu tượng transistor → SoC và bức tranh nghề nghiệp.</p><span class="prog"></span></a>
+      <a class="wkcard" href="Week02.html" data-w="02"><span class="wkno">Tuần 2</span><h3>From Idea to Chip</h3><p>Engineering flow: chặng nào sinh artifact nào; FPGA vs ASIC flow.</p><span class="prog"></span></a>
+      <a class="wkcard" href="Week03.html" data-w="03"><span class="wkno">Tuần 3</span><h3>Logic Gates &amp; Boolean Thinking</h3><p>Tình huống → truth table → biểu thức → mạch.</p><span class="prog"></span></a>
+      <a class="wkcard" href="Week04.html" data-w="04"><span class="wkno">Tuần 4</span><h3>Combinational Building Blocks</h3><p>MUX, decoder, comparator, adder — think in blocks + RTL tổ hợp đầu tiên.</p><span class="prog"></span></a>
+      <a class="wkcard" href="Week05.html" data-w="05"><span class="wkno">Tuần 5</span><h3>Sequential Logic &amp; Memory</h3><p>Flip-flop, clock, counter, 4 thông số thời gian — RTL tuần tự đầu tiên.</p><span class="prog"></span></a>
+      <a class="wkcard" href="Week06.html" data-w="06"><span class="wkno">Tuần 6</span><h3>Finite-State Machines</h3><p>Diagram trước, code sau; FSM 3 khối; controller–datapath.</p><span class="prog"></span></a>
+      <a class="wkcard" href="Week07.html" data-w="07"><span class="wkno">Tuần 7</span><h3>Writing Clean RTL in SystemVerilog</h3><p>Hệ thống hóa kỷ luật RTL: =/&lt;=, latch, reset, hardware inference.</p><span class="prog"></span></a>
+      <a class="wkcard" href="Week08.html" data-w="08"><span class="wkno">Tuần 8</span><h3>FPGA vs ASIC</h3><p>LUT/FF/BRAM/DSP, NRE vs unit cost, PPA — và bài đọc research đầu tiên.</p><span class="prog"></span></a>
+      <a class="wkcard" href="Week09.html" data-w="09"><span class="wkno">Tuần 9</span><h3>Project A — FSM Traffic Controller</h3><p>Spec → FSM + timer + invariant. Nền của hệ tích hợp 3 tuần.</p><span class="prog"></span></a>
+      <a class="wkcard" href="Week10.html" data-w="10"><span class="wkno">Tuần 10</span><h3>Project B — Counter &amp; 7-Segment</h3><p>Nối màn hình vào time_left — tích hợp qua interface có sẵn.</p><span class="prog"></span></a>
+      <a class="wkcard" href="Week11.html" data-w="11"><span class="wkno">Tuần 11</span><h3>Project C — UART Status</h3><p>uart_tx + status_tx: hệ hoàn chỉnh biết báo cáo về PC.</p><span class="prog"></span></a>
+      <a class="wkcard" href="Week12.html" data-w="12"><span class="wkno">Tuần 12</span><h3>Capstone Review &amp; Research Bridge</h3><p>Mini-defense, portfolio, 5 track Phase 2.</p><span class="prog"></span></a>
+    </div>
+  </div>
+</section>
+
+<section id="project" class="layer layer-d">
+  <div class="wrap layer-head">
+    <div class="band"><span class="layer-badge">★</span><h2>Project tích hợp — Smart Traffic Controller</h2></div>
+  </div>
+  <div class="wrap layer-body">
+    <div class="card">
+      <pre class="code standalone" data-nohl><code>clk/rst_n ─► tick_gen ─ tick 1 Hz ─► traffic_ctrl ─┬─ ns/ew_light ──► LED           (Tuần 9)
+                                                   ├─ time_left ───► seg7 ─► 7-seg  (Tuần 10)
+                                                   └─ phase, time_left ─► status_tx ─► uart_tx ─► PC (Tuần 11)</code></pre>
+      <p>Ba tuần — MỘT hệ thống lớn dần trên một hợp đồng interface cố định. Tuần 12 bạn bảo vệ chính hệ này. Đặc tả đầy đủ: <code>PROJECT_GUIDE.md</code>.</p>
+    </div>
+    <div class="footer">
+      <b>IC Design Mentoring — Version 3 · Phase 1</b>
+      <span class="org">Khoa Điện – Điện tử · Trường Kỹ thuật · Đại học Phenikaa</span>
+      <span>Biên soạn: <b style="display:inline">Giảng Viên Đinh Văn Nam</b></span>
+      <span class="cr">© 2026 · Bản quyền thuộc về Giảng Viên Đinh Văn Nam, Khoa Điện-Điện Tử, Trường Kỹ Thuật, Đại học Phenikaa. Tài liệu phục vụ đào tạo — vui lòng giữ nguyên thông tin tác giả khi chia sẻ.</span>
+      <span class="cr">Xây trên nền Version 2 · Hoạt động offline — không cần Internet.</span>
+    </div>
+  </div>
+</section>
+
+<script>
+(function(){
+  function get(k){ try{ var v=localStorage.getItem(k); return v?JSON.parse(v):null; }catch(e){ return null; } }
+  var cards=document.querySelectorAll('.wkcard');
+  cards.forEach(function(c){
+    var w=c.getAttribute('data-w');
+    var q=get('licv3:w'+w+':quizscore:quiz');
+    var el=c.querySelector('.prog');
+    if(q&&q.done>0){
+      el.innerHTML='Quiz: <span class="'+(q.ok===q.total?'done':'')+'">'+q.ok+'/'+q.total+'</span>'+(q.done<q.total?' (đã làm '+q.done+')':'');
+    } else { el.textContent='Chưa làm quiz'; }
+  });
+  var bar=document.querySelector('.scrollbar>div');
+  window.addEventListener('scroll',function(){
+    var h=document.documentElement,m=h.scrollHeight-h.clientHeight;
+    if(bar)bar.style.width=(m>0?(h.scrollTop/m)*100:0)+'%';
+  },{passive:true});
+})();
+</script>
+</body>
+</html>

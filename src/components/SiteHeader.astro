@@ -1,0 +1,51 @@
+---
+import { SITE, NAV } from "~/config/site";
+import { href } from "~/utils/url";
+
+interface Props {
+  currentPath?: string;
+}
+const { currentPath = "" } = Astro.props;
+
+/** trang hiện tại thuộc mục nav nào (so tiền tố phần đầu đường dẫn) */
+function isCurrent(navHref: string): boolean {
+  if (!currentPath) return false;
+  return currentPath.startsWith(navHref);
+}
+---
+
+<header class="site-header">
+  <div class="wrap bar">
+    <a class="brand" href={href("")}>
+      <span class="logo" aria-hidden="true">IC</span>
+      <span
+        >{SITE.shortName}<small>Learning · Research · Community</small></span
+      >
+    </a>
+    <nav class="site-nav" aria-label="Điều hướng chính">
+      {
+        NAV.map((item) => (
+          <a href={href(item.href)} aria-current={isCurrent(item.href) ? "page" : undefined}>
+            {item.label}
+          </a>
+        ))
+      }
+    </nav>
+    <div class="header-tools">
+      <a class="icon-btn" href={href("search/")} title="Tìm kiếm" aria-label="Tìm kiếm">⌕</a>
+      <button class="icon-btn" id="theme-toggle" title="Đổi giao diện sáng/tối" aria-label="Đổi giao diện sáng/tối">◐</button>
+    </div>
+  </div>
+</header>
+
+<script is:inline>
+  (function () {
+    var btn = document.getElementById("theme-toggle");
+    if (!btn) return;
+    btn.addEventListener("click", function () {
+      var cur = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+      document.documentElement.dataset.theme = cur;
+      try { localStorage.setItem("icdh:theme", cur); } catch (e) {}
+    });
+  })();
+</script>

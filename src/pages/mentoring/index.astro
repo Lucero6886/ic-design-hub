@@ -1,0 +1,94 @@
+---
+import BaseLayout from "~/layouts/BaseLayout.astro";
+import EntryList from "~/components/EntryList.astro";
+import { LEGACY } from "~/config/site";
+import { href } from "~/utils/url";
+import { getPublished, label } from "~/utils/content";
+
+const mentoringArticles = (await getPublished("articles")).filter(
+  (a) => a.data.category === "mentoring",
+);
+---
+
+<BaseLayout
+  title="Mentoring"
+  description="Khu vực mentoring: cẩm nang vận hành buổi học 60 phút, kỹ thuật chẩn đoán hiểu sai, phương pháp học, và cầu nối từ kỹ thuật sang nghiên cứu."
+  path="mentoring/"
+>
+  <section class="hero">
+    <div class="wrap">
+      <div class="kicker">Mentoring</div>
+      <h1>Mentoring</h1>
+      <p class="sub">
+        Triết lý của chương trình: mentor điều phối để học viên <b>tự giải thích và tự thiết kế</b> —
+        không giảng lại giáo trình. Hiểu bằng lý do, không bằng thuật ngữ.
+      </p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <h2 class="sec">Tài liệu vận hành (từ giáo trình V3 — đã kiểm định)</h2>
+      <p class="sec-sub">Đây là tài liệu gốc của giáo trình hiện hành, mở trong giao diện nguyên bản của nó.</p>
+      <div class="grid cols-2">
+        <div class="card">
+          <span><span class="badge acc">MENTOR</span></span>
+          <h3><a href={href(LEGACY.v3MentorGuide)}>Mentor Guide — cẩm nang vận hành buổi học</a></h3>
+          <p>
+            Chuẩn bị mỗi tuần · khung 60 phút 6 bước · kỹ thuật chẩn đoán hiểu sai
+            (câu chẩn đoán → đáp án tốt → câu hỏi tiếp → cứu nguy → mở rộng) · lớp lệch trình độ ·
+            đánh giá project T9–11 · chuyển dần sang mentoring nghiên cứu.
+          </p>
+        </div>
+        <div class="card">
+          <span><span class="badge acc">PROJECT</span></span>
+          <h3><a href={href(LEGACY.v3ProjectGuide)}>Project Guide — đặc tả project tích hợp T9–11</a></h3>
+          <p>
+            Smart Traffic Controller FPGA System: spec, kiến trúc, interface cố định, milestone
+            từng tuần, verification plan và safety invariant kiểm tự động trong testbench.
+          </p>
+        </div>
+        <div class="card">
+          <span><span class="badge acc">CHƯƠNG TRÌNH</span></span>
+          <h3><a href={href(LEGACY.v3CurriculumMap)}>Curriculum Map — bản đồ 12 tuần</a></h3>
+          <p>
+            Khái niệm, kỹ năng, artifact bắt buộc, điều kiện tiên quyết và các vòng xoáy học tập
+            (RTL, verification, timing, kiến trúc, FPGA/ASIC, tư duy nghiên cứu) của từng tuần.
+          </p>
+        </div>
+        <div class="card">
+          <span><span class="badge acc">CHẤT LƯỢNG</span></span>
+          <h3><a href={href(LEGACY.v3TechnicalAudit)}>Technical Audit — kỷ luật chính xác kỹ thuật</a></h3>
+          <p>
+            8 nhóm hiệu chỉnh từ V2 sang V3 (reset/khởi động FF, mã hóa FSM sau synthesis,
+            wire/reg/logic, kinh tế FPGA vs ASIC, synchronizer &amp; metastability…) — mẫu mực về
+            cách sửa một phát biểu kỹ thuật: phát biểu → phạm vi → giả định → giới hạn.
+          </p>
+        </div>
+      </div>
+
+      <h2 class="sec" style="margin-top:30px">Học viên học cách…</h2>
+      <div class="grid cols-3">
+        <div class="card flat"><p><b>Hiểu thay vì thuộc:</b> giải thích khái niệm bằng từ của mình; "em không chắc, nhưng em suy luận vì…" giá trị hơn định nghĩa đọc thuộc.</p></div>
+        <div class="card flat"><p><b>Dự đoán trước khi mô phỏng:</b> vẽ waveform kỳ vọng trước, chạy mô phỏng sau, đối chiếu chênh lệch — kỷ luật predict-before-simulate.</p></div>
+        <div class="card flat"><p><b>Thiết kế trước khi code:</b> state diagram/block diagram/interface trước, RTL sau; đọc RTL phải nói được phần cứng suy ra (hardware inference).</p></div>
+        <div class="card flat"><p><b>Debug trước khi xem đáp án:</b> waveform là bằng chứng; kể được một bug thật và cách waveform chỉ ra nó.</p></div>
+        <div class="card flat"><p><b>Từ EQ đến RQ:</b> biến câu hỏi kỹ thuật ("chọn cái nào tốt hơn?") thành câu hỏi nghiên cứu đo được, có baseline công bằng.</p></div>
+        <div class="card flat"><p><b>Báo cáo bằng bằng chứng:</b> portfolio, log thí nghiệm, waveform chú thích — "code chạy" chưa phải điểm tối đa, phải giải thích được vì sao đúng.</p></div>
+      </div>
+
+      <h2 class="sec" style="margin-top:30px">Bài viết mentoring</h2>
+      <EntryList
+        items={mentoringArticles.map((a) => ({
+          url: href(`articles/${a.id}/`),
+          title: a.data.title,
+          summary: a.data.summary,
+          date: a.data.date,
+          tags: a.data.tags,
+          badges: [{ text: label(a.data.category), tone: "acc" }],
+        }))}
+        emptyText="Chưa có bài viết mentoring riêng — tài liệu vận hành V3 ở trên là nguồn chính hiện tại."
+      />
+    </div>
+  </section>
+</BaseLayout>

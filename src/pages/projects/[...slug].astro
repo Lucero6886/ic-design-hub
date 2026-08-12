@@ -1,0 +1,98 @@
+---
+import EntryLayout from "~/layouts/EntryLayout.astro";
+import { render } from "astro:content";
+import { href, readingTime } from "~/utils/url";
+import { getPublished, label } from "~/utils/content";
+
+export async function getStaticPaths() {
+  const projects = await getPublished("projects");
+  return projects.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+const d = entry.data;
+const doneCount = d.milestones.filter((m) => m.done).length;
+---
+
+<EntryLayout
+  title={d.title}
+  summary={d.summary}
+  path={`projects/${entry.id}/`}
+  crumbs={[
+    { label: "Trang chủ", url: href("") },
+    { label: "Project", url: href("projects/") },
+    { label: d.title },
+  ]}
+  date={d.date}
+  updated={d.updated}
+  author={d.author}
+  lang={d.lang}
+  minutes={readingTime(entry.body)}
+  track={d.track}
+  tags={d.tags}
+  badges={[
+    { text: label(d.kind), tone: "acc" },
+    { text: label(d.status), tone: d.status === "completed" ? "green" : "gray" },
+    ...(d.difficulty ? [{ text: label(d.difficulty), tone: "gray" as const }] : []),
+  ]}
+  attribution={d.attribution}
+  references={d.references}
+  relatedArticles={d.relatedArticles}
+  relatedProjects={d.relatedProjects}
+  relatedResearch={d.relatedResearch}
+>
+  <div slot="before-body">
+    <div class="tblwrap">
+      <table class="tbl">
+        <tbody>
+          {d.platform && <tr><th scope="row">Nền tảng</th><td>{d.platform}</td></tr>}
+          {d.tools.length > 0 && <tr><th scope="row">Công cụ</th><td>{d.tools.join(" · ")}</td></tr>}
+          {d.mentor && <tr><th scope="row">Mentor</th><td>{d.mentor}</td></tr>}
+          {d.contributors.length > 0 && <tr><th scope="row">Đóng góp</th><td>{d.contributors.join(", ")}</td></tr>}
+          {d.prerequisites.length > 0 && <tr><th scope="row">Cần biết trước</th><td>{d.prerequisites.join(" · ")}</td></tr>}
+          {d.repoUrl && <tr><th scope="row">Repository</th><td><a href={d.repoUrl} rel="noopener">{d.repoUrl}</a></td></tr>}
+          {d.demoUrl && <tr><th scope="row">Demo</th><td><a href={d.demoUrl} rel="noopener">{d.demoUrl}</a></td></tr>}
+          {d.paperUrl && <tr><th scope="row">Paper / tài liệu</th><td><a href={d.paperUrl} rel="noopener">{d.paperUrl}</a></td></tr>}
+          {d.reproducibility && <tr><th scope="row">Tái lập</th><td>{d.reproducibility}</td></tr>}
+        </tbody>
+      </table>
+    </div>
+
+    {d.milestones.length > 0 && (
+      <section aria-labelledby="ms-h">
+        <h2 id="ms-h">Milestone ({doneCount}/{d.milestones.length})</h2>
+        <ul class="checks">
+          {d.milestones.map((m) => (
+            <li>
+              {m.done ? <span class="badge green">xong</span> : <span class="badge gray">chưa</span>}
+              {" "}{m.label}
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
+
+    {d.deliverables.length > 0 && (
+      <section aria-labelledby="dl-h">
+        <h2 id="dl-h">Sản phẩm bàn giao (deliverables)</h2>
+        <ul>{d.deliverables.map((x) => <li>{x}</li>)}</ul>
+      </section>
+    )}
+  </div>
+
+  <Content />
+
+  {d.limitations.length > 0 && (
+    <section aria-labelledby="lim-h">
+      <h2 id="lim-h">Giới hạn đã biết</h2>
+      <ul>{d.limitations.map((x) => <li>{x}</li>)}</ul>
+    </section>
+  )}
+  {d.futureWork.length > 0 && (
+    <section aria-labelledby="fw-h">
+      <h2 id="fw-h">Hướng phát triển tiếp</h2>
+      <ul>{d.futureWork.map((x) => <li>{x}</li>)}</ul>
+    </section>
+  )}
+</EntryLayout>

@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="Giảng Viên Đinh Văn Nam">
+<meta name="copyright" content="© 2026 · Bản quyền thuộc về Giảng Viên Đinh Văn Nam, Khoa Điện-Điện Tử, Trường Kỹ Thuật, Đại học Phenikaa">
+<meta name="description" content="IC Design Mentoring — Version 3, Phase 1 (12 tuần). Khoa Điện – Điện tử · Trường Kỹ thuật · Đại học Phenikaa. Biên soạn: Giảng Viên Đinh Văn Nam.">
+<title>Tuần 12 — Capstone Review &amp; Research Bridge | IC Design Mentoring v3</title>
+<link rel="stylesheet" href="css/style.css">
+<script src="js/app.js" defer></script>
+</head>
+<body data-week="12">
+
+<header class="topbar">
+<div class="topbar-in">
+<a class="brand" href="index.html"><span class="logo">IC</span>
+<span>IC Design Mentoring<small>Tuần 12/12 · Capstone Review</small></span></a>
+<nav class="layer-chips">
+      <a class="chip" href="../../index.html" title="Learning Hub — cổng ba phiên bản giáo trình; đây là V3, bản hiện hành được khuyến nghị">⌂ Hub · V3</a>
+<a class="chip chip-a" href="#layer-a"><span class="dot"></span>A · Trước buổi</a>
+<a class="chip chip-b" href="#layer-b"><span class="dot"></span>B · Buổi học 60′</a>
+<a class="chip chip-c" href="#layer-c"><span class="dot"></span>C · Lab</a>
+<a class="chip chip-d" href="#layer-d"><span class="dot"></span>D · Sau buổi</a>
+<a class="chip" href="index.html">Mục lục</a>
+</nav>
+<span class="mentor-sw" title="Hiện/ẩn nội dung dành riêng cho mentor"><span class="tr"></span> Mentor</span>
+</div>
+<div class="scrollbar"><div></div></div>
+</header>
+
+<section class="hero">
+<div class="wrap">
+<div class="pill-row">
+<span class="pill">Tuần 12 / 12</span>
+<span class="pill acc">Tổng kết · mini-defense</span>
+<span class="pill">Khoa Điện – Điện tử · ĐH Phenikaa</span>
+</div>
+<h1>Capstone Review &amp; Research Bridge</h1>
+<p class="sub">Buổi bảo vệ nhỏ — chứng minh hệ của bạn, chọn hướng Phase 2</p>
+<p>Trên bàn bạn là hệ hoàn chỉnh: FSM đèn giao thông, timer, LED 7 đoạn, UART nói với PC. Tuần 12 <b>không có bài mới</b> — bạn <b>chứng minh</b>: demo hệ, vấn đáp từng quyết định thiết kế, tự chẩn đoán lỗ hổng, chọn track Phase 2. Nghề đánh giá kỹ sư đúng cách này — <b>design review</b>.</p>
+<div class="outcomes">
+<div class="outcome"><b>Mục tiêu 1.</b> Demo hệ T9–11 chạy + trình bày kiến trúc trong 2 phút.</div>
+<div class="outcome"><b>Mục tiêu 2.</b> Vấn đáp bằng <em>lý do thiết kế</em>: chỉ đúng controller/datapath, đọc phần cứng từ một dòng RTL của mình.</div>
+<div class="outcome"><b>Mục tiêu 3.</b> Tự chẩn đoán 3 điều giải thích chưa trôi chảy; chọn track Phase 2 có lý do + 1 research question từ hệ mình.</div>
+</div>
+<div class="pos">
+<div><b>Tuần trước — T11.</b> uart_tx + status_tx — mảnh cuối: hệ biết "nói" với PC.</div>
+<div><b>Tuần này — T12.</b> Không học mới: Demonstrate → Explain → Reflect → Diagnose → Plan.</div>
+<div><b>Sau khóa — Phase 2.</b> Track riêng, project 4 tuần: từ "học để làm" sang "làm để học".</div>
+</div>
+</div>
+</section>
+
+<section id="layer-a" class="layer layer-a">
+<div class="wrap layer-head">
+<div class="band">
+<span class="layer-badge">A</span>
+<h2>Trước buổi bảo vệ</h2>
+<span class="time">⏱ 60–90 phút · chuẩn bị bằng chứng</span>
+</div>
+<p class="lead">Bạn KHÔNG cần đọc Layer C trước buổi học — trừ ngoại lệ duy nhất: mở <b>C1</b>, điền <b>phiếu bảo vệ</b> trước khi đến lớp. Phần còn lại chỉ để tra cứu.</p>
+</div>
+<div class="wrap layer-body">
+<div class="grid2">
+<div class="card">
+<h3>Vì sao tuần này quan trọng</h3>
+<p>Bạn không học thêm — bạn <b>chứng minh</b>. Kỹ sư được đánh giá qua design review: giải thích được <em>vì sao</em> thiết kế đúng, không chỉ trình code chạy. Mini-defense hôm nay là bản tập dượt cho mọi buổi bảo vệ đồ án, thesis.</p>
+<p class="small muted"><b>Điều kiện tiên quyết:</b> hệ T9–11 chạy được, ít nhất trong mô phỏng. Chưa chạy — ưu tiên sửa trước.</p>
+</div>
+<div class="card">
+<h3>Hoạt động chuẩn bị (~60–90′ ở nhà)</h3>
+<ul class="small">
+<li><b>Chạy lại toàn hệ T9–11</b> từ reset.</li>
+<li><b>Chụp 3 waveform then chốt:</b> ① một chu kỳ đèn; ② timer nạp + seg đổi số; ③ một frame UART — chú thích tay.</li>
+<li><b>Điền trước phiếu bảo vệ</b> (mẫu C1) — mang bản giấy đến lớp.</li>
+<li>Tick checklist bên dưới; mục chưa xong, hoàn thiện trước buổi.</li>
+</ul>
+</div>
+</div>
+<div class="card">
+<h3>Checklist portfolio — 12 mục <span class="ck-count" id="ckc12">0/12</span></h3>
+<ul class="ck" id="ck12" data-count="#ckc12">
+<li><input type="checkbox"><span>Bài Boolean &amp; truth table (T3)</span></li>
+<li><input type="checkbox"><span>Module tổ hợp — MUX/decoder/comparator (T4)</span></li>
+<li><input type="checkbox"><span>Module tuần tự — counter có enable (T5)</span></li>
+<li><input type="checkbox"><span>FSM: state diagram + code 3 khối (T6)</span></li>
+<li><input type="checkbox"><span>Testbench tự viết, có self-check (T5/T9)</span></li>
+<li><input type="checkbox"><span>3 waveform then chốt đã chú thích tay</span></li>
+<li><input type="checkbox"><span>traffic_ctrl.sv + tick_gen.sv chạy được (T9)</span></li>
+<li><input type="checkbox"><span>Display subsystem: BCD + seg7 (T10)</span></li>
+<li><input type="checkbox"><span>uart_tx + status_tx chạy được (T11)</span></li>
+<li><input type="checkbox"><span>Block diagram hệ tích hợp — bản cuối (T11)</span></li>
+<li><input type="checkbox"><span>Báo cáo kỹ thuật 1–2 trang (Layer D)</span></li>
+<li><input type="checkbox"><span>Slide 10 trang (format C4)</span></li>
+</ul>
+</div>
+<div class="card">
+<h3>2 câu hỏi tự chẩn đoán</h3>
+<details class="reveal"><summary>1. Tôi chỉ được đâu là controller, đâu là datapath trong hệ của TÔI?</summary>
+<div class="rv-body"><b>Controller</b> = FSM traffic_ctrl — phần <em>ra quyết định</em>. <b>Datapath</b> = timer, BCD/seg7, shift register uart_tx — phần <em>đếm/tính/dịch</em>. Chưa chỉ được? Tô 2 màu lên diagram trước buổi.</div>
+</details>
+<details class="reveal"><summary>2. Tôi kể được 1 bug THẬT và cách waveform giúp tìm ra nó?</summary>
+<div class="rv-body">Kể theo chuỗi: hiện tượng → dự đoán → <em>điểm lệch đầu tiên</em> trên waveform → nguyên nhân trong RTL → cách sửa. Bug "xấu hổ" nhất thường là câu chuyện thuyết phục nhất.</div>
+</details>
+</div>
+</div>
+</section>
+
+<section id="layer-b" class="layer layer-b">
+<div class="wrap layer-head">
+<div class="band">
+<span class="layer-badge">B</span>
+<h2>Buổi mentoring 60 phút — Mini-defense</h2>
+<span class="time">🗺 Vấn đáp bảo vệ, không giảng bài</span>
+</div>
+<p class="lead">Demo → vấn đáp → tự chẩn đoán → định hướng. Ngân hàng câu hỏi công khai bên dưới — mục tiêu là <em>giải thích được</em>, không phải bị bất ngờ.</p>
+</div>
+<div class="wrap layer-body">
+<div class="card">
+<div class="timeline">
+<div class="tl-row">
+<span class="tl-time">0–5′</span>
+<h4>Setup</h4>
+<p>Nhóm mở sẵn waveform + block diagram. Bốc thăm thứ tự. Luật: nghe <b>lý do</b>, không nghe thuật ngữ suông.</p>
+</div>
+<div class="tl-row">
+<span class="tl-time">5–15′</span>
+<h4>Demo vòng 1 — nhóm 1–2</h4>
+<p>Mỗi nhóm: demo hệ chạy (mô phỏng hoặc board) + kiến trúc đúng <b>2 phút</b> trên block diagram.</p>
+</div>
+<div class="tl-row">
+<span class="tl-time">15–25′</span>
+<h4>Vấn đáp nhóm 1–2</h4>
+<p>Mentor + lớp hỏi từ <b>ngân hàng câu hỏi</b>. Luật: <b>mỗi thành viên trả lời ≥1 câu</b> — không "nhường" người giỏi nhất.</p>
+</div>
+<div class="tl-row">
+<span class="tl-time">25–45′</span>
+<h4>Demo + vấn đáp các nhóm còn lại</h4>
+<p>Lặp thể thức. Nhóm đã xong chuyển vai người hỏi — câu hỏi hay cũng được chấm (Giao tiếp).</p>
+</div>
+<div class="tl-row">
+<span class="tl-time">45–55′</span>
+<h4>Tự chẩn đoán lỗ hổng</h4>
+<p>Cá nhân viết <b>"3 điều tôi giải thích chưa trôi chảy"</b> (kèm tuần gốc — tra C2). Lớp tổng hợp lên bảng.</p>
+</div>
+<div class="tl-row">
+<span class="tl-time">55–60′</span>
+<h4>Định hướng Phase 2 &amp; chốt</h4>
+<ul>
+<li><b>Nhớ:</b> bằng chứng thuyết phục hơn khẳng định; "không chắc + suy luận đúng hướng" là câu trả lời tốt.</li>
+<li><b>Tránh:</b> nghĩ demo chạy = hiểu.</li>
+<li><b>Artifact:</b> chốt cách chọn track (Layer D); hẹn nộp portfolio + kế hoạch trước kick-off Phase 2.</li>
+</ul>
+</div>
+</div>
+</div>
+
+<div class="card">
+<h3>Ngân hàng 10 câu hỏi vấn đáp — công khai trước buổi</h3>
+<p class="small muted">Chuẩn bị <em>lý do</em>, đừng học thuộc — mỗi câu hỏi về hệ CỦA BẠN.</p>
+<ol class="small">
+<li>Vì sao chọn đúng <b>các state này</b> — thêm hoặc bớt một thì sao?</li>
+<li>Sau reset hệ đứng ở đâu? Vì sao trạng thái đó <b>xác định</b>?</li>
+<li><b>Timer width</b> nhỏ hơn mức cần thì đèn bị hiện tượng gì?</li>
+<li>(Mentor chỉ một dòng RTL) Dòng này <b>suy ra phần cứng gì</b>?</li>
+<li><b>Controller</b> đâu, <b>datapath</b> đâu — chỉ trên block diagram.</li>
+<li>Tín hiệu ngoài duy nhất không theo <code>clk</code> trong hệ của bạn là gì? Nếu mai thêm nút bộ hành hoặc đường <code>rx</code>, phải chèn gì trước khi đưa vào FSM — và vì sao nó chỉ <b>giảm xác suất</b> chứ không triệt tiêu?</li>
+<li><b>Baud divider</b> sai vài phần trăm thì PC nhận được gì? Vì sao?</li>
+<li><b>Sang ASIC</b> thì khác gì — khởi tạo sau bật nguồn, tài nguyên?</li>
+<li>Tăng clock lên nhiều lần, phần nào "kêu" <b>trước tiên</b>?</li>
+<li>Nếu làm lại, bạn <b>đổi quyết định thiết kế nào</b>? Vì sao?</li>
+</ol>
+</div>
+
+<p class="mentor-hint">💡 Bật công tắc <b>Mentor</b> trên thanh tiêu đề để xem ghi chú dành riêng cho mentor (đáp án kỳ vọng, câu hỏi cứu nguy, mở rộng cho học viên giỏi).</p>
+
+<div class="mentor-only">
+<div class="mentor-box">
+<span class="mtag">Mentor only · Tuần 12</span>
+<h3>Ghi chú vận hành buổi bảo vệ</h3>
+<div class="grid2">
+<div>
+<h4>Mục tiêu mentor</h4>
+<ul class="small">
+<li>Mỗi học viên trả lời ≥1 câu <b>bằng lý do</b>, trên hệ của mình.</li>
+<li>Ai cũng rời lớp với danh sách lỗ hổng + 1 track dự kiến.</li>
+<li>Không khí review: hỏi để hiểu, không "bắt bí".</li>
+</ul>
+<h4>Hiểu sai kinh điển</h4>
+<ul class="small">
+<li>"Demo chạy = em hiểu" — chạy là điều kiện cần; vấn đáp mới đo phần hiểu.</li>
+<li>"Đúng thuật ngữ = đạt" — chấm <b>LÝ DO</b>; "không chắc" + suy luận đúng hướng phải điểm <em>cao hơn</em> thuộc lòng.</li>
+<li>"Xong Phase 1 = biết đủ FPGA design" — sai; chốt bằng câu chuẩn đầu ra (Layer D).</li>
+</ul>
+</div>
+<div>
+<h4>Câu hỏi chẩn đoán → đáp án tốt → hỏi tiếp</h4>
+<p class="small"><b>Hỏi (câu 2):</b> "Sau reset hệ ở đâu, vì sao xác định?"<br>
+<b>Đáp tốt:</b> state về RED (an toàn nhất), timer nạp pha đầu — thanh ghi <em>trạng thái điều khiển</em> được reset bằng <code>rst_n</code>.<br>
+<b>Hỏi tiếp:</b> "Nếu là ASIC, không có pha nạp cấu hình?" → reset/power-on-reset thành bắt buộc.</p>
+<p class="small"><b>Cứu nguy (nhóm khớp):</b> về block diagram, chọn 1 tín hiệu (vd <code>tick</code>) đi từ nguồn tới đích; qua mỗi khối hỏi "khối này làm gì với nó?".</p>
+<p class="small"><b>Mở rộng nhóm mạnh:</b> "Thêm pha đèn đi bộ (PED) thì sửa gì?" — chỉ nói <em>kiến trúc</em>: thêm state nào, bảng thời gian, display/status_tx đổi gì. Cấm sa vào code.</p>
+</div>
+</div>
+<div class="co co-warn small"><b>Nhịp buổi bảo vệ.</b> Giữ nghiêm khung giờ — quá giờ là cắt, như review thật. Vấn đáp là hội thoại, không phải hỏi cung: sau mỗi câu, hỏi lớp "ai bổ sung?". Ghi lỗ hổng chung lên bảng ngay lúc vấn đáp.</div>
+</div>
+</div>
+</div>
+</section>
+
+<section id="layer-c" class="layer layer-c">
+<div class="wrap layer-head">
+<div class="band">
+<span class="layer-badge">C</span>
+<h2>Technical Lab — Hồ sơ bảo vệ &amp; bản đồ ôn</h2>
+<span class="time">🔬 Không có kỹ thuật mới</span>
+</div>
+<p class="lead">Không dạy thêm lý thuyết — chỉ có: phiếu bảo vệ (điền <b>trước</b> buổi), bản đồ ôn 12 tuần, sơ đồ hệ, format trình bày.</p>
+</div>
+<div class="wrap layer-body">
+<div class="dd-tools"><button data-dd="open">Mở tất cả</button><button data-dd="close">Đóng tất cả</button></div>
+
+<details class="dd" open>
+<summary><span class="no">C1</span> Phiếu bảo vệ — điền trước buổi học <span class="est">~30′</span><span class="chev">▶</span></summary>
+<div class="dd-body">
+<p>Chép 9 mục ra giấy, <b>điền trước ở nhà</b>. Ai điền kỹ, bảo vệ nhàn.</p>
+<div class="tblwrap">
+<table class="tbl">
+<tr><th>Mục</th><th>Bạn điền gì</th></tr>
+<tr><td><b>1 · Hệ làm gì</b></td><td>1 câu spec: input → hành vi → output.</td></tr>
+<tr><td><b>2 · Kiến trúc</b></td><td>Block diagram bản cuối + tên tín hiệu nối khối.</td></tr>
+<tr><td><b>3 · Controller vs datapath</b></td><td>Tô 2 màu: phần quyết định / phần đếm-tính-dịch.</td></tr>
+<tr><td><b>4 · Vai trò từng module</b></td><td>Mỗi module 1 dòng: làm gì, học tuần nào.</td></tr>
+<tr><td><b>5 · Waveform bằng chứng</b></td><td>3 ảnh chú thích — mỗi ảnh chứng minh điều gì.</td></tr>
+<tr><td><b>6 · Một bug thật</b></td><td>Hiện tượng → điểm lệch đầu trên waveform → nguyên nhân → cách sửa.</td></tr>
+<tr><td><b>7 · Một trade-off</b></td><td>Quyết định có đánh đổi (Moore/Mealy, timer width…) và vì sao chọn.</td></tr>
+<tr><td><b>8 · Một điều từng hiểu sai</b></td><td>Tuần mấy, sai gì, điều gì làm bạn nhận ra.</td></tr>
+<tr><td><b>9 · Một cải tiến nếu làm lại</b></td><td>Đổi gì, được gì, mất gì.</td></tr>
+</table>
+</div>
+</div>
+</details>
+
+<details class="dd">
+<summary><span class="no">C2</span> Bản đồ ôn 12 tuần — mỗi tuần một câu <span class="est">~8′</span><span class="chev">▶</span></summary>
+<div class="dd-body">
+<p>Mỗi tuần 1 câu cốt lõi + 1 câu "nó sống ở đâu trong hệ của bạn". Hổng đâu, ôn tuần đó.</p>
+<div class="tblwrap">
+<table class="tbl">
+<tr><th>Tuần</th><th>Ý cốt lõi</th><th>Trong hệ của bạn</th></tr>
+<tr><td><a href="Week01.html">T1</a></td><td>Chip = hệ công tắc transistor; 1/0 là khoảng điện áp.</td><td>Cả hệ sống trên một IC — con FPGA.</td></tr>
+<tr><td><a href="Week02.html">T2</a></td><td>Design flow: spec → design → RTL → verify → implement.</td><td>T9–11 là bản thu nhỏ của flow này.</td></tr>
+<tr><td><a href="Week03.html">T3</a></td><td>Boolean + truth table mô tả mọi hành vi tổ hợp.</td><td>Điều kiện nạp lại timer.</td></tr>
+<tr><td><a href="Week04.html">T4</a></td><td>Khối tổ hợp tính — và có t<sub>pd</sub>.</td><td>Giải mã seg7, comparator hết-giờ.</td></tr>
+<tr><td><a href="Week05.html">T5</a></td><td>FF chụp D tại cạnh lên — nơi state vật lý sống.</td><td>Timer, shift register UART.</td></tr>
+<tr><td><a href="Week06.html">T6</a></td><td>FSM: state diagram trước, code 3 khối sau.</td><td>traffic_ctrl — bộ não của hệ.</td></tr>
+<tr><td><a href="Week07.html">T7</a></td><td>HDL song song: <code>always_comb</code>/<code>always_ff</code>, <code>=</code>/<code>&lt;=</code>.</td><td>Mọi file .sv của bạn.</td></tr>
+<tr><td><a href="Week08.html">T8</a></td><td>FPGA vs ASIC là trade-off — không ai "luôn thắng".</td><td>Prototype FPGA: sửa nhanh, tránh NRE mask.</td></tr>
+<tr><td><a href="Week09.html">T9</a></td><td>tick = clock-enable (không phải clock mới) + FSM ghép timer.</td><td>tick_gen → traffic_ctrl: nhịp 1 giây.</td></tr>
+<tr><td><a href="Week10.html">T10</a></td><td>BCD, giải mã seg7, quét LED.</td><td>Biến time_left thành số nhìn được.</td></tr>
+<tr><td><a href="Week11.html">T11</a></td><td>UART TX: frame 8N1, baud divider, LSB trước.</td><td>status_tx → uart_tx → PC.</td></tr>
+<tr><td><b>T12</b></td><td>Bảo vệ: bằng chứng trước kết luận.</td><td>Chính buổi hôm nay.</td></tr>
+</table>
+</div>
+<div class="co co-fix"><span class="tag">Hiệu chỉnh kỹ thuật so với v2</span> v2 viết bạn "đã học đủ <b>100% mảnh ghép</b> của một design FPGA tiêu chuẩn" — nói quá. Đúng: bạn có <b>các mảnh nền tảng để xây một thiết kế FPGA đồng bộ NHỎ</b>. Phía trước còn: timing constraints, STA, CDC, reset-domain, BRAM, PLL/MMCM, đọc synthesis report, utilization, timing closure, physical implementation, formal verification, DFT, on-chip debugging.</div>
+<div class="co co-fix"><span class="tag">Hiệu chỉnh kỹ thuật so với v2</span> v2 viết "khối FSM → <b>2 flip-flop</b> lưu state". Đúng hơn: 2 FF là <b>theo cách biểu diễn RTL</b>; synthesis có thể <b>mã hóa lại</b> (vd one-hot) — tool chọn hiện thực tương đương (T6, T8).</div>
+</div>
+</details>
+
+<details class="dd">
+<summary><span class="no">C3</span> Kiến trúc hệ hoàn chỉnh <span class="est">~6′</span><span class="chev">▶</span></summary>
+<div class="dd-body">
+<p>Mỗi khối ghi tuần được học — bạn nên vẽ lại được <em>từ trí nhớ</em>.</p>
+<pre class="code standalone"><code>clk --+--> MỘT clock duy nhất cho mọi FF (T5, T7)
+rst_n +--> khởi tạo xác định cho thanh ghi điều khiển (T5, T7)
+
+tick_gen (T9)
+  | tick 1 Hz = clock-enable — KHÔNG phải clock mới (T9)
+  +----------------------------------------+  tick đi tới CẢ HAI khối cần nhịp giây
+  v                                        |
+traffic_ctrl = FSM 3 khối (T6) + timer đếm lùi (T5, T9)
+  |                                    ns_light[3], ew_light[3] --> LED đèn
+  | time_left[4]         | phase[2] + time_left[4]       | tick
+  v                      v                               v
+seg7_decoder (T10)     status_tx (T11) <-----------------+
+  | seg[7] --> LED 7 đoạn  | tx_data[8] + tx_start   ^ tx_busy (phản hồi)
+                           v                          |
+                       uart_tx (T11) ----------------+-- tx --> PC (8N1 @ baud)</code></pre>
+<p><b>Đem hệ này sang ASIC thì khác gì?</b> (trả lời câu 8 vấn đáp)</p>
+<ul class="small">
+<li>Khởi tạo sau bật nguồn <b>không được đảm bảo</b> (không có pha nạp cấu hình) → reset/power-on-reset thành bắt buộc (T5).</li>
+<li>LUT/FF thay bằng <b>standard cell</b> — cùng RTL, tài nguyên khác (T8).</li>
+<li>Riêng <b>DFT</b> (scan chain, ATPG) là hoàn toàn mới; <b>physical implementation</b> và <b>STA</b> thì FPGA cũng có, nhưng ở ASIC nặng hơn nhiều bậc (floorplan, clock tree, signoff nhiều góc PVT) — track B của Phase 2.</li>
+<li>Không "nạp lại bitstream" được → <b>verification nặng hơn nhiều</b> trước tape-out (T2, T8).</li>
+</ul>
+<div class="co co-fix"><span class="tag">Hiệu chỉnh kỹ thuật so với v2</span> v2 viết "FPGA… <b>NRE ≈ 0</b>". Câu chuẩn (T8): FPGA <b>tránh được NRE mask/fabrication</b> của ASIC, nhưng vẫn còn chi phí kỹ sư, IP, tool, board, verification. Sản lượng nhỏ thì tổng chi phí FPGA thấp hơn hẳn — trade-off, không phải "miễn phí".</div>
+</div>
+</details>
+
+<details class="dd">
+<summary><span class="no">C4</span> Format bài trình bày 10 slide <span class="est">~5′</span><span class="chev">▶</span></summary>
+<div class="dd-body">
+<p>Nguyên tắc: <b>mỗi slide một ý, mỗi ý một bằng chứng</b>.</p>
+<div class="tblwrap">
+<table class="tbl">
+<tr><th>Slide</th><th>Nội dung</th><th>Bằng chứng phải có</th></tr>
+<tr><td class="pct">1</td><td>Tên hệ + nhóm + 1 dòng "hệ làm gì"</td><td>—</td></tr>
+<tr><td class="pct">2</td><td>Specification: input/output, hành vi</td><td>1 câu spec + bảng interface</td></tr>
+<tr><td class="pct">3</td><td>Block diagram toàn hệ</td><td>Hình vẽ, tín hiệu có tên</td></tr>
+<tr><td class="pct">4</td><td>Controller vs datapath</td><td>Diagram tô 2 màu</td></tr>
+<tr><td class="pct">5</td><td>FSM: các state, vì sao chọn</td><td>State diagram</td></tr>
+<tr><td class="pct">6</td><td>Nhịp thời gian: tick + timer</td><td>Số chia + waveform tick/timer</td></tr>
+<tr><td class="pct">7</td><td>Display: BCD → seg7</td><td>Waveform lúc seg đổi số</td></tr>
+<tr><td class="pct">8</td><td>UART: frame 8N1, baud</td><td>Waveform 1 frame + ảnh terminal</td></tr>
+<tr><td class="pct">9</td><td>Bug đáng nhớ nhất</td><td>Waveform "trước/sau" + cách tìm</td></tr>
+<tr><td class="pct">10</td><td>Trade-off · nếu làm lại · track Phase 2</td><td>Mỗi ý 1 dòng</td></tr>
+</table>
+</div>
+</div>
+</details>
+
+<details class="dd">
+<summary><span class="no">C5</span> Từ vựng — 10 từ quan trọng nhất <span class="est">~4′</span><span class="chev">▶</span></summary>
+<div class="dd-body">
+<div class="tblwrap">
+<table class="tbl vocab">
+<tr><th>Thuật ngữ</th><th>Nghĩa</th><th>Câu ví dụ (EN)</th></tr>
+<tr><td>Specification</td><td>Đặc tả — hệ phải làm gì, đo được</td><td class="en">The spec defines every output for every input.</td></tr>
+<tr><td>Architecture</td><td>Phân rã hệ thành khối + interface</td><td class="en">The architecture separates control from data.</td></tr>
+<tr><td>Controller</td><td>Phần ra quyết định (thường là FSM)</td><td class="en">The controller decides when the timer reloads.</td></tr>
+<tr><td>Datapath</td><td>Phần đếm/tính/dịch theo lệnh controller</td><td class="en">The timer and shift register form the datapath.</td></tr>
+<tr><td>RTL</td><td>Mô tả phần cứng mức thanh ghi</td><td class="en">This RTL infers four flip-flops and an adder.</td></tr>
+<tr><td>Testbench</td><td>Mã bao quanh DUT để kích thích, kiểm tra</td><td class="en">The testbench drives resets and checks outputs.</td></tr>
+<tr><td>Waveform</td><td>Đồ thị tín hiệu theo thời gian — bằng chứng</td><td class="en">The waveform proves the frame timing is correct.</td></tr>
+<tr><td>Synthesis</td><td>Sinh mạng cổng/LUT tương đương đã tối ưu từ RTL</td><td class="en">Synthesis may re-encode the FSM states.</td></tr>
+<tr><td>FPGA</td><td>Chip cấu hình lại bằng bitstream</td><td class="en">We prototype the design on an FPGA board.</td></tr>
+<tr><td>Invariant</td><td>Điều luôn phải đúng — máy canh thay mắt người</td><td class="en">An invariant catches illegal green-green states.</td></tr>
+</table>
+</div>
+</div>
+</details>
+</div>
+</section>
+
+<section id="layer-d" class="layer layer-d">
+<div class="wrap layer-head">
+<div class="band">
+<span class="layer-badge">D</span>
+<h2>Sau buổi học</h2>
+<span class="time">📝 Quiz tổng hợp · portfolio · chọn track</span>
+</div>
+</div>
+<div class="wrap layer-body">
+
+<div class="card">
+<h3>Quiz tổng hợp toàn khóa — 5 câu</h3>
+<p class="small muted">Sai câu nào, mở C2 và ôn đúng tuần gắn nhãn.</p>
+<div class="quiz" id="quiz">
+<div class="qz-item" data-answer="D">
+<p class="qz-q">1. (Ôn T5) D của một FF đổi 0→1→0 gọn <em>giữa</em> hai cạnh lên clock (không vi phạm t<sub>su</sub>/t<sub>h</sub>). Q thế nào?</p>
+<button class="qz-opt" data-key="A">Q có một xung 1 ngắn tương ứng</button>
+<button class="qz-opt" data-key="B">Q lên 1 và giữ đến cạnh kế tiếp</button>
+<button class="qz-opt" data-key="C">Q rơi vào trạng thái không xác định</button>
+<button class="qz-opt" data-key="D">Q giữ nguyên — FF chỉ lấy mẫu D tại cạnh lên</button>
+<div class="qz-expl"><b>Giải thích:</b> FF kích cạnh không "nhìn" D giữa hai cạnh — điều làm hệ đồng bộ dự đoán được. Xem C2 hàng T5, ôn Week05.</div>
+</div>
+<div class="qz-item" data-answer="A">
+<p class="qz-q">2. (Ôn T6) FSM phát hiện chuỗi <code>101</code>, cho phép chồng lấn (bit 1 cuối dùng lại). Sau reset, đầu vào lần lượt 1, 0, 1, 0, 1. Output báo phát hiện bật mấy lần?</p>
+<button class="qz-opt" data-key="A">2 lần — sau bit thứ 3 và bit thứ 5</button>
+<button class="qz-opt" data-key="B">3 lần — mỗi bit 1 là một lần</button>
+<button class="qz-opt" data-key="C">1 lần — chuỗi chỉ khớp lần đầu</button>
+<button class="qz-opt" data-key="D">0 lần — vì có bit 0 xen giữa</button>
+<div class="qz-expl"><b>Giải thích:</b> bit 1–3 tạo <code>101</code>; nhờ chồng lấn, bit 3–5 lại tạo <code>101</code>. Trace tay trên state diagram là kỹ năng vấn đáp. Xem C2 hàng T6, ôn Week06.</div>
+</div>
+<div class="qz-item" data-answer="C">
+<p class="qz-q">3. (Ôn T9) Vì sao <code>tick</code> 1 Hz phải vào <code>enable</code> của timer, KHÔNG được làm clock cho các FF phía sau?</p>
+<button class="qz-opt" data-key="A">Vì tick quá chậm nên FF không giữ nổi giá trị</button>
+<button class="qz-opt" data-key="B">Vì tick là tín hiệu tổ hợp, không có cạnh lên</button>
+<button class="qz-opt" data-key="C">Tick làm clock tạo derived clock — không qua cây clock, khó phân tích timing; clock-enable giữ mọi FF chung một clock</button>
+<button class="qz-opt" data-key="D">Vì tool cấm nối tín hiệu thường vào chân clock</button>
+<div class="qz-expl"><b>Giải thích:</b> "một clock duy nhất, nhịp chậm là clock-enable" — luật xương sống từ T9. Tick có cạnh, nhưng đường đi của nó không được thiết kế như đường clock. Xem C3, C2 hàng T9.</div>
+</div>
+<div class="qz-item" data-answer="B">
+<p class="qz-q">4. (Ôn T11) uart_tx gửi 'A' (0x41) khung 8N1. Ngay sau start bit, bit dữ liệu ĐẦU TIÊN trên đường tx là gì?</p>
+<button class="qz-opt" data-key="A">0 — UART gửi MSB trước, MSB của 0x41 là 0</button>
+<button class="qz-opt" data-key="B">1 — UART gửi LSB trước; 0x41 = 0100_0001 nên D0 = 1</button>
+<button class="qz-opt" data-key="C">0 — đường tx quay về idle giữa hai bit</button>
+<button class="qz-opt" data-key="D">1 — vì stop bit đứng ngay sau start bit</button>
+<div class="qz-expl"><b>Giải thích:</b> khung 8N1: start (0) → D0…D7 (LSB trước) → stop (1); 0x41 = 0100_0001 → D0 = 1. Xem C2 hàng T11, ôn Week11.</div>
+</div>
+<div class="qz-item" data-answer="D">
+<p class="qz-q">5. (Ôn T8) Phát biểu nào về chi phí NRE khi chọn FPGA để prototype là <b>chính xác</b>?</p>
+<button class="qz-opt" data-key="A">FPGA có NRE = 0 nên hoàn toàn miễn phí</button>
+<button class="qz-opt" data-key="B">ASIC luôn chỉ tốn vài xu mỗi chip nên rẻ hơn mọi trường hợp</button>
+<button class="qz-opt" data-key="C">NRE chỉ tồn tại ở FPGA; ASIC không có NRE</button>
+<button class="qz-opt" data-key="D">FPGA tránh NRE mask/fab của ASIC nhưng vẫn còn chi phí kỹ sư, tool, board, verification; sản lượng nhỏ thì tổng chi phí thấp hơn hẳn</button>
+<div class="qz-expl"><b>Giải thích:</b> bản hiệu chỉnh của "NRE ≈ 0" trong v2; đơn giá ASIC phụ thuộc quy trình/sản lượng/die. Xem co-fix ở C3, ôn Week08.</div>
+</div>
+<div class="qz-bar"><span class="qz-score"></span><span class="qz-verdict"></span><button class="qz-reset">Làm lại</button></div>
+</div>
+</div>
+
+<div class="grid2">
+<div class="card">
+<h3>Bài tập bắt buộc <span class="badge badge-req">nộp trước kick-off Phase 2</span></h3>
+<p><b>Hoàn thiện portfolio</b> — không làm bài mới, làm tử tế những gì đã có.</p>
+<ul class="small">
+<li>Portfolio đủ 12 mục theo checklist Layer A (tick trung thực).</li>
+<li><b>Báo cáo kỹ thuật 1–2 trang:</b> spec hệ · block diagram · 3 waveform chú thích · 1 bug + cách tìm · 1 trade-off.</li>
+<li><b>Slide 10 trang</b> đúng format C4.</li>
+</ul>
+<p class="small"><b>Nộp (deliverable):</b> <code>portfolio/</code>: <code>rtl/</code> + <code>tb/</code> + <code>wave/</code> (3 ảnh) + <code>bao_cao.pdf</code> + <code>slides.pdf</code> + phiếu bảo vệ đã điền (C1).</p>
+</div>
+<div class="card">
+<h3>Thử thách nâng cao <span class="badge badge-opt">tự chọn</span></h3>
+<p><b>Đề xuất 1 research question từ hệ của bạn</b> — đúng 7 dòng, mỗi bước 1 dòng: observation → limitation → question → hypothesis → experiment → <b>tiêu chí bằng chứng</b> (kết quả nào thì chấp nhận, nào thì bác bỏ — đặt ra TRƯỚC khi đo) → <b>dạng kết luận dự kiến</b>. Đây là bản <em>đề xuất</em>: ba dòng cuối viết ở thì tương lai; có số liệu rồi mới viết lại ở thì quá khứ. Cam kết tiêu chí trước khi đo chính là kỷ luật "bằng chứng trước kết luận".</p>
+<div class="eqrq">
+<div class="eq"><b>Câu hỏi kỹ thuật</b>Timer 4 bit chỉ đếm tối đa 15 giây — bao nhiêu bit là "đủ"?</div>
+<div class="arr">→</div>
+<div class="rq"><b>Câu hỏi nghiên cứu</b>Bit width ảnh hưởng LUT/FF và f<sub>max</sub> thế nào? Thí nghiệm: quét width 4→16, đo tài nguyên sau synthesis. Lưu ý phạm vi: cách mở và đọc bảng utilization/timing chưa dạy ở Phase 1 — nếu chưa có tool, hãy nộp <b>thiết kế thí nghiệm</b> (biến khảo sát, biến đo, baseline, số lần lặp) thay cho số liệu.</div>
+</div>
+<p class="small muted">Mang bản 7 dòng đến kick-off Phase 2.</p>
+</div>
+</div>
+
+<div class="card">
+<h3>Chọn track Phase 2 — 5 hướng đi</h3>
+<p class="small muted">Chọn bằng 2 câu: "tò mò gì nhất?" và "hệ của mình mạnh khâu nào?".</p>
+<ul class="small">
+<li><b>A · FPGA Digital Design.</b> Pipelining, BRAM, DSP block, timing constraints, tối ưu tài nguyên, deploy board. <em>Hợp với bạn nếu…</em> thích hệ chạy thật, muốn kỹ năng đi làm sớm.</li>
+<li><b>B · ASIC Digital Design.</b> Synthesis sâu, STA, standard cell, PPA, physical design, DFT. <em>Hợp với bạn nếu…</em> thích tối ưu từng cổng, nhắm công nghiệp chip.</li>
+<li><b>C · Hardware Architecture Research.</b> Fixed-point, approximate computing, low-power, accelerator. <em>Hợp với bạn nếu…</em> thích hỏi "đến đâu là đủ?", hướng paper.</li>
+<li><b>D · Communication/DSP Hardware.</b> FIR, FFT, codec, FPGA implementation. <em>Hợp với bạn nếu…</em> có nền toán tín hiệu (chất ĐTVT), thích dữ liệu thật.</li>
+<li><b>E · Hardware for AI (AI Accelerator).</b> Neural accelerator, quantization, mixed precision, FPGA inference. <em>Hợp với bạn nếu…</em> mê AI, muốn nó chạy trên phần cứng của mình.</li>
+</ul>
+<div class="co co-fix"><span class="tag">Hiệu chỉnh kỹ thuật so với v2</span> v2 khép khóa bằng lời hứa kiểu "trở thành kỹ sư IC hoàn chỉnh". v3 dùng nguyên văn chuẩn đầu ra: <b>"Sau 12 tuần, học viên có thể đọc một đặc tả đơn giản, phân rã hệ thống số thành các khối chức năng, viết RTL cơ bản bằng SystemVerilog, viết testbench đơn giản, đọc waveform mô phỏng, hiểu synthesis ở mức nền tảng, và tích hợp một thiết kế đồng bộ nhỏ phù hợp để prototype trên FPGA."</b> Phase 1 là nền tảng — không phải sự thành thạo.</div>
+</div>
+
+<div class="card">
+<h3>Rubric buổi bảo vệ — tuần 12</h3>
+<div class="tblwrap">
+<table class="tbl rubric">
+<tr><th>Tiêu chí</th><th>Trọng số</th><th>Đạt khi…</th></tr>
+<tr><td>Hiểu khái niệm</td><td class="pct">25%</td><td>Trả lời vấn đáp bằng LÝ DO; "không chắc" + suy luận đúng hướng được tính điểm, thuật ngữ suông thì không.</td></tr>
+<tr><td>Kiến trúc</td><td class="pct">20%</td><td>Chỉ đúng controller/datapath trên diagram của mình; nói được interface giữa các khối.</td></tr>
+<tr><td>RTL đúng</td><td class="pct">20%</td><td>Hệ tích hợp chạy; style nhất quán: một clock, tick là enable, <code>always_ff</code> + <code>&lt;=</code>.</td></tr>
+<tr><td>Verification</td><td class="pct">20%</td><td>Dùng 3 waveform then chốt làm bằng chứng; kể được 1 bug thật và cách waveform chỉ ra nó.</td></tr>
+<tr><td>Giao tiếp kỹ thuật</td><td class="pct">15%</td><td>Trình bày theo 10 slide, đúng giờ, mạch lạc; trung thực nhận điều chưa chắc.</td></tr>
+</table>
+</div>
+<p class="small muted">Code chạy được chưa phải điểm tối đa — phải giải thích được vì sao nó đúng.</p>
+</div>
+
+<div class="card">
+<h3>Tổng kết tuần 12 — khép Phase 1</h3>
+<div class="ican">
+<div><b>I can explain</b>① Kiến trúc hệ của tôi: từng khối, interface, tuần được học. ② Vì sao hệ an toàn: các invariant (ít nhất một hướng luôn ĐỎ; timer không bao giờ wrap từ 0 xuống 15) + waveform làm bằng chứng. ③ Giới hạn của những gì tôi biết — đâu là nền tảng, đâu là đất của Phase 2.</div>
+<div><b>I can design</b>Từ spec nhỏ: block diagram → interface → RTL từng khối → tích hợp thành hệ đồng bộ một clock.</div>
+<div><b>I can verify</b>Testbench có self-check + waveform chú thích đủ thuyết phục người khác — không chỉ chính mình.</div>
+<div><b>I can connect</b>Track Phase 2 tôi chọn là ___ vì ___; hệ T9–11 là bệ phóng cho project 4 tuần đầu tiên.</div>
+<div class="unsure"><b>I am still unsure about…</b><textarea class="reflect" id="unsure12" placeholder="Điều tôi giải thích được tuần này mà tuần trước chưa giải thích được là… / Điều tôi còn mơ hồ là… (tự động lưu trên máy bạn)"></textarea></div>
+<div class="nextwk"><b>Next week — Phase 2</b>Theo track bạn chọn. Mang theo ba thói quen đã thành phản xạ: <b>vẽ trước khi code, dự đoán trước khi chạy, bằng chứng trước khi kết luận.</b></div>
+</div>
+</div>
+</div>
+</section>
+
+<footer>
+<div class="wrap">
+<div class="weeknav">
+<a href="Week11.html"><small>← Tuần trước</small><b>T11 · Project C — UART Status Communication</b></a>
+<a class="next" href="index.html"><small>Tiếp theo →</small><b>Mục lục · chuẩn bị Phase 2</b></a>
+</div>
+<div class="footer">
+      <b>IC Design Mentoring — Version 3 · Phase 1</b>
+      <span class="org">Khoa Điện – Điện tử · Trường Kỹ thuật · Đại học Phenikaa</span>
+      <span>Biên soạn: <b style="display:inline">Giảng Viên Đinh Văn Nam</b></span>
+      <span class="cr">© 2026 · Bản quyền thuộc về Giảng Viên Đinh Văn Nam, Khoa Điện-Điện Tử, Trường Kỹ Thuật, Đại học Phenikaa. Tài liệu phục vụ đào tạo — vui lòng giữ nguyên thông tin tác giả khi chia sẻ.</span>
+      <span class="cr">Hoạt động offline — không cần Internet.</span>
+    </div>
+</div>
+</footer>
+</body>
+</html>

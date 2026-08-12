@@ -1,0 +1,1142 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tuần 4: Combinational Logic Circuits — Mạch Tổ Hợp | IC Design Mentoring</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = { theme: { extend: {
+  colors: { primary:'#2563eb', secondary:'#f59e0b', accent:'#10b981', danger:'#ef4444', dark:'#0f172a', light:'#f8fafc' },
+  fontFamily: { sans:['Inter','system-ui','sans-serif'], mono:['JetBrains Mono','Consolas','monospace'] }
+}}};
+</script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+html{scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,sans-serif}
+section{scroll-margin-top:5.5rem}
+.code-window pre{overflow-x:auto;padding:1rem 1.25rem}
+.code-window code{font-family:'JetBrains Mono',Consolas,monospace;font-size:.82rem;line-height:1.6;display:block;white-space:pre;color:#e2e8f0}
+.kw{color:#c4b5fd;font-weight:600}
+.ty{color:#7dd3fc}
+.cm{color:#94b8a0;font-style:italic}
+.nb{color:#fbbf24}
+.fn{color:#6ee7b7;font-weight:600}
+.copy-btn{transition:all .15s}
+.copy-btn.copied{background:#10b981;color:#fff;border-color:#10b981}
+.sig-btn{min-width:88px;padding:.55rem .9rem;border-radius:.75rem;border:2px solid #cbd5e1;font-weight:700;font-family:'JetBrains Mono',monospace;transition:all .15s;background:#fff;color:#475569}
+.sig-btn.on{background:#10b981;border-color:#059669;color:#fff;box-shadow:0 4px 12px rgba(16,185,129,.35)}
+.led{width:42px;height:42px;border-radius:9999px;background:#e2e8f0;border:3px solid #cbd5e1;transition:all .25s;box-shadow:inset 0 2px 4px rgba(0,0,0,.08)}
+.led-on{background:#34d399;border-color:#10b981;box-shadow:0 0 18px rgba(16,185,129,.7)}
+.row-hi{background:#d1fae5 !important;font-weight:600}
+.quiz-opt{cursor:pointer;transition:all .15s}
+.quiz-q:not(.quiz-locked) .quiz-opt:hover{border-color:#2563eb;background:#eff6ff}
+.quiz-locked .quiz-opt{cursor:default}
+.opt-correct{border-color:#10b981 !important;background:#ecfdf5 !important;box-shadow:0 0 0 1px #10b981}
+.opt-wrong{border-color:#ef4444 !important;background:#fef2f2 !important;box-shadow:0 0 0 1px #ef4444}
+.svg-mono{font-family:'JetBrains Mono',Consolas,monospace}
+.wave-sig{stroke-width:2.5;fill:none}
+.step-dot{width:2.25rem;height:2.25rem;border-radius:9999px;display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0}
+::selection{background:#bfdbfe}
+</style>
+</head>
+<body class="bg-slate-100 text-slate-700">
+<div id="lichub-nav-top" data-lichub="v2" role="navigation" aria-label="Điều hướng Learning Hub (bổ sung, không thuộc trang gốc)" style="background:#0f172a;color:#e2e8f0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:13.5px;line-height:1.6;padding:8px 16px;display:flex;flex-wrap:wrap;gap:4px 16px;align-items:center;border-bottom:3px solid #38bdf8"><a href="../../index.html" style="color:#7dd3fc;text-decoration:none;font-weight:600">⌂ Learning Hub</a><span style="font-size:11px;font-weight:700;letter-spacing:.04em;color:#38bdf8;border:1px solid #38bdf8;border-radius:6px;padding:1px 7px;white-space:nowrap">V2 · BẢN MỞ RỘNG</span><a href="index.html" style="color:#cbd5e1;text-decoration:none">Mục lục V2</a><span style="flex:1"></span><a href="Week3.html" style="color:#7dd3fc;text-decoration:none" title="Logic Gates in Real Systems">← Tuần 3</a><a href="Week5.html" style="color:#7dd3fc;text-decoration:none" title="Sequential Logic & Memory">Tuần 5 →</a><span aria-hidden="true" style="color:#475569">|</span><span style="display:inline-flex;gap:8px;align-items:center"><span style="color:#94a3b8">Chuyển bản:</span> <a href="../v1/index.html" style="color:#cbd5e1;text-decoration:none">V1</a> <b aria-current="true" style="color:#38bdf8">V2</b> <a href="../v3/index.html" style="color:#cbd5e1;text-decoration:none">V3</a></span></div>
+
+
+<!-- ============ STICKY NAV ============ -->
+<nav class="sticky top-0 z-50 bg-dark/95 backdrop-blur text-white shadow-lg">
+  <div class="max-w-6xl mx-auto px-4">
+    <div class="flex items-center justify-between h-14 gap-3">
+      <a href="#hero" class="flex items-center gap-2.5 shrink-0">
+        <span class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-emerald-400 flex items-center justify-center"><i class="fa-solid fa-microchip text-sm"></i></span>
+        <span class="font-bold text-sm sm:text-base">IC Design Mentoring</span>
+        <span class="text-[11px] font-semibold bg-primary/30 border border-blue-400/40 rounded-full px-2.5 py-0.5 whitespace-nowrap">Tuần 4/12</span>
+      </a>
+      <div class="hidden lg:flex items-center gap-1 text-[13px] font-medium text-slate-300">
+        <a href="#learning-map" class="px-2.5 py-1.5 rounded-md hover:bg-white/10 hover:text-white">Bản đồ</a>
+        <a href="#core-concepts" class="px-2.5 py-1.5 rounded-md hover:bg-white/10 hover:text-white">Khái niệm</a>
+        <a href="#demo" class="px-2.5 py-1.5 rounded-md hover:bg-white/10 hover:text-white">Demo</a>
+        <a href="#code-rtl" class="px-2.5 py-1.5 rounded-md hover:bg-white/10 hover:text-white">Code</a>
+        <a href="#waveform" class="px-2.5 py-1.5 rounded-md hover:bg-white/10 hover:text-white">Timing</a>
+        <a href="#quiz" class="px-2.5 py-1.5 rounded-md hover:bg-white/10 hover:text-white">Quiz</a>
+        <a href="#homework" class="px-2.5 py-1.5 rounded-md hover:bg-white/10 hover:text-white">Bài tập</a>
+        <a href="#summary" class="px-2.5 py-1.5 rounded-md hover:bg-white/10 hover:text-white">Tóm tắt</a>
+      </div>
+    </div>
+    <div class="lg:hidden flex gap-1 overflow-x-auto pb-2 text-[13px] font-medium text-slate-300 [-webkit-overflow-scrolling:touch]">
+      <a href="#learning-map" class="px-2.5 py-1 rounded-md bg-white/5 whitespace-nowrap">Bản đồ</a>
+      <a href="#core-concepts" class="px-2.5 py-1 rounded-md bg-white/5 whitespace-nowrap">Khái niệm</a>
+      <a href="#demo" class="px-2.5 py-1 rounded-md bg-white/5 whitespace-nowrap">Demo</a>
+      <a href="#code-rtl" class="px-2.5 py-1 rounded-md bg-white/5 whitespace-nowrap">Code</a>
+      <a href="#waveform" class="px-2.5 py-1 rounded-md bg-white/5 whitespace-nowrap">Timing</a>
+      <a href="#quiz" class="px-2.5 py-1 rounded-md bg-white/5 whitespace-nowrap">Quiz</a>
+      <a href="#homework" class="px-2.5 py-1 rounded-md bg-white/5 whitespace-nowrap">Bài tập</a>
+      <a href="#summary" class="px-2.5 py-1 rounded-md bg-white/5 whitespace-nowrap">Tóm tắt</a>
+    </div>
+  </div>
+  <div class="h-1 bg-slate-800"><div class="h-1 bg-gradient-to-r from-primary to-accent" style="width:33.33%" title="Tiến độ: tuần 4/12"></div></div>
+</nav>
+
+<!-- ============ 01. HERO ============ -->
+<header id="hero" class="bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 text-white">
+  <div class="max-w-6xl mx-auto px-4 pt-14 pb-12">
+    <div class="flex flex-wrap items-center gap-2 mb-5">
+      <span class="text-xs font-bold uppercase tracking-widest bg-white/10 border border-white/20 rounded-full px-3 py-1">Tuần 4</span>
+      <span class="text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 rounded-full px-3 py-1"><i class="fa-solid fa-layer-group mr-1"></i>Phase 1 — Nền tảng logic số</span>
+    </div>
+    <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight mb-2">Combinational Logic Circuits</h1>
+    <p class="text-xl sm:text-2xl font-semibold text-blue-200 mb-5">Mạch Tổ Hợp — Nghĩ Theo Khối, Không Theo Từng Cổng</p>
+    <p class="max-w-3xl text-slate-300 leading-relaxed mb-4">Tuần trước, bạn đã nắm trong tay các cổng logic đơn lẻ: AND, OR, NOT, XOR. Nhưng không kỹ sư nào thiết kế một CPU bằng cách vẽ từng cổng một. Họ ghép cổng thành những <strong class="text-white">khối chức năng (functional block)</strong> có "tên tuổi" hẳn hoi: <strong class="text-emerald-300">MUX chọn dữ liệu, Decoder giải mã địa chỉ, Encoder nén thông tin, Adder cộng số, Comparator so sánh</strong>. Đây chính là những viên gạch LEGO xây nên ALU, datapath và mọi hệ thống số bạn sẽ gặp. Tuần này, chúng ta học cách <em>nhìn mạch theo chức năng</em> — kỹ năng nền tảng của một RTL designer thực thụ.</p>
+    <p class="max-w-3xl text-slate-400 text-sm leading-relaxed mb-8"><i class="fa-solid fa-link mr-1.5 text-blue-400"></i>Kết nối chương trình: <strong class="text-slate-200">Tuần 3</strong> cho bạn "nguyên liệu" (cổng logic, truth table) → <strong class="text-slate-200">Tuần 4</strong> ghép nguyên liệu thành khối tổ hợp → <strong class="text-slate-200">Tuần 5</strong> bổ sung phần tử nhớ (Flip-Flop) để mạch biết "ghi nhớ" theo thời gian.</p>
+    <h2 class="text-sm font-bold uppercase tracking-widest text-blue-300 mb-3"><i class="fa-solid fa-bullseye mr-1.5"></i>4 mục tiêu học tập tuần này</h2>
+    <div class="grid sm:grid-cols-2 gap-3 max-w-4xl">
+      <div class="bg-white/5 border border-white/15 rounded-xl p-4 flex gap-3"><span class="text-emerald-300 text-lg"><i class="fa-solid fa-circle-nodes"></i></span><p class="text-sm text-slate-200"><strong>1.</strong> Định nghĩa được mạch tổ hợp (combinational logic) và chỉ ra khác biệt cốt lõi với mạch tuần tự: <em>không có phần tử nhớ</em>.</p></div>
+      <div class="bg-white/5 border border-white/15 rounded-xl p-4 flex gap-3"><span class="text-emerald-300 text-lg"><i class="fa-solid fa-cubes"></i></span><p class="text-sm text-slate-200"><strong>2.</strong> Mô tả 5 khối cơ bản — MUX, Decoder, Encoder, Adder, Comparator — theo bộ ba <em>Input – Output – Function</em>.</p></div>
+      <div class="bg-white/5 border border-white/15 rounded-xl p-4 flex gap-3"><span class="text-emerald-300 text-lg"><i class="fa-solid fa-diagram-project"></i></span><p class="text-sm text-slate-200"><strong>3.</strong> Thực hành tư duy <em>"think in blocks, not in gates"</em>: đọc và vẽ block diagram cho một bài toán chọn kênh cảm biến.</p></div>
+      <div class="bg-white/5 border border-white/15 rounded-xl p-4 flex gap-3"><span class="text-emerald-300 text-lg"><i class="fa-solid fa-code"></i></span><p class="text-sm text-slate-200"><strong>4.</strong> Viết được module SystemVerilog cho MUX và Decoder bằng <code class="text-emerald-300">assign</code> / <code class="text-emerald-300">always_comb</code>, hiểu vì sao phải gán mặc định để tránh latch.</p></div>
+    </div>
+  </div>
+</header>
+
+<main class="max-w-6xl mx-auto px-4 py-10 space-y-14">
+
+<!-- ============ 02. LEARNING MAP ============ -->
+<section id="learning-map">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center text-lg"><i class="fa-solid fa-map-location-dot"></i></div>
+    <div><p class="text-[11px] font-bold text-primary uppercase tracking-widest">Section 02</p><h2 class="text-2xl font-bold text-slate-900">Learning Map — Bản đồ học tập</h2></div>
+  </div>
+  <div class="grid md:grid-cols-3 gap-4 mb-5">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 relative">
+      <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Tuần 3 — Đã học</p>
+      <h3 class="font-bold text-slate-800 mb-2"><i class="fa-solid fa-shapes text-slate-400 mr-1.5"></i>Logic Gates</h3>
+      <p class="text-sm leading-relaxed">Cổng AND, OR, NOT, NAND, NOR, XOR; bảng chân lý (truth table); chuyển tình huống thực tế thành biểu thức logic.</p>
+      <div class="hidden md:flex absolute -right-3.5 top-1/2 -translate-y-1/2 w-7 h-7 bg-primary text-white rounded-full items-center justify-center text-xs z-10"><i class="fa-solid fa-arrow-right"></i></div>
+    </div>
+    <div class="bg-blue-50 rounded-2xl shadow-md border-2 border-primary p-5 relative">
+      <p class="text-xs font-bold text-primary uppercase tracking-wider mb-1">Tuần 4 — Bạn đang ở đây</p>
+      <h3 class="font-bold text-slate-900 mb-2"><i class="fa-solid fa-cubes text-primary mr-1.5"></i>Combinational Blocks</h3>
+      <p class="text-sm leading-relaxed">Ghép cổng thành khối chức năng: MUX, Decoder, Encoder, Adder, Comparator. Mô tả khối bằng Input – Output – Function thay vì từng cổng.</p>
+      <div class="hidden md:flex absolute -right-3.5 top-1/2 -translate-y-1/2 w-7 h-7 bg-primary text-white rounded-full items-center justify-center text-xs z-10"><i class="fa-solid fa-arrow-right"></i></div>
+    </div>
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+      <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Tuần 5 — Sắp tới</p>
+      <h3 class="font-bold text-slate-800 mb-2"><i class="fa-solid fa-memory text-slate-400 mr-1.5"></i>Sequential Logic</h3>
+      <p class="text-sm leading-relaxed">Thêm phần tử nhớ: Flip-Flop, Register, Counter, Clock. Mạch bắt đầu có "trạng thái" và thay đổi theo thời gian.</p>
+    </div>
+  </div>
+  <div class="grid md:grid-cols-2 gap-4">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+      <h3 class="font-bold text-slate-800 mb-3"><i class="fa-solid fa-key text-secondary mr-1.5"></i>Cần nắm chắc trước khi vào tuần này</h3>
+      <ul class="space-y-2 text-sm">
+        <li class="flex gap-2"><i class="fa-solid fa-check text-accent mt-1"></i><span>Đọc và tự lập được <strong>truth table</strong> cho biểu thức 2–3 biến.</span></li>
+        <li class="flex gap-2"><i class="fa-solid fa-check text-accent mt-1"></i><span>Thuộc hành vi của AND, OR, NOT, XOR (XOR = khác nhau thì ra 1).</span></li>
+        <li class="flex gap-2"><i class="fa-solid fa-check text-accent mt-1"></i><span>Hiểu mức logic 1/0 là <em>khoảng điện áp</em> High/Low, không phải "có điện / mất điện" tuyệt đối.</span></li>
+      </ul>
+    </div>
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+      <h3 class="font-bold text-slate-800 mb-3"><i class="fa-solid fa-rocket text-primary mr-1.5"></i>Kiến thức tuần này sẽ dùng ở đâu?</h3>
+      <ul class="space-y-2 text-sm">
+        <li class="flex gap-2"><i class="fa-solid fa-arrow-right text-primary mt-1"></i><span><strong>Tuần 6:</strong> khối next-state logic và output logic của FSM chính là mạch tổ hợp.</span></li>
+        <li class="flex gap-2"><i class="fa-solid fa-arrow-right text-primary mt-1"></i><span><strong>Tuần 9–10:</strong> decoder LED 7 đoạn, adder trong datapath của counter, MUX chọn chế độ hiển thị.</span></li>
+        <li class="flex gap-2"><i class="fa-solid fa-arrow-right text-primary mt-1"></i><span><strong>Xa hơn:</strong> ALU của CPU = adder + comparator + MUX khổng lồ; bus arbitration, address decoding trong SoC.</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 03. BEFORE SESSION ============ -->
+<section id="before-session">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center text-lg"><i class="fa-solid fa-list-check"></i></div>
+    <div><p class="text-[11px] font-bold text-primary uppercase tracking-widest">Section 03</p><h2 class="text-2xl font-bold text-slate-900">Before Session — Chuẩn bị trước buổi học</h2></div>
+  </div>
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-4">
+    <p class="text-sm leading-relaxed mb-1"><strong class="text-slate-900">Định hướng:</strong> buổi này chúng ta không học thêm cổng mới — chúng ta học cách <em>đóng gói</em> cổng thành khối. Mục tiêu khi bước vào phòng học: với mỗi khối MUX / Decoder / Encoder / Adder / Comparator, bạn trả lời được 3 câu: <strong>Input là gì? Output là gì? Chức năng (function) là gì?</strong> Đừng cố nhớ sơ đồ cổng bên trong — hãy nhớ <em>hành vi</em> của khối.</p>
+  </div>
+  <div class="grid md:grid-cols-2 gap-4">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="font-bold text-slate-800"><i class="fa-solid fa-square-check text-accent mr-1.5"></i>Checklist chuẩn bị</h3>
+        <span class="text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full px-2.5 py-1">Hoàn thành: <span id="prep-count">0/5</span></span>
+      </div>
+      <div id="prep-checklist" class="space-y-2.5 text-sm">
+        <label class="flex gap-3 items-start cursor-pointer hover:bg-slate-50 rounded-lg p-2 -m-1"><input type="checkbox" class="mt-0.5 w-4 h-4 accent-emerald-600"><span>Ôn lại truth table của AND, OR, NOT, XOR (tài liệu Tuần 3).</span></label>
+        <label class="flex gap-3 items-start cursor-pointer hover:bg-slate-50 rounded-lg p-2 -m-1"><input type="checkbox" class="mt-0.5 w-4 h-4 accent-emerald-600"><span>Đọc lướt định nghĩa 5 khối: MUX, Decoder, Encoder, Adder, Comparator (mục Core Concepts bên dưới).</span></label>
+        <label class="flex gap-3 items-start cursor-pointer hover:bg-slate-50 rounded-lg p-2 -m-1"><input type="checkbox" class="mt-0.5 w-4 h-4 accent-emerald-600"><span>Tự cộng tay hai số nhị phân 1 bit: 0+0, 0+1, 1+0, 1+1 — ghi lại kết quả và số "nhớ" (carry).</span></label>
+        <label class="flex gap-3 items-start cursor-pointer hover:bg-slate-50 rounded-lg p-2 -m-1"><input type="checkbox" class="mt-0.5 w-4 h-4 accent-emerald-600"><span>Tìm 1 tình huống "chọn 1 trong nhiều nguồn" trong đời sống (ví dụ: remote TV chọn HDMI1/HDMI2/AV).</span></label>
+        <label class="flex gap-3 items-start cursor-pointer hover:bg-slate-50 rounded-lg p-2 -m-1"><input type="checkbox" class="mt-0.5 w-4 h-4 accent-emerald-600"><span>Chuẩn bị ít nhất 1 câu hỏi để mang vào breakout room.</span></label>
+      </div>
+    </div>
+    <div class="space-y-4">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+        <h3 class="font-bold text-slate-800 mb-3"><i class="fa-solid fa-fire text-secondary mr-1.5"></i>3 câu hỏi khởi động</h3>
+        <ol class="list-decimal ml-5 space-y-2 text-sm">
+          <li>Nếu output của một mạch <em>chỉ</em> phụ thuộc input tại thời điểm hiện tại, mạch đó có cần "nhớ" điều gì không? Điều đó nói lên gì về cấu trúc bên trong?</li>
+          <li>Remote TV cho phép chọn 1 trong 4 nguồn tín hiệu vào màn hình. Nếu xem màn hình là output, 4 nguồn là input — bạn cần thêm tín hiệu gì để "chọn"? Cần mấy bit?</li>
+          <li>Cộng 1 + 1 trong hệ nhị phân: kết quả viết bằng 1 bit có đủ không? Vì sao?</li>
+        </ol>
+      </div>
+      <div class="bg-amber-50 rounded-2xl border border-amber-200 p-6">
+        <h3 class="font-bold text-amber-800 mb-2"><i class="fa-solid fa-stopwatch mr-1.5"></i>Nhiệm vụ nhỏ (5–10 phút)</h3>
+        <p class="text-sm leading-relaxed text-amber-900">Chọn 1 thiết bị quanh bạn có hành vi "chọn kênh" hoặc "giải mã" (TV, loa bluetooth, bàn phím số thang máy). Ghi ra giấy theo mẫu: <strong>Thiết bị → Input (những gì đi vào) → Output (những gì đi ra) → Function (quy tắc biến input thành output)</strong>. Mang theo tờ ghi chú này — chúng ta sẽ dùng nó làm "block card" đầu tiên trong breakout room.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 04. CORE CONCEPTS ============ -->
+<section id="core-concepts">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center text-lg"><i class="fa-solid fa-cubes"></i></div>
+    <div><p class="text-[11px] font-bold text-primary uppercase tracking-widest">Section 04</p><h2 class="text-2xl font-bold text-slate-900">Core Concepts — Khái niệm cốt lõi</h2></div>
+  </div>
+
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-5">
+    <h3 class="text-lg font-bold text-slate-900 mb-4"><i class="fa-solid fa-circle-nodes text-primary mr-2"></i>Mạch tổ hợp (Combinational Logic) là gì?</h3>
+    <div class="grid md:grid-cols-2 gap-x-6 gap-y-4 text-sm leading-relaxed">
+      <div><p class="font-bold text-primary mb-1"><i class="fa-solid fa-1 mr-1"></i> Định nghĩa dễ hiểu</p><p>Mạch tổ hợp là mạch mà <strong>output tại mỗi thời điểm chỉ phụ thuộc vào tổ hợp giá trị input tại thời điểm đó</strong>. Cùng một bộ input, luôn cho cùng một output — mạch không "nhớ" chuyện gì đã xảy ra trước đó.</p></div>
+      <div><p class="font-bold text-primary mb-1"><i class="fa-solid fa-2 mr-1"></i> Bản chất kỹ thuật</p><p>Bên trong chỉ gồm các cổng logic nối tiếp/song song, <strong>không có phần tử nhớ</strong> (không Flip-Flop, không latch) và <strong>không có vòng hồi tiếp</strong> (feedback). Output là một hàm Boolean thuần túy của input: <code class="bg-slate-100 px-1 rounded">Y = f(A, B, C, ...)</code>. Lưu ý: output đổi <em>sau một khoảng trễ lan truyền</em> (propagation delay), không phải "ngay lập tức".</p></div>
+      <div><p class="font-bold text-primary mb-1"><i class="fa-solid fa-3 mr-1"></i> Ví dụ đời sống</p><p>Máy tính bỏ túi kiểu cũ: bấm 3 + 5 thì hiện 8, bấm lại 3 + 5 vẫn hiện 8 — kết quả chỉ phụ thuộc phép tính hiện tại. Ngược lại, <em>công tơ điện</em> phải nhớ chỉ số cũ để cộng dồn → đó là hành vi tuần tự (tuần 5).</p></div>
+      <div><p class="font-bold text-primary mb-1"><i class="fa-solid fa-4 mr-1"></i> Trong IC / FPGA / ASIC</p><p>ALU của CPU, mạng giải mã địa chỉ (address decoder) chọn thanh RAM, khối tính toán giữa hai tầng thanh ghi trong pipeline. Trên FPGA, mạch tổ hợp được ánh xạ vào các <strong>LUT (Look-Up Table)</strong>; trên ASIC là các standard cell AND/OR/INV...</p></div>
+    </div>
+    <div class="mt-4 bg-red-50 border border-red-200 rounded-xl p-4 text-sm"><p class="font-bold text-red-700 mb-1"><i class="fa-solid fa-triangle-exclamation mr-1.5"></i>Lỗi hiểu sai phổ biến</p><p class="text-red-900">"Mạch tổ hợp chỉ là <em>nhiều cổng nối lung tung với nhau</em>." — Sai. Mạch tổ hợp là một <strong>khối chức năng có đặc tả rõ ràng</strong>: I/O xác định, hành vi xác định bằng truth table hoặc biểu thức. Một đống cổng không có đặc tả thì không phải là thiết kế.</p></div>
+  </div>
+
+  <div class="bg-gradient-to-r from-blue-600 to-emerald-500 rounded-2xl shadow-md p-6 text-white mb-5">
+    <h3 class="text-lg font-bold mb-2"><i class="fa-solid fa-lightbulb mr-2"></i>Tư duy then chốt: "Think in blocks, not in gates"</h3>
+    <p class="text-sm leading-relaxed text-blue-50 mb-3">Một bộ cộng 32 bit chứa hàng trăm cổng — không ai nhớ nổi từng cổng, và cũng <em>không cần</em>. Kỹ sư mô tả mỗi khối bằng đúng 3 thứ, gọi là <strong>Block Card</strong>:</p>
+    <div class="grid sm:grid-cols-3 gap-3 text-sm">
+      <div class="bg-white/15 rounded-xl p-3 border border-white/20"><p class="font-bold mb-1"><i class="fa-solid fa-right-to-bracket mr-1"></i>INPUT</p><p class="text-blue-50">Những tín hiệu nào đi vào? Mỗi tín hiệu rộng mấy bit?</p></div>
+      <div class="bg-white/15 rounded-xl p-3 border border-white/20"><p class="font-bold mb-1"><i class="fa-solid fa-right-from-bracket mr-1"></i>OUTPUT</p><p class="text-blue-50">Những tín hiệu nào đi ra? Ý nghĩa từng bit là gì?</p></div>
+      <div class="bg-white/15 rounded-xl p-3 border border-white/20"><p class="font-bold mb-1"><i class="fa-solid fa-gears mr-1"></i>FUNCTION</p><p class="text-blue-50">Quy tắc biến input thành output (truth table, biểu thức, hoặc 1 câu mô tả).</p></div>
+    </div>
+    <p class="text-xs text-blue-100 mt-3"><i class="fa-solid fa-circle-info mr-1"></i>Khi synthesis, công cụ EDA sẽ tự chuyển mô tả chức năng thành lưới cổng tối ưu — việc của bạn là mô tả <em>đúng hành vi</em>.</p>
+  </div>
+  <h3 class="text-lg font-bold text-slate-900 mb-4"><i class="fa-solid fa-boxes-stacked text-primary mr-2"></i>5 khối tổ hợp cơ bản — mỗi khối là một Block Card</h3>
+  <div class="grid lg:grid-cols-2 gap-4">
+
+    <div class="bg-white rounded-2xl shadow-sm border-t-4 border-primary border border-slate-200 p-5">
+      <h4 class="font-bold text-slate-900 text-base mb-1"><i class="fa-solid fa-shuffle text-primary mr-1.5"></i>MUX — Multiplexer (Bộ chọn kênh)</h4>
+      <p class="text-sm mb-3"><strong>Định nghĩa dễ hiểu:</strong> chọn đúng <em>một</em> trong nhiều đường dữ liệu vào để đưa ra output, dựa trên tín hiệu chọn <code class="bg-slate-100 px-1 rounded">sel</code>.</p>
+      <div class="grid grid-cols-3 gap-2 text-xs mb-3">
+        <div class="bg-blue-50 rounded-lg p-2.5"><p class="font-bold text-primary mb-0.5">INPUT</p><p>2ⁿ đường dữ liệu + n bit select</p></div>
+        <div class="bg-blue-50 rounded-lg p-2.5"><p class="font-bold text-primary mb-0.5">OUTPUT</p><p>1 đường dữ liệu Y</p></div>
+        <div class="bg-blue-50 rounded-lg p-2.5"><p class="font-bold text-primary mb-0.5">FUNCTION</p><p>Y = đường vào có chỉ số bằng giá trị sel</p></div>
+      </div>
+      <ul class="text-sm space-y-1.5">
+        <li><i class="fa-solid fa-mug-hot text-secondary mr-1.5"></i><strong>Đời sống:</strong> nút chọn nguồn HDMI1/HDMI2/AV của TV — nhiều nguồn, một màn hình.</li>
+        <li><i class="fa-solid fa-microchip text-primary mr-1.5"></i><strong>Trong IC:</strong> chọn toán hạng cho ALU, chọn dữ liệu ghi vào thanh ghi, tạo nên chính LUT của FPGA.</li>
+        <li><i class="fa-solid fa-triangle-exclamation text-danger mr-1.5"></i><strong>Hay hiểu sai:</strong> MUX 4-to-1 cần <em>2 bit</em> select (2² = 4), không phải 4 bit.</li>
+      </ul>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-sm border-t-4 border-accent border border-slate-200 p-5">
+      <h4 class="font-bold text-slate-900 text-base mb-1"><i class="fa-solid fa-arrows-split-up-and-left text-accent mr-1.5"></i>Decoder — Bộ giải mã</h4>
+      <p class="text-sm mb-3"><strong>Định nghĩa dễ hiểu:</strong> nhận một mã nhị phân n bit, "bật" đúng <em>một</em> trong 2ⁿ đường ra tương ứng — kiểu output này gọi là <strong>one-hot</strong> (chỉ một đường nóng).</p>
+      <div class="grid grid-cols-3 gap-2 text-xs mb-3">
+        <div class="bg-emerald-50 rounded-lg p-2.5"><p class="font-bold text-emerald-700 mb-0.5">INPUT</p><p>n bit mã + enable (tùy chọn)</p></div>
+        <div class="bg-emerald-50 rounded-lg p-2.5"><p class="font-bold text-emerald-700 mb-0.5">OUTPUT</p><p>2ⁿ đường, đúng 1 đường = 1</p></div>
+        <div class="bg-emerald-50 rounded-lg p-2.5"><p class="font-bold text-emerald-700 mb-0.5">FUNCTION</p><p>Y[k] = 1 khi k = giá trị input (và en = 1)</p></div>
+      </div>
+      <ul class="text-sm space-y-1.5">
+        <li><i class="fa-solid fa-mug-hot text-secondary mr-1.5"></i><strong>Đời sống:</strong> bấm tầng 3 trong thang máy → chỉ đèn nút "3" sáng, các nút khác tắt.</li>
+        <li><i class="fa-solid fa-microchip text-primary mr-1.5"></i><strong>Trong IC:</strong> giải mã địa chỉ chọn ô nhớ RAM, giải mã lệnh (instruction decode) trong CPU, decoder LED 7 đoạn (tuần 10).</li>
+        <li><i class="fa-solid fa-triangle-exclamation text-danger mr-1.5"></i><strong>Hay hiểu sai:</strong> nhầm decoder với MUX. Decoder <em>không chọn dữ liệu</em> — nó biến mã số thành vị trí (one-hot).</li>
+      </ul>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-sm border-t-4 border-secondary border border-slate-200 p-5">
+      <h4 class="font-bold text-slate-900 text-base mb-1"><i class="fa-solid fa-compress text-secondary mr-1.5"></i>Encoder — Bộ mã hóa</h4>
+      <p class="text-sm mb-3"><strong>Định nghĩa dễ hiểu:</strong> ngược với decoder — nhìn xem đường vào nào đang tích cực, rồi xuất ra <em>mã nhị phân</em> của vị trí đó. Nén 2ⁿ đường thành n bit.</p>
+      <div class="grid grid-cols-3 gap-2 text-xs mb-3">
+        <div class="bg-amber-50 rounded-lg p-2.5"><p class="font-bold text-amber-700 mb-0.5">INPUT</p><p>2ⁿ đường (thường one-hot)</p></div>
+        <div class="bg-amber-50 rounded-lg p-2.5"><p class="font-bold text-amber-700 mb-0.5">OUTPUT</p><p>n bit mã nhị phân</p></div>
+        <div class="bg-amber-50 rounded-lg p-2.5"><p class="font-bold text-amber-700 mb-0.5">FUNCTION</p><p>Xuất chỉ số của đường vào đang = 1</p></div>
+      </div>
+      <ul class="text-sm space-y-1.5">
+        <li><i class="fa-solid fa-mug-hot text-secondary mr-1.5"></i><strong>Đời sống:</strong> bàn phím: nhấn phím "7" → mạch xuất mã nhị phân 0111 của phím đó.</li>
+        <li><i class="fa-solid fa-microchip text-primary mr-1.5"></i><strong>Trong IC:</strong> <em>priority encoder</em> trong bộ xử lý ngắt (interrupt controller): nhiều ngắt cùng lúc, xuất mã của ngắt ưu tiên cao nhất.</li>
+        <li><i class="fa-solid fa-triangle-exclamation text-danger mr-1.5"></i><strong>Hay hiểu sai:</strong> nếu 2 input cùng = 1, encoder thường cần <em>quy tắc ưu tiên</em> — không thể "mã hóa cả hai".</li>
+      </ul>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-sm border-t-4 border-indigo-500 border border-slate-200 p-5">
+      <h4 class="font-bold text-slate-900 text-base mb-1"><i class="fa-solid fa-plus-minus text-indigo-500 mr-1.5"></i>Adder — Bộ cộng (Half / Full)</h4>
+      <p class="text-sm mb-3"><strong>Định nghĩa dễ hiểu:</strong> cộng số nhị phân. <strong>Half adder</strong> cộng 2 bit (A + B), <strong>Full adder</strong> cộng 3 bit (A + B + carry-in) — nhờ đó ghép chuỗi được thành bộ cộng nhiều bit.</p>
+      <div class="grid grid-cols-3 gap-2 text-xs mb-3">
+        <div class="bg-indigo-50 rounded-lg p-2.5"><p class="font-bold text-indigo-700 mb-0.5">INPUT</p><p>Half: A, B — Full: A, B, Cin</p></div>
+        <div class="bg-indigo-50 rounded-lg p-2.5"><p class="font-bold text-indigo-700 mb-0.5">OUTPUT</p><p>Sum và Carry-out</p></div>
+        <div class="bg-indigo-50 rounded-lg p-2.5"><p class="font-bold text-indigo-700 mb-0.5">FUNCTION</p><p>Sum = A ⊕ B ⊕ Cin; Cout = "có nhớ"</p></div>
+      </div>
+      <ul class="text-sm space-y-1.5">
+        <li><i class="fa-solid fa-mug-hot text-secondary mr-1.5"></i><strong>Đời sống:</strong> cộng tay có "nhớ 1" sang cột kế — carry chính là số nhớ đó.</li>
+        <li><i class="fa-solid fa-microchip text-primary mr-1.5"></i><strong>Trong IC:</strong> trái tim của ALU; bộ tăng địa chỉ PC = PC + 4; ghép 4 full adder → bộ cộng 4 bit (ripple-carry).</li>
+        <li><i class="fa-solid fa-triangle-exclamation text-danger mr-1.5"></i><strong>Hay hiểu sai:</strong> 1 + 1 = "2"? Không — trong nhị phân 1 + 1 = 10₂: Sum = 0, Carry = 1. Cộng n bit có thể cần n+1 bit kết quả.</li>
+      </ul>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-sm border-t-4 border-rose-400 border border-slate-200 p-5 lg:col-span-2">
+      <div class="grid lg:grid-cols-2 gap-5 items-start">
+        <div>
+          <h4 class="font-bold text-slate-900 text-base mb-1"><i class="fa-solid fa-scale-balanced text-rose-500 mr-1.5"></i>Comparator — Bộ so sánh</h4>
+          <p class="text-sm mb-3"><strong>Định nghĩa dễ hiểu:</strong> so sánh hai số A và B, cho biết A bằng, lớn hơn hay nhỏ hơn B — thường bằng 3 output riêng biệt.</p>
+          <div class="grid grid-cols-3 gap-2 text-xs mb-3">
+            <div class="bg-rose-50 rounded-lg p-2.5"><p class="font-bold text-rose-700 mb-0.5">INPUT</p><p>Hai số A, B (n bit mỗi số)</p></div>
+            <div class="bg-rose-50 rounded-lg p-2.5"><p class="font-bold text-rose-700 mb-0.5">OUTPUT</p><p>eq (A = B), gt (A &gt; B), lt (A &lt; B)</p></div>
+            <div class="bg-rose-50 rounded-lg p-2.5"><p class="font-bold text-rose-700 mb-0.5">FUNCTION</p><p>Đúng 1 trong 3 output = 1</p></div>
+          </div>
+        </div>
+        <ul class="text-sm space-y-1.5 lg:pt-8">
+          <li><i class="fa-solid fa-mug-hot text-secondary mr-1.5"></i><strong>Đời sống:</strong> điều hòa so sánh nhiệt độ phòng với nhiệt độ cài đặt để quyết định bật/tắt máy nén.</li>
+          <li><i class="fa-solid fa-microchip text-primary mr-1.5"></i><strong>Trong IC:</strong> lệnh rẽ nhánh của CPU (if a == b), phát hiện counter chạm ngưỡng (tuần 9: hết thời gian đèn xanh), bảo vệ quá nhiệt.</li>
+          <li><i class="fa-solid fa-triangle-exclamation text-danger mr-1.5"></i><strong>Hay hiểu sai:</strong> so sánh bằng (eq) chỉ là XNOR từng bit rồi AND lại — không cần "trừ hai số" như nhiều bạn nghĩ.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 05. SYSTEM VIEW ============ -->
+<section id="system-view">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center text-lg"><i class="fa-solid fa-sitemap"></i></div>
+    <div><p class="text-[11px] font-bold text-primary uppercase tracking-widest">Section 05</p><h2 class="text-2xl font-bold text-slate-900">System View — Khối tổ hợp nằm ở đâu trong hệ thống?</h2></div>
+  </div>
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-4">
+    <p class="text-sm leading-relaxed mb-4">Trong một hệ thống số thực tế, khối tổ hợp hiếm khi đứng một mình. Nó thường nằm <strong>giữa các tầng thanh ghi</strong>: thanh ghi giữ dữ liệu ổn định, khối tổ hợp tính toán, kết quả lại được chốt vào thanh ghi ở cạnh clock kế tiếp. (Thanh ghi và clock là nội dung tuần 5 — hôm nay bạn chỉ cần thấy "vị trí" của mạch tổ hợp.)</p>
+    <div class="flex flex-wrap items-center justify-center gap-2 sm:gap-3 text-center text-xs font-semibold mb-2">
+      <div class="bg-slate-100 border-2 border-slate-300 rounded-xl px-4 py-3 w-32"><i class="fa-solid fa-database text-slate-500 block mb-1"></i>Thanh ghi nguồn<br><span class="text-slate-400 font-normal">(tuần 5)</span></div>
+      <i class="fa-solid fa-arrow-right text-slate-400"></i>
+      <div class="bg-blue-50 border-2 border-primary rounded-xl px-4 py-3 w-40 shadow-md"><i class="fa-solid fa-cubes text-primary block mb-1"></i>KHỐI TỔ HỢP<br><span class="text-primary font-normal">MUX / Adder / Decoder...</span></div>
+      <i class="fa-solid fa-arrow-right text-slate-400"></i>
+      <div class="bg-slate-100 border-2 border-slate-300 rounded-xl px-4 py-3 w-32"><i class="fa-solid fa-database text-slate-500 block mb-1"></i>Thanh ghi đích<br><span class="text-slate-400 font-normal">(tuần 5)</span></div>
+    </div>
+    <p class="text-xs text-center text-slate-400">Dữ liệu chảy qua "đám mây tổ hợp" giữa hai tầng nhớ — mô hình nền tảng của mọi datapath RTL.</p>
+  </div>
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+    <div class="overflow-x-auto">
+    <table class="w-full text-sm min-w-[640px]">
+      <thead class="bg-slate-800 text-white text-left"><tr><th class="px-4 py-3 font-semibold w-44">Câu hỏi hệ thống</th><th class="px-4 py-3 font-semibold">Trả lời cho khối tổ hợp (MUX / Decoder / Encoder / Adder / Comparator)</th></tr></thead>
+      <tbody class="divide-y divide-slate-100">
+        <tr><td class="px-4 py-2.5 font-semibold text-slate-800">Input</td><td class="px-4 py-2.5">Các bus dữ liệu (1–n bit) + tín hiệu điều khiển (sel, en). Phải liệt kê đủ trong đặc tả trước khi viết code.</td></tr>
+        <tr class="bg-slate-50"><td class="px-4 py-2.5 font-semibold text-slate-800">Output</td><td class="px-4 py-2.5">Hàm thuần túy của input hiện tại; ổn định sau propagation delay.</td></tr>
+        <tr><td class="px-4 py-2.5 font-semibold text-slate-800">Combinational hay Sequential?</td><td class="px-4 py-2.5"><span class="font-bold text-primary">Combinational</span> — không có phần tử nhớ bên trong.</td></tr>
+        <tr class="bg-slate-50"><td class="px-4 py-2.5 font-semibold text-slate-800">Cần clock?</td><td class="px-4 py-2.5"><strong>Không.</strong> Bản thân khối không cần clock; nhưng khi đặt trong hệ thống, clock của các thanh ghi xung quanh quy định "hạn chót" để tín hiệu lan truyền xong (critical path — xem mục Timing).</td></tr>
+        <tr><td class="px-4 py-2.5 font-semibold text-slate-800">Cần reset?</td><td class="px-4 py-2.5"><strong>Không.</strong> Không có trạng thái để đưa về giá trị ban đầu. Reset là chuyện của mạch tuần tự (tuần 5).</td></tr>
+        <tr class="bg-slate-50"><td class="px-4 py-2.5 font-semibold text-slate-800">Viết Verilog thế nào?</td><td class="px-4 py-2.5"><code class="bg-slate-100 px-1.5 py-0.5 rounded">assign</code> cho biểu thức ngắn; <code class="bg-slate-100 px-1.5 py-0.5 rounded">always_comb</code> + gán bằng <code class="bg-slate-100 px-1.5 py-0.5 rounded">=</code> (blocking) + <strong>gán mặc định</strong> cho logic có rẽ nhánh (case/if).</td></tr>
+        <tr><td class="px-4 py-2.5 font-semibold text-slate-800">Synthesis ra phần cứng gì?</td><td class="px-4 py-2.5">Lưới cổng logic (ASIC standard cell) hoặc LUT + carry chain (FPGA). Không sinh ra Flip-Flop nào — nếu báo cáo synthesis xuất hiện latch/FF, thiết kế của bạn đang có lỗi mô tả.</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+</section>
+<!-- ============ 06. INTERACTIVE DEMO ============ -->
+<section id="demo">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center text-lg"><i class="fa-solid fa-sliders"></i></div>
+    <div><p class="text-[11px] font-bold text-primary uppercase tracking-widest">Section 06</p><h2 class="text-2xl font-bold text-slate-900">Interactive Demo — Nghịch thử MUX &amp; Decoder</h2></div>
+  </div>
+
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-5">
+    <h3 class="font-bold text-slate-900 text-lg mb-1"><i class="fa-solid fa-shuffle text-primary mr-1.5"></i>Demo 1 — MUX 2-to-1: bộ chọn kênh nhỏ nhất</h3>
+    <p class="text-sm text-slate-500 mb-4">Bấm các nút để đảo giá trị D0, D1 và sel. Quan sát đường dữ liệu nào được "nối" tới output Y (đường xanh đậm).</p>
+    <div class="grid lg:grid-cols-5 gap-5 items-center">
+      <div class="lg:col-span-2 space-y-3">
+        <div class="flex flex-wrap gap-2">
+          <button id="mux-d0-btn" class="sig-btn" onclick="muxToggle('d0')">D0 = 0</button>
+          <button id="mux-d1-btn" class="sig-btn on" onclick="muxToggle('d1')">D1 = 1</button>
+          <button id="mux-sel-btn" class="sig-btn" onclick="muxToggle('sel')">sel = 0</button>
+        </div>
+        <div id="mux-expl" class="text-sm bg-blue-50 border border-blue-200 rounded-xl p-3.5 leading-relaxed"></div>
+        <p class="text-xs text-slate-400"><i class="fa-solid fa-circle-info mr-1"></i>Ghi nhớ: đổi <strong>sel</strong> là đổi "nguồn được nối", còn đổi D0/D1 chỉ ảnh hưởng Y khi đường đó đang được chọn.</p>
+      </div>
+      <div class="lg:col-span-3 bg-slate-50 rounded-xl border border-slate-200 p-2">
+        <svg viewBox="0 0 460 275" xmlns="http://www.w3.org/2000/svg" class="w-full" role="img" aria-label="Sơ đồ MUX 2-to-1">
+          <text x="25" y="66" font-size="13" class="svg-mono" fill="#475569">D0 = <tspan id="mux-svg-d0" font-weight="700" fill="#64748b">0</tspan></text>
+          <line id="mux-line-d0" x1="25" y1="80" x2="180" y2="80" stroke="#10b981" stroke-width="4"/>
+          <text x="190" y="85" font-size="11" fill="#94a3b8" class="svg-mono">0</text>
+          <text x="25" y="156" font-size="13" class="svg-mono" fill="#475569">D1 = <tspan id="mux-svg-d1" font-weight="700" fill="#10b981">1</tspan></text>
+          <line id="mux-line-d1" x1="25" y1="170" x2="180" y2="170" stroke="#cbd5e1" stroke-width="2.5"/>
+          <text x="190" y="175" font-size="11" fill="#94a3b8" class="svg-mono">1</text>
+          <polygon points="180,50 180,200 250,172 250,78" fill="#eff6ff" stroke="#2563eb" stroke-width="2.5"/>
+          <text x="215" y="120" font-size="14" font-weight="700" fill="#2563eb" text-anchor="middle" class="svg-mono">MUX</text>
+          <text x="215" y="138" font-size="11" fill="#60a5fa" text-anchor="middle" class="svg-mono">2 : 1</text>
+          <line id="mux-line-y" x1="250" y1="125" x2="412" y2="125" stroke="#10b981" stroke-width="4"/>
+          <polygon points="412,118 426,125 412,132" fill="#10b981"/>
+          <text x="426" y="110" font-size="13" text-anchor="end" class="svg-mono" fill="#475569">Y = <tspan id="mux-svg-y" font-weight="700" fill="#64748b">0</tspan></text>
+          <line id="mux-line-sel" x1="215" y1="243" x2="215" y2="187" stroke="#f59e0b" stroke-width="3"/>
+          <polygon points="209,192 215,182 221,192" fill="#f59e0b"/>
+          <text x="215" y="262" font-size="13" text-anchor="middle" class="svg-mono" fill="#b45309">sel = <tspan id="mux-svg-sel" font-weight="700">0</tspan></text>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+    <h3 class="font-bold text-slate-900 text-lg mb-1"><i class="fa-solid fa-arrows-split-up-and-left text-accent mr-1.5"></i>Demo 2 — Decoder 2-to-4: mã nhị phân → one-hot LED</h3>
+    <p class="text-sm text-slate-500 mb-4">Gạt 2 "công tắc" địa chỉ A1, A0 (và EN). Đúng một LED sáng — hàng tương ứng trong bảng chân lý được tô xanh.</p>
+    <div class="grid lg:grid-cols-2 gap-6">
+      <div>
+        <div class="flex flex-wrap gap-2 mb-4">
+          <button id="dec-en-btn" class="sig-btn on" onclick="decToggle('en')">EN = 1</button>
+          <button id="dec-a1-btn" class="sig-btn" onclick="decToggle('a1')">A1 = 0</button>
+          <button id="dec-a0-btn" class="sig-btn" onclick="decToggle('a0')">A0 = 0</button>
+        </div>
+        <div class="flex items-center gap-4 mb-4">
+          <div class="bg-emerald-50 border-2 border-accent rounded-xl px-4 py-6 text-center">
+            <i class="fa-solid fa-arrows-split-up-and-left text-accent text-xl block mb-1"></i>
+            <p class="font-bold text-emerald-800 text-sm svg-mono">DECODER</p><p class="text-xs text-emerald-600 svg-mono">2 → 4</p>
+          </div>
+          <div class="space-y-2">
+            <div class="flex items-center gap-3"><div id="dec-led-0" class="led led-on"></div><p class="text-sm svg-mono font-semibold text-slate-700">Y0 = <span id="dec-y-0">1</span></p></div>
+            <div class="flex items-center gap-3"><div id="dec-led-1" class="led"></div><p class="text-sm svg-mono font-semibold text-slate-700">Y1 = <span id="dec-y-1">0</span></p></div>
+            <div class="flex items-center gap-3"><div id="dec-led-2" class="led"></div><p class="text-sm svg-mono font-semibold text-slate-700">Y2 = <span id="dec-y-2">0</span></p></div>
+            <div class="flex items-center gap-3"><div id="dec-led-3" class="led"></div><p class="text-sm svg-mono font-semibold text-slate-700">Y3 = <span id="dec-y-3">0</span></p></div>
+          </div>
+        </div>
+        <div id="dec-expl" class="text-sm bg-emerald-50 border border-emerald-200 rounded-xl p-3.5 leading-relaxed"></div>
+      </div>
+      <div>
+        <p class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Bảng chân lý (truth table)</p>
+        <table class="w-full text-sm text-center border border-slate-200 rounded-xl overflow-hidden">
+          <thead class="bg-slate-800 text-white svg-mono"><tr><th class="py-2 px-2">EN</th><th class="py-2 px-2">A1</th><th class="py-2 px-2">A0</th><th class="py-2 px-2">Y3</th><th class="py-2 px-2">Y2</th><th class="py-2 px-2">Y1</th><th class="py-2 px-2">Y0</th></tr></thead>
+          <tbody class="svg-mono divide-y divide-slate-100">
+            <tr id="dec-row-off"><td class="py-1.5">0</td><td>x</td><td>x</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+            <tr id="dec-row-0" class="row-hi"><td class="py-1.5">1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class="text-emerald-700 font-bold">1</td></tr>
+            <tr id="dec-row-1"><td class="py-1.5">1</td><td>0</td><td>1</td><td>0</td><td>0</td><td class="text-emerald-700 font-bold">1</td><td>0</td></tr>
+            <tr id="dec-row-2"><td class="py-1.5">1</td><td>1</td><td>0</td><td>0</td><td class="text-emerald-700 font-bold">1</td><td>0</td><td>0</td></tr>
+            <tr id="dec-row-3"><td class="py-1.5">1</td><td>1</td><td>1</td><td class="text-emerald-700 font-bold">1</td><td>0</td><td>0</td><td>0</td></tr>
+          </tbody>
+        </table>
+        <p class="text-xs text-slate-400 mt-2"><i class="fa-solid fa-circle-info mr-1"></i>"x" = don't care (giá trị nào cũng được). Chú ý tính chất <strong>one-hot</strong>: mỗi hàng chỉ có đúng một số 1 ở nhóm Y.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 07. ENGINEERING WORKFLOW ============ -->
+<section id="workflow">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center text-lg"><i class="fa-solid fa-route"></i></div>
+    <div><p class="text-[11px] font-bold text-primary uppercase tracking-widest">Section 07</p><h2 class="text-2xl font-bold text-slate-900">Engineering Workflow — Từ yêu cầu đến khối tổ hợp</h2></div>
+  </div>
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+    <p class="text-sm leading-relaxed mb-5">Bài toán xuyên suốt: <strong class="text-slate-900">"Hệ thống đọc 2 cảm biến nhiệt độ; người dùng chọn cảm biến nào để hiển thị; nếu giá trị được chọn vượt ngưỡng thì bật báo động."</strong> Quy trình chuẩn của kỹ sư — chú ý code chỉ xuất hiện ở bước 5:</p>
+    <ol class="space-y-4">
+      <li class="flex gap-4"><span class="step-dot bg-blue-100 text-primary">1</span><div><p class="font-bold text-slate-900 text-sm">Requirement — Hiểu yêu cầu</p><p class="text-sm">Chức năng: chọn 1 trong 2 nguồn dữ liệu + so sánh với ngưỡng. Chưa nói gì đến cổng hay code.</p></div></li>
+      <li class="flex gap-4"><span class="step-dot bg-blue-100 text-primary">2</span><div><p class="font-bold text-slate-900 text-sm">Xác định I/O</p><p class="text-sm">Input: <code class="bg-slate-100 px-1 rounded svg-mono">t0[7:0]</code>, <code class="bg-slate-100 px-1 rounded svg-mono">t1[7:0]</code>, <code class="bg-slate-100 px-1 rounded svg-mono">sel</code>, <code class="bg-slate-100 px-1 rounded svg-mono">limit[7:0]</code> — Output: <code class="bg-slate-100 px-1 rounded svg-mono">value[7:0]</code>, <code class="bg-slate-100 px-1 rounded svg-mono">alarm</code>.</p></div></li>
+      <li class="flex gap-4"><span class="step-dot bg-blue-100 text-primary">3</span><div><p class="font-bold text-slate-900 text-sm">Block diagram — Sơ đồ khối</p><p class="text-sm">t0, t1 → <strong>MUX 2-to-1 (8 bit)</strong> → value → <strong>Comparator</strong> (so với limit) → alarm. Hai block card ghép lại — đây chính là "think in blocks".</p></div></li>
+      <li class="flex gap-4"><span class="step-dot bg-blue-100 text-primary">4</span><div><p class="font-bold text-slate-900 text-sm">Truth table / quy tắc hoạt động</p><p class="text-sm">sel = 0 → value = t0; sel = 1 → value = t1; alarm = 1 khi value &gt; limit. Viết rõ trước khi code để có gì đối chiếu khi mô phỏng.</p></div></li>
+      <li class="flex gap-4"><span class="step-dot bg-emerald-100 text-emerald-700">5</span><div><p class="font-bold text-slate-900 text-sm">RTL — Viết SystemVerilog</p><p class="text-sm">Mỗi khối một mô tả ngắn gọn bằng <code class="bg-slate-100 px-1 rounded">assign</code> / <code class="bg-slate-100 px-1 rounded">always_comb</code> (xem Section 08).</p></div></li>
+      <li class="flex gap-4"><span class="step-dot bg-emerald-100 text-emerald-700">6</span><div><p class="font-bold text-slate-900 text-sm">Testbench — Kiểm thử</p><p class="text-sm">Quét các tổ hợp tiêu biểu: sel = 0/1, giá trị dưới/bằng/trên ngưỡng. Mạch tổ hợp nhỏ có thể quét <em>toàn bộ</em> tổ hợp input.</p></div></li>
+      <li class="flex gap-4"><span class="step-dot bg-emerald-100 text-emerald-700">7</span><div><p class="font-bold text-slate-900 text-sm">Simulate waveform — Đọc dạng sóng</p><p class="text-sm">Đối chiếu waveform với truth table ở bước 4; để ý output đổi sau input một khoảng trễ nhỏ (propagation delay).</p></div></li>
+      <li class="flex gap-4"><span class="step-dot bg-amber-100 text-amber-700">8</span><div><p class="font-bold text-slate-900 text-sm">Synthesize → FPGA / ASIC flow</p><p class="text-sm">Tool ánh xạ mô tả vào LUT (FPGA) hoặc standard cell (ASIC), báo cáo diện tích và timing. Kiểm tra: <strong>0 latch, 0 flip-flop</strong> cho thiết kế thuần tổ hợp.</p></div></li>
+    </ol>
+  </div>
+</section>
+<!-- ============ 08. CODE / RTL ============ -->
+<section id="code-rtl">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center text-lg"><i class="fa-solid fa-code"></i></div>
+    <div><p class="text-[11px] font-bold text-primary uppercase tracking-widest">Section 08</p><h2 class="text-2xl font-bold text-slate-900">Code / RTL — Mô tả khối tổ hợp bằng SystemVerilog</h2></div>
+  </div>
+  <div class="bg-blue-50 border border-blue-200 rounded-2xl p-5 mb-5 text-sm leading-relaxed">
+    <p class="font-bold text-primary mb-1"><i class="fa-solid fa-compass mr-1.5"></i>Quy ước cho mạch tổ hợp (sẽ dùng suốt khóa)</p>
+    <p>Dùng kiểu <code class="bg-white px-1.5 py-0.5 rounded border border-blue-200">logic</code>; biểu thức ngắn → <code class="bg-white px-1.5 py-0.5 rounded border border-blue-200">assign</code>; logic có rẽ nhánh (if/case) → <code class="bg-white px-1.5 py-0.5 rounded border border-blue-200">always_comb</code> với phép gán blocking <code class="bg-white px-1.5 py-0.5 rounded border border-blue-200">=</code> và <strong>luôn gán mặc định ở đầu khối</strong>. Toán tử gán non-blocking <code class="bg-white px-1.5 py-0.5 rounded border border-blue-200">&lt;=</code> để dành cho mạch tuần tự (tuần 5). Xem code xong, hãy tự hỏi: <em>"dòng này sinh ra phần cứng gì?"</em></p>
+  </div>
+
+  <div class="code-window bg-dark rounded-2xl shadow-md overflow-hidden mb-5">
+    <div class="flex items-center justify-between px-4 py-2.5 bg-slate-800/80 border-b border-slate-700">
+      <p class="text-xs font-semibold text-slate-300 svg-mono"><i class="fa-solid fa-file-code mr-1.5 text-emerald-400"></i>mux2.sv — phiên bản 1: assign</p>
+      <button class="copy-btn text-xs font-semibold text-slate-300 border border-slate-600 rounded-lg px-2.5 py-1 hover:bg-slate-700" onclick="copyCode(this)"><i class="fa-regular fa-copy mr-1"></i>Copy</button>
+    </div>
+    <pre><code><span class="cm">// mux2.sv — Bo chon kenh 2-to-1 (MUX), mo ta bang gan lien tuc</span>
+<span class="kw">module</span> <span class="fn">mux2</span> (
+  <span class="kw">input</span>  <span class="ty">logic</span> d0,   <span class="cm">// du lieu kenh 0</span>
+  <span class="kw">input</span>  <span class="ty">logic</span> d1,   <span class="cm">// du lieu kenh 1</span>
+  <span class="kw">input</span>  <span class="ty">logic</span> sel,  <span class="cm">// tin hieu chon kenh</span>
+  <span class="kw">output</span> <span class="ty">logic</span> y    <span class="cm">// ngo ra</span>
+);
+  <span class="cm">// sel = 0 chon d0, sel = 1 chon d1 — dung nhu demo o tren</span>
+  <span class="kw">assign</span> y = sel ? d1 : d0;
+<span class="kw">endmodule</span></code></pre>
+    <div class="px-4 py-3 bg-slate-800/50 border-t border-slate-700 text-xs text-slate-300"><i class="fa-solid fa-microchip text-emerald-400 mr-1.5"></i><strong>Sinh ra phần cứng gì?</strong> Đúng một bộ MUX 2-to-1 (trên FPGA: 1 LUT 3 đầu vào). <code>assign</code> = nối dây liên tục: y bám theo input mọi lúc, không có bộ nhớ.</div>
+  </div>
+
+  <div class="code-window bg-dark rounded-2xl shadow-md overflow-hidden mb-5">
+    <div class="flex items-center justify-between px-4 py-2.5 bg-slate-800/80 border-b border-slate-700">
+      <p class="text-xs font-semibold text-slate-300 svg-mono"><i class="fa-solid fa-file-code mr-1.5 text-emerald-400"></i>mux2_comb.sv — phiên bản 2: always_comb (cùng một phần cứng)</p>
+      <button class="copy-btn text-xs font-semibold text-slate-300 border border-slate-600 rounded-lg px-2.5 py-1 hover:bg-slate-700" onclick="copyCode(this)"><i class="fa-regular fa-copy mr-1"></i>Copy</button>
+    </div>
+    <pre><code><span class="cm">// mux2_comb.sv — van la MUX 2-to-1, mo ta hanh vi bang always_comb</span>
+<span class="kw">module</span> <span class="fn">mux2_comb</span> (
+  <span class="kw">input</span>  <span class="ty">logic</span> d0, d1, sel,
+  <span class="kw">output</span> <span class="ty">logic</span> y
+);
+  <span class="kw">always_comb</span> <span class="kw">begin</span>
+    y = d0;               <span class="cm">// GAN MAC DINH: y luon co gia tri trong moi nhanh</span>
+    <span class="kw">if</span> (sel) y = d1;      <span class="cm">// ghi de khi sel = 1 (gan blocking '=')</span>
+  <span class="kw">end</span>
+<span class="kw">endmodule</span></code></pre>
+    <div class="px-4 py-3 bg-slate-800/50 border-t border-slate-700 text-xs text-slate-300"><i class="fa-solid fa-microchip text-emerald-400 mr-1.5"></i><strong>Sinh ra phần cứng gì?</strong> Vẫn là MUX 2-to-1 y hệt phiên bản assign. <code>always_comb</code> chỉ là cách <em>mô tả hành vi</em> — nhờ gán mặc định, mọi nhánh đều xác định y nên tool không phải "nhớ giá trị cũ" (không sinh latch).</div>
+  </div>
+
+  <div class="code-window bg-dark rounded-2xl shadow-md overflow-hidden mb-3">
+    <div class="flex items-center justify-between px-4 py-2.5 bg-slate-800/80 border-b border-slate-700">
+      <p class="text-xs font-semibold text-slate-300 svg-mono"><i class="fa-solid fa-file-code mr-1.5 text-emerald-400"></i>decoder2to4.sv — decoder có enable, chống latch bằng gán mặc định</p>
+      <button class="copy-btn text-xs font-semibold text-slate-300 border border-slate-600 rounded-lg px-2.5 py-1 hover:bg-slate-700" onclick="copyCode(this)"><i class="fa-regular fa-copy mr-1"></i>Copy</button>
+    </div>
+    <pre><code><span class="cm">// decoder2to4.sv — Bo giai ma 2-to-4, ngo ra one-hot</span>
+<span class="kw">module</span> <span class="fn">decoder2to4</span> (
+  <span class="kw">input</span>  <span class="ty">logic</span> [1:0] a,    <span class="cm">// 2 bit ma dia chi</span>
+  <span class="kw">input</span>  <span class="ty">logic</span>       en,   <span class="cm">// enable: cho phep hoat dong</span>
+  <span class="kw">output</span> <span class="ty">logic</span> [3:0] y     <span class="cm">// 4 ngo ra, dung 1 ngo = 1</span>
+);
+  <span class="kw">always_comb</span> <span class="kw">begin</span>
+    y = <span class="nb">4'b0000</span>;            <span class="cm">// (!) GAN MAC DINH — thieu dong nay la sinh latch</span>
+    <span class="kw">if</span> (en) <span class="kw">begin</span>
+      <span class="kw">case</span> (a)
+        <span class="nb">2'b00</span>: y = <span class="nb">4'b0001</span>;  <span class="cm">// a = 0 → Y0 sang</span>
+        <span class="nb">2'b01</span>: y = <span class="nb">4'b0010</span>;  <span class="cm">// a = 1 → Y1 sang</span>
+        <span class="nb">2'b10</span>: y = <span class="nb">4'b0100</span>;  <span class="cm">// a = 2 → Y2 sang</span>
+        <span class="nb">2'b11</span>: y = <span class="nb">4'b1000</span>;  <span class="cm">// a = 3 → Y3 sang</span>
+      <span class="kw">endcase</span>
+    <span class="kw">end</span>
+  <span class="kw">end</span>
+<span class="kw">endmodule</span></code></pre>
+    <div class="px-4 py-3 bg-slate-800/50 border-t border-slate-700 text-xs text-slate-300"><i class="fa-solid fa-microchip text-emerald-400 mr-1.5"></i><strong>Sinh ra phần cứng gì?</strong> Một lưới AND/NOT nhỏ, 4 output one-hot — thuần tổ hợp, 0 phần tử nhớ.</div>
+  </div>
+  <div class="bg-red-50 border-l-4 border-danger rounded-r-xl p-4 mb-5 text-sm">
+    <p class="font-bold text-red-700 mb-1"><i class="fa-solid fa-bug mr-1.5"></i>Cảnh báo latch — lỗi kinh điển nhất của người mới</p>
+    <p class="text-red-900 leading-relaxed">Nếu xóa dòng <code class="bg-white px-1 rounded border border-red-200">y = 4'b0000;</code> và bỏ nhánh <code class="bg-white px-1 rounded border border-red-200">if (en)</code> không có else: khi en = 0, không nhánh nào gán y → tool hiểu là <em>"y phải giữ giá trị cũ"</em> → tự chèn <strong>latch (phần tử nhớ ngoài ý muốn)</strong>. Mạch của bạn không còn là tổ hợp nữa, timing khó phân tích, dễ sinh bug ngẫu nhiên. Quy tắc vàng: <strong>trong always_comb, mọi output phải được gán trong mọi nhánh — dễ nhất là gán mặc định ngay dòng đầu.</strong></p>
+  </div>
+
+  <div class="code-window bg-dark rounded-2xl shadow-md overflow-hidden mb-2">
+    <div class="flex items-center justify-between px-4 py-2.5 bg-slate-800/80 border-b border-slate-700">
+      <p class="text-xs font-semibold text-slate-300 svg-mono"><i class="fa-solid fa-file-code mr-1.5 text-emerald-400"></i>adder4.sv — ghép khối: 4 × full_adder → bộ cộng 4 bit</p>
+      <button class="copy-btn text-xs font-semibold text-slate-300 border border-slate-600 rounded-lg px-2.5 py-1 hover:bg-slate-700" onclick="copyCode(this)"><i class="fa-regular fa-copy mr-1"></i>Copy</button>
+    </div>
+    <pre><code><span class="cm">// full_adder.sv — bo cong day du 1 bit (khoi co so)</span>
+<span class="kw">module</span> <span class="fn">full_adder</span> (
+  <span class="kw">input</span>  <span class="ty">logic</span> a, b, cin,
+  <span class="kw">output</span> <span class="ty">logic</span> sum, cout
+);
+  <span class="kw">assign</span> sum  = a ^ b ^ cin;                      <span class="cm">// XOR 3 ngo vao</span>
+  <span class="kw">assign</span> cout = (a &amp; b) | (a &amp; cin) | (b &amp; cin);  <span class="cm">// co nho khi ≥ 2 ngo vao = 1</span>
+<span class="kw">endmodule</span>
+
+<span class="cm">// adder4.sv — "think in blocks": ghep 4 full adder thanh chuoi ripple-carry</span>
+<span class="kw">module</span> <span class="fn">adder4</span> (
+  <span class="kw">input</span>  <span class="ty">logic</span> [3:0] a, b,
+  <span class="kw">input</span>  <span class="ty">logic</span>       cin,
+  <span class="kw">output</span> <span class="ty">logic</span> [3:0] sum,
+  <span class="kw">output</span> <span class="ty">logic</span>       cout
+);
+  <span class="ty">logic</span> c1, c2, c3;  <span class="cm">// day carry noi giua cac tang</span>
+  <span class="fn">full_adder</span> fa0 (.a(a[0]), .b(b[0]), .cin(cin), .sum(sum[0]), .cout(c1));
+  <span class="fn">full_adder</span> fa1 (.a(a[1]), .b(b[1]), .cin(c1),  .sum(sum[1]), .cout(c2));
+  <span class="fn">full_adder</span> fa2 (.a(a[2]), .b(b[2]), .cin(c2),  .sum(sum[2]), .cout(c3));
+  <span class="fn">full_adder</span> fa3 (.a(a[3]), .b(b[3]), .cin(c3),  .sum(sum[3]), .cout(cout));
+<span class="kw">endmodule</span></code></pre>
+    <div class="px-4 py-3 bg-slate-800/50 border-t border-slate-700 text-xs text-slate-300"><i class="fa-solid fa-microchip text-emerald-400 mr-1.5"></i><strong>Sinh ra phần cứng gì?</strong> 4 bản sao vật lý của full_adder nối carry thành chuỗi. Instance = "đặt thêm một khối lên silicon", không phải "gọi hàm" như phần mềm — 4 khối tồn tại song song, cùng lúc.</div>
+  </div>
+</section>
+
+<!-- ============ 09. WAVEFORM / TIMING ============ -->
+<section id="waveform">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center text-lg"><i class="fa-solid fa-wave-square"></i></div>
+    <div><p class="text-[11px] font-bold text-primary uppercase tracking-widest">Section 09</p><h2 class="text-2xl font-bold text-slate-900">Timing Thinking — Propagation Delay &amp; Critical Path</h2></div>
+  </div>
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-5">
+    <h3 class="font-bold text-slate-900 mb-2"><i class="fa-solid fa-hourglass-half text-secondary mr-1.5"></i>Không có gì là "ngay lập tức"</h3>
+    <p class="text-sm leading-relaxed mb-4">Tuần này chưa có clock, nhưng đã có <strong>thời gian</strong>. Mỗi cổng logic cần vài chục picô-giây đến vài trăm picô-giây để output phản ứng theo input — gọi là <strong>propagation delay (độ trễ lan truyền, ký hiệu t<sub>pd</sub>)</strong>. Tín hiệu đi qua càng nhiều tầng cổng, tổng trễ càng lớn:</p>
+    <div class="bg-slate-50 rounded-xl border border-slate-200 p-2">
+      <svg viewBox="0 0 660 235" xmlns="http://www.w3.org/2000/svg" class="w-full" role="img" aria-label="Waveform minh họa propagation delay">
+        <line x1="60" y1="20" x2="60" y2="215" stroke="#e2e8f0" stroke-width="1"/>
+        <line x1="180" y1="20" x2="180" y2="215" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="4 4"/>
+        <line x1="235" y1="20" x2="235" y2="215" stroke="#fbbf24" stroke-width="1" stroke-dasharray="4 4"/>
+        <text x="20" y="65" font-size="13" fill="#2563eb" class="svg-mono" font-weight="700">A</text>
+        <path d="M60 85 H180 V45 H640" class="wave-sig" stroke="#2563eb"/>
+        <text x="185" y="38" font-size="10" fill="#64748b" class="svg-mono">A đổi 0→1 tại đây</text>
+        <text x="14" y="165" font-size="13" fill="#10b981" class="svg-mono" font-weight="700">Y</text>
+        <rect x="180" y="130" width="55" height="60" fill="#fef3c7" stroke="#f59e0b" stroke-width="1" stroke-dasharray="3 3"/>
+        <path d="M60 185 H235 V145 H640" class="wave-sig" stroke="#10b981"/>
+        <path d="M182 210 H233" stroke="#b45309" stroke-width="1.5"/>
+        <polygon points="182,210 188,207 188,213" fill="#b45309"/>
+        <polygon points="233,210 227,207 227,213" fill="#b45309"/>
+        <text x="243" y="214" font-size="11" fill="#b45309" class="svg-mono">t_pd = tổng trễ các cổng trên đường đi</text>
+        <text x="243" y="126" font-size="10" fill="#94a3b8" class="svg-mono">vùng vàng: Y chưa đáng tin — đang lan truyền</text>
+      </svg>
+    </div>
+    <p class="text-xs text-slate-500 mt-2"><i class="fa-solid fa-circle-info mr-1"></i>Trong vùng trễ, output thậm chí có thể "nhấp nháy" qua vài giá trị trung gian (<strong>glitch / hazard</strong>) trước khi ổn định. Vì vậy kỹ sư chỉ "tin" giá trị tổ hợp <em>sau khi mọi đường đã lan truyền xong</em>.</p>
+  </div>
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+    <h3 class="font-bold text-slate-900 mb-2"><i class="fa-solid fa-road text-danger mr-1.5"></i>Critical path qua bộ cộng ripple-carry 4 bit</h3>
+    <p class="text-sm leading-relaxed mb-4">Trong <code class="bg-slate-100 px-1 rounded">adder4</code>, bit tổng cao nhất S3 phải chờ carry "chạy tiếp sức" qua cả 4 tầng: Cin → FA0 → c1 → FA1 → c2 → FA2 → c3 → FA3. Đường trễ dài nhất này gọi là <strong>critical path (đường tới hạn)</strong> — nó quyết định tốc độ tối đa của toàn khối.</p>
+    <div class="flex flex-wrap items-center justify-center gap-1.5 mb-4 text-xs font-bold svg-mono">
+      <span class="text-slate-500">Cin</span><i class="fa-solid fa-arrow-right text-danger"></i>
+      <span class="bg-indigo-50 border-2 border-indigo-400 rounded-lg px-3 py-2.5">FA0</span><i class="fa-solid fa-arrow-right text-danger"></i><span class="text-danger">c1</span><i class="fa-solid fa-arrow-right text-danger"></i>
+      <span class="bg-indigo-50 border-2 border-indigo-400 rounded-lg px-3 py-2.5">FA1</span><i class="fa-solid fa-arrow-right text-danger"></i><span class="text-danger">c2</span><i class="fa-solid fa-arrow-right text-danger"></i>
+      <span class="bg-indigo-50 border-2 border-indigo-400 rounded-lg px-3 py-2.5">FA2</span><i class="fa-solid fa-arrow-right text-danger"></i><span class="text-danger">c3</span><i class="fa-solid fa-arrow-right text-danger"></i>
+      <span class="bg-indigo-50 border-2 border-indigo-400 rounded-lg px-3 py-2.5">FA3</span><i class="fa-solid fa-arrow-right text-danger"></i><span class="text-slate-500">Cout, S3</span>
+    </div>
+    <div class="grid sm:grid-cols-3 gap-3 text-sm">
+      <div class="bg-slate-50 rounded-xl p-3.5 border border-slate-200"><p class="font-bold text-slate-800 mb-1">Ước lượng nhanh</p><p>Nếu mỗi full adder trễ ~1 ns thì S3 chỉ đáng tin sau ~4 ns kể từ khi input đổi. Bộ cộng 32 bit kiểu này: ~32 ns!</p></div>
+      <div class="bg-slate-50 rounded-xl p-3.5 border border-slate-200"><p class="font-bold text-slate-800 mb-1">Vì sao quan trọng?</p><p>Tuần 5, khối tổ hợp nằm giữa hai thanh ghi: dữ liệu phải lan truyền xong <em>trước</em> cạnh clock kế tiếp. Critical path càng dài → tần số clock tối đa càng thấp.</p></div>
+      <div class="bg-slate-50 rounded-xl p-3.5 border border-slate-200"><p class="font-bold text-slate-800 mb-1">Kỹ sư làm gì?</p><p>Chọn kiến trúc nhanh hơn (carry-lookahead), chia nhỏ tầng logic, hoặc cho phép nhiều chu kỳ. Tối ưu timing là nghề chính của dân physical design.</p></div>
+    </div>
+  </div>
+</section>
+<!-- ============ 10. ACTIVE LEARNING ============ -->
+<section id="active-learning">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center text-lg"><i class="fa-solid fa-clock"></i></div>
+    <div><p class="text-[11px] font-bold text-primary uppercase tracking-widest">Section 10</p><h2 class="text-2xl font-bold text-slate-900">Active Learning — Kịch bản buổi học 60 phút</h2></div>
+  </div>
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+    <ol class="space-y-3">
+      <li class="flex gap-4 items-start"><span class="text-xs font-bold bg-blue-100 text-primary rounded-full px-3 py-1.5 whitespace-nowrap mt-0.5">0–5'</span><div><p class="font-bold text-slate-900 text-sm">Quick check-in</p><p class="text-sm">2 câu hỏi nhanh ôn tuần 3: "XOR ra 1 khi nào?", "Truth table 3 input có mấy hàng?" — trả lời bằng chat/giơ tay.</p></div></li>
+      <li class="flex gap-4 items-start"><span class="text-xs font-bold bg-blue-100 text-primary rounded-full px-3 py-1.5 whitespace-nowrap mt-0.5">5–15'</span><div><p class="font-bold text-slate-900 text-sm">Student presentation</p><p class="text-sm">1–2 nhóm trình bày phần chuẩn bị: giải thích một khối (MUX/Decoder/Adder) theo Input – Output – Function, kèm ví dụ đời sống của nhóm.</p></div></li>
+      <li class="flex gap-4 items-start"><span class="text-xs font-bold bg-amber-100 text-amber-700 rounded-full px-3 py-1.5 whitespace-nowrap mt-0.5">15–25'</span><div><p class="font-bold text-slate-900 text-sm">Mentor correction</p><p class="text-sm">Mentor chỉnh các điểm sai/thiếu: phân biệt MUX vs decoder, số bit select, carry của adder, vì sao "no memory". Demo MUX/Decoder ở Section 06 ngay trên màn hình.</p></div></li>
+      <li class="flex gap-4 items-start"><span class="text-xs font-bold bg-emerald-100 text-emerald-700 rounded-full px-3 py-1.5 whitespace-nowrap mt-0.5">25–45'</span><div><p class="font-bold text-slate-900 text-sm">Breakout room (15–20')</p><p class="text-sm">Nhóm 3–5 bạn làm Block Card theo hướng dẫn Section 11: chọn 1 khối, phân tích I/O/Function, truth table và 1 ứng dụng project.</p></div></li>
+      <li class="flex gap-4 items-start"><span class="text-xs font-bold bg-blue-100 text-primary rounded-full px-3 py-1.5 whitespace-nowrap mt-0.5">45–55'</span><div><p class="font-bold text-slate-900 text-sm">Group sharing</p><p class="text-sm">Mỗi nhóm 2 phút trình bày Block Card; các nhóm khác đóng vai "Skeptic" đặt 1 câu hỏi phản biện.</p></div></li>
+      <li class="flex gap-4 items-start"><span class="text-xs font-bold bg-slate-200 text-slate-700 rounded-full px-3 py-1.5 whitespace-nowrap mt-0.5">55–60'</span><div><p class="font-bold text-slate-900 text-sm">Wrap-up</p><p class="text-sm">Chốt 3 ý: tổ hợp = không nhớ; nghĩ theo khối; always_comb cần gán mặc định. Gợi mở tuần 5: "muốn ĐẾM số lần bấm nút thì cần gì?"</p></div></li>
+    </ol>
+  </div>
+</section>
+
+<!-- ============ 11. BREAKOUT ROOM GUIDE ============ -->
+<section id="breakout">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center text-lg"><i class="fa-solid fa-users"></i></div>
+    <div><p class="text-[11px] font-bold text-primary uppercase tracking-widest">Section 11</p><h2 class="text-2xl font-bold text-slate-900">Breakout Room Guide — Làm việc nhóm</h2></div>
+  </div>
+  <div class="grid lg:grid-cols-2 gap-4">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+      <h3 class="font-bold text-slate-800 mb-3"><i class="fa-solid fa-comments text-primary mr-1.5"></i>Câu hỏi thảo luận (phân tích, không học thuộc)</h3>
+      <ol class="list-decimal ml-5 space-y-2.5 text-sm">
+        <li>Chọn 1 khối (MUX / Decoder / Encoder / Adder / Comparator). Nếu phải giải thích khối này cho một bạn năm nhất chưa học logic, nhóm sẽ dùng hình ảnh đời sống nào? Vì sao hình ảnh đó <em>đúng bản chất</em>?</li>
+        <li>MUX 4-to-1 và decoder 2-to-4 đều có "2 bit điều khiển" — vậy chúng khác nhau chỗ nào về <strong>dòng chảy dữ liệu</strong>? (Gợi ý: cái nào có data input?)</li>
+        <li>Bộ cộng 4 bit nhận 2 số 4 bit: vì sao output nên có 5 bit? Chuyện gì xảy ra nếu chỉ lấy 4 bit? (từ khóa: overflow)</li>
+        <li>Trong hệ thống "chọn 1 trong 2 cảm biến rồi so ngưỡng" (Section 07), nếu đổi thứ tự: so ngưỡng cả 2 cảm biến trước rồi MUX chọn <em>kết quả so sánh</em> — hệ thống còn đúng yêu cầu không? Trade-off là gì?</li>
+      </ol>
+    </div>
+    <div class="space-y-4">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+        <h3 class="font-bold text-slate-800 mb-3"><i class="fa-solid fa-user-group text-primary mr-1.5"></i>Vai trò trong nhóm</h3>
+        <div class="grid grid-cols-2 gap-2.5 text-sm">
+          <div class="bg-blue-50 rounded-lg p-3"><p class="font-bold text-primary text-xs uppercase mb-0.5">Facilitator</p><p>Dẫn dắt thảo luận, giữ nhịp thời gian.</p></div>
+          <div class="bg-blue-50 rounded-lg p-3"><p class="font-bold text-primary text-xs uppercase mb-0.5">Note keeper</p><p>Ghi Block Card + kết luận nhóm.</p></div>
+          <div class="bg-blue-50 rounded-lg p-3"><p class="font-bold text-primary text-xs uppercase mb-0.5">Reporter</p><p>Trình bày 2 phút trước lớp.</p></div>
+          <div class="bg-blue-50 rounded-lg p-3"><p class="font-bold text-primary text-xs uppercase mb-0.5">Skeptic / Checker</p><p>Soi lỗi: I/O đủ chưa? Truth table đúng chưa?</p></div>
+        </div>
+      </div>
+      <div class="bg-emerald-50 rounded-2xl border border-emerald-200 p-6">
+        <h3 class="font-bold text-emerald-800 mb-2"><i class="fa-solid fa-file-signature mr-1.5"></i>Sản phẩm nhóm phải nộp: 1 Block Card</h3>
+        <ul class="text-sm space-y-1.5 text-emerald-900">
+          <li><i class="fa-solid fa-square-check mr-1.5"></i>Tên khối (EN + VI) và chức năng trong 1 câu.</li>
+          <li><i class="fa-solid fa-square-check mr-1.5"></i>Danh sách Input / Output kèm độ rộng bit.</li>
+          <li><i class="fa-solid fa-square-check mr-1.5"></i>Truth table hoặc quy tắc hoạt động.</li>
+          <li><i class="fa-solid fa-square-check mr-1.5"></i>1 ứng dụng trong mini-project + 1 câu hỏi nhóm còn thắc mắc.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 12. COMMON MISTAKES ============ -->
+<section id="mistakes">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-danger/10 text-danger flex items-center justify-center text-lg"><i class="fa-solid fa-triangle-exclamation"></i></div>
+    <div><p class="text-[11px] font-bold text-danger uppercase tracking-widest">Section 12</p><h2 class="text-2xl font-bold text-slate-900">Common Mistakes — Lỗi hay gặp &amp; cách sửa</h2></div>
+  </div>
+  <div class="grid md:grid-cols-2 gap-4">
+    <div class="bg-white rounded-2xl border-l-4 border-danger shadow-sm p-5">
+      <p class="font-bold text-red-700 text-sm mb-1"><i class="fa-solid fa-xmark mr-1.5"></i>1. Nghĩ mạch tổ hợp "nhớ" được giá trị trước đó</p>
+      <p class="text-sm leading-relaxed"><strong>Vì sao sai:</strong> không có phần tử nhớ thì không có gì để "giữ". Cùng input luôn cho cùng output.<br><strong>Sửa đúng:</strong> hỏi "output có phụ thuộc quá khứ không?" — nếu có, bạn cần Flip-Flop (tuần 5), không phải thêm cổng.</p>
+    </div>
+    <div class="bg-white rounded-2xl border-l-4 border-danger shadow-sm p-5">
+      <p class="font-bold text-red-700 text-sm mb-1"><i class="fa-solid fa-xmark mr-1.5"></i>2. Thiếu gán mặc định trong always_comb → latch</p>
+      <p class="text-sm leading-relaxed"><strong>Vì sao nguy hiểm:</strong> tool lặng lẽ chèn latch; mạch "chạy được" lúc mô phỏng nhưng timing hỗn loạn trên silicon.<br><strong>Sửa đúng:</strong> gán mặc định dòng đầu (<code class="bg-slate-100 px-1 rounded">y = '0;</code>) hoặc phủ đủ else/default. Kiểm tra log synthesis: chữ "latch inferred" = báo động đỏ.</p>
+    </div>
+    <div class="bg-white rounded-2xl border-l-4 border-orange-400 shadow-sm p-5">
+      <p class="font-bold text-orange-700 text-sm mb-1"><i class="fa-solid fa-xmark mr-1.5"></i>3. Tin rằng output đổi "ngay lập tức"</p>
+      <p class="text-sm leading-relaxed"><strong>Vì sao sai:</strong> mọi cổng đều có propagation delay; trong lúc lan truyền còn có glitch.<br><strong>Sửa đúng:</strong> luôn nghĩ "output đúng <em>sau</em> t<sub>pd</sub>". Khi ghép với clock (tuần 5), t<sub>pd</sub> phải nhỏ hơn chu kỳ clock.</p>
+    </div>
+    <div class="bg-white rounded-2xl border-l-4 border-orange-400 shadow-sm p-5">
+      <p class="font-bold text-orange-700 text-sm mb-1"><i class="fa-solid fa-xmark mr-1.5"></i>4. Nhầm MUX với Decoder</p>
+      <p class="text-sm leading-relaxed"><strong>Phân biệt:</strong> MUX có <em>nhiều data input</em> và chọn 1 đưa ra; decoder <em>không có data input</em> — nó biến mã n bit thành 2ⁿ đường one-hot.<br><strong>Mẹo nhớ:</strong> MUX = công tắc xoay chọn nguồn; Decoder = bảng nút thang máy sáng đúng 1 đèn.</p>
+    </div>
+    <div class="bg-white rounded-2xl border-l-4 border-orange-400 shadow-sm p-5">
+      <p class="font-bold text-orange-700 text-sm mb-1"><i class="fa-solid fa-xmark mr-1.5"></i>5. Dùng always_ff / posedge clk cho mạch tổ hợp</p>
+      <p class="text-sm leading-relaxed"><strong>Vì sao sai:</strong> thêm clock là thêm Flip-Flop — mạch thành tuần tự, trễ 1 chu kỳ, sai đặc tả "tổ hợp".<br><strong>Sửa đúng:</strong> tổ hợp → <code class="bg-slate-100 px-1 rounded">assign</code>/<code class="bg-slate-100 px-1 rounded">always_comb</code> với <code class="bg-slate-100 px-1 rounded">=</code>; tuần tự → <code class="bg-slate-100 px-1 rounded">always_ff</code> với <code class="bg-slate-100 px-1 rounded">&lt;=</code>. Ranh giới này phải rạch ròi từ bây giờ.</p>
+    </div>
+    <div class="bg-white rounded-2xl border-l-4 border-danger shadow-sm p-5">
+      <p class="font-bold text-red-700 text-sm mb-1"><i class="fa-solid fa-xmark mr-1.5"></i>6. Quên carry khi cộng: "4 bit + 4 bit = 4 bit"</p>
+      <p class="text-sm leading-relaxed"><strong>Vì sao nguy hiểm:</strong> 1111 + 0001 = 10000 (cần 5 bit). Cắt mất carry-out → kết quả 0000, bug tính toán âm thầm (overflow).<br><strong>Sửa đúng:</strong> khai báo output n+1 bit hoặc xuất cout riêng và xử lý ở tầng trên.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 13. MINI-PROJECT CONNECTION ============ -->
+<section id="mini-project">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center text-lg"><i class="fa-solid fa-screwdriver-wrench"></i></div>
+    <div><p class="text-[11px] font-bold text-primary uppercase tracking-widest">Section 13</p><h2 class="text-2xl font-bold text-slate-900">Mini-Project Connection — Tuần này nối vào dự án nào?</h2></div>
+  </div>
+  <div class="grid md:grid-cols-3 gap-4">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+      <p class="font-bold text-slate-900 mb-1"><i class="fa-solid fa-temperature-half text-primary mr-1.5"></i>MUX chọn cảm biến</p>
+      <p class="text-sm leading-relaxed">2–4 cảm biến (nhiệt độ, ánh sáng...), 1 kênh hiển thị. MUX + comparator báo ngưỡng = phiên bản đầu tiên chạy được trên FPGA. Chính là bài toán Section 07.</p>
+    </div>
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+      <p class="font-bold text-slate-900 mb-1"><i class="fa-solid fa-lightbulb text-accent mr-1.5"></i>Decoder điều khiển LED</p>
+      <p class="text-sm leading-relaxed">2 switch → decoder 2-to-4 → 4 LED one-hot (đúng demo hôm nay). Nâng cấp tự nhiên: decoder LED 7 đoạn ở <strong>tuần 10</strong> — cùng một tư duy, chỉ nhiều output hơn.</p>
+    </div>
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+      <p class="font-bold text-slate-900 mb-1"><i class="fa-solid fa-calculator text-secondary mr-1.5"></i>Adder calculator 4 bit</p>
+      <p class="text-sm leading-relaxed">2 số từ switch, cộng bằng adder4, hiện kết quả ra LED. Sau tuần 5 thêm thanh ghi để lưu kết quả; sau tuần 10 hiện lên LED 7 đoạn — thành máy tính mini hoàn chỉnh.</p>
+    </div>
+  </div>
+  <p class="text-sm text-slate-500 mt-4 bg-white rounded-xl border border-slate-200 p-4"><i class="fa-solid fa-link text-primary mr-1.5"></i>Nhìn xa hơn: trong <strong>traffic light controller (tuần 9)</strong>, khối output logic quyết định đèn nào sáng theo trạng thái chính là một mạch tổ hợp kiểu decoder; trong <strong>counter + 7-segment (tuần 10)</strong>, adder tăng giá trị đếm và decoder đổi số ra hình. Mọi hệ thống về sau đều đứng trên vai 5 khối của tuần này.</p>
+</section>
+<!-- ============ 14. QUIZ ============ -->
+<section id="quiz">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center text-lg"><i class="fa-solid fa-circle-question"></i></div>
+    <div><p class="text-[11px] font-bold text-primary uppercase tracking-widest">Section 14</p><h2 class="text-2xl font-bold text-slate-900">Quiz — Tự kiểm tra 9 câu</h2></div>
+  </div>
+  <div class="sticky top-[4.7rem] z-30 bg-white/95 backdrop-blur rounded-xl shadow border border-slate-200 px-4 py-2.5 mb-5 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+    <p><i class="fa-solid fa-star text-secondary mr-1"></i>Điểm: <strong id="quiz-score" class="text-primary">0</strong>/<span id="quiz-total">9</span></p>
+    <p class="text-slate-400">|</p>
+    <p>Đã trả lời: <strong id="quiz-done">0</strong>/9</p>
+    <p id="quiz-msg" class="font-semibold text-slate-500"></p>
+  </div>
+  <div class="space-y-4">
+    <div class="quiz-q bg-white rounded-2xl shadow-sm border border-slate-200 p-5" data-answer="1">
+      <p class="font-bold text-slate-900 text-sm mb-3">Câu 1. Đặc điểm cốt lõi của mạch tổ hợp (combinational logic) là gì?</p>
+      <div class="space-y-2">
+        <button class="quiz-opt w-full text-left text-sm border-2 border-slate-200 rounded-lg px-4 py-2.5 bg-white">A. Output phụ thuộc cả input hiện tại và các giá trị trong quá khứ</button>
+        <button class="quiz-opt w-full text-left text-sm border-2 border-slate-200 rounded-lg px-4 py-2.5 bg-white">B. Output chỉ phụ thuộc tổ hợp input tại thời điểm hiện tại, không có phần tử nhớ</button>
+        <button class="quiz-opt w-full text-left text-sm border-2 border-slate-200 rounded-lg px-4 py-2.5 bg-white">C. Luôn cần clock để hoạt động</button>
+        <button class="quiz-opt w-full text-left text-sm border-2 border-slate-200 rounded-lg px-4 py-2.5 bg-white">D. Luôn cần tín hiệu reset khi khởi động</button>
+      </div>
+      <div class="quiz-exp hidden mt-3 text-sm bg-slate-50 border border-slate-200 rounded-xl p-3.5"><p class="quiz-badge font-bold mb-1"></p><p>Mạch tổ hợp không chứa Flip-Flop/latch nên không "nhớ" quá khứ: cùng bộ input luôn cho cùng output (sau propagation delay). Clock và reset là đặc trưng của mạch tuần tự — tuần 5.</p></div>
+    </div>
+    <div class="quiz-q bg-white rounded-2xl shadow-sm border border-slate-200 p-5" data-answer="0">
+      <p class="font-bold text-slate-900 text-sm mb-3">Câu 2. MUX 2-to-1 có sel = 1, D0 = 0, D1 = 1. Output Y bằng bao nhiêu?</p>
+      <div class="space-y-2">
+        <button class="quiz-opt w-full text-left text-sm border-2 border-slate-200 rounded-lg px-4 py-2.5 bg-white">A. Y = 1</button>
+        <button class="quiz-opt w-full text-left text-sm border-2 border-slate-200 rounded-lg px-4 py-2.5 bg-white">B. Y = 0</button>
+        <button class="quiz-opt w-full text-left text-sm border-2 border-slate-200 rounded-lg px-4 py-2.5 bg-white">C. Y không xác định</button>
+        <button class="quiz-opt w-full text-left text-sm border-2 border-slate-200 rounded-lg px-4 py-2.5 bg-white">D. Y dao động giữa 0 và 1</button>
+      </div>
+      <div class="quiz-exp hidden mt-3 text-sm bg-slate-50 border border-slate-200 rounded-xl p-3.5"><p class="quiz-badge font-bold mb-1"></p><p>sel = 1 → MUX nối kênh D1 tới output: Y = D1 = 1. Bạn có thể tự kiểm chứng ngay trên Demo 1 ở Section 06.</p></div>
+    </div>
+    <div class="quiz-q bg-white rounded-2xl shadow-sm border border-slate-200 p-5" data-answer="2">
+      <p class="font-bold text-slate-900 text-sm mb-3">Câu 3. MUX 8-to-1 cần bao nhiêu bit select?</p>
+      <div class="space-y-2">
+        <button class="quiz-opt w-full text-left text-sm border-2 border-slate-200 rounded-lg px-4 py-2.5 bg-white">A. 1 bit</button>
+        <button class="quiz-opt w-full text-left text-sm border-2 border-slate-200 rounded-lg px-4 py-2.5 bg-white">B. 2 bit</button>
+        <button class="quiz-opt w-full text-left text-sm border-2 border-slate-200 rounded-lg px-4 py-2.5 bg-white">C. 3 bit</button>
+        <button class="quiz-opt w-full text-left text-sm border-2 border-slate-200 rounded-lg px-4 py-2.5 bg-white">D. 8 bit</button>
+      </div>
+      <div class="quiz-exp hidden mt-3 text-sm bg-slate-50 border border-slate-200 rounded-xl p-3.5"><p class="quiz-badge font-bold mb-1"></p><p>n bit select phân biệt được 2ⁿ kênh. 2³ = 8 → cần 3 bit. Tổng quát: chọn 1 trong N kênh cần ⌈log₂N⌉ bit.</p></div>
+    </div>
+    <div class="quiz-q bg-white rounded-2xl shadow-sm border border-slate-200 p-5" data-answer="2">
+      <p class="font-bold text-slate-900 text-sm mb-3">Câu 4. Decoder 2-to-4 (en = 1) với input A1A0 = 10₂. Ngõ ra nào bằng 1?</p>
+      <div class="space-y-2">
+        <button class="quiz-opt w-full text-left text-sm border-2 border-slate-200 rounded-lg px-4 py-2.5 bg-white">A. Y0</button>
+        <button class="quiz-opt w-full text-left text-sm border-2 border-slate-200 rounded-lg px-4 py-2.5 bg-white">B. Y1</button>
+        <button class="quiz-opt w-full text-left text-sm border-2 border-slate-200 rounded-lg px-4 py-2.5 bg-white">C. Y2</button>
+        <button class="quiz-opt w-full text-left text-sm border-2 border-slate-200 rounded-lg px-4 py-2.5 bg-white">D. Y3</button>
+      </div>
+      <div class="quiz-exp hidden mt-3 text-sm bg-slate-50 border border-slate-200 rounded-xl p-3.5"><p class="quiz-badge font-bold mb-1"></p><p>A1A0 = 10₂ = 2₁₀ → decoder bật đúng đường có chỉ số 2: Y2 = 1, các đường còn lại = 0 (one-hot).</p></div>
+    </div>
+    <div class="quiz-q bg-white rounded-2xl shadow-sm border border-slate-200 p-5" data-answer="0">
+      <p class="font-bold text-slate-900 text-sm mb-3">Câu 5. Khối nào cộng được 3 bit: A, B và carry-in từ tầng thấp hơn?</p>
+      <div class="space-y-2">
+        <button class="quiz-opt w-full text-left text-sm border-2 border-slate-200 rounded-lg px-4 py-2.5 bg-white">A. Full adder</button>
+        <button class="quiz-opt w-full text-left text-sm border-2 border-slate-200 rounded-lg px-4 py-2.5 bg-white">B. Half adder</button>
+        <button class="quiz-opt w-full text-left text-sm border-2 border-slate-200 rounded-lg px-4 py-2.5 bg-white">C. Encoder</button>
+        <button class="quiz-opt w-full text-left text-sm border-2 border-slate-200 rounded-lg px-4 py-2.5 bg-white">D. Comparator</button>
+      </div>
+      <div class="quiz-exp hidden mt-3 text-sm bg-slate-50 border border-slate-200 rounded-xl p-3.5"><p class="quiz-badge font-bold mb-1"></p><p>Full adder = A + B + Cin, xuất Sum và Cout. Half adder chỉ cộng A + B (không có Cin) nên không ghép chuỗi nhiều bit trực tiếp được — đó là lý do full adder mới là "viên gạch" của adder n bit.</p></div>
+    </div>
+    <div class="quiz-q bg-white rounded-2xl shadow-sm border border-slate-200 p-5" data-answer="1">
+      <p class="font-bold text-slate-900 text-sm mb-3">Câu 6. Full adder với A = 1, B = 1, Cin = 1 cho kết quả nào?</p>
+      <div class="space-y-2">
+        <button class="quiz-opt w-full text-left text-sm border-2 border-slate-200 rounded-lg px-4 py-2.5 bg-white">A. Sum = 0, Cout = 1</button>
+        <button class="quiz-opt w-full text-left text-sm border-2 border-slate-200 rounded-lg px-4 py-2.5 bg-white">B. Sum = 1, Cout = 1</button>
+        <button class="quiz-opt w-full text-left text-sm border-2 border-slate-200 rounded-lg px-4 py-2.5 bg-white">C. Sum = 1, Cout = 0</button>
+        <button class="quiz-opt w-full text-left text-sm border-2 border-slate-200 rounded-lg px-4 py-2.5 bg-white">D. Sum = 0, Cout = 0</button>
+      </div>
+      <div class="quiz-exp hidden mt-3 text-sm bg-slate-50 border border-slate-200 rounded-xl p-3.5"><p class="quiz-badge font-bold mb-1"></p><p>1 + 1 + 1 = 3 = 11₂ → bit thấp Sum = 1, bit nhớ Cout = 1. Kiểm chứng bằng công thức: Sum = A ⊕ B ⊕ Cin = 1; Cout = 1 vì có ít nhất 2 input bằng 1.</p></div>
+    </div>
+    <div class="quiz-q bg-white rounded-2xl shadow-sm border border-slate-200 p-5" data-answer="2">
+      <p class="font-bold text-slate-900 text-sm mb-3">Câu 7. Trong always_comb, một nhánh if không có else và không có gán mặc định. Hậu quả khi synthesis?</p>
+      <div class="space-y-2">
+        <button class="quiz-opt w-full text-left text-sm border-2 border-slate-200 rounded-lg px-4 py-2.5 bg-white">A. Mạch chạy nhanh hơn vì ít logic hơn</button>
+        <button class="quiz-opt w-full text-left text-sm border-2 border-slate-200 rounded-lg px-4 py-2.5 bg-white">B. Không ảnh hưởng gì, tool tự hiểu</button>
+        <button class="quiz-opt w-full text-left text-sm border-2 border-slate-200 rounded-lg px-4 py-2.5 bg-white">C. Tool suy ra "giữ giá trị cũ" và chèn latch ngoài ý muốn</button>
+        <button class="quiz-opt w-full text-left text-sm border-2 border-slate-200 rounded-lg px-4 py-2.5 bg-white">D. Luôn báo lỗi biên dịch, không thể chạy</button>
+      </div>
+      <div class="quiz-exp hidden mt-3 text-sm bg-slate-50 border border-slate-200 rounded-xl p-3.5"><p class="quiz-badge font-bold mb-1"></p><p>Nhánh không gán = "giữ giá trị cũ" = cần phần tử nhớ → tool chèn latch và thường chỉ <em>cảnh báo</em> chứ không báo lỗi. Mạch không còn thuần tổ hợp. Phòng tránh: gán mặc định ngay dòng đầu always_comb.</p></div>
+    </div>
+    <div class="quiz-q bg-white rounded-2xl shadow-sm border border-slate-200 p-5" data-answer="3">
+      <p class="font-bold text-slate-900 text-sm mb-3">Câu 8. Cần một khối cho biết hai số A, B (4 bit) bằng nhau, hay A lớn hơn / nhỏ hơn B. Chọn khối nào?</p>
+      <div class="space-y-2">
+        <button class="quiz-opt w-full text-left text-sm border-2 border-slate-200 rounded-lg px-4 py-2.5 bg-white">A. Encoder</button>
+        <button class="quiz-opt w-full text-left text-sm border-2 border-slate-200 rounded-lg px-4 py-2.5 bg-white">B. Decoder</button>
+        <button class="quiz-opt w-full text-left text-sm border-2 border-slate-200 rounded-lg px-4 py-2.5 bg-white">C. MUX</button>
+        <button class="quiz-opt w-full text-left text-sm border-2 border-slate-200 rounded-lg px-4 py-2.5 bg-white">D. Comparator</button>
+      </div>
+      <div class="quiz-exp hidden mt-3 text-sm bg-slate-50 border border-slate-200 rounded-xl p-3.5"><p class="quiz-badge font-bold mb-1"></p><p>Comparator (bộ so sánh) xuất 3 tín hiệu eq / gt / lt. Ứng dụng điển hình: so counter với ngưỡng thời gian trong traffic light (tuần 9), lệnh rẽ nhánh trong CPU.</p></div>
+    </div>
+    <div class="quiz-q bg-white rounded-2xl shadow-sm border border-slate-200 p-5" data-answer="1">
+      <p class="font-bold text-slate-900 text-sm mb-3">Câu 9. Critical path (đường tới hạn) của bộ cộng ripple-carry 4 bit là đường nào?</p>
+      <div class="space-y-2">
+        <button class="quiz-opt w-full text-left text-sm border-2 border-slate-200 rounded-lg px-4 py-2.5 bg-white">A. Đường từ A0 đến Sum0, vì bit 0 tính trước tiên</button>
+        <button class="quiz-opt w-full text-left text-sm border-2 border-slate-200 rounded-lg px-4 py-2.5 bg-white">B. Chuỗi lan truyền carry từ tầng bit 0 xuyên suốt đến bit 3</button>
+        <button class="quiz-opt w-full text-left text-sm border-2 border-slate-200 rounded-lg px-4 py-2.5 bg-white">C. Đường tín hiệu select của MUX bên trong</button>
+        <button class="quiz-opt w-full text-left text-sm border-2 border-slate-200 rounded-lg px-4 py-2.5 bg-white">D. Không có, vì mạch tổ hợp đổi giá trị tức thời</button>
+      </div>
+      <div class="quiz-exp hidden mt-3 text-sm bg-slate-50 border border-slate-200 rounded-xl p-3.5"><p class="quiz-badge font-bold mb-1"></p><p>Sum3/Cout phải chờ carry chạy qua cả 4 full adder — đó là đường trễ dài nhất, quyết định tốc độ tối đa của khối. Đáp án D sai từ gốc: không mạch nào đổi giá trị tức thời.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 15. HOMEWORK ============ -->
+<section id="homework">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center text-lg"><i class="fa-solid fa-book-open"></i></div>
+    <div><p class="text-[11px] font-bold text-primary uppercase tracking-widest">Section 15</p><h2 class="text-2xl font-bold text-slate-900">Homework — Bài tập về nhà 3 mức</h2></div>
+  </div>
+  <div class="grid lg:grid-cols-3 gap-4">
+    <div class="bg-white rounded-2xl shadow-sm border-t-4 border-accent border border-slate-200 p-5">
+      <p class="text-xs font-bold text-emerald-700 uppercase tracking-wider mb-1">Mức 1 — Nhận biết / Giải thích</p>
+      <p class="font-bold text-slate-900 text-sm mb-2">Bộ 3 Block Card cơ bản</p>
+      <p class="text-sm leading-relaxed mb-2"><strong>Yêu cầu nộp:</strong> 1 trang (viết tay chụp ảnh hoặc slide) gồm Block Card cho MUX 2-to-1, Decoder 2-to-4 và Half adder: mỗi khối có I/O, truth table và 1 câu mô tả chức năng; thêm 2 câu phân biệt Encoder vs Decoder.</p>
+      <p class="text-sm mb-2"><strong>Gợi ý:</strong> dùng đúng template INPUT–OUTPUT–FUNCTION của Section 04; truth table MUX chỉ cần 2 hàng theo sel nếu bạn coi D0, D1 là biến.</p>
+      <p class="text-xs bg-emerald-50 border border-emerald-200 rounded-lg p-2.5 text-emerald-900"><strong>Tiêu chí:</strong> I/O đủ và đúng độ rộng bit; truth table không sai hàng nào; mô tả chức năng bằng ngôn ngữ của em, không chép định nghĩa.</p>
+    </div>
+    <div class="bg-white rounded-2xl shadow-sm border-t-4 border-primary border border-slate-200 p-5">
+      <p class="text-xs font-bold text-primary uppercase tracking-wider mb-1">Mức 2 — Thiết kế / Mô hình hóa</p>
+      <p class="font-bold text-slate-900 text-sm mb-2">Bộ chọn 4 cảm biến + báo ngưỡng</p>
+      <p class="text-sm leading-relaxed mb-2"><strong>Yêu cầu nộp:</strong> block diagram hệ thống "4 cảm biến 8 bit → chọn 1 hiển thị, báo động khi vượt ngưỡng": vẽ MUX 4-to-1, comparator, ghi rõ tên/độ rộng mọi tín hiệu; kèm bảng hoạt động của phần chọn kênh (4 hàng theo sel).</p>
+      <p class="text-sm mb-2"><strong>Gợi ý:</strong> sel cần mấy bit? Comparator đặt trước hay sau MUX — chọn 1 phương án và ghi 2 dòng giải thích trade-off (số comparator phải dùng).</p>
+      <p class="text-xs bg-blue-50 border border-blue-200 rounded-lg p-2.5 text-blue-900"><strong>Tiêu chí:</strong> sơ đồ đủ I/O không "dây mồ côi"; chọn đúng 2 bit select; lập luận trade-off hợp lý.</p>
+    </div>
+    <div class="bg-white rounded-2xl shadow-sm border-t-4 border-secondary border border-slate-200 p-5">
+      <p class="text-xs font-bold text-amber-700 uppercase tracking-wider mb-1">Mức 3 — RTL / Mini-project</p>
+      <p class="font-bold text-slate-900 text-sm mb-2">Viết &amp; mô phỏng mux4 + decoder2to4</p>
+      <p class="text-sm leading-relaxed mb-2"><strong>Yêu cầu nộp:</strong> code SystemVerilog cho mux4 (always_comb + case + gán mặc định) và decoder2to4 (mở rộng từ code mẫu); testbench quét đủ tổ hợp sel/a; chạy trên EDA Playground; nộp link + ảnh waveform + 3 dòng nhận xét.</p>
+      <p class="text-sm mb-2"><strong>Gợi ý:</strong> bắt đầu từ code Section 08, đổi độ rộng dần; trong testbench dùng vòng for sinh input; đối chiếu waveform với truth table đã lập ở Mức 1.</p>
+      <p class="text-xs bg-amber-50 border border-amber-200 rounded-lg p-2.5 text-amber-900"><strong>Tiêu chí:</strong> compile sạch; log synthesis/elaborate không có "latch inferred"; waveform khớp 100% truth table.</p>
+    </div>
+  </div>
+</section>
+<!-- ============ 16. RUBRIC ============ -->
+<section id="rubric">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center text-lg"><i class="fa-solid fa-table-list"></i></div>
+    <div><p class="text-[11px] font-bold text-primary uppercase tracking-widest">Section 16</p><h2 class="text-2xl font-bold text-slate-900">Rubric — Thang đánh giá năng lực tuần 4</h2></div>
+  </div>
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+    <div class="overflow-x-auto">
+    <table class="w-full text-[13px] min-w-[760px]">
+      <thead class="bg-slate-800 text-white text-left"><tr><th class="px-3 py-3 font-semibold w-40">Tiêu chí</th><th class="px-3 py-3 font-semibold">Chưa đạt</th><th class="px-3 py-3 font-semibold">Đạt cơ bản</th><th class="px-3 py-3 font-semibold">Khá</th><th class="px-3 py-3 font-semibold">Tốt</th></tr></thead>
+      <tbody class="divide-y divide-slate-100 align-top">
+        <tr><td class="px-3 py-2.5 font-semibold text-slate-800">Hiểu khái niệm mạch tổ hợp</td><td class="px-3 py-2.5">Không nêu được "no memory"</td><td class="px-3 py-2.5">Nêu định nghĩa, còn lẫn với tuần tự</td><td class="px-3 py-2.5">Phân biệt rõ tổ hợp/tuần tự kèm ví dụ</td><td class="px-3 py-2.5 bg-emerald-50">Giải thích thêm propagation delay và hệ quả</td></tr>
+        <tr><td class="px-3 py-2.5 font-semibold text-slate-800">Xác định I/O của khối</td><td class="px-3 py-2.5">Thiếu hoặc sai I/O</td><td class="px-3 py-2.5">Liệt kê đủ I/O khi được nhắc</td><td class="px-3 py-2.5">Tự liệt kê I/O + độ rộng bit chính xác</td><td class="px-3 py-2.5 bg-emerald-50">Đề xuất I/O cho bài toán mới chưa gặp</td></tr>
+        <tr><td class="px-3 py-2.5 font-semibold text-slate-800">Mô hình hóa (truth table / block diagram)</td><td class="px-3 py-2.5">Không lập được bảng</td><td class="px-3 py-2.5">Lập bảng cho khối nhỏ còn sai 1–2 hàng</td><td class="px-3 py-2.5">Bảng chuẩn, vẽ được block diagram 2 khối</td><td class="px-3 py-2.5 bg-emerald-50">Ghép ≥ 2 khối thành hệ thống đúng yêu cầu</td></tr>
+        <tr><td class="px-3 py-2.5 font-semibold text-slate-800">Viết RTL tổ hợp</td><td class="px-3 py-2.5">Chưa viết được module</td><td class="px-3 py-2.5">Viết mux2 theo mẫu</td><td class="px-3 py-2.5">Tự viết decoder/mux4, có gán mặc định</td><td class="px-3 py-2.5 bg-emerald-50">Code sạch latch, kèm testbench tự viết</td></tr>
+        <tr><td class="px-3 py-2.5 font-semibold text-slate-800">Liên hệ ứng dụng</td><td class="px-3 py-2.5">Không nêu được ứng dụng</td><td class="px-3 py-2.5">Nêu lại ví dụ trong bài</td><td class="px-3 py-2.5">Tự tìm ví dụ mới đúng bản chất</td><td class="px-3 py-2.5 bg-emerald-50">Chỉ ra khối trong project thật (ALU, address decoder...)</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 17. MENTOR NOTES ============ -->
+<section id="mentor-notes">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-dark text-emerald-400 flex items-center justify-center text-lg"><i class="fa-solid fa-user-tie"></i></div>
+    <div><p class="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Section 17</p><h2 class="text-2xl font-bold text-slate-900">Mentor Notes — Ghi chú dành cho mentor</h2></div>
+  </div>
+  <div class="bg-dark text-slate-200 rounded-2xl shadow-lg p-6 border-l-4 border-emerald-400">
+    <div class="grid lg:grid-cols-2 gap-6 text-sm leading-relaxed">
+      <div>
+        <p class="font-bold text-emerald-300 uppercase text-xs tracking-wider mb-2"><i class="fa-solid fa-bullhorn mr-1.5"></i>Nhấn mạnh trong buổi</p>
+        <ul class="space-y-2 mb-5">
+          <li>• Chuyển hệ quy chiếu: từ "cổng" sang "khối". Mỗi lần sinh viên kể tên cổng, hỏi ngược: <em>"khối này Input gì, Output gì, Function gì?"</em></li>
+          <li>• "No memory" là ranh giới vàng giữa tuần 4 và tuần 5 — nhắc ít nhất 3 lần.</li>
+          <li>• Chạy demo MUX/decoder trực tiếp, cho sinh viên đoán trước output rồi mới bấm.</li>
+        </ul>
+        <p class="font-bold text-amber-300 uppercase text-xs tracking-wider mb-2"><i class="fa-solid fa-triangle-exclamation mr-1.5"></i>Sinh viên hay hiểu sai ở đâu</p>
+        <ul class="space-y-2">
+          <li>• Nhầm MUX với decoder (cả hai "có 2 bit điều khiển").</li>
+          <li>• Nghĩ 1 + 1 = "2" mà quên carry; nghĩ cộng 4 bit ra 4 bit.</li>
+          <li>• Tưởng always_comb là "hàm được gọi" như phần mềm — nhấn mạnh: nó mô tả một mảng phần cứng tồn tại liên tục.</li>
+        </ul>
+      </div>
+      <div>
+        <p class="font-bold text-blue-300 uppercase text-xs tracking-wider mb-2"><i class="fa-solid fa-comments mr-1.5"></i>Câu vấn đáp gợi ý (kèm đáp án kỳ vọng)</p>
+        <ul class="space-y-2.5 mb-5">
+          <li>• <em>"MUX 8-to-1 cần mấy bit select? Vì sao?"</em> → 3 bit, vì 2³ = 8 tổ hợp phân biệt được 8 kênh.</li>
+          <li>• <em>"Decoder 2-to-4 có thể có 2 output cùng bằng 1 không?"</em> → Không (one-hot); nếu xảy ra là mạch lỗi hoặc không phải decoder chuẩn.</li>
+          <li>• <em>"Vì sao thiếu gán mặc định lại sinh latch?"</em> → Nhánh không gán nghĩa là "giữ giá trị cũ" → cần phần tử nhớ → tool chèn latch.</li>
+          <li>• <em>"Cộng hai số 4 bit, kết quả tối đa là bao nhiêu, cần mấy bit?"</em> → 15 + 15 = 30 (nếu tính cả carry-in: 31), cần 5 bit.</li>
+        </ul>
+        <p class="font-bold text-emerald-300 uppercase text-xs tracking-wider mb-2"><i class="fa-solid fa-arrow-right mr-1.5"></i>Cách nối sang tuần 5</p>
+        <p>Kết buổi bằng câu hỏi treo: <em>"Đèn giao thông phải nhớ mình đang ở pha nào; bộ đếm phải nhớ đã đếm tới đâu. Mạch hôm nay không nhớ được gì cả — vậy phần tử nào cho hệ thống số một 'ký ức'?"</em> → Flip-Flop, tuần sau. Dặn sinh viên giữ lại Block Card — tuần 5 sẽ thêm cột "cần clock/reset".</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 18. KEY VOCABULARY ============ -->
+<section id="vocabulary">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center text-lg"><i class="fa-solid fa-language"></i></div>
+    <div><p class="text-[11px] font-bold text-primary uppercase tracking-widest">Section 18</p><h2 class="text-2xl font-bold text-slate-900">Key Vocabulary — Từ vựng chuyên ngành</h2></div>
+  </div>
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+    <div class="overflow-x-auto">
+    <table class="w-full text-[13px] min-w-[760px]">
+      <thead class="bg-slate-800 text-white text-left"><tr><th class="px-3 py-3 font-semibold">English term</th><th class="px-3 py-3 font-semibold">Nghĩa tiếng Việt</th><th class="px-3 py-3 font-semibold">Giải thích kỹ thuật</th><th class="px-3 py-3 font-semibold">Câu ví dụ</th></tr></thead>
+      <tbody class="divide-y divide-slate-100 align-top">
+        <tr><td class="px-3 py-2.5 font-semibold text-primary">Combinational logic</td><td class="px-3 py-2.5">Mạch tổ hợp</td><td class="px-3 py-2.5">Output = hàm của input hiện tại, không phần tử nhớ</td><td class="px-3 py-2.5 italic">"An ALU is a large combinational logic block."</td></tr>
+        <tr class="bg-slate-50"><td class="px-3 py-2.5 font-semibold text-primary">Multiplexer (MUX)</td><td class="px-3 py-2.5">Bộ chọn kênh</td><td class="px-3 py-2.5">Chọn 1 trong 2ⁿ data input theo n bit select</td><td class="px-3 py-2.5 italic">"Use a 2-to-1 mux to select between two sensors."</td></tr>
+        <tr><td class="px-3 py-2.5 font-semibold text-primary">Decoder</td><td class="px-3 py-2.5">Bộ giải mã</td><td class="px-3 py-2.5">Mã n bit → 2ⁿ đường one-hot</td><td class="px-3 py-2.5 italic">"The address decoder selects one RAM row."</td></tr>
+        <tr class="bg-slate-50"><td class="px-3 py-2.5 font-semibold text-primary">Encoder</td><td class="px-3 py-2.5">Bộ mã hóa</td><td class="px-3 py-2.5">2ⁿ đường vào → mã nhị phân n bit của đường tích cực</td><td class="px-3 py-2.5 italic">"A priority encoder resolves multiple requests."</td></tr>
+        <tr><td class="px-3 py-2.5 font-semibold text-primary">One-hot</td><td class="px-3 py-2.5">Mã "một đường nóng"</td><td class="px-3 py-2.5">Vector chỉ có đúng 1 bit bằng 1</td><td class="px-3 py-2.5 italic">"Decoder outputs are one-hot signals."</td></tr>
+        <tr class="bg-slate-50"><td class="px-3 py-2.5 font-semibold text-primary">Half adder</td><td class="px-3 py-2.5">Bộ cộng bán phần</td><td class="px-3 py-2.5">Cộng A + B, xuất Sum và Carry, không có Cin</td><td class="px-3 py-2.5 italic">"A half adder is built from XOR and AND."</td></tr>
+        <tr><td class="px-3 py-2.5 font-semibold text-primary">Full adder</td><td class="px-3 py-2.5">Bộ cộng đầy đủ</td><td class="px-3 py-2.5">Cộng A + B + Cin; ghép chuỗi thành adder n bit</td><td class="px-3 py-2.5 italic">"Chain four full adders for a 4-bit adder."</td></tr>
+        <tr class="bg-slate-50"><td class="px-3 py-2.5 font-semibold text-primary">Carry</td><td class="px-3 py-2.5">Số nhớ</td><td class="px-3 py-2.5">Bit tràn sang cột kế khi tổng vượt 1</td><td class="px-3 py-2.5 italic">"The carry ripples through the chain."</td></tr>
+        <tr><td class="px-3 py-2.5 font-semibold text-primary">Comparator</td><td class="px-3 py-2.5">Bộ so sánh</td><td class="px-3 py-2.5">Xuất eq/gt/lt khi so hai số n bit</td><td class="px-3 py-2.5 italic">"The comparator raises 'gt' when A is greater."</td></tr>
+        <tr class="bg-slate-50"><td class="px-3 py-2.5 font-semibold text-primary">Propagation delay</td><td class="px-3 py-2.5">Độ trễ lan truyền</td><td class="px-3 py-2.5">Thời gian output phản ứng theo input qua các tầng cổng</td><td class="px-3 py-2.5 italic">"Total propagation delay limits the clock speed."</td></tr>
+        <tr><td class="px-3 py-2.5 font-semibold text-primary">Critical path</td><td class="px-3 py-2.5">Đường tới hạn</td><td class="px-3 py-2.5">Đường trễ dài nhất qua khối logic</td><td class="px-3 py-2.5 italic">"The carry chain is the adder's critical path."</td></tr>
+        <tr class="bg-slate-50"><td class="px-3 py-2.5 font-semibold text-primary">Inferred latch</td><td class="px-3 py-2.5">Latch bị suy ra ngoài ý muốn</td><td class="px-3 py-2.5">Phần tử nhớ tool tự chèn khi nhánh tổ hợp không gán đủ output</td><td class="px-3 py-2.5 italic">"A missing default caused an inferred latch."</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 19. FINAL SUMMARY ============ -->
+<section id="summary">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center text-lg"><i class="fa-solid fa-flag-checkered"></i></div>
+    <div><p class="text-[11px] font-bold text-primary uppercase tracking-widest">Section 19</p><h2 class="text-2xl font-bold text-slate-900">Final Summary — Chốt lại tuần 4</h2></div>
+  </div>
+  <div class="grid lg:grid-cols-2 gap-4 mb-4">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+      <h3 class="font-bold text-slate-900 mb-3"><i class="fa-solid fa-star text-secondary mr-1.5"></i>5 ý chính cần nhớ</h3>
+      <ol class="list-decimal ml-5 space-y-2 text-sm">
+        <li>Mạch tổ hợp: <strong>output chỉ phụ thuộc input hiện tại</strong> — không phần tử nhớ, không clock, không reset; nhưng <em>có</em> propagation delay.</li>
+        <li><strong>Think in blocks:</strong> mô tả mọi khối bằng Input – Output – Function; chi tiết cổng để tool synthesis lo.</li>
+        <li>Bộ 5 khối nền tảng: <strong>MUX</strong> chọn kênh, <strong>Decoder</strong> giải mã one-hot, <strong>Encoder</strong> nén mã, <strong>Adder</strong> cộng (half/full + carry), <strong>Comparator</strong> so sánh.</li>
+        <li>RTL tổ hợp: <code class="bg-slate-100 px-1 rounded">assign</code> hoặc <code class="bg-slate-100 px-1 rounded">always_comb</code> + gán <code class="bg-slate-100 px-1 rounded">=</code> + <strong>gán mặc định</strong> để không sinh latch.</li>
+        <li><strong>Critical path</strong> (như chuỗi carry của ripple adder) quyết định tốc độ khối — nền của timing tuần 5.</li>
+      </ol>
+    </div>
+    <div class="space-y-4">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+        <h3 class="font-bold text-slate-900 mb-3"><i class="hidden fa-mirror ​hidden"></i><i class="fa-solid fa-circle-question text-primary mr-1.5"></i>3 câu tự phản tỉnh</h3>
+        <ul class="space-y-2 text-sm list-disc ml-5">
+          <li>Tôi có thể vẽ block diagram "chọn cảm biến + báo ngưỡng" mà không nhìn lại bài không?</li>
+          <li>Nếu bạn cùng nhóm nhầm MUX với decoder, tôi giải thích khác biệt bằng ví dụ nào?</li>
+          <li>Tôi có chỉ ra được dòng nào trong always_comb đang "cứu" thiết kế khỏi latch không?</li>
+        </ul>
+      </div>
+      <div class="bg-gradient-to-r from-slate-800 to-blue-900 text-white rounded-2xl p-6">
+        <p class="text-sm italic leading-relaxed"><i class="fa-solid fa-quote-left text-blue-300 mr-2"></i>Kỹ sư giỏi không đếm số cổng — họ nhìn thấy chức năng. Hãy tập nghĩ theo khối, rồi bạn sẽ đọc được cả một con chip như đọc một sơ đồ tư duy.<i class="fa-solid fa-quote-right text-blue-300 ml-2"></i></p>
+        <p class="text-xs text-blue-300 mt-2 font-semibold">— Mentor note, Week 4</p>
+      </div>
+    </div>
+  </div>
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+    <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+      <h3 class="font-bold text-slate-900"><i class="fa-solid fa-clipboard-check text-accent mr-1.5"></i>Sau buổi học, tôi có thể...</h3>
+      <span class="text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full px-2.5 py-1">Tự đánh giá: <span id="summary-count">0/5</span></span>
+    </div>
+    <div id="summary-checklist" class="grid sm:grid-cols-2 gap-2.5 text-sm">
+      <label class="flex gap-3 items-start cursor-pointer hover:bg-slate-50 rounded-lg p-2"><input type="checkbox" class="mt-0.5 w-4 h-4 accent-emerald-600"><span>Giải thích mạch tổ hợp là gì và vì sao "không nhớ".</span></label>
+      <label class="flex gap-3 items-start cursor-pointer hover:bg-slate-50 rounded-lg p-2"><input type="checkbox" class="mt-0.5 w-4 h-4 accent-emerald-600"><span>Lập Block Card (I/O/Function) cho 5 khối cơ bản.</span></label>
+      <label class="flex gap-3 items-start cursor-pointer hover:bg-slate-50 rounded-lg p-2"><input type="checkbox" class="mt-0.5 w-4 h-4 accent-emerald-600"><span>Dự đoán đúng output của MUX 2-to-1 và decoder 2-to-4 với input bất kỳ.</span></label>
+      <label class="flex gap-3 items-start cursor-pointer hover:bg-slate-50 rounded-lg p-2"><input type="checkbox" class="mt-0.5 w-4 h-4 accent-emerald-600"><span>Viết module SystemVerilog tổ hợp có gán mặc định, không sinh latch.</span></label>
+      <label class="flex gap-3 items-start cursor-pointer hover:bg-slate-50 rounded-lg p-2"><input type="checkbox" class="mt-0.5 w-4 h-4 accent-emerald-600"><span>Chỉ ra critical path của bộ cộng ripple-carry và giải thích vì sao nó quan trọng.</span></label>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer class="bg-dark text-slate-300 mt-4">
+  <div class="max-w-6xl mx-auto px-4 py-8">
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+      <a href="Week3.html" class="group flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/15 rounded-xl px-4 py-2.5 text-sm font-semibold"><i class="fa-solid fa-arrow-left text-blue-400 group-hover:-translate-x-0.5 transition-transform"></i>Tuần 3: Logic Gates in Real Systems</a>
+      <p class="text-xs text-slate-500 text-center">Chương trình Mentoring Thiết kế Vi mạch số — 12 tuần<br>Bản quyền © Khoa Điện - Điện tử, Trường Kỹ thuật Phenikaa, Đại học Phenikaa · Giảng viên: ThS. Đinh Văn Nam<br>Tuần 4/12 · Combinational Logic Circuits</p>
+      <a href="Week5.html" class="group flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/15 rounded-xl px-4 py-2.5 text-sm font-semibold">Tuần 5: Sequential Logic &amp; Memory<i class="fa-solid fa-arrow-right text-blue-400 group-hover:translate-x-0.5 transition-transform"></i></a>
+    </div>
+  </div>
+</footer>
+<script>
+// ================= Copy code =================
+function copyCode(btn){
+  var codeEl = btn.closest('.code-window').querySelector('code');
+  var text = codeEl.textContent;
+  function done(){
+    var old = btn.innerHTML;
+    btn.innerHTML = '<i class="fa-solid fa-check mr-1"></i>Đã copy!';
+    btn.classList.add('copied');
+    setTimeout(function(){ btn.innerHTML = old; btn.classList.remove('copied'); }, 1600);
+  }
+  function fallback(){
+    var ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); } catch(e) {}
+    document.body.removeChild(ta);
+  }
+  if (navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(done, function(){ fallback(); done(); });
+  } else { fallback(); done(); }
+}
+
+// ================= Interactive checklists =================
+function bindChecklist(listId, countId){
+  var list = document.getElementById(listId);
+  var count = document.getElementById(countId);
+  if(!list || !count) return;
+  var boxes = list.querySelectorAll('input[type="checkbox"]');
+  function upd(){
+    var n = 0;
+    boxes.forEach(function(b){ if(b.checked) n++; });
+    count.textContent = n + '/' + boxes.length;
+  }
+  boxes.forEach(function(b){ b.addEventListener('change', upd); });
+  upd();
+}
+bindChecklist('prep-checklist', 'prep-count');
+bindChecklist('summary-checklist', 'summary-count');
+
+// ================= Demo 1: MUX 2-to-1 =================
+var muxState = { d0: 0, d1: 1, sel: 0 };
+function muxToggle(which){
+  muxState[which] = muxState[which] ? 0 : 1;
+  muxRender();
+}
+function sigColor(v){ return v ? '#10b981' : '#64748b'; }
+function setBtn(id, label, v){
+  var b = document.getElementById(id);
+  b.textContent = label + ' = ' + v;
+  b.classList.toggle('on', v === 1);
+}
+function muxRender(){
+  var y = muxState.sel ? muxState.d1 : muxState.d0;
+  setBtn('mux-d0-btn', 'D0', muxState.d0);
+  setBtn('mux-d1-btn', 'D1', muxState.d1);
+  setBtn('mux-sel-btn', 'sel', muxState.sel);
+  var svgD0 = document.getElementById('mux-svg-d0');
+  var svgD1 = document.getElementById('mux-svg-d1');
+  var svgSel = document.getElementById('mux-svg-sel');
+  var svgY = document.getElementById('mux-svg-y');
+  svgD0.textContent = muxState.d0; svgD0.setAttribute('fill', sigColor(muxState.d0));
+  svgD1.textContent = muxState.d1; svgD1.setAttribute('fill', sigColor(muxState.d1));
+  svgSel.textContent = muxState.sel;
+  svgY.textContent = y; svgY.setAttribute('fill', sigColor(y));
+  var lineD0 = document.getElementById('mux-line-d0');
+  var lineD1 = document.getElementById('mux-line-d1');
+  var lineY = document.getElementById('mux-line-y');
+  var selOn = muxState.sel === 1;
+  lineD0.setAttribute('stroke', selOn ? '#cbd5e1' : '#10b981');
+  lineD0.setAttribute('stroke-width', selOn ? '2.5' : '4');
+  lineD1.setAttribute('stroke', selOn ? '#10b981' : '#cbd5e1');
+  lineD1.setAttribute('stroke-width', selOn ? '4' : '2.5');
+  lineY.setAttribute('stroke', '#10b981');
+  var expl = document.getElementById('mux-expl');
+  expl.innerHTML = '<i class="fa-solid fa-arrow-pointer text-primary mr-1"></i><strong>sel = ' + muxState.sel +
+    '</strong> → MUX chọn ngõ vào <strong>D' + muxState.sel + '</strong> (đường tô xanh), nên <strong>Y = D' +
+    muxState.sel + ' = ' + y + '</strong>. Kênh còn lại (D' + (muxState.sel ? 0 : 1) +
+    ' = ' + (muxState.sel ? muxState.d0 : muxState.d1) + ') bị "ngắt", đổi giá trị cũng không ảnh hưởng Y.';
+}
+muxRender();
+
+// ================= Demo 2: Decoder 2-to-4 =================
+var decState = { en: 1, a1: 0, a0: 0 };
+function decToggle(which){
+  decState[which] = decState[which] ? 0 : 1;
+  decRender();
+}
+function decRender(){
+  setBtn('dec-en-btn', 'EN', decState.en);
+  setBtn('dec-a1-btn', 'A1', decState.a1);
+  setBtn('dec-a0-btn', 'A0', decState.a0);
+  var idx = decState.a1 * 2 + decState.a0;
+  for (var i = 0; i < 4; i++){
+    var on = (decState.en === 1) && (i === idx);
+    document.getElementById('dec-led-' + i).classList.toggle('led-on', on);
+    document.getElementById('dec-y-' + i).textContent = on ? '1' : '0';
+  }
+  document.getElementById('dec-row-off').classList.toggle('row-hi', decState.en === 0);
+  for (var r = 0; r < 4; r++){
+    document.getElementById('dec-row-' + r).classList.toggle('row-hi', decState.en === 1 && r === idx);
+  }
+  var expl = document.getElementById('dec-expl');
+  if (decState.en === 0){
+    expl.innerHTML = '<i class="fa-solid fa-power-off text-slate-400 mr-1"></i><strong>EN = 0</strong> → decoder bị tắt: tất cả ngõ ra bằng 0, không LED nào sáng — bất kể A1, A0 là gì (hàng "x" trong bảng).';
+  } else {
+    expl.innerHTML = '<i class="fa-solid fa-arrow-pointer text-emerald-600 mr-1"></i>A1A0 = <strong>' + decState.a1 + '' + decState.a0 +
+      '₂</strong> = ' + idx + '₁₀ → chỉ ngõ ra <strong>Y' + idx + ' = 1</strong> (one-hot), 3 ngõ còn lại bằng 0. Đổi mã địa chỉ là "dời" đúng một LED sáng.';
+  }
+}
+decRender();
+
+// ================= Quiz =================
+(function initQuiz(){
+  var questions = document.querySelectorAll('.quiz-q');
+  var total = questions.length;
+  var answered = 0, score = 0;
+  document.getElementById('quiz-total').textContent = total;
+  questions.forEach(function(q){
+    var ansIdx = parseInt(q.getAttribute('data-answer'), 10);
+    var opts = q.querySelectorAll('.quiz-opt');
+    opts.forEach(function(opt, oi){
+      opt.addEventListener('click', function(){
+        if (q.classList.contains('quiz-locked')) return;
+        q.classList.add('quiz-locked');
+        var correct = (oi === ansIdx);
+        opt.classList.add(correct ? 'opt-correct' : 'opt-wrong');
+        opts[ansIdx].classList.add('opt-correct');
+        var exp = q.querySelector('.quiz-exp');
+        var badge = q.querySelector('.quiz-badge');
+        exp.classList.remove('hidden');
+        badge.innerHTML = correct ? '<i class="fa-solid fa-circle-check mr-1"></i>Chính xác!' : '<i class="fa-solid fa-circle-xmark mr-1"></i>Chưa đúng — xem giải thích:';
+        badge.classList.add(correct ? 'text-emerald-600' : 'text-red-600');
+        answered++;
+        if (correct) score++;
+        document.getElementById('quiz-score').textContent = score;
+        document.getElementById('quiz-done').textContent = answered;
+        if (answered === total){
+          var msg = document.getElementById('quiz-msg');
+          if (score >= 8){ msg.textContent = 'Xuất sắc! Bạn đã sẵn sàng cho mạch tuần tự tuần 5.'; msg.className = 'font-semibold text-emerald-600'; }
+          else if (score >= 6){ msg.textContent = 'Khá tốt — xem lại các câu sai trước buổi học nhé.'; msg.className = 'font-semibold text-primary'; }
+          else { msg.textContent = 'Nên đọc lại Core Concepts và chơi lại 2 demo rồi làm lại quiz.'; msg.className = 'font-semibold text-amber-600'; }
+        }
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>

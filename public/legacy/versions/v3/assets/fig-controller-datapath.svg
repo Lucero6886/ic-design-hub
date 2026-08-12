@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 440" width="1120" height="440" font-family="ui-sans-serif,-apple-system,Segoe UI,Roboto,Arial,sans-serif" role="img" aria-label="Bên trong traffic_ctrl: controller và datapath">
+<title>Hình 2 — Bên trong traffic_ctrl: Controller ↔ Datapath</title>
+<desc>Controller là FSM ba khối, gửi tín hiệu điều khiển next_state sang datapath để chọn giá trị nạp timer. Datapath gồm timer register, MUX nạp lại, bộ trừ 1 và comparator, gửi ngược tín hiệu trạng thái timer_done cho controller. Cả hai khối cùng nhận clk, rst_n và cùng một xung enable tick.</desc>
+<defs>
+  <marker id="b1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/></marker>
+  <marker id="b2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#059669"/></marker>
+  <marker id="b3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"/></marker>
+</defs>
+<style>
+  .outer{fill:#f8fafc;stroke:#1d4ed8;stroke-width:2.5;stroke-dasharray:9 6}
+  .cbox{fill:#dbeafe;stroke:#2563eb;stroke-width:2}
+  .dbox{fill:#dcfce7;stroke:#059669;stroke-width:2}
+  .sub{fill:#fff;stroke:#94a3b8;stroke-width:1.2}
+  .h{font-size:15px;font-weight:800;fill:#0f172a}
+  .hs{font-size:11px;fill:#475569}
+  .s{font-size:11.5px;fill:#0f172a;font-weight:600}
+  .mono{font-size:10px;fill:#334155;font-family:ui-monospace,Consolas,monospace}
+  .cwire{stroke:#2563eb;stroke-width:2.5;fill:none}
+  .swire{stroke:#059669;stroke-width:2.5;fill:none}
+  .clk{stroke:#94a3b8;stroke-width:1.6;fill:none;stroke-dasharray:5 4}
+  .lb{font-size:12.5px;font-weight:700;fill:#1d4ed8;font-family:ui-monospace,Consolas,monospace}
+  .lg{font-size:12.5px;font-weight:700;fill:#047857;font-family:ui-monospace,Consolas,monospace}
+  .cap{font-size:10.5px;fill:#64748b}
+  .capb{font-size:10.5px;fill:#1d4ed8;font-weight:700}
+  .capg{font-size:10.5px;fill:#047857;font-weight:700}
+  .io{font-size:12.5px;font-weight:700;fill:#0f172a}
+</style>
+
+<rect class="outer" x="120" y="24" width="790" height="312" rx="14"/>
+<text class="h" x="136" y="46">traffic_ctrl</text>
+<text class="hs" x="232" y="46">— một module, hai vai trò tách bạch</text>
+
+<!-- ============ CONTROLLER ============ -->
+<rect class="cbox" x="145" y="66" width="250" height="242" rx="10"/>
+<text class="h" x="270" y="90" text-anchor="middle">CONTROLLER</text>
+<text class="hs" x="270" y="105" text-anchor="middle">quyết định "đang ở pha nào"</text>
+<rect class="sub" x="157" y="116" width="226" height="44" rx="6"/>
+<text class="s" x="167" y="134">Khối 1 — state register</text>
+<text class="mono" x="167" y="150">always_ff · khi tick &amp;&amp; timer_done</text>
+<rect class="sub" x="157" y="168" width="226" height="44" rx="6"/>
+<text class="s" x="167" y="186">Khối 2 — next-state logic</text>
+<text class="mono" x="167" y="202">always_comb · default trước case</text>
+<rect class="sub" x="157" y="220" width="226" height="44" rx="6"/>
+<text class="s" x="167" y="238">Khối 3 — output logic (Moore)</text>
+<text class="mono" x="167" y="254">always_comb · default ĐỎ–ĐỎ</text>
+<text class="cap" x="270" y="288" text-anchor="middle">chỉ giữ 2 bit trạng thái — KHÔNG đếm thời gian</text>
+
+<!-- ============ DATAPATH ============ -->
+<rect class="dbox" x="635" y="66" width="250" height="242" rx="10"/>
+<text class="h" x="760" y="90" text-anchor="middle">DATAPATH</text>
+<text class="hs" x="760" y="105" text-anchor="middle">đếm thời gian của pha</text>
+<rect class="sub" x="647" y="116" width="226" height="44" rx="6"/>
+<text class="s" x="657" y="134">timer register [4]</text>
+<text class="mono" x="657" y="150">always_ff · đổi khi tick</text>
+<rect class="sub" x="647" y="168" width="226" height="44" rx="6"/>
+<text class="s" x="657" y="186">MUX nạp lại + bộ trừ 1</text>
+<text class="mono" x="657" y="202">nạp N−1 hoặc timer − 1</text>
+<rect class="sub" x="647" y="220" width="226" height="44" rx="6"/>
+<text class="s" x="657" y="238">comparator == 0</text>
+<text class="mono" x="657" y="254">sinh cờ timer_done</text>
+<text class="cap" x="760" y="288" text-anchor="middle">đổi thời lượng = đổi parameter, không sửa FSM</text>
+
+<!-- ============ điều khiển: controller → datapath ============ -->
+<path class="cwire" d="M395 140 H635" marker-end="url(#b1)"/>
+<text class="lb" x="515" y="131" text-anchor="middle">next_state [2]</text>
+<text class="capb" x="515" y="162" text-anchor="middle">tín hiệu ĐIỀU KHIỂN</text>
+<text class="cap" x="515" y="176" text-anchor="middle">controller ra lệnh: nạp thời</text>
+<text class="cap" x="515" y="189" text-anchor="middle">lượng của pha kế tiếp</text>
+
+<!-- ============ trạng thái: datapath → controller ============ -->
+<path class="swire" d="M635 245 H395" marker-end="url(#b2)"/>
+<text class="lg" x="515" y="236" text-anchor="middle">timer_done [1]</text>
+<text class="capg" x="515" y="267" text-anchor="middle">tín hiệu TRẠNG THÁI</text>
+<text class="cap" x="515" y="281" text-anchor="middle">datapath báo về: "hết giờ,</text>
+<text class="cap" x="515" y="294" text-anchor="middle">được phép chuyển pha"</text>
+
+<!-- ============ tick ============ -->
+<text class="io" x="24" y="144">tick</text>
+<path class="cwire" d="M62 140 H145" marker-end="url(#b1)"/>
+<circle cx="100" cy="140" r="4.5" fill="#2563eb"/>
+<path class="cwire" d="M100 140 V366 H755 V308" marker-end="url(#b1)"/>
+<text class="cap" x="300" y="360">một xung enable — CẢ HAI khối cùng dùng, không ai tự chế clock riêng</text>
+
+<!-- ============ clk / rst_n ============ -->
+<text class="io" x="18" y="402">clk, rst_n</text>
+<path class="clk" d="M88 398 H840"/>
+<path class="clk" d="M260 398 V308" marker-end="url(#b3)"/>
+<path class="clk" d="M820 398 V308" marker-end="url(#b3)"/>
+<text class="cap" x="330" y="416">cùng một miền clock cho cả controller lẫn datapath</text>
+
+<!-- ============ output ============ -->
+<path class="cwire" d="M395 110 H610 V44 H1000" marker-end="url(#b1)"/>
+<text class="lb" x="800" y="37" text-anchor="middle">ns_light [3] · ew_light [3] · phase [2]</text>
+<text class="io" x="1006" y="48">→ Hình 1</text>
+<path class="swire" d="M885 140 H1000" marker-end="url(#b2)"/>
+<text class="lg" x="898" y="130">time_left [4]</text>
+<text class="io" x="1006" y="145">→ Hình 1</text>
+</svg>

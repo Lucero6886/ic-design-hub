@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="Giảng Viên Đinh Văn Nam">
+<meta name="copyright" content="© 2026 · Bản quyền thuộc về Giảng Viên Đinh Văn Nam, Khoa Điện-Điện Tử, Trường Kỹ Thuật, Đại học Phenikaa">
+<meta name="description" content="IC Design Mentoring — Version 3, Phase 1 (12 tuần). Khoa Điện – Điện tử · Trường Kỹ thuật · Đại học Phenikaa. Biên soạn: Giảng Viên Đinh Văn Nam.">
+<title>Tuần 5 — Sequential Logic &amp; Memory | IC Design Mentoring v3</title>
+<link rel="stylesheet" href="css/style.css">
+<script src="js/app.js" defer></script>
+</head>
+<body data-week="05">
+
+<!-- ================= TOP BAR ================= -->
+<header class="topbar">
+  <div class="topbar-in">
+    <a class="brand" href="index.html"><span class="logo">IC</span>
+      <span>IC Design Mentoring<small>Tuần 5/12 · Sequential Logic &amp; Memory</small></span></a>
+    <nav class="layer-chips">
+      <a class="chip" href="../../index.html" title="Learning Hub — cổng ba phiên bản giáo trình; đây là V3, bản hiện hành được khuyến nghị">⌂ Hub · V3</a>
+      <a class="chip chip-a" href="#layer-a"><span class="dot"></span>A · Trước buổi</a>
+      <a class="chip chip-b" href="#layer-b"><span class="dot"></span>B · Buổi học 60′</a>
+      <a class="chip chip-c" href="#layer-c"><span class="dot"></span>C · Lab</a>
+      <a class="chip chip-d" href="#layer-d"><span class="dot"></span>D · Sau buổi</a>
+      <a class="chip" href="index.html">Mục lục</a>
+    </nav>
+    <span class="mentor-sw" title="Hiện/ẩn nội dung dành riêng cho mentor"><span class="tr"></span> Mentor</span>
+  </div>
+  <div class="scrollbar"><div></div></div>
+</header>
+
+<!-- ================= HERO ================= -->
+<section class="hero">
+  <div class="wrap">
+    <div class="pill-row">
+      <span class="pill">Tuần 5 / 12</span>
+      <span class="pill acc">Nền tảng số · bước ngoặt</span>
+      <span class="pill">Khoa Điện – Điện tử · ĐH Phenikaa</span>
+    </div>
+    <h1>Sequential Logic &amp; Memory</h1>
+    <p class="sub">Mạch tuần tự — khi phần cứng bắt đầu biết "nhớ"</p>
+    <p>Bốn tuần qua, mọi mạch bạn gặp đều "mất trí nhớ": output chỉ phụ thuộc input <em>ngay lúc này</em>. Nhưng một bộ đếm, một đồng hồ, một CPU — tất cả đều phải nhớ những gì đã xảy ra. Tuần này bạn học phần tử nhớ nhỏ nhất (D flip-flop), nhịp trống chung của cả con chip (clock), và viết <b>RTL tuần tự đầu tiên</b>: một bộ đếm thật sự.</p>
+    <div class="outcomes">
+      <div class="outcome"><b>Mục tiêu 1.</b> Giải thích khác biệt bản chất giữa mạch tổ hợp và mạch tuần tự: phần tử nhớ và trạng thái (state).</div>
+      <div class="outcome"><b>Mục tiêu 2.</b> Vẽ được waveform Q từ chuỗi D + clock bất kỳ — hiểu "chụp tại cạnh lên".</div>
+      <div class="outcome"><b>Mục tiêu 3.</b> Thiết kế counter mod-N trên giấy (số FF, điều kiện wrap) rồi viết bằng <code>always_ff</code>.</div>
+      <div class="outcome"><b>Mục tiêu 4.</b> Gọi tên đúng 4 thông số thời gian: t<sub>pd</sub>, t<sub>su</sub>, t<sub>h</sub>, t<sub>CQ</sub> và ý nghĩa kỹ thuật của chúng.</div>
+    </div>
+    <div class="pos">
+      <div><b>Tuần trước — T4.</b> Khối tổ hợp (MUX, adder, comparator) + propagation delay: phần "tính" của hệ thống.</div>
+      <div><b>Tuần này — T5.</b> Phần "nhớ": flip-flop, register, counter — và nhịp clock điều khiển tất cả.</div>
+      <div><b>Tuần sau — T6.</b> FSM: dùng "nhớ" để ra quyết định — bước cuối trước khi làm project thật.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= LAYER A ================= -->
+<section id="layer-a" class="layer layer-a">
+  <div class="wrap layer-head">
+    <div class="band">
+      <span class="layer-badge">A</span>
+      <h2>Trước buổi học</h2>
+      <span class="time">⏱ 15–25 phút · chỉ cần đọc phần này</span>
+    </div>
+    <p class="lead">Bạn KHÔNG cần đọc Layer C trước buổi học. Chuẩn bị đủ ở đây là bạn sẵn sàng thảo luận. Layer C dành cho lúc thực hành sau buổi.</p>
+  </div>
+  <div class="wrap layer-body">
+    <div class="grid2">
+      <div class="card">
+        <h3>Vì sao tuần này quan trọng</h3>
+        <p>Đây là tuần <b>bước ngoặt</b> của cả khóa. Không có phần tử nhớ thì không có counter, không có FSM (T6), không có project đèn giao thông (T9–11). Mọi hệ thống số thực tế đều là <b>tổ hợp + tuần tự</b> ghép lại.</p>
+        <p class="small muted"><b>Điều kiện tiên quyết:</b> T4 — mạch tổ hợp, propagation delay, <code>always_comb</code> và gán default.</p>
+      </div>
+      <div class="card">
+        <h3>Hoạt động chuẩn bị (10′)</h3>
+        <p>Mở đồng hồ bấm giờ trên điện thoại, bấm Start rồi bấm Lap vài lần. Tự trả lời ra giấy: <b>hệ thống này phải "nhớ" những gì</b> để hoạt động đúng? (gợi ý: có ít nhất 3 thứ). Mang tờ giấy đến buổi học.</p>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Khái niệm thiết yếu — đọc chậm, 5 ý</h3>
+      <ul>
+        <li><b>Mạch tuần tự (sequential logic)</b> = mạch có trí nhớ: output phụ thuộc input hiện tại <em>và</em> trạng thái (state) — thứ tóm tắt quá khứ.</li>
+        <li><b>D flip-flop</b>: phần tử nhớ 1 bit. Nó <b>chụp</b> giá trị D đúng tại <b>cạnh lên</b> của clock rồi giữ nguyên đến cạnh lên kế tiếp. Ngoài thời điểm đó, D đổi kiểu gì Q cũng không quan tâm.</li>
+        <li><b>Clock</b>: tín hiệu vuông 0-1-0-1 làm nhịp trống chung — mọi FF trong thiết kế cập nhật gần như cùng thời điểm (sai lệch nhỏ giữa các FF do cây clock gây ra gọi là <b>clock skew</b>). 1 FF nhớ đúng 1 bit; register n bit = n FF.</li>
+        <li><b>Counter</b> = register + bộ cộng quay vòng: mỗi cạnh clock nạp lại giá trị cũ + 1. Đếm 0…N−1 cần ⌈log₂N⌉ FF.</li>
+        <li><b>4 thông số thời gian</b>: t<sub>pd</sub> (trễ logic tổ hợp), t<sub>CQ</sub> (từ cạnh clock đến Q đổi), t<sub>su</sub>/t<sub>h</sub> (D phải đứng yên quanh cạnh clock). Chúng quyết định chạy được bao nhiêu MHz.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>2 câu hỏi tự chẩn đoán</h3>
+      <p class="small muted">Trả lời trong đầu trước, rồi mới mở đáp án. Nếu sai cũng không sao — buổi học sẽ xử lý đúng chỗ này.</p>
+      <details class="reveal"><summary>1. Mạch tổ hợp thuần túy có tự đếm 0,1,2,3… được không? Vì sao?</summary>
+        <div class="rv-body">Không. Muốn đếm phải biết "đang ở số mấy" — tức phải <b>nhớ</b> giá trị hiện tại. Mạch tổ hợp dù triệu cổng cũng không lưu nổi 1 bit quá khứ; nó chỉ là hàm thuần túy của input hiện tại.</div>
+      </details>
+      <details class="reveal"><summary>2. D đổi 0→1→0 ở khoảng <em>giữa</em> hai cạnh lên clock. Q có đổi không?</summary>
+        <div class="rv-body">Không. FF kích cạnh chỉ "nhìn" D đúng tại cạnh lên. Thay đổi giữa hai cạnh là vô hình với Q — đây chính là điều làm hệ thống đồng bộ dự đoán được.</div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ================= LAYER B ================= -->
+<section id="layer-b" class="layer layer-b">
+  <div class="wrap layer-head">
+    <div class="band">
+      <span class="layer-badge">B</span>
+      <h2>Buổi mentoring 60 phút</h2>
+      <span class="time">🗺 Mentor Session Guide</span>
+    </div>
+    <p class="lead">Kịch bản buổi học — mentor điều phối theo timeline này, không cần đọc hết Layer C để đứng lớp. Học viên nhìn vào đây để biết mình sẽ làm gì.</p>
+  </div>
+  <div class="wrap layer-body">
+    <div class="card">
+      <div class="timeline">
+        <div class="tl-row">
+          <span class="tl-time">0–5′</span>
+          <h4>Retrieval — kiểm tra tuần 4</h4>
+          <ul>
+            <li>MUX 2:1 làm gì? Cần những tín hiệu nào?</li>
+            <li>Vì sao trong <code>always_comb</code> phải gán default trước khi <code>if</code>?</li>
+            <li>Propagation delay là gì — và vì sao ta phải quan tâm?</li>
+          </ul>
+        </div>
+        <div class="tl-row">
+          <span class="tl-time">5–15′</span>
+          <h4>Học viên giải thích</h4>
+          <p>1–2 học viên lên bảng giải thích D flip-flop bằng hình ảnh tự chọn (máy ảnh chụp đúng khoảnh khắc, cửa xoay…) + trả lời bài chuẩn bị "đồng hồ bấm giờ nhớ gì?". Cả lớp bổ sung, mentor chưa sửa vội.</p>
+        </div>
+        <div class="tl-row">
+          <span class="tl-time">15–25′</span>
+          <h4>Mentor sửa &amp; giảng sâu</h4>
+          <p>Chốt 3 điều bắt buộc đúng: (1) FF chỉ chụp D <b>tại cạnh lên</b>; (2) <b>1 FF = đúng 1 bit</b>; (3) latch ăn theo <b>mức</b>, FF ăn theo <b>cạnh</b> — vẽ 2 waveform cạnh nhau để so. Dùng demo FF ở Layer C mục C1 chiếu lên nếu có máy.</p>
+        </div>
+        <div class="tl-row">
+          <span class="tl-time">25–45′</span>
+          <h4>Active design — thiết kế trên giấy (nhóm 2–3 người)</h4>
+          <p><b>Đề bài:</b> thiết kế counter đếm 0→5 rồi quay về 0 (mod-6), có <code>enable</code>.</p>
+          <ul>
+            <li>Cần mấy flip-flop? Các giá trị 6, 7 là gì của thiết kế?</li>
+            <li>Điều kiện wrap viết thế nào (so sánh với mấy)?</li>
+            <li><b>Dự đoán trước</b>: vẽ waveform count cho 8 cạnh clock đầu (predict-before-simulate).</li>
+          </ul>
+          <p class="small muted">Artifact nhóm: 1 tờ giấy có số FF + điều kiện wrap + waveform dự đoán.</p>
+        </div>
+        <div class="tl-row">
+          <span class="tl-time">45–55′</span>
+          <h4>Chia sẻ &amp; tranh luận kỹ thuật</h4>
+          <p>Hai nhóm trình bày. Câu hỏi ép suy nghĩ: nhóm bạn xử lý trạng thái 6–7 (không dùng đến) ra sao? Nếu <code>enable</code> = 0 ngay tại cạnh clock thì count làm gì? Vì sao mod-6 BẮT BUỘC phải có comparator, còn mod-8 thì không? (Đếm tự tràn của 3 bit cho 0…7 — chỉ trùng mod-N khi N là lũy thừa của 2.)</p>
+        </div>
+        <div class="tl-row">
+          <span class="tl-time">55–60′</span>
+          <h4>Chốt &amp; giao việc</h4>
+          <ul>
+            <li><b>Nhớ:</b> FF chụp tại cạnh lên; count là "phần nhớ", bộ cộng là "phần tính".</li>
+            <li><b>Tránh:</b> nghĩ rằng Q bám theo D liên tục (đó là latch, không phải FF).</li>
+            <li><b>Artifact sau buổi:</b> counter mod-10 bằng RTL + testbench + waveform chú thích (Layer D).</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <p class="mentor-hint">💡 Bật công tắc <b>Mentor</b> trên thanh tiêu đề để xem ghi chú dành riêng cho mentor (đáp án kỳ vọng, câu hỏi cứu nguy, mở rộng cho học viên giỏi).</p>
+
+    <div class="mentor-only">
+      <div class="mentor-box">
+        <span class="mtag">Mentor only · Tuần 5</span>
+        <h3>Ghi chú vận hành buổi học</h3>
+        <div class="grid2">
+          <div>
+            <h4>Mục tiêu mentor cần chốt được</h4>
+            <ul class="small">
+              <li>Học viên phân biệt tổ hợp/tuần tự bằng <b>bản chất phần tử nhớ</b>, không phải bằng "độ phức tạp".</li>
+              <li>Tự vẽ waveform Q từ D + clk — kỹ năng nền cho mọi tuần sau.</li>
+              <li>Quy tắc ⌈log₂N⌉ và khái niệm trạng thái không dùng (unused states).</li>
+            </ul>
+            <h4>Hiểu sai kinh điển (chờ sẵn)</h4>
+            <ul class="small">
+              <li>"Clock cao thì FF mở" — nhầm latch với FF. Vẽ 2 waveform đối chiếu.</li>
+              <li>"1 FF lưu được một con số" — không, 1 FF = 1 bit.</li>
+              <li>"Mạch tuần tự = tổ hợp phức tạp hơn" — sai về bản chất, không phải mức độ.</li>
+              <li>"Q đổi ngay khi D đổi" — quên edge-triggered + t<sub>CQ</sub>.</li>
+            </ul>
+          </div>
+          <div>
+            <h4>Câu hỏi chẩn đoán → đáp án tốt → hỏi tiếp</h4>
+            <p class="small"><b>Hỏi:</b> "D đổi 0→1→0 giữa hai cạnh lên, Q ra sao?"<br>
+            <b>Đáp tốt:</b> Q giữ nguyên — FF không thấy thay đổi ngoài thời điểm cạnh.<br>
+            <b>Hỏi tiếp (nếu trả lời đúng):</b> "Vậy tại cạnh lên mà D <em>đang</em> đổi thì sao?" → dẫn vào t<sub>su</sub>/t<sub>h</sub> và vùng cấm.</p>
+            <p class="small"><b>Cứu nguy (nếu bí):</b> so sánh máy ảnh: bấm chụp lúc 12:00:00 — người mẫu nhảy múa trước/sau thời điểm đó không ảnh hưởng tấm ảnh. Tấm ảnh = Q, người mẫu = D, tiếng "tách" = cạnh clock.</p>
+            <p class="small"><b>Mở rộng học viên giỏi:</b> "Clock 100 MHz nghĩa là logic tổ hợp giữa hai FF phải xong trong bao lâu? Thành phần nào chiếm ngân sách thời gian đó?" → T = 10 ns ≥ t<sub>CQ</sub> + t<sub>pd</sub> + t<sub>su</sub> — trực giác về f<sub>max</sub> và critical path.</p>
+          </div>
+        </div>
+        <div class="co co-warn small"><b>Nhịp buổi học.</b> Không giảng quá 10 phút liên tục. Phần 25–45′ là lõi của buổi: đi từng nhóm, hỏi "vì sao 3 FF?", đừng cho đáp án sớm. Nếu lớp lệch trình độ: nhóm nhanh làm thêm câu "counter đếm xuống 5→0 thì sửa chỗ nào?".</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= LAYER C ================= -->
+<section id="layer-c" class="layer layer-c">
+  <div class="wrap layer-head">
+    <div class="band">
+      <span class="layer-badge">C</span>
+      <h2>Technical Lab — Deep Dive</h2>
+      <span class="time">🔬 Tự học sâu · sau buổi hoặc khi thực hành</span>
+    </div>
+    <p class="lead">Toàn bộ kỹ thuật chi tiết nằm ở đây, chia thành mục gập/mở. Không bắt buộc đọc hết một lần — đi theo thứ tự khi làm bài tập.</p>
+  </div>
+  <div class="wrap layer-body">
+    <div class="dd-tools"><button data-dd="open">Mở tất cả</button><button data-dd="close">Đóng tất cả</button></div>
+
+    <!-- C1 -->
+    <details class="dd" open>
+      <summary><span class="no">C1</span> D Flip-Flop — phần tử nhớ 1 bit <span class="est">~12′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <p><b>Định nghĩa dễ hiểu.</b> D-FF là "máy ảnh 1 bit": tại cạnh lên của clock nó chụp giá trị D và giữ trên Q cho đến cạnh lên kế tiếp. <b>Bản chất kỹ thuật:</b> output của mạch tuần tự = f(input, state); state kế = g(input, state). FF chính là nơi state vật lý tồn tại.</p>
+        <p><b>Trong IC/FPGA:</b> pipeline register trong CPU, program counter, thanh ghi cấu hình ngoại vi, timer — tất cả xây từ FF. Trên FPGA, FF nằm sẵn cạnh mỗi LUT trong logic cell.</p>
+        <div class="wavebox">
+          <svg viewBox="0 0 680 190" width="680" height="190">
+            <g transform="translate(70,14)">
+              <line class="wv-grid" x1="0" y1="0" x2="0" y2="150"/>
+              <!-- rising edge markers -->
+              <line class="wv-mark" x1="40" y1="0" x2="40" y2="150"/><line class="wv-mark" x1="120" y1="0" x2="120" y2="150"/><line class="wv-mark" x1="200" y1="0" x2="200" y2="150"/><line class="wv-mark" x1="280" y1="0" x2="280" y2="150"/><line class="wv-mark" x1="360" y1="0" x2="360" y2="150"/><line class="wv-mark" x1="440" y1="0" x2="440" y2="150"/><line class="wv-mark" x1="520" y1="0" x2="520" y2="150"/>
+              <!-- clk -->
+              <polyline class="wv-sig" points="0,40 40,40 40,20 80,20 80,40 120,40 120,20 160,20 160,40 200,40 200,20 240,20 240,40 280,40 280,20 320,20 320,40 360,40 360,20 400,20 400,40 440,40 440,20 480,20 480,40 520,40 520,20 560,20"/>
+              <!-- D -->
+              <polyline class="wv-sig3" points="0,90 60,90 60,70 180,70 180,90 250,90 250,70 300,70 300,90 320,90 320,70 340,70 340,90 560,90"/>
+              <!-- Q -->
+              <polyline class="wv-sig2" points="0,140 126,140 126,120 206,120 206,140 286,140 286,120 366,120 366,140 560,140"/>
+              <text class="wv-note" x="300" y="63">xung D giữa hai cạnh → Q không thấy</text>
+              <text class="wv-note" x="112" y="112">t<tspan baseline-shift="sub" font-size="8">CQ</tspan></text>
+              <line class="wv-mark" x1="120" y1="118" x2="126" y2="118" style="stroke:#fca5a5"/>
+            </g>
+            <text class="wv-lab" x="10" y="46">clk</text>
+            <text class="wv-lab" x="10" y="96">D</text>
+            <text class="wv-lab" x="10" y="146">Q</text>
+          </svg>
+        </div>
+        <p class="small muted">Đọc waveform: tại mỗi vạch đỏ (cạnh lên), hỏi "D đang bằng bao nhiêu?" — đó là giá trị Q sẽ mang, sau một khoảng trễ t<sub>CQ</sub> nhỏ. Xung D nằm giữa hai cạnh (x≈320–340) hoàn toàn vô hình với Q.</p>
+        <div class="co co-danger"><b>Latch ≠ FF.</b> Latch "trong suốt" theo <em>mức</em>: khi clock cao, Q bám D liên tục. FF kích <em>cạnh</em>: chỉ chụp đúng khoảnh khắc 0→1. Nhập môn chỉ dùng D-FF qua <code>always_ff</code>; latch xuất hiện ngoài ý muốn là dấu hiệu code tổ hợp thiếu default (ôn T4).</div>
+      </div>
+    </details>
+
+    <!-- C2 -->
+    <details class="dd">
+      <summary><span class="no">C2</span> Clock &amp; 4 thông số thời gian <span class="est">~12′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <p><b>Clock</b> là nhịp trống của đội chèo thuyền: mọi tay chèo khua cùng lúc. Chu kỳ T và tần số f = 1/T; clock 100 MHz → T = 10 ns. Chip nhận clock từ thạch anh/PLL, phân phối qua cây clock (clock tree) tới hàng nghìn–hàng triệu FF.</p>
+        <div class="grid2">
+          <div class="card">
+            <h4>4 thông số phải gọi đúng tên</h4>
+            <ul class="small">
+              <li><b>t<sub>pd</sub></b> — propagation delay của logic tổ hợp giữa hai FF (đã học T4).</li>
+              <li><b>t<sub>CQ</sub></b> — từ cạnh clock đến khi Q thật sự đổi.</li>
+              <li><b>t<sub>su</sub></b> (setup) — D phải <em>đứng yên trước</em> cạnh clock một khoảng tối thiểu.</li>
+              <li><b>t<sub>h</sub></b> (hold) — D phải <em>giữ nguyên sau</em> cạnh clock một khoảng tối thiểu.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h4>Trực giác f<sub>max</sub></h4>
+            <p class="small">Giữa hai FF liên tiếp, dữ liệu phải kịp đi hết một vòng trong một chu kỳ:</p>
+            <p class="center"><code>T ≥ t_CQ + t_pd + t_su</code></p>
+            <p class="small">Ví dụ minh họa: t<sub>CQ</sub>=0,5 ns, t<sub>pd</sub>=6 ns, t<sub>su</sub>=0,5 ns → T ≥ 7 ns → f<sub>max</sub> = 1/7 ns ≈ 143 MHz. Đường tổ hợp chậm nhất gọi là <b>critical path</b> — khái niệm sẽ gặp lại suốt sự nghiệp. (Phân tích chính xác bằng STA — chủ đề Phase 2.)</p>
+          </div>
+        </div>
+        <p class="small">D đổi bên trong "vùng cấm" (t<sub>su</sub> trước cạnh + t<sub>h</sub> sau cạnh) là <b>vi phạm timing</b>: Q có thể sai hoặc rơi vào trạng thái chập chờn (metastability — T11 sẽ gặp khi nhận tín hiệu bất đồng bộ từ ngoài).</p>
+        <div class="wr">
+          <p><b>Predict-before-check.</b> Clock 50 MHz (T = 20 ns). Logic giữa hai FF có t<sub>pd</sub> = 18 ns; t<sub>CQ</sub> = 1 ns, t<sub>su</sub> = 1,5 ns. Thiết kế có chạy đúng không? Nghĩ xong hãy bấm.</p>
+          <button class="wr-btn wbtn alt" data-label="Hiện đáp án">Hiện đáp án</button>
+          <div class="wr-ans"><div class="co co-danger">1 + 18 + 1,5 = 20,5 ns &gt; 20 ns → <b>vi phạm setup</b>. Hai hướng sửa: rút ngắn logic (chia tầng — pipeline, gặp ở Phase 2) hoặc hạ tần số clock. Đây chính là bài toán "timing closure" mà kỹ sư gặp hằng ngày.</div></div>
+        </div>
+      </div>
+    </details>
+
+    <!-- C3 -->
+    <details class="dd">
+      <summary><span class="no">C3</span> Register &amp; Counter — từ 1 bit đến n bit <span class="est">~10′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <p><b>Register n bit = n FF</b> chung một clock. <b>Counter = register + bộ cộng hồi tiếp</b>: cứ mỗi cạnh clock (khi enable), nạp lại giá trị cũ + 1. Phần "nhớ" là FF; phần "tính" là adder + comparator + MUX — đúng tinh thần tách <b>nhớ/tính</b> mà T6 sẽ nâng thành controller/datapath.</p>
+        <p><b>Quy tắc đếm FF:</b> đếm 0…N−1 cần <b>⌈log₂N⌉</b> FF. Mod-10 → 4 FF (dư 6 tổ hợp 10–15 không dùng); mod-6 → 3 FF (dư 2). Trạng thái không dùng phải không bao giờ đạt tới được trong hoạt động bình thường — và reset phải đưa hệ về vùng hợp lệ.</p>
+        <div class="widget" data-widget="counter" data-bits="4" data-mod="10">
+          <div class="wtitle">Thử máy: counter mod-10, 4 flip-flop</div>
+          <div class="wnote">Bấm "cạnh clock" và quan sát: 4 ô = 4 FF (Q3..Q0). Chú ý cú wrap 9 → 0: comparator thấy count == 9 nên MUX chọn nạp 0 thay vì +1. Tắt enable để thấy "giữ nguyên giá trị" cũng là một hành vi phải thiết kế.</div>
+        </div>
+      </div>
+    </details>
+
+    <!-- C4 -->
+    <details class="dd">
+      <summary><span class="no">C4</span> RTL: counter mod-10 — module tuần tự đầu tiên <span class="est">~15′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <div class="rtl-frame">
+          <div class="rtl-head"><span class="ftag ftag-rtl">RTL</span><span class="fname">counter_mod10.sv</span><span class="muted">· synthesizable</span></div>
+<pre class="code"><code>module counter_mod10 (
+  input  logic       clk,      // clock hệ thống duy nhất
+  input  logic       rst_n,    // reset bất đồng bộ, tích cực mức thấp
+  input  logic       enable,   // chỉ đếm khi enable = 1 (clock enable)
+  output logic [3:0] count     // 0..9, cần 4 FF
+);
+  always_ff @(posedge clk or negedge rst_n) begin
+    if (!rst_n)
+      count &lt;= 4'd0;                 // khởi tạo xác định
+    else if (enable) begin
+      if (count == 4'd9) count &lt;= 4'd0;      // wrap: comparator + nạp 0
+      else               count &lt;= count + 4'd1; // adder +1
+    end
+    // không có else: giữ nguyên giá trị = hành vi mặc định của FF
+  end
+endmodule</code></pre>
+          <div class="rtl-meta">
+            <div><b>1 · Mục đích</b>Đếm 0→9 quay vòng, có enable — đúng bài thiết kế giấy ở Layer B (nâng từ mod-6 lên mod-10).</div>
+            <div><b>2 · Interface</b><code>clk</code>, <code>rst_n</code>, <code>enable</code> vào; <code>count[3:0]</code> ra. Quy ước tên dùng thống nhất đến hết khóa.</div>
+            <div><b>3 · Phần cứng suy ra</b>4 FF (count) + bộ cộng 4 bit + comparator ==9 + MUX chọn {0, count+1, giữ nguyên}. Trên FPGA: vài LUT + 4 FF.</div>
+            <div><b>4 · Chiến lược test</b>Reset → đếm đủ 2 vòng (kiểm tra wrap 9→0 hai lần) → thả enable=0 vài chu kỳ giữa chừng (giá trị phải đứng yên).</div>
+            <div><b>5 · Waveform kỳ vọng</b>count tăng mỗi cạnh lên khi enable=1; tại count==9, cạnh kế tiếp về 0; khi enable=0, count phẳng.</div>
+            <div><b>6 · Bug kinh điển</b>Dùng <code>=</code> thay <code>&lt;=</code>; quên <code>or negedge rst_n</code> trong danh sách nhạy; so sánh <code>==4'd10</code> → count vẫn đi tới 10 rồi mới về 0, thành counter <b>mod-11</b> (off-by-one). Còn so sánh với hằng <b>không khai kích thước</b>, ví dụ <code>count == 16</code>: hằng 16 rộng 32 bit nên <code>count</code> 4 bit không bao giờ bằng nó → điều kiện wrap không bao giờ khớp → counter chạy tự do 0…15. Ngược lại, viết <code>4'd16</code> thì hằng bị <em>cắt</em> còn <code>4'd0</code>, điều kiện thành <code>count == 0</code> → khớp ngay sau reset → count bị nạp 0 mãi và <b>đứng yên tại 0</b>. Hai lỗi trông giống nhau khi đọc code, triệu chứng ngược hẳn nhau khi mô phỏng.</div>
+          </div>
+        </div>
+        <div class="co co-info"><b>Vì sao <code>&lt;=</code> (non-blocking)?</b> Tất cả FF trong thiết kế cập nhật <em>đồng thời</em> tại cạnh clock. <code>&lt;=</code> mô tả đúng ngữ nghĩa đó: mọi vế phải được "chụp" trước, rồi mọi vế trái cập nhật cùng lúc — không phụ thuộc thứ tự dòng code. Dùng <code>=</code> (blocking) trong <code>always_ff</code> tạo phụ thuộc thứ tự như C — shift register 2 FF có thể biến thành 1 FF. Quy tắc cả khóa: <b>tuần tự dùng <code>&lt;=</code>, tổ hợp dùng <code>=</code></b> (T7 hệ thống hóa).</div>
+      </div>
+    </details>
+
+    <!-- C5 -->
+    <details class="dd">
+      <summary><span class="no">C5</span> Testbench đầu tiên + predict-before-simulate <span class="est">~15′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <p>Thiết kế chưa xong khi RTL compile — nó xong khi <b>bằng chứng mô phỏng</b> khớp dự đoán. Quy trình chuẩn từ nay: <b>dự đoán waveform trên giấy → chạy mô phỏng → so sánh → giải thích chênh lệch</b>.</p>
+        <div class="rtl-frame">
+          <div class="rtl-head"><span class="ftag ftag-tb">TESTBENCH</span><span class="fname">tb_counter_mod10.sv</span><span class="muted">· chỉ để mô phỏng</span></div>
+<pre class="code"><code>module tb_counter_mod10;
+  logic clk = 1'b0, rst_n, enable;
+  logic [3:0] count;
+
+  counter_mod10 dut (.clk, .rst_n, .enable, .count);
+
+  always #5 clk = ~clk;          // chu kỳ 10 ns — chỉ tồn tại trong mô phỏng
+
+  // Tự kiểm mỗi cạnh: count không bao giờ vượt 9 (mini-invariant)
+  always @(posedge clk) if (rst_n)
+    if (count &gt; 4'd9) $error("count = %0d vuot pham vi mod-10!", count);
+
+  // QUY TAC TESTBENCH: chi doi input o canh XUONG, khong bao gio doi
+  // ngay tai canh lay mau — neu khong, TB va DUT cung duoc danh thuc mot
+  // luc, thu tu thuc thi khong xac dinh va waveform khong lap lai duoc.
+  initial begin
+    rst_n = 0; enable = 0;
+    repeat (2) @(negedge clk);
+    rst_n = 1; enable = 1;
+    repeat (23) @(negedge clk);  // du 2 lan wrap 9 -&gt; 0
+    enable = 0;                  // giu nguyen gia tri
+    repeat (4) @(negedge clk);
+    enable = 1;
+    repeat (6) @(negedge clk);
+    $finish;
+  end
+
+  initial $monitor("t=%0t rst_n=%b en=%b count=%0d", $time, rst_n, enable, count);
+endmodule</code></pre>
+          <div class="rtl-meta">
+            <div><b>Test plan</b>Reset ➊ → đếm qua 2 lần wrap ➋ → dừng enable ➌ → đếm tiếp ➍. Mỗi mục tiêu test một hành vi trong spec.</div>
+            <div><b>Điểm học</b>Dòng <code>always @(posedge clk) … $error</code> là <b>self-checking</b> sơ khai: máy canh lỗi thay mắt người — tư duy sẽ thành invariant check ở T9.</div>
+          </div>
+        </div>
+        <div class="co co-ok"><b>Trước khi chạy:</b> tự vẽ waveform 12 chu kỳ đầu (count 0,1,2,…). Chạy xong, nếu waveform khác dự đoán dù chỉ 1 chu kỳ — đừng sửa code vội, hãy <em>giải thích được vì sao</em> trước. Sai lệch phổ biến nhất: quên rằng count đổi <em>sau</em> cạnh (t<sub>CQ</sub>), và cạnh đầu tiên sau khi thả reset mới bắt đầu đếm.</div>
+      </div>
+    </details>
+
+    <!-- C6 -->
+    <details class="dd">
+      <summary><span class="no">C6</span> Khởi tạo &amp; Reset — đúng bản chất theo công nghệ <span class="est">~8′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <div class="co co-fix"><span class="tag">Hiệu chỉnh kỹ thuật so với v2</span> Bản v2 viết "khi bật nguồn, FF có giá trị ngẫu nhiên" và "mọi thanh ghi trạng thái quan trọng phải có reset". Phát biểu chính xác hơn ở dưới — xem <code>TECHNICAL_AUDIT.md</code> mục 5.1.</div>
+        <p><b>Trạng thái sau bật nguồn phụ thuộc công nghệ hiện thực:</b></p>
+        <ul>
+          <li><b>FPGA:</b> quá trình nạp cấu hình (configuration) thường đưa FF về giá trị khởi tạo xác định (nhiều tool cho khai báo giá trị init). Vì vậy trên FPGA, thiết kế "chạy ngay" sau nạp là chuyện thường gặp.</li>
+          <li><b>ASIC:</b> không có pha nạp cấu hình — trạng thái sau power-up <em>không được đảm bảo</em>. Kiến trúc phải chủ động: mạch reset, power-on-reset, trình tự khởi động. Trong <b>mô phỏng</b>, FF chưa gán hiện giá trị <code>X</code> (unknown) — mô hình của "không biết", chứ không phải "chắc chắn ngẫu nhiên".</li>
+        </ul>
+        <p><b>Reset là quyết định kiến trúc, không phải phản xạ:</b> thanh ghi <em>trạng thái điều khiển</em> (state của FSM, con trỏ, cờ) cần khởi tạo xác định để hệ khởi động đúng. Nhưng <em>không phải mọi thanh ghi datapath đều cần reset</em> — ví dụ thanh ghi pipeline chứa dữ liệu sẽ bị ghi đè trước khi dùng; thêm reset cho tất cả làm tăng diện tích, độ phức tạp routing và có thể ảnh hưởng timing. Trong khóa này, để nhất quán và an toàn cho người mới, ta reset các thanh ghi trạng thái/điều khiển bằng <code>rst_n</code> bất đồng bộ mức thấp; câu hỏi "reset cái gì, kiểu gì" sẽ mở lại ở T7 (chiến lược reset) và là một hướng nghiên cứu thật sự (T7, mục EQ→RQ).</p>
+      </div>
+    </details>
+
+    <!-- C7 -->
+    <details class="dd">
+      <summary><span class="no">C7</span> Săn bug: shift register bị viết sai <span class="est">~8′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <p><b>Đề:</b> module dưới đây <em>định</em> là shift register 2 tầng (q2 trễ din đúng 2 nhịp), reset bất đồng bộ. Có <b>3 dòng lỗi</b>. Bấm vào dòng bạn nghi ngờ.</p>
+        <pre class="code bughunt"><code><span class="bh-line">module shift2 (</span>
+<span class="bh-line">  input  logic clk, rst_n, din,</span>
+<span class="bh-line">  output logic q1, q2</span>
+<span class="bh-line">);</span>
+<span class="bh-line" data-bug data-msg="Ý định là reset BẤT đồng bộ nhưng danh sách nhạy chỉ có posedge clk → thành reset đồng bộ. Phải là: always_ff @(posedge clk or negedge rst_n).">  always_ff @(posedge clk) begin</span>
+<span class="bh-line" data-bug data-msg="Blocking '=' trong khối tuần tự. Phải dùng non-blocking: q1 &lt;= 1'b0; q2 &lt;= 1'b0;">    if (!rst_n) begin q1 = 1'b0; q2 = 1'b0; end</span>
+<span class="bh-line" data-bug data-msg="Lỗi chí mạng: q1 = din; q2 = q1; với blocking → q2 nhận din NGAY trong cùng cạnh — mô phỏng ra 1 FF thay vì 2. Sửa: q1 &lt;= din; q2 &lt;= q1;">    else begin q1 = din; q2 = q1; end</span>
+<span class="bh-line">  end</span>
+<span class="bh-line">endmodule</span></code></pre>
+        <div class="bh-out">Chưa tìm thấy lỗi nào — bấm vào dòng code để kiểm tra.</div>
+        <p class="small muted">Vì sao bài này quan trọng: blocking trong khối tuần tự làm code không còn mô tả đúng thứ tự phần cứng bạn định vẽ (ở đây: hai FF cùng chốt <code>din</code> thay vì shift 2 tầng). Khi nhiều khối <code>always</code> cùng chạm một tín hiệu, nó còn tạo race khiến mô phỏng lệch phần cứng — loại bug khó truy nhất với người mới. T7 sẽ đưa thành quy tắc style bắt buộc.</p>
+      </div>
+    </details>
+
+    <!-- C8 vocab -->
+    <details class="dd">
+      <summary><span class="no">C8</span> Từ vựng kỹ thuật tuần 5 <span class="est">~5′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <div class="tblwrap">
+        <table class="tbl vocab">
+          <tr><th>Thuật ngữ</th><th>Nghĩa</th><th>Câu ví dụ (EN)</th></tr>
+          <tr><td>Sequential logic</td><td>Mạch tuần tự — output phụ thuộc input và trạng thái</td><td class="en">Counters and FSMs are sequential logic.</td></tr>
+          <tr><td>Flip-flop (FF)</td><td>Phần tử nhớ 1 bit, kích theo cạnh clock</td><td class="en">The design uses 4 flip-flops for the counter.</td></tr>
+          <tr><td>Clock edge</td><td>Cạnh clock (rising 0→1 / falling 1→0)</td><td class="en">Data is captured on the rising clock edge.</td></tr>
+          <tr><td>Register</td><td>Nhóm n FF lưu một giá trị n bit</td><td class="en">The result is stored in a 32-bit register.</td></tr>
+          <tr><td>Counter</td><td>Bộ đếm — register tự cộng 1 mỗi nhịp</td><td class="en">A modulo-10 counter wraps from 9 to 0.</td></tr>
+          <tr><td>State</td><td>Trạng thái — thông tin quá khứ được lưu</td><td class="en">The current state determines the next output.</td></tr>
+          <tr><td>Setup time (t<sub>su</sub>)</td><td>D phải ổn định <em>trước</em> cạnh clock</td><td class="en">A setup violation corrupts the captured data.</td></tr>
+          <tr><td>Hold time (t<sub>h</sub>)</td><td>D phải giữ nguyên <em>sau</em> cạnh clock</td><td class="en">Hold time is checked right after the edge.</td></tr>
+          <tr><td>Clock-to-Q (t<sub>CQ</sub>)</td><td>Trễ từ cạnh clock đến khi Q đổi</td><td class="en">Q toggles one clock-to-Q delay after the edge.</td></tr>
+          <tr><td>Reset</td><td>Đưa trạng thái về giá trị xác định</td><td class="en">The state register is cleared by an active-low reset.</td></tr>
+        </table>
+        </div>
+      </div>
+    </details>
+  </div>
+</section>
+
+<!-- ================= LAYER D ================= -->
+<section id="layer-d" class="layer layer-d">
+  <div class="wrap layer-head">
+    <div class="band">
+      <span class="layer-badge">D</span>
+      <h2>Sau buổi học</h2>
+      <span class="time">📝 Quiz 5 câu · bài tập · phản tư</span>
+    </div>
+  </div>
+  <div class="wrap layer-body">
+
+    <div class="card">
+      <h3>Quiz tự kiểm tra — 5 câu</h3>
+      <p class="small muted">Chọn đáp án; chấm ngay và hiện giải thích. Câu hỏi kiểu dự đoán/suy luận — nếu sai, quay lại đúng mục Layer C được ghi trong giải thích.</p>
+      <div class="quiz" id="quiz">
+        <div class="qz-item" data-answer="C">
+          <p class="qz-q">1. D bằng 0 tại mọi cạnh lên clock, nhưng có một xung D=1 ngắn nằm gọn <em>giữa</em> hai cạnh lên. Q sẽ thế nào?</p>
+          <button class="qz-opt" data-key="A">Q có một xung 1 ngắn tương ứng</button>
+          <button class="qz-opt" data-key="B">Q lên 1 và giữ đến cạnh kế tiếp</button>
+          <button class="qz-opt" data-key="C">Q giữ nguyên 0 suốt — FF không nhìn thấy xung đó</button>
+          <button class="qz-opt" data-key="D">Q rơi vào trạng thái không xác định</button>
+          <div class="qz-expl"><b>Giải thích:</b> FF kích cạnh chỉ lấy mẫu D đúng tại cạnh lên. Thay đổi giữa hai cạnh vô hình với Q (miễn là không vi phạm t<sub>su</sub>/t<sub>h</sub> quanh cạnh). Xem lại C1 — waveform có đúng tình huống này.</div>
+        </div>
+        <div class="qz-item" data-answer="B">
+          <p class="qz-q">2. Đoạn RTL: <code>always_ff @(posedge clk or negedge rst_n) if (!rst_n) count &lt;= '0; else if (enable) count &lt;= count + 1;</code> với <code>count[3:0]</code>. Phần cứng suy ra là gì?</p>
+          <button class="qz-opt" data-key="A">Một chương trình chạy tuần tự trên CPU nhúng trong FPGA</button>
+          <button class="qz-opt" data-key="B">4 FF có reset bất đồng bộ + bộ cộng + MUX chọn "giữ nguyên / +1" theo enable</button>
+          <button class="qz-opt" data-key="C">4 latch trong suốt khi enable = 1</button>
+          <button class="qz-opt" data-key="D">Chỉ 1 FF vì chỉ có một phép gán</button>
+          <div class="qz-expl"><b>Giải thích:</b> mỗi bit của <code>count</code> là 1 FF → 4 FF; <code>+1</code> là adder tổ hợp; <code>enable</code> điều khiển MUX trước chân D (clock enable — không đụng vào đường clock). Câu hỏi "phần cứng gì được suy ra" sẽ theo bạn cả khóa. Xem C4.</div>
+        </div>
+        <div class="qz-item" data-answer="B">
+          <p class="qz-q">3. Counter mod-6 (đếm 0–5): cần mấy FF, và các tổ hợp 6, 7 là gì?</p>
+          <button class="qz-opt" data-key="A">6 FF; giá trị 6–7 không tồn tại trong phần cứng</button>
+          <button class="qz-opt" data-key="B">3 FF; 6–7 là trạng thái không dùng — thiết kế phải bảo đảm không bao giờ rơi vào (wrap tại 5, reset về vùng hợp lệ)</button>
+          <button class="qz-opt" data-key="C">3 FF; 6–7 tự động bị công cụ synthesis xóa khỏi mạch</button>
+          <button class="qz-opt" data-key="D">2 FF vì 6 giá trị chia được cho 2</button>
+          <div class="qz-expl"><b>Giải thích:</b> ⌈log₂6⌉ = 3 FF → 8 tổ hợp, dùng 6, dư 2. Phần cứng 3 FF vẫn <em>có thể</em> mang giá trị 6–7 (ví dụ nhiễu, lỗi thiết kế) — trách nhiệm của người thiết kế là logic không bao giờ dẫn tới đó và reset đưa về vùng hợp lệ. Xem C3.</div>
+        </div>
+        <div class="qz-item" data-answer="D">
+          <p class="qz-q">4. Phát biểu nào <b>chính xác</b> về giá trị flip-flop sau khi bật nguồn?</p>
+          <button class="qz-opt" data-key="A">FF luôn khởi động ngẫu nhiên, trên mọi công nghệ</button>
+          <button class="qz-opt" data-key="B">FF luôn khởi động bằng 0 nên reset là thừa</button>
+          <button class="qz-opt" data-key="C">Chỉ cần reset là mô phỏng và phần cứng chắc chắn giống nhau tuyệt đối</button>
+          <button class="qz-opt" data-key="D">Tùy công nghệ: FPGA nạp cấu hình thường cho khởi tạo xác định; ASIC không đảm bảo nên cần chiến lược reset/khởi động; mô phỏng biểu diễn "chưa biết" bằng X</button>
+          <div class="qz-expl"><b>Giải thích:</b> hành vi khởi động phụ thuộc công nghệ hiện thực — đây là điểm đã được hiệu chỉnh so với tài liệu v2. Thanh ghi trạng thái điều khiển cần khởi tạo xác định; không phải mọi thanh ghi datapath đều cần reset. Xem C6.</div>
+        </div>
+        <div class="qz-item" data-answer="A">
+          <p class="qz-q">5. Trong <code>always_ff</code>, vì sao dùng <code>&lt;=</code> (non-blocking) thay vì <code>=</code> (blocking)?</p>
+          <button class="qz-opt" data-key="A">Vì <code>&lt;=</code> mô tả đúng việc mọi FF cập nhật đồng thời tại cạnh clock — kết quả không phụ thuộc thứ tự dòng code</button>
+          <button class="qz-opt" data-key="B">Vì <code>&lt;=</code> chạy nhanh hơn khi mô phỏng</button>
+          <button class="qz-opt" data-key="C">Vì <code>=</code> không hợp lệ về cú pháp trong <code>always_ff</code></button>
+          <button class="qz-opt" data-key="D">Không khác gì nhau, chỉ là thói quen</button>
+          <div class="qz-expl"><b>Giải thích:</b> với <code>=</code>, dòng trên "chạy xong" mới tới dòng dưới — shift register 2 tầng thành 1 FF (đúng bug ở C7). <code>&lt;=</code> chụp mọi vế phải trước rồi cập nhật đồng loạt — khớp bản chất phần cứng. Cú pháp <code>=</code> vẫn hợp lệ, nên lỗi này compiler không bắt cho bạn.</div>
+        </div>
+        <div class="qz-bar"><span class="qz-score"></span><span class="qz-verdict"></span><button class="qz-reset">Làm lại</button></div>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <h3>Bài tập bắt buộc <span class="badge badge-req">nộp trước buổi 6</span></h3>
+        <p><b>Counter mod-10 có enable</b> — làm đúng chuỗi: dự đoán → mô phỏng → đối chiếu.</p>
+        <ul class="small">
+          <li>Vẽ tay waveform dự đoán 12 chu kỳ đầu (sau reset, enable=1).</li>
+          <li>Gõ lại <code>counter_mod10.sv</code> và <code>tb_counter_mod10.sv</code> (không copy-paste) — mô phỏng trên EDA Playground hoặc tool nhóm đang dùng.</li>
+          <li>Chụp waveform, <b>chú thích bằng tay 2 sự kiện wrap 9→0</b> và 1 khoảng enable=0.</li>
+        </ul>
+        <p class="small"><b>Nộp (deliverable):</b> ảnh waveform dự đoán + 2 file .sv + ảnh waveform mô phỏng có chú thích + 3 dòng: "dự đoán của tôi lệch ở đâu, vì sao".</p>
+      </div>
+      <div class="card">
+        <h3>Thử thách nâng cao <span class="badge badge-opt">tự chọn</span></h3>
+        <p><b>Up/down counter:</b> thêm input <code>dir</code> (1 = đếm lên, 0 = đếm xuống 9→0→9…). Câu hỏi kèm theo: phần cứng thêm những gì so với bản gốc? Nếu clock tăng lên gấp 10 lần, thành phần nào trong mạch của bạn "lo lắng" đầu tiên? (gợi ý: C2 — ngân sách T ≥ t<sub>CQ</sub> + t<sub>pd</sub> + t<sub>su</sub>).</p>
+        <div class="eqrq">
+          <div class="eq"><b>Câu hỏi kỹ thuật</b>Counter nên rộng bao nhiêu bit là "đủ"?</div>
+          <div class="arr">→</div>
+          <div class="rq"><b>Làm quen tư duy nghiên cứu</b>Bit width ảnh hưởng thế nào đến diện tích, công suất, timing và độ chính xác? (T9 sẽ đặt câu hỏi này nghiêm túc trên chính project của bạn.)</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Rubric tuần 5</h3>
+      <div class="tblwrap">
+      <table class="tbl rubric">
+        <tr><th>Tiêu chí</th><th>Trọng số</th><th>Đạt khi…</th></tr>
+        <tr><td>Hiểu khái niệm</td><td class="pct">25%</td><td>Giải thích được vì sao mạch tổ hợp không đếm được; vẽ đúng Q từ D + clk bất kỳ.</td></tr>
+        <tr><td>Kiến trúc</td><td class="pct">20%</td><td>Chỉ đúng phần "nhớ" (FF) và phần "tính" (adder/comparator/MUX) trong thiết kế của mình; tính đúng ⌈log₂N⌉.</td></tr>
+        <tr><td>RTL đúng</td><td class="pct">20%</td><td><code>always_ff</code> + <code>&lt;=</code> + <code>rst_n</code> đúng mẫu; wrap 9→0 hoạt động; không latch, không blocking.</td></tr>
+        <tr><td>Verification</td><td class="pct">20%</td><td>Testbench chạy đủ 2 wrap + đoạn enable=0; waveform có chú thích; đối chiếu được với dự đoán.</td></tr>
+        <tr><td>Giao tiếp kỹ thuật</td><td class="pct">15%</td><td>Nói được "dự đoán của tôi lệch ở đâu, vì sao" — thành thật và chính xác, kể cả khi không lệch.</td></tr>
+      </table>
+      </div>
+      <p class="small muted">Code chạy được chưa phải điểm tối đa — phải giải thích được vì sao nó đúng.</p>
+    </div>
+
+    <div class="card">
+      <h3>Tổng kết tuần 5</h3>
+      <div class="ican">
+        <div><b>I can explain</b>① Khác biệt bản chất tổ hợp/tuần tự (phần tử nhớ, state). ② Vì sao FF chỉ chụp D tại cạnh lên và điều đó khiến hệ thống dự đoán được. ③ Bốn thông số t<sub>pd</sub>, t<sub>CQ</sub>, t<sub>su</sub>, t<sub>h</sub> và bất đẳng thức T ≥ t<sub>CQ</sub>+t<sub>pd</sub>+t<sub>su</sub>.</div>
+        <div><b>I can design</b>Counter mod-N có enable: chọn số FF, viết điều kiện wrap, hiện thực bằng <code>always_ff</code> đúng mẫu.</div>
+        <div><b>I can verify</b>Viết testbench có kịch bản reset/wrap/enable và một dòng self-check; đối chiếu waveform với dự đoán vẽ tay.</div>
+        <div><b>I can connect</b>Counter tuần này chính là <b>timer datapath</b> của đèn giao thông T9–11; FF tuần này là nơi "state" của FSM T6 sống.</div>
+        <div class="unsure"><b>I am still unsure about…</b><textarea class="reflect" id="unsure5" placeholder="Điều tôi giải thích được tuần này mà tuần trước chưa giải thích được là… / Điều tôi còn mơ hồ là… (tự động lưu trên máy bạn)"></textarea></div>
+        <div class="nextwk"><b>Next week</b>Bạn đã có "trí nhớ". T6 dạy hệ thống <b>ra quyết định dựa trên trí nhớ</b>: Finite-State Machine — vẽ sơ đồ trạng thái trước, code sau.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="weeknav">
+      <a href="Week04.html"><small>← Tuần trước</small><b>T4 · Combinational Building Blocks</b></a>
+      <a class="next" href="Week06.html"><small>Tuần sau →</small><b>T6 · Finite-State Machines</b></a>
+    </div>
+    <div class="footer">
+      <b>IC Design Mentoring — Version 3 · Phase 1</b>
+      <span class="org">Khoa Điện – Điện tử · Trường Kỹ thuật · Đại học Phenikaa</span>
+      <span>Biên soạn: <b style="display:inline">Giảng Viên Đinh Văn Nam</b></span>
+      <span class="cr">© 2026 · Bản quyền thuộc về Giảng Viên Đinh Văn Nam, Khoa Điện-Điện Tử, Trường Kỹ Thuật, Đại học Phenikaa. Tài liệu phục vụ đào tạo — vui lòng giữ nguyên thông tin tác giả khi chia sẻ.</span>
+      <span class="cr">Hoạt động offline — không cần Internet.</span>
+    </div>
+  </div>
+</footer>
+</body>
+</html>

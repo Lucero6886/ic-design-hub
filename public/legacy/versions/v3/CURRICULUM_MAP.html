@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="Giảng Viên Đinh Văn Nam">
+<meta name="copyright" content="© 2026 · Bản quyền thuộc về Giảng Viên Đinh Văn Nam, Khoa Điện-Điện Tử, Trường Kỹ Thuật, Đại học Phenikaa">
+<meta name="description" content="Bản đồ chương trình 12 tuần — IC Design Mentoring Version 3. Khoa Điện – Điện tử · Trường Kỹ thuật · Đại học Phenikaa. Biên soạn: Giảng Viên Đinh Văn Nam.">
+<title>Bản đồ chương trình 12 tuần | IC Design Mentoring v3</title>
+<link rel="stylesheet" href="css/style.css">
+<script src="js/app.js" defer></script>
+</head>
+<body data-week="doc">
+
+<header class="topbar">
+  <div class="topbar-in">
+    <a class="brand" href="index.html"><span class="logo">IC</span>
+      <span>IC Design Mentoring<small>Tài liệu vận hành · Version 3</small></span></a>
+    <nav class="layer-chips">
+      <a class="chip" href="../../index.html" title="Learning Hub — cổng ba phiên bản giáo trình; đây là V3, bản hiện hành được khuyến nghị">⌂ Hub · V3</a>
+      <a class="chip" href="README.html">README</a>
+      <span class="chip active">Curriculum Map</span>
+      <a class="chip" href="MENTOR_GUIDE.html">Mentor Guide</a>
+      <a class="chip" href="PROJECT_GUIDE.html">Project Guide</a>
+      <a class="chip" href="TECHNICAL_AUDIT.html">Technical Audit</a>
+      <a class="chip" href="CHANGELOG_V2_TO_V3.html">Changelog</a>
+      <a class="chip" href="VALIDATION_REPORT.html">Validation</a>
+      <a class="chip" href="implementation-notes.html">Implementation Notes</a>
+      <a class="chip" href="index.html">← Mục lục</a>
+    </nav>
+  </div>
+  <div class="scrollbar"><div></div></div>
+</header>
+
+<section class="doc-hero">
+  <div class="wrap">
+    <div class="pill-row">
+      <span class="pill">Tài liệu vận hành</span>
+      <span class="pill acc">Curriculum Map</span>
+      <span class="pill">Khoa Điện – Điện tử · ĐH Phenikaa</span>
+    </div>
+    <h1>Bản đồ chương trình 12 tuần</h1>
+    <p class="sub">Khái niệm · kỹ năng · artifact · dependency · vòng xoáy học tập</p>
+    <p class="src">Bản văn bản gốc: <b>CURRICULUM_MAP.md</b> · cùng thư mục</p>
+  </div>
+</section>
+
+<main class="wrap doc-main">
+<nav class="doc-toc"><b>Nội dung tài liệu</b><ol><li><a href="#m-bang-ban-do-12-tuan">Bảng bản đồ 12 tuần</a></li><li><a href="#m-cac-vong-xoay-hoc-tap-learning-spirals">Các vòng xoáy học tập (learning spirals)</a></li><li><a href="#m-kien-truc-project-tich-hop-w911-smart-traffic-">Kiến trúc project tích hợp W9–11 — SMART TRAFFIC CONTROLLER FPGA SYSTEM</a></li><li><a href="#m-ghi-chu-pham-vi">Ghi chú phạm vi</a></li></ol></nav>
+<article class="doc-body">
+<p>Tài liệu này là bản đồ chương trình chính thức của Version 3. Mọi tuần đều tuân theo kiến trúc 4 lớp:
+<strong>Layer A</strong> — Trước buổi học (15–25 phút; riêng Tuần 12 là 60–90 phút vì phải chuẩn bị hồ sơ bảo vệ) · <strong>Layer B</strong> — Buổi mentoring 60 phút · <strong>Layer C</strong> — Technical Lab / Deep Dive (tự học sâu, không bắt buộc đọc trước) · <strong>Layer D</strong> — Sau buổi học (quiz 5 câu, bài tập, rubric, phản tư, cầu nối tuần sau).</p>
+<p><strong>Chuẩn đầu ra Phase 1</strong> (nguyên văn, dùng thống nhất ở <a href="index.html"><code>index.html</code></a>, <a href="README.html" title="Mở README.html"><code>README.md</code></a> và Week 12):
+&quot;Sau 12 tuần, học viên có thể đọc một đặc tả đơn giản, phân rã hệ thống số thành các khối chức năng, viết RTL cơ bản bằng SystemVerilog, viết testbench đơn giản, đọc waveform mô phỏng, hiểu synthesis ở mức nền tảng, và tích hợp một thiết kế đồng bộ nhỏ phù hợp để prototype trên FPGA.&quot; Chương trình <strong>không</strong> tuyên bố học viên trở thành kỹ sư IC hoàn chỉnh sau 12 tuần.</p>
+<hr>
+<h2 id="m-bang-ban-do-12-tuan">Bảng bản đồ 12 tuần</h2>
+<div class="tblwrap"><table class="tbl">
+<thead>
+<tr>
+<th>Tuần</th>
+<th>Câu hỏi cốt lõi</th>
+<th>Khái niệm chính</th>
+<th>Kỹ năng kỹ thuật</th>
+<th>Artifact bắt buộc</th>
+<th>Đóng góp vào project</th>
+<th>Kết nối tư duy nghiên cứu</th>
+<th>Điều kiện tiên quyết</th>
+<th>Tuần sau cần gì từ tuần này</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>1. Why Semiconductor? Why IC Design?</strong></td>
+<td>Vì sao trừu tượng hóa số (digital abstraction) là nền của mọi con chip?</td>
+<td>Semiconductor, transistor-as-switch, gate, khối chức năng, IC, SoC; chuỗi trừu tượng 6 tầng: transistor → logic gate → functional block → digital system → IC → SoC</td>
+<td>Nhìn một thiết bị và chỉ ra các tầng trừu tượng; đọc sơ đồ khối SoC</td>
+<td>1 trang &quot;bản đồ trừu tượng&quot; của một thiết bị tự chọn (điện thoại/xe/router)</td>
+<td>Định vị project W9–11 nằm ở tầng &quot;block→system&quot;</td>
+<td>Quan sát → câu hỏi (&quot;vì sao chip nóng? vì sao 3nm khó?&quot;) — chưa formal</td>
+<td>Không</td>
+<td>W2 dùng chuỗi trừu tượng để đặt design flow lên trên</td>
+</tr>
+<tr>
+<td><strong>2. From Idea to Chip</strong></td>
+<td>Một ý tưởng đi qua những chặng nào để thành chip, và mỗi chặng sinh ra artifact gì?</td>
+<td>Requirement &amp; Spec → Architecture → RTL → Verification → Synthesis → Implementation → Fab/FPGA config → Test (8 chặng); phân biệt flow FPGA vs ASIC</td>
+<td>Gọi tên đúng artifact từng chặng (spec, block diagram, RTL, testbench, netlist, bitstream/GDSII)</td>
+<td>Bảng &quot;chặng → artifact → ai làm&quot; cho một sản phẩm giả định</td>
+<td>Chính là flow học viên sẽ đi W9–11 (đến chặng FPGA)</td>
+<td>Phân biệt &quot;làm được&quot; vs &quot;kiểm chứng được&quot; — mầm verification</td>
+<td>W1 (tầng trừu tượng)</td>
+<td>W3+ luôn định vị &quot;ta đang ở chặng nào của flow&quot;</td>
+</tr>
+<tr>
+<td><strong>3. Logic Gates &amp; Boolean Thinking</strong></td>
+<td>Làm sao biến một tình huống đời thực thành mạch logic?</td>
+<td>Mức logic, AND/OR/NOT/NAND/NOR/XOR/XNOR, truth table, biểu thức Boole, biến đổi đơn giản</td>
+<td>Quy trình: tình huống → truth table → biểu thức → mạch; đọc/viết truth table thành thạo</td>
+<td>Truth table + biểu thức + sơ đồ mạch cho 1 bài toán tự chọn (báo động, bình chọn…)</td>
+<td>Cổng logic là &quot;nguyên tử&quot; của next-state/output logic trong FSM W9</td>
+<td>&quot;Hai mạch khác nhau, cùng truth table&quot; → khái niệm tương đương &amp; tối ưu</td>
+<td>W2 (RTL nằm ở đâu trong flow)</td>
+<td>W4 ghép cổng thành khối</td>
+</tr>
+<tr>
+<td><strong>4. Combinational Building Blocks</strong></td>
+<td>Vì sao kỹ sư nghĩ theo khối chức năng thay vì từng cổng?</td>
+<td>MUX, decoder, encoder, comparator, half/full adder, tư duy ALU; propagation delay</td>
+<td>Chọn đúng khối cho yêu cầu; ghép khối; đọc RTL tổ hợp (guided); always_comb + default chống latch</td>
+<td>RTL tổ hợp đầu tiên (MUX/comparator) + truth table đối chiếu waveform</td>
+<td>MUX/decoder/comparator xuất hiện trong timer, seg7, UART W9–11</td>
+<td>&quot;Cùng hành vi, khác phần cứng&quot; — chi phí LUT/cổng của các cách viết</td>
+<td>W3</td>
+<td>W5 cần comparator/adder cho counter; delay tổ hợp → hiểu f_max</td>
+</tr>
+<tr>
+<td><strong>5. Sequential Logic &amp; Memory</strong></td>
+<td>Làm sao mạch &quot;nhớ&quot;? Điều gì quyết định lúc nào được nhớ?</td>
+<td>D-FF, register, counter, clock/cạnh clock, state; t_pd, t_su, t_h, t_cq; khởi tạo &amp; reset (đúng bản chất theo công nghệ)</td>
+<td>Vẽ waveform Q từ D+clk; thiết kế counter mod-N trên giấy; viết counter RTL always_ff; testbench cho mạch <strong>tuần tự</strong> (có clock/reset) + kỷ luật predict-before-simulate</td>
+<td>Counter mod-10 RTL + testbench + waveform chú thích 2 lần wrap</td>
+<td>Timer/counter là datapath của toàn bộ project W9–11</td>
+<td>Bit width ↔ area/power/timing — EQ→RQ mở màn (không bắt buộc)</td>
+<td>W4 (khối tổ hợp, delay)</td>
+<td>W6 cần state + FF; W9 cần counter làm timer</td>
+</tr>
+<tr>
+<td><strong>6. Finite-State Machines</strong></td>
+<td>Làm sao mô tả và hiện thực &quot;hệ thống ra quyết định theo trạng thái&quot;?</td>
+<td>State, transition, state diagram, Moore vs Mealy, next-state/output/state-register (3 khối), controller–datapath</td>
+<td>Vẽ state diagram TRƯỚC khi code; lập transition table; đọc &amp; viết FSM 3 khối; sequence detector &quot;101&quot;</td>
+<td>State diagram + transition table + FSM RTL + waveform 2 chuỗi test</td>
+<td>Traffic controller W9 = FSM này + timer W5</td>
+<td><strong>EQ→RQ chính thức bắt đầu:</strong> mã hóa state (binary/one-hot/Gray) ↔ PPA &amp; độ tin cậy</td>
+<td>W5 (FF, state vật lý)</td>
+<td>W7 chuẩn hóa cách viết; W9 dùng nguyên khuôn FSM 3 khối</td>
+</tr>
+<tr>
+<td><strong>7. Writing Clean RTL in SystemVerilog</strong> <em>(đổi tên từ &quot;What Is Verilog?&quot;)</em></td>
+<td>Viết RTL thế nào để mô tả ĐÚNG phần cứng mình muốn?</td>
+<td>module/port/hierarchy, logic, assign, always_comb, always_ff, blocking vs non-blocking, latch, chiến lược reset/khởi tạo, synthesizable subset, song song phần cứng, style</td>
+<td>Đọc RTL → nói ra phần cứng suy ra (hardware inference); tự viết module + hierarchy sạch; debug RTL lỗi cài sẵn</td>
+<td>&quot;Style card&quot; cá nhân + sửa 3 đoạn RTL lỗi (latch, blocking, reset) kèm giải thích</td>
+<td>Chuẩn code cho MỌI module W9–11</td>
+<td>Research literacy bắt đầu: giải phẫu một paper (title/abstract/contribution/method/result); EQ→RQ: chiến lược reset ↔ area/routing/power</td>
+<td>W4–W6 (đã &quot;gặp&quot; RTL guided)</td>
+<td>W8 hiểu synthesis; W9–11 áp style chuẩn</td>
+</tr>
+<tr>
+<td><strong>8. FPGA vs ASIC</strong></td>
+<td>Cùng một RTL, hai con đường hiện thực khác nhau thế nào và chọn ra sao?</td>
+<td>Kiến trúc FPGA (LUT/FF/BRAM/DSP/routing/clocking), standard cell, NRE vs unit cost (nhấn mạnh: FPGA tránh NRE mask/fab chứ không phải chi phí = 0), PPA, time-to-market; sim vs synthesis vs implementation vs configuration vs hardware test</td>
+<td>Đánh giá trade-off theo kịch bản; đọc bảng break-even (ví dụ minh họa); đoán RTL→tài nguyên FPGA</td>
+<td>Phân tích chọn FPGA/ASIC cho 2 kịch bản + giải thích bằng số liệu minh họa</td>
+<td>Project W9–11 là FPGA-oriented: hiểu vì sao prototype trên FPGA</td>
+<td>Bài đọc research đầu tiên: abstract + system diagram của 1 paper FPGA (4 câu hỏi định hướng)</td>
+<td>W7 (RTL → synthesis)</td>
+<td>W9–11 nói &quot;hardware inferred&quot; theo LUT/FF chuẩn xác</td>
+</tr>
+<tr>
+<td><strong>9. Project A — FSM Traffic Controller</strong></td>
+<td>Biến một yêu cầu an toàn giao thông thành controller + datapath chạy được?</td>
+<td>Spec → state diagram → RTL; tick 1 Hz (clock enable, không phải clock mới); safety invariant &quot;ít nhất một hướng luôn ĐỎ — không bao giờ hai hướng cùng rời đèn đỏ&quot;</td>
+<td>Viết spec ngắn; thiết kế FSM 4 pha + timer; testbench có invariant check; đọc waveform nhiều tín hiệu</td>
+<td><code>tick_gen.sv</code>, <code>traffic_ctrl.sv</code>, <code>tb_traffic.sv</code> + waveform chú thích 1 chu kỳ đèn</td>
+<td><strong>Nền của hệ thống tích hợp</strong> — mọi tuần sau xây tiếp lên module này</td>
+<td>EQ→RQ: chọn độ rộng timer ↔ area/power/độ chính xác; nghĩ về property/invariant như mầm formal</td>
+<td>W5 (counter), W6 (FSM), W7 (style)</td>
+<td>W10 dùng nguyên trạng <code>traffic_ctrl</code> + cổng <code>time_left</code>, <code>phase</code></td>
+</tr>
+<tr>
+<td><strong>10. Project B — Counter &amp; 7-Segment Display</strong></td>
+<td>Làm sao cho con người NHÌN THẤY trạng thái hệ thống?</td>
+<td>Countdown hiển thị, giải mã BCD→7 đoạn, quét (multiplex) nhiều digit, phân tần hiển thị</td>
+<td>Thiết kế datapath hiển thị; ghép module qua interface có sẵn; mô phỏng hệ 2 module trở lên</td>
+<td><code>seg7_decoder.sv</code> + hệ W9+W10 mô phỏng chung, waveform giải thích (<code>display_mux.sv</code> là mở rộng tự chọn)</td>
+<td>Hệ thống lớn dần: FSM → timer → display (không làm lại từ đầu)</td>
+<td>EQ→RQ: tần số quét ↔ công suất &amp; chất lượng hiển thị; mã hóa BCD vs binary</td>
+<td>W9 (interface <code>traffic_ctrl</code>)</td>
+<td>W11 thêm kênh giao tiếp; giữ nguyên các module đã có</td>
+</tr>
+<tr>
+<td><strong>11. Project C — UART Status Communication</strong></td>
+<td>Làm sao hệ thống BÁO CÁO trạng thái ra thế giới ngoài?</td>
+<td>Truyền nối tiếp, frame 8N1, baud rate &amp; sai số (guideline vài %, phụ thuộc frame/sampling/clock hai phía), FSM uart_tx, tín hiệu bất đồng bộ &amp; synchronizer (giảm xác suất lan truyền metastability — không triệt tiêu)</td>
+<td>Thiết kế uart_tx (FSM + shift register + baud tick); tích hợp 3 tuần thành một top; phân tích sai số baud</td>
+<td><code>uart_tx.sv</code>, <code>status_tx.sv</code>, <code>traffic_system_top.sv</code> + waveform 1 frame + ảnh terminal (nếu có board)</td>
+<td><strong>Hoàn tất hệ tích hợp</strong>: Clock/Reset → FSM ↔ Timer → Display → UART TX → PC</td>
+<td>EQ→RQ: kiến trúc UART ↔ công suất thấp; sai số baud ↔ độ dài frame (mô hình hóa)</td>
+<td>W9, W10 (hệ đang chạy), W6 (FSM)</td>
+<td>W12 demo + bảo vệ chính hệ thống này</td>
+</tr>
+<tr>
+<td><strong>12. Capstone Review &amp; Research Bridge</strong></td>
+<td>Bạn đã xây được gì, hiểu nó sâu tới đâu, và đi tiếp hướng nào?</td>
+<td>Demo → Explain → Reflect → Diagnose gaps → Plan; danh mục chủ đề nâng cao còn ở phía trước (STA, CDC, BRAM, PLL, timing closure, DFT, formal…); 5 track Phase 2</td>
+<td>Mini-defense: trình bày kiến trúc, controller vs datapath, waveform, 1 bug thật, 1 trade-off; tự chẩn đoán lỗ hổng</td>
+<td>Portfolio 12 mục + bài trình bày 10 slide + kế hoạch Phase 2 cá nhân</td>
+<td>Tổng kết và bảo vệ hệ thống tích hợp W9–11</td>
+<td>Chu trình nghiên cứu đầy đủ: observation→limitation→question→hypothesis→experiment→evidence→conclusion; chọn track A–E</td>
+<td>W9–11 (hệ hoàn chỉnh)</td>
+<td>Phase 2</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="m-cac-vong-xoay-hoc-tap-learning-spirals">Các vòng xoáy học tập (learning spirals)</h2>
+<p><strong>RTL:</strong> W2 (RTL là mô tả hiện thực) → W4 (đọc/viết tổ hợp guided) → W5 (tuần tự) → W6 (FSM) → W7 (chuẩn hóa kỷ luật viết) → W9 (controller+datapath) → W11 (tích hợp nhiều module) → W12 (giải thích toàn hệ).
+<strong>Verification:</strong> W2 (verification là một chặng) → W3 (quét đủ truth table) → W5 (testbench đầu tiên, predict-before-simulate) → W6 (test theo chuỗi kích thích) → W9 (invariant check trong testbench) → W10–11 (test hệ nhiều module, edge case) → W12 (waveform làm bằng chứng khi bảo vệ).
+<strong>Timing:</strong> W4 (propagation delay) → W5 (t_su/t_h/t_cq, f_max trực giác) → W9 (tick enable vs derived clock) → W11 (sai số baud tích lũy) → W12 (nêu giới hạn: STA/timing closure thuộc Phase 2).
+<strong>Trừu tượng &amp; kiến trúc:</strong> W1 (chuỗi trừu tượng) → W2 (flow) → W4 (block thinking) → W6 (controller–datapath) → W9–11 (kiến trúc hệ thật) → W12 (trình bày kiến trúc).
+<strong>FPGA/ASIC mapping:</strong> W2 (hai flow) → W4–7 (&quot;hardware inferred&quot; mỗi lần viết RTL) → W8 (LUT/FF/BRAM/DSP chi tiết) → W9–11 (dự đoán tài nguyên) → W12 (câu hỏi &quot;sang ASIC thì khác gì?&quot;).
+<strong>Tư duy nghiên cứu:</strong> W1–5 (quan sát, đặt câu hỏi — không formal) → W6 (EQ→RQ đầu tiên) → W7 (giải phẫu paper) → W8 (đọc abstract + diagram có định hướng) → W9–11 (EQ→RQ gắn với chính project) → W12 (chu trình nghiên cứu + chọn track).</p>
+<hr>
+<h2 id="m-kien-truc-project-tich-hop-w911-smart-traffic-">Kiến trúc project tích hợp W9–11 — SMART TRAFFIC CONTROLLER FPGA SYSTEM</h2>
+<p>Một hệ thống duy nhất, lớn dần qua 3 tuần. Interface cố định ngay từ W9 (chi tiết trong <a href="PROJECT_GUIDE.html" title="Mở PROJECT_GUIDE.html"><code>PROJECT_GUIDE.md</code></a>):</p>
+<p>Hình vẽ đúng netlist: <code>assets/fig-system-top.svg</code>. Bản đặc tả gốc của mọi tín hiệu: <a href="PROJECT_GUIDE.html" title="Mở PROJECT_GUIDE.html"><code>PROJECT_GUIDE.md</code></a> §2.4 — <strong>khi hình và bảng khác nhau, lấy bảng làm gốc.</strong> Dưới đây là danh sách kết nối, mỗi dòng đúng một dây (dạng netlist đọc được, không dùng hình ASCII vì hình ASCII dễ nuốt mất nhánh rẽ):</p>
+<div class="tblwrap"><table class="tbl">
+<thead>
+<tr>
+<th>Dây</th>
+<th>Nguồn</th>
+<th>Các đích</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>clk</code>, <code>rst_n</code></td>
+<td>cổng vào của <code>traffic_system_top</code></td>
+<td><strong>cả 4 khối tuần tự</strong>: <code>tick_gen</code>, <code>traffic_ctrl</code>, <code>status_tx</code>, <code>uart_tx</code> — riêng <code>seg7_decoder</code> là tổ hợp thuần nên KHÔNG nhận clk</td>
+</tr>
+<tr>
+<td><code>tick</code> (1 Hz, enable rộng 1 chu kỳ)</td>
+<td><code>tick_gen</code></td>
+<td><code>traffic_ctrl</code> <strong>và</strong> <code>status_tx</code> — hai đích, không phải một</td>
+</tr>
+<tr>
+<td><code>ns_light[2:0]</code>, <code>ew_light[2:0]</code></td>
+<td><code>traffic_ctrl</code></td>
+<td>cổng ra → LED đèn</td>
+</tr>
+<tr>
+<td><code>phase[1:0]</code></td>
+<td><code>traffic_ctrl</code></td>
+<td><code>status_tx</code></td>
+</tr>
+<tr>
+<td><code>time_left[3:0]</code></td>
+<td><code>traffic_ctrl</code></td>
+<td><code>seg7_decoder</code> <strong>và</strong> <code>status_tx</code></td>
+</tr>
+<tr>
+<td><code>seg[6:0]</code></td>
+<td><code>seg7_decoder</code></td>
+<td>cổng ra → LED 7 đoạn</td>
+</tr>
+<tr>
+<td><code>tx_start</code>, <code>tx_data[7:0]</code></td>
+<td><code>status_tx</code></td>
+<td><code>uart_tx</code></td>
+</tr>
+<tr>
+<td><code>tx_busy</code></td>
+<td><code>uart_tx</code></td>
+<td><code>status_tx</code> — <strong>đường phản hồi</strong>, thiếu nó là mất 5 trong 6 byte</td>
+</tr>
+<tr>
+<td><code>tx</code></td>
+<td><code>uart_tx</code></td>
+<td>cổng ra → cầu USB-UART → PC terminal</td>
+</tr>
+</tbody></table></div>
+<p>Vai trò theo tuần: <strong>W9</strong> dựng <code>tick_gen</code> + <code>traffic_ctrl</code> (FSM 4 pha + timer đếm lùi). <strong>W10</strong> thêm <code>seg7_decoder</code> — module bắt buộc duy nhất của tuần; <code>display_mux</code> và cổng <code>an[1:0]</code> là mở rộng tự chọn, KHÔNG thuộc <code>traffic_system_top</code>. <strong>W11</strong> thêm <code>status_tx</code> + <code>uart_tx</code>; mỗi <code>tick</code> gửi <code>&quot;GN 09\n&quot;</code> — 6 byte ASCII (bản dài <code>&quot;S=GN T=09\n&quot;</code> là mở rộng tự chọn).</p>
+<p>Quy ước tín hiệu thống nhất toàn khóa: <code>clk</code>, <code>rst_n</code> (bất đồng bộ, tích cực mức thấp), <code>enable</code>, <code>tick</code> (xung enable đúng 1 chu kỳ), <code>state</code>, <code>next_state</code>, <code>count</code>. Mọi flip-flop đánh nhịp bằng đúng một <code>clk</code>; mọi &quot;nhịp chậm&quot; đều là clock-enable, không bao giờ là derived clock.</p>
+<hr>
+<h2 id="m-ghi-chu-pham-vi">Ghi chú phạm vi</h2>
+<p>Khóa này KHÔNG dạy (và nói rõ với học viên ở W8/W12 rằng đây là phần phía trước): timing constraints &amp; STA, CDC, reset-domain chi tiết, BRAM/PLL/MMCM, đọc synthesis report &amp; utilization, timing closure, physical implementation, formal verification, DFT, on-chip debug. Phase 1 cung cấp nền tảng, không phải sự thành thạo.</p>
+</article>
+
+<div class="doc-foot-nav">
+      <a class="home" href="index.html">← Mục lục chương trình</a>
+      <a href="README.html">README</a>
+      <a href="MENTOR_GUIDE.html">Mentor Guide</a>
+      <a href="PROJECT_GUIDE.html">Project Guide</a>
+      <a href="TECHNICAL_AUDIT.html">Technical Audit</a>
+      <a href="CHANGELOG_V2_TO_V3.html">Changelog</a>
+      <a href="VALIDATION_REPORT.html">Validation</a>
+      <a href="implementation-notes.html">Implementation Notes</a>
+</div>
+
+<div class="footer">
+      <b>IC Design Mentoring — Version 3 · Phase 1</b>
+      <span class="org">Khoa Điện – Điện tử · Trường Kỹ thuật · Đại học Phenikaa</span>
+      <span>Biên soạn: <b style="display:inline">Giảng Viên Đinh Văn Nam</b></span>
+      <span class="cr">© 2026 · Bản quyền thuộc về Giảng Viên Đinh Văn Nam, Khoa Điện-Điện Tử, Trường Kỹ Thuật, Đại học Phenikaa. Tài liệu phục vụ đào tạo — vui lòng giữ nguyên thông tin tác giả khi chia sẻ.</span>
+      <span class="cr">Hoạt động offline — không cần Internet.</span>
+    </div>
+</main>
+</body>
+</html>

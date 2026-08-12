@@ -1,0 +1,1802 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tuần 11 — UART Communication Basics | IC Design Mentoring</title>
+<meta name="description" content="Tuần 11: Giao tiếp UART cơ bản — TX/RX, baud rate, khung 8N1 (start bit, data LSB-first, stop bit), shift register, uart_tx SystemVerilog, demo khung truyền tương tác.">
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        primary: '#2563eb',
+        secondary: '#f59e0b',
+        accent: '#10b981',
+        danger: '#ef4444',
+        dark: '#0f172a',
+        light: '#f8fafc'
+      },
+      fontFamily: {
+        sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace']
+      }
+    }
+  }
+}
+</script>
+<style>
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Inter', sans-serif; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  section { scroll-margin-top: 90px; }
+
+  /* Code block + syntax highlight thủ công */
+  pre.code {
+    background: #0f172a; color: #e2e8f0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem; line-height: 1.55;
+    border-radius: 0 0 0.75rem 0.75rem;
+    padding: 1rem 1.25rem; overflow-x: auto;
+  }
+  .tk { color: #93c5fd; font-weight: 500; }   /* keyword */
+  .tp { color: #c4b5fd; }                      /* type / enum */
+  .tn { color: #fbbf24; }                      /* number */
+  .tc { color: #86efac; font-style: italic; }  /* comment */
+  .ts { color: #fda4af; }                      /* string */
+
+  /* Quiz */
+  .quiz-opt { cursor: pointer; border: 2px solid #e2e8f0; transition: all .15s ease; }
+  .quiz-opt:hover { border-color: #93c5fd; background: #eff6ff; }
+  .quiz-opt.locked { cursor: default; }
+  .quiz-opt.locked:hover { border-color: #e2e8f0; background: transparent; }
+  .quiz-opt.correct { border-color: #10b981; background: #ecfdf5 !important; }
+  .quiz-opt.wrong { border-color: #ef4444; background: #fef2f2 !important; }
+
+  input[type="checkbox"].chk { accent-color: #10b981; width: 1.1rem; height: 1.1rem; }
+
+  /* UART demo */
+  .smpl { transition: fill .15s ease, r .15s ease; }
+  .smpl.hit { fill: #10b981; }
+  .bit-val { font-family: 'JetBrains Mono', monospace; font-weight: 700; }
+  @keyframes samplepop { 0% { r: 6; } 50% { r: 10; } 100% { r: 6; } }
+  .flash-val { animation: flashval .45s ease; }
+  @keyframes flashval { 0% { background:#fde68a; } 100% { background:transparent; } }
+  .baud-btn { cursor: pointer; }
+  .baud-btn input { display: none; }
+  .baud-btn span { display: inline-block; padding: .45rem 1rem; border-radius: .6rem; border: 2px solid #e2e8f0; font-weight: 700; font-size: .85rem; color: #475569; transition: all .15s; }
+  .baud-btn input:checked + span { border-color: #2563eb; background: #eff6ff; color: #1d4ed8; }
+</style>
+</head>
+<body class="bg-slate-100 text-slate-800 antialiased">
+<div id="lichub-nav-top" data-lichub="v2" role="navigation" aria-label="Điều hướng Learning Hub (bổ sung, không thuộc trang gốc)" style="background:#0f172a;color:#e2e8f0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:13.5px;line-height:1.6;padding:8px 16px;display:flex;flex-wrap:wrap;gap:4px 16px;align-items:center;border-bottom:3px solid #38bdf8"><a href="../../index.html" style="color:#7dd3fc;text-decoration:none;font-weight:600">⌂ Learning Hub</a><span style="font-size:11px;font-weight:700;letter-spacing:.04em;color:#38bdf8;border:1px solid #38bdf8;border-radius:6px;padding:1px 7px;white-space:nowrap">V2 · BẢN MỞ RỘNG</span><a href="index.html" style="color:#cbd5e1;text-decoration:none">Mục lục V2</a><span style="flex:1"></span><a href="Week10.html" style="color:#7dd3fc;text-decoration:none" title="Counter & 7-Segment Display">← Tuần 10</a><a href="Week12.html" style="color:#7dd3fc;text-decoration:none" title="Course Wrap-up & Next Steps">Tuần 12 →</a><span aria-hidden="true" style="color:#475569">|</span><span style="display:inline-flex;gap:8px;align-items:center"><span style="color:#94a3b8">Chuyển bản:</span> <a href="../v1/index.html" style="color:#cbd5e1;text-decoration:none">V1</a> <b aria-current="true" style="color:#38bdf8">V2</b> <a href="../v3/index.html" style="color:#cbd5e1;text-decoration:none">V3</a></span></div>
+
+
+<!-- ===================== STICKY NAV ===================== -->
+<nav class="fixed top-0 inset-x-0 z-50 bg-dark/95 backdrop-blur border-b border-slate-700">
+  <div class="max-w-6xl mx-auto px-4">
+    <div class="flex items-center gap-4 h-14">
+      <a href="#hero" class="flex items-center gap-2 shrink-0">
+        <span class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-blue-400 flex items-center justify-center text-white"><i class="fa-solid fa-microchip text-sm"></i></span>
+        <span class="text-white font-bold text-sm hidden sm:inline">IC Design Mentoring</span>
+      </a>
+      <div class="shrink-0">
+        <span class="text-[11px] font-bold text-blue-300 bg-blue-500/15 border border-blue-400/30 rounded-full px-2.5 py-1">Tuần 11/12</span>
+        <div class="w-24 h-1 bg-slate-700 rounded-full mt-1 overflow-hidden"><div class="h-full bg-gradient-to-r from-primary to-accent rounded-full" style="width:91.7%"></div></div>
+      </div>
+      <div class="flex-1 overflow-x-auto no-scrollbar">
+        <div class="flex items-center gap-1 text-[12px] font-medium text-slate-300 whitespace-nowrap">
+          <a href="#core-concepts" class="px-2.5 py-1.5 rounded-lg hover:bg-slate-700 hover:text-white">Khái niệm</a>
+          <a href="#demo" class="px-2.5 py-1.5 rounded-lg hover:bg-slate-700 hover:text-white">Demo</a>
+          <a href="#code-rtl" class="px-2.5 py-1.5 rounded-lg hover:bg-slate-700 hover:text-white">Code RTL</a>
+          <a href="#waveform" class="px-2.5 py-1.5 rounded-lg hover:bg-slate-700 hover:text-white">Waveform</a>
+          <a href="#mistakes" class="px-2.5 py-1.5 rounded-lg hover:bg-slate-700 hover:text-white">Lỗi hay gặp</a>
+          <a href="#quiz" class="px-2.5 py-1.5 rounded-lg hover:bg-slate-700 hover:text-white">Quiz</a>
+          <a href="#homework" class="px-2.5 py-1.5 rounded-lg hover:bg-slate-700 hover:text-white">Bài tập</a>
+          <a href="#vocabulary" class="px-2.5 py-1.5 rounded-lg hover:bg-slate-700 hover:text-white">Từ vựng</a>
+          <a href="#summary" class="px-2.5 py-1.5 rounded-lg hover:bg-slate-700 hover:text-white">Tóm tắt</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- ===================== 1. HERO ===================== -->
+<header id="hero" class="pt-14 bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 text-white">
+  <div class="max-w-6xl mx-auto px-4 py-14 md:py-20">
+    <div class="flex flex-wrap items-center gap-3 mb-5">
+      <span class="text-xs font-bold uppercase tracking-widest bg-white/10 border border-white/20 rounded-full px-3 py-1.5"><i class="fa-solid fa-calendar-week mr-1.5"></i>Tuần 11 / 12</span>
+      <span class="text-xs font-bold uppercase tracking-widest bg-accent/20 text-emerald-200 border border-emerald-300/30 rounded-full px-3 py-1.5"><i class="fa-solid fa-right-left mr-1.5"></i>FPGA nói chuyện với PC</span>
+    </div>
+    <h1 class="text-3xl md:text-5xl font-black leading-tight">UART Communication Basics</h1>
+    <p class="mt-2 text-xl md:text-2xl font-semibold text-blue-200">Giao Tiếp UART Cơ Bản — Làm Thế Nào Để Hai Hệ Thống Số Nói Chuyện Với Nhau?</p>
+    <p class="mt-5 max-w-3xl text-slate-300 leading-relaxed">
+      Tuần 10, mạch của bạn đã "nói" với con người qua LED 7 đoạn — nhưng LED chỉ hiện được vài chữ số.
+      Muốn gửi cả dòng dữ liệu về máy tính để ghi log, vẽ đồ thị, hay debug, bạn cần một
+      <strong class="text-white">giao thức truyền thông (communication protocol)</strong>. Tuần này chúng ta học
+      <strong class="text-white">UART (Universal Asynchronous Receiver/Transmitter — bộ thu phát nối tiếp bất đồng bộ)</strong>:
+      cách gói 8 bit dữ liệu vào một <em>khung (frame)</em> có start bit và stop bit, đẩy từng bit ra một sợi dây duy nhất
+      bằng <strong class="text-white">shift register</strong>, đúng nhịp <strong class="text-white">baud rate</strong> mà hai bên đã hẹn trước.
+      Logic giúp bạn <em>xử lý</em> dữ liệu; UART giúp bạn <em>gửi</em> dữ liệu — một hệ thống thật cần cả hai.
+    </p>
+    <div class="grid sm:grid-cols-2 gap-3 mt-8 max-w-4xl">
+      <div class="bg-white/5 border border-white/15 rounded-xl p-4 flex gap-3">
+        <i class="fa-solid fa-bullseye text-secondary mt-1"></i>
+        <p class="text-sm text-slate-200"><strong>Mục tiêu 1.</strong> Giải thích vì sao hệ thống số cần giao tiếp; phân biệt truyền song song / nối tiếp; hiểu vai trò chân TX (truyền) và RX (nhận).</p>
+      </div>
+      <div class="bg-white/5 border border-white/15 rounded-xl p-4 flex gap-3">
+        <i class="fa-solid fa-bullseye text-secondary mt-1"></i>
+        <p class="text-sm text-slate-200"><strong>Mục tiêu 2.</strong> Vẽ đúng khung UART 8N1: đường idle mức 1 → start bit 0 → 8 bit dữ liệu LSB trước → stop bit 1; tính bit time từ baud rate.</p>
+      </div>
+      <div class="bg-white/5 border border-white/15 rounded-xl p-4 flex gap-3">
+        <i class="fa-solid fa-bullseye text-secondary mt-1"></i>
+        <p class="text-sm text-slate-200"><strong>Mục tiêu 3.</strong> Thiết kế <span class="font-mono">uart_tx</span>: FSM 4 trạng thái + baud tick (xung enable, <em>không phải</em> clock mới) + shift register + bit counter; hiểu vì sao RX phải lấy mẫu <em>giữa</em> bit.</p>
+      </div>
+      <div class="bg-white/5 border border-white/15 rounded-xl p-4 flex gap-3">
+        <i class="fa-solid fa-bullseye text-secondary mt-1"></i>
+        <p class="text-sm text-slate-200"><strong>Mục tiêu 4.</strong> Chạy mini-project: FPGA gửi dữ liệu (giá trị đếm / nhiệt độ) về PC qua UART, quan sát trên Serial Terminal.</p>
+      </div>
+    </div>
+    <div class="mt-8 flex flex-wrap gap-3 text-sm">
+      <span class="bg-white/10 border border-white/15 rounded-lg px-3 py-2"><i class="fa-solid fa-backward-step mr-2 text-blue-300"></i>Tuần 10: Counter &amp; 7-Segment — data path hiển thị</span>
+      <span class="bg-white/10 border border-white/15 rounded-lg px-3 py-2"><i class="fa-solid fa-forward-step mr-2 text-emerald-300"></i>Tuần 12: Tổng kết khóa &amp; định hướng Phase 2</span>
+    </div>
+  </div>
+</header>
+
+<main class="max-w-6xl mx-auto px-4">
+
+<!-- ===================== 2. LEARNING MAP ===================== -->
+<section id="learning-map" class="py-12">
+  <div class="flex items-center gap-3 mb-6">
+    <span class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-map-location-dot"></i></span>
+    <div>
+      <p class="text-[11px] font-bold uppercase tracking-widest text-primary">Section 2</p>
+      <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900">Learning Map — Vị Trí Tuần Này</h2>
+    </div>
+  </div>
+
+  <div class="grid md:grid-cols-3 gap-4">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 relative">
+      <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Tuần 10 — đã học</span>
+      <h3 class="font-bold text-slate-800 mt-1">Counter &amp; 7-Segment</h3>
+      <p class="text-sm text-slate-600 mt-2 leading-relaxed">Data path đầu tiên: clock → counter → decoder → LED. Đặc biệt là kỹ thuật <strong>enable tick</strong> — đếm clock để tạo xung cho phép 1 chu kỳ, thay vì "chế" clock mới.</p>
+      <i class="fa-solid fa-arrow-right hidden md:block absolute top-1/2 -right-4 -translate-y-1/2 text-slate-300 text-xl"></i>
+    </div>
+    <div class="bg-blue-600 text-white rounded-2xl shadow-lg p-5 relative ring-4 ring-blue-200">
+      <span class="text-[11px] font-bold uppercase tracking-wider text-blue-200">Tuần 11 — hôm nay</span>
+      <h3 class="font-bold mt-1">UART Communication Basics</h3>
+      <p class="text-sm text-blue-100 mt-2 leading-relaxed">Ghép mọi thứ đã học: FSM (T6) điều khiển, shift register (T5) dịch bit, enable tick (T10) giữ nhịp baud — để FPGA gửi từng byte về PC qua <strong>một sợi dây</strong>.</p>
+      <i class="fa-solid fa-arrow-right hidden md:block absolute top-1/2 -right-4 -translate-y-1/2 text-slate-300 text-xl"></i>
+    </div>
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+      <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Tuần 12 — sắp tới</span>
+      <h3 class="font-bold text-slate-800 mt-1">Wrap-up &amp; Next Steps</h3>
+      <p class="text-sm text-slate-600 mt-2 leading-relaxed">Nhìn lại 12 tuần, tự đánh giá skill tree, chọn mini-project Phase 2 — nhiều đề xuất (đo nhiệt độ, datalogger…) dùng chính khối UART tuần này.</p>
+    </div>
+  </div>
+
+  <div class="grid md:grid-cols-2 gap-4 mt-6">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+      <h3 class="font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-clipboard-check text-primary"></i>Cần vững gì trước khi vào bài?</h3>
+      <ul class="mt-3 space-y-2 text-sm text-slate-600">
+        <li class="flex gap-2"><i class="fa-solid fa-circle-check text-accent mt-0.5"></i><span><strong>Shift register (Tuần 5):</strong> thanh ghi dịch — mỗi cạnh clock (có enable) dữ liệu dịch đi 1 bit. UART TX chính là shift register nối ra 1 chân.</span></li>
+        <li class="flex gap-2"><i class="fa-solid fa-circle-check text-accent mt-0.5"></i><span><strong>FSM 3 khối (Tuần 6, 9):</strong> state register (always_ff) + next-state (always_comb) + output (always_comb).</span></li>
+        <li class="flex gap-2"><i class="fa-solid fa-circle-check text-accent mt-0.5"></i><span><strong>Enable tick (Tuần 9, 10):</strong> counter so sánh tạo xung enable 1 chu kỳ — toàn mạch vẫn chạy chung một clock.</span></li>
+        <li class="flex gap-2"><i class="fa-solid fa-circle-check text-accent mt-0.5"></i><span><strong>SystemVerilog cơ bản (Tuần 7):</strong> module, logic, always_ff với &lt;=, always_comb với default assignment.</span></li>
+      </ul>
+    </div>
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+      <h3 class="font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-rocket text-secondary"></i>Học xong dùng vào đâu?</h3>
+      <ul class="mt-3 space-y-2 text-sm text-slate-600">
+        <li class="flex gap-2"><i class="fa-solid fa-angles-right text-secondary mt-0.5"></i><span><strong>Debug thực chiến:</strong> in giá trị nội bộ của mạch ra Serial Terminal — "printf của thế giới FPGA".</span></li>
+        <li class="flex gap-2"><i class="fa-solid fa-angles-right text-secondary mt-0.5"></i><span><strong>Phase 2:</strong> datalogger nhiệt độ, stopwatch báo kết quả về PC, điều khiển robot từ bàn phím máy tính.</span></li>
+        <li class="flex gap-2"><i class="fa-solid fa-angles-right text-secondary mt-0.5"></i><span><strong>Nghề nghiệp:</strong> UART là cửa ngõ vào các giao thức nối tiếp "đàn anh": SPI, I2C, USB, PCIe — cùng tư duy frame, baud/clock, sampling.</span></li>
+        <li class="flex gap-2"><i class="fa-solid fa-angles-right text-secondary mt-0.5"></i><span><strong>Hệ thống nhúng:</strong> gần như mọi MCU, module GPS, Bluetooth, LoRa… đều nói chuyện qua UART.</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+<!-- ===================== 3. BEFORE SESSION ===================== -->
+<section id="before-session" class="py-12">
+  <div class="flex items-center gap-3 mb-6">
+    <span class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-list-check"></i></span>
+    <div>
+      <p class="text-[11px] font-bold uppercase tracking-widest text-primary">Section 3</p>
+      <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900">Trước Buổi Học</h2>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+    <p class="text-slate-700 leading-relaxed">
+      Tuần này chúng ta thảo luận <strong>"UART Communication Basics"</strong>. Mục tiêu không phải học UART thật sâu,
+      mà là hiểu <em>vì sao các hệ thống số cần giao tiếp dữ liệu với nhau</em> — và tự tay mô tả được khối truyền
+      <span class="font-mono text-sm">uart_tx</span> bằng đúng những viên gạch bạn đã có: FSM, shift register, counter.
+      Nếu bạn nắm chắc tuần 5–10, tuần này là bài "lắp ráp" đầy thỏa mãn.
+    </p>
+
+    <div class="grid lg:grid-cols-2 gap-6 mt-6">
+      <div>
+        <h3 class="font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-square-check text-accent"></i>Checklist chuẩn bị <span id="prepCount" class="text-xs font-bold text-white bg-accent rounded-full px-2 py-0.5 ml-1">0/6</span></h3>
+        <div id="prepChecklist" class="mt-3 space-y-2.5">
+          <label class="flex items-start gap-3 bg-slate-50 border border-slate-200 rounded-xl p-3 cursor-pointer hover:border-emerald-300">
+            <input type="checkbox" class="chk mt-0.5"><span class="text-sm text-slate-700">Xem lại <strong>shift register</strong> (Tuần 5): dữ liệu dịch 1 bit mỗi lần enable, bit thấp nhất "rơi" ra ngoài.</span>
+          </label>
+          <label class="flex items-start gap-3 bg-slate-50 border border-slate-200 rounded-xl p-3 cursor-pointer hover:border-emerald-300">
+            <input type="checkbox" class="chk mt-0.5"><span class="text-sm text-slate-700">Xem lại <strong>FSM 3 khối</strong> (Tuần 6 &amp; 9): state register / next-state / output — sẽ dùng nguyên xi cho <span class="font-mono">uart_tx</span>.</span>
+          </label>
+          <label class="flex items-start gap-3 bg-slate-50 border border-slate-200 rounded-xl p-3 cursor-pointer hover:border-emerald-300">
+            <input type="checkbox" class="chk mt-0.5"><span class="text-sm text-slate-700">Xem lại <strong>enable tick</strong> (Tuần 10): counter đếm đủ N chu kỳ clock → phát xung enable 1 chu kỳ.</span>
+          </label>
+          <label class="flex items-start gap-3 bg-slate-50 border border-slate-200 rounded-xl p-3 cursor-pointer hover:border-emerald-300">
+            <input type="checkbox" class="chk mt-0.5"><span class="text-sm text-slate-700">Cài một <strong>Serial Terminal</strong> trên máy tính: PuTTY, Tera Term, hoặc Serial Monitor của Arduino IDE.</span>
+          </label>
+          <label class="flex items-start gap-3 bg-slate-50 border border-slate-200 rounded-xl p-3 cursor-pointer hover:border-emerald-300">
+            <input type="checkbox" class="chk mt-0.5"><span class="text-sm text-slate-700">Tìm hiểu cáp/module <strong>USB-UART</strong> (CP2102, FT232, CH340) — cầu nối giữa chân TX của FPGA và cổng USB của PC.</span>
+          </label>
+          <label class="flex items-start gap-3 bg-slate-50 border border-slate-200 rounded-xl p-3 cursor-pointer hover:border-emerald-300">
+            <input type="checkbox" class="chk mt-0.5"><span class="text-sm text-slate-700">Mở <strong>bảng mã ASCII</strong>, tra thử mã của ký tự 'A' (0x41) và '0' (0x30).</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="space-y-5">
+        <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
+          <h3 class="font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-fire text-primary"></i>3 câu hỏi khởi động</h3>
+          <ol class="mt-2 space-y-2 text-sm text-slate-700 list-decimal list-inside">
+            <li>Một byte có 8 bit nhưng bạn chỉ có <strong>một sợi dây</strong> — làm thế nào để gửi được cả byte?</li>
+            <li>Hai bên không có dây clock chung. Nếu không "hẹn trước" tốc độ, bên nhận sẽ gặp chuyện gì?</li>
+            <li>Đường dây đang rảnh (idle) thì làm sao bên nhận biết <em>chính xác lúc nào</em> một byte bắt đầu?</li>
+          </ol>
+        </div>
+        <div class="bg-amber-50 border border-amber-200 rounded-xl p-4">
+          <h3 class="font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-stopwatch text-secondary"></i>Nhiệm vụ nhỏ (5–10 phút)</h3>
+          <p class="text-sm text-slate-700 mt-2 leading-relaxed">
+            Tra bảng ASCII: ký tự <strong>'A' = 0x41 = 0100&nbsp;0001</strong>.
+            Hãy tự viết ra <em>thứ tự bit sẽ chạy trên dây</em> nếu quy ước gửi <strong>LSB (bit thấp nhất) trước</strong>:
+            bắt đầu bằng start bit 0, rồi lần lượt bit 0 → bit 7, kết thúc bằng stop bit 1.
+            Giữ tờ nháp này — buổi học bạn sẽ đối chiếu với demo.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 4. CORE CONCEPTS ===================== -->
+<section id="core-concepts" class="py-12">
+  <div class="flex items-center gap-3 mb-6">
+    <span class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-lightbulb"></i></span>
+    <div>
+      <p class="text-[11px] font-bold uppercase tracking-widest text-primary">Section 4</p>
+      <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900">Khái Niệm Cốt Lõi</h2>
+    </div>
+  </div>
+  <p class="text-slate-600 max-w-3xl mb-6">Đi theo tầng: trực giác → bản chất kỹ thuật → ví dụ đời sống → trong IC/FPGA → lỗi hiểu sai. Năm khái niệm dưới đây ghép lại thành toàn bộ bức tranh UART.</p>
+
+  <div class="space-y-6">
+
+    <!-- Concept 1 -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+      <div class="px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-500 text-white flex items-center gap-3">
+        <span class="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center font-black">1</span>
+        <h3 class="font-bold text-lg">Truyền song song vs truyền nối tiếp (Parallel vs Serial)</h3>
+      </div>
+      <div class="p-6 grid md:grid-cols-2 gap-4 text-sm text-slate-700">
+        <div class="space-y-3">
+          <p><strong class="text-primary">Định nghĩa dễ hiểu.</strong> Song song (parallel): 8 bit đi trên 8 sợi dây cùng lúc. Nối tiếp (serial): 8 bit xếp hàng đi lần lượt trên <em>một</em> sợi dây.</p>
+          <p><strong class="text-primary">Bản chất kỹ thuật.</strong> Song song nhanh hơn trên cùng tần số nhưng tốn chân (pin), tốn dây, khó đi xa vì các dây bị lệch nhau (skew). Nối tiếp đổi số dây lấy thời gian: cần <strong>shift register</strong> để biến 8 bit song song thành chuỗi bit nối tiếp (và ngược lại ở đầu nhận).</p>
+          <p><strong class="text-secondary">Ví dụ đời sống.</strong> 8 người qua cầu: cầu 8 làn ai cũng qua cùng lúc (song song); cầu treo 1 làn phải xếp hàng đi từng người (nối tiếp) — chậm hơn nhưng cây cầu rẻ hơn nhiều.</p>
+        </div>
+        <div class="space-y-3">
+          <p><strong class="text-accent">Trong IC/FPGA.</strong> Bus nội bộ trong chip thường song song (rất ngắn, rất nhanh). Ra khỏi board — nối PC, cảm biến, module — gần như luôn nối tiếp: UART, SPI, I2C, USB. Ít dây = ít pin = rẻ và tin cậy hơn.</p>
+          <div class="bg-red-50 border border-red-200 rounded-xl p-3">
+            <p><strong class="text-danger"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Lỗi hiểu sai.</strong> "Nối tiếp luôn chậm nên là công nghệ cũ." Sai — các chuẩn nhanh nhất hiện nay (USB, PCIe, SATA) đều là nối tiếp: một cặp dây chạy cực nhanh dễ kiểm soát hơn 32 dây song song phải đến đích cùng lúc.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Concept 2 -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+      <div class="px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-500 text-white flex items-center gap-3">
+        <span class="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center font-black">2</span>
+        <h3 class="font-bold text-lg">UART là gì? — và vì sao "Asynchronous"</h3>
+      </div>
+      <div class="p-6 grid md:grid-cols-2 gap-4 text-sm text-slate-700">
+        <div class="space-y-3">
+          <p><strong class="text-primary">Định nghĩa dễ hiểu.</strong> UART (Universal Asynchronous Receiver/Transmitter — bộ thu phát nối tiếp bất đồng bộ) là cách hai thiết bị gửi từng byte cho nhau qua 2 dây: <strong>TX</strong> (transmit — chân truyền) và <strong>RX</strong> (receive — chân nhận), cộng thêm dây GND chung.</p>
+          <p><strong class="text-primary">Bản chất kỹ thuật.</strong> "Bất đồng bộ" nghĩa là <em>không gửi kèm dây clock</em>. Hai bên tự chạy clock riêng và chỉ thống nhất trước một thông số: <strong>baud rate</strong>. Việc "bắt nhịp" dựa hoàn toàn vào cạnh xuống của start bit và việc đếm thời gian chính xác.</p>
+          <p><strong class="text-secondary">Ví dụ đời sống.</strong> Hai người hẹn nhau: "tôi sẽ đọc mỗi giây một chữ cái, anh cứ thế mà chép". Không cần máy đếm nhịp chung — chỉ cần đồng hồ hai người đủ chính xác và biết lúc nào tôi bắt đầu nói.</p>
+        </div>
+        <div class="space-y-3">
+          <p><strong class="text-accent">Trong IC/FPGA.</strong> Trên FPGA, UART không phải thứ mua thêm: bạn <em>mô tả</em> nó bằng RTL — một FSM, một counter, một shift register — rồi synthesis thành flip-flop và LUT. Trên MCU (STM32, Arduino), UART là khối cứng có sẵn bên trong chip.</p>
+          <div class="bg-red-50 border border-red-200 rounded-xl p-3">
+            <p><strong class="text-danger"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Lỗi hiểu sai.</strong> "UART là một con chip." Không — UART là <em>giao thức + khối chức năng</em>. Nó có thể nằm trong MCU, trong FPGA (do bạn viết), hoặc trong cầu USB-UART như CP2102. Con chip CP2102 <em>chứa</em> một UART, chứ không phải UART <em>là</em> CP2102.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Concept 3 -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+      <div class="px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-500 text-white flex items-center gap-3">
+        <span class="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center font-black">3</span>
+        <h3 class="font-bold text-lg">Khung truyền (Frame) 8N1: start → data → stop</h3>
+      </div>
+      <div class="p-6 text-sm text-slate-700">
+        <div class="grid md:grid-cols-2 gap-4">
+          <div class="space-y-3">
+            <p><strong class="text-primary">Định nghĩa dễ hiểu.</strong> Mỗi byte được "đóng gói" thành một khung: <strong>start bit (0)</strong> báo hiệu bắt đầu, <strong>8 bit dữ liệu</strong> gửi <strong>LSB trước</strong> (bit thấp nhất đi đầu), <strong>stop bit (1)</strong> khép lại. "8N1" = 8 data bits, No parity (không bit chẵn lẻ), 1 stop bit.</p>
+            <p><strong class="text-primary">Bản chất kỹ thuật.</strong> Khi rảnh, đường dây giữ <strong>mức 1 (idle)</strong>. Vì idle là 1, start bit 0 tạo ra một <strong>cạnh xuống</strong> rõ ràng — đó là mốc thời gian duy nhất để RX căn toàn bộ khung. Stop bit 1 kéo dây về idle, bảo đảm khung kế tiếp lại có cạnh xuống mới.</p>
+            <p><strong class="text-secondary">Ví dụ đời sống.</strong> Gửi thư: phong bì (start) → nội dung từng trang theo thứ tự đã hẹn (data, LSB trước) → dấu niêm phong (stop). Không có phong bì, người nhận không biết thư bắt đầu từ đâu giữa dòng chữ bất tận.</p>
+          </div>
+          <div class="space-y-3">
+            <p><strong class="text-accent">Trong IC/FPGA.</strong> Gửi ký tự 'A' (0x41 = 0100 0001): trên dây lần lượt là <span class="font-mono bg-slate-100 px-1 rounded">0</span> (start), rồi <span class="font-mono bg-slate-100 px-1 rounded">1,0,0,0,0,0,1,0</span> (bit 0 → bit 7), rồi <span class="font-mono bg-slate-100 px-1 rounded">1</span> (stop). Tổng 10 bit trên dây cho 8 bit dữ liệu → hiệu suất 80%.</p>
+            <div class="bg-red-50 border border-red-200 rounded-xl p-3">
+              <p><strong class="text-danger"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Lỗi hiểu sai.</strong> "Bit nào viết trước thì gửi trước." Khi viết 0x41 = 0100 0001, ta viết MSB bên trái — nhưng trên dây thì <strong>bit 0 (LSB) đi trước</strong>. Gửi nhầm MSB trước, PC sẽ nhận ra byte bị "lật gương": 0x41 thành 0x82.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Concept 4 -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+      <div class="px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-500 text-white flex items-center gap-3">
+        <span class="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center font-black">4</span>
+        <h3 class="font-bold text-lg">Baud rate &amp; bit time — "nhịp hẹn trước"</h3>
+      </div>
+      <div class="p-6 grid md:grid-cols-2 gap-4 text-sm text-slate-700">
+        <div class="space-y-3">
+          <p><strong class="text-primary">Định nghĩa dễ hiểu.</strong> Baud rate (tốc độ truyền) là số bit gửi mỗi giây (với UART cơ bản, 1 symbol = 1 bit). Chuẩn phổ biến: 9600, 19200, 115200.</p>
+          <p><strong class="text-primary">Bản chất kỹ thuật.</strong> <strong>Bit time = 1 / baud</strong>. Ở 9600 baud, mỗi bit chiếm ≈ <strong>104,17 µs</strong>; ở 115200 chỉ còn ≈ <strong>8,68 µs</strong>. Cả khung 10 bit ở 9600 mất ≈ 1,04 ms → tối đa ~960 byte/giây. Hai bên phải cài <em>cùng</em> baud — đây là "hợp đồng" duy nhất thay cho dây clock.</p>
+          <p><strong class="text-secondary">Ví dụ đời sống.</strong> Đọc chính tả qua điện thoại: hẹn "1 chữ mỗi giây". Nếu người đọc 1 chữ/giây mà người chép tưởng 1,2 giây/chữ, chỉ sau chục chữ là chép lệch hẳn sang chữ khác.</p>
+        </div>
+        <div class="space-y-3">
+          <p><strong class="text-accent">Trong IC/FPGA.</strong> Từ clock 50 MHz muốn có nhịp 9600 baud: <span class="font-mono bg-slate-100 px-1 rounded">DIV = 50.000.000 / 9600 ≈ 5208</span>. Counter đếm 0 → 5207 rồi phát <strong>1 xung enable (baud tick)</strong> và đếm lại. Sai số làm tròn chỉ ~0,006% — hoàn toàn chấp nhận được (ngưỡng an toàn tổng sai số hai bên thường lấy ≈ 2%).</p>
+          <div class="bg-red-50 border border-red-200 rounded-xl p-3">
+            <p><strong class="text-danger"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Lỗi hiểu sai.</strong> "Baud lệch một chút chắc chỉ sai một chút." Không — sai số <em>tích lũy qua từng bit</em>. Lệch 6% mỗi bit thì đến bit dữ liệu thứ 8, điểm lấy mẫu đã trôi hơn nửa bit → đọc nhầm sang bit bên cạnh. Demo bên dưới sẽ cho bạn "nghịch" con số này.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Concept 5 -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+      <div class="px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-500 text-white flex items-center gap-3">
+        <span class="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center font-black">5</span>
+        <h3 class="font-bold text-lg">Bên trong TX và RX: shift register, FSM, lấy mẫu giữa bit</h3>
+      </div>
+      <div class="p-6 grid md:grid-cols-2 gap-4 text-sm text-slate-700">
+        <div class="space-y-3">
+          <p><strong class="text-primary">Phía TX (truyền).</strong> Nạp byte vào <strong>shift register</strong> 8 bit; FSM lần lượt: kéo dây xuống 0 một bit time (START) → mỗi baud tick đẩy <span class="font-mono">shift_reg[0]</span> ra dây rồi dịch phải, 8 lần (DATA, LSB trước, đếm bằng <strong>bit counter</strong>) → kéo dây lên 1 một bit time (STOP) → về IDLE.</p>
+          <p><strong class="text-primary">Phía RX (nhận).</strong> Rình <strong>cạnh xuống</strong> trên dây rx. Đợi <em>nửa bit time</em> → nếu vẫn 0 thì đó là start thật (không phải nhiễu). Từ đó cứ <em>mỗi một bit time</em> lấy mẫu một lần — luôn rơi vào <strong>giữa bit</strong>, nơi tín hiệu ổn định nhất — dồn vào shift register, đủ 8 bit thì kiểm tra stop = 1.</p>
+        </div>
+        <div class="space-y-3">
+          <p><strong class="text-accent">Oversampling ×16 (nhập môn).</strong> RX thực tế chạy tick nhanh gấp 16 lần baud: thấy cạnh xuống → đếm 8 tick (nửa bit) → kiểm tra start → sau đó cứ 16 tick lấy mẫu một lần. Lưới thời gian mịn giúp căn giữa bit chính xác và lọc gai nhiễu ngắn.</p>
+          <div class="bg-red-50 border border-red-200 rounded-xl p-3">
+            <p><strong class="text-danger"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Lỗi hiểu sai.</strong> "Lấy mẫu ngay tại cạnh bit cho nhanh." Tại biên bit, tín hiệu đang chuyển mức (có propagation delay và méo dạng) — lấy mẫu ở đó là đánh xu ngửa sấp. Giữa bit mới là điểm an toàn, xa cả hai biên.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+<!-- ===================== 5. SYSTEM VIEW ===================== -->
+<section id="system-view" class="py-12">
+  <div class="flex items-center gap-3 mb-6">
+    <span class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-sitemap"></i></span>
+    <div>
+      <p class="text-[11px] font-bold uppercase tracking-widest text-primary">Section 5</p>
+      <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900">System View — UART Nằm Ở Đâu Trong Hệ Thống?</h2>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-6">
+    <p class="text-sm text-slate-600 mb-4">Chuỗi truyền dữ liệu điển hình từ FPGA về máy tính — khối <span class="font-mono">uart_tx</span> của bạn là mắt xích đầu tiên:</p>
+    <div class="flex flex-wrap items-center justify-center gap-2 text-center text-xs font-semibold">
+      <div class="bg-slate-100 border border-slate-300 rounded-xl px-4 py-3"><i class="fa-solid fa-temperature-half text-secondary block text-lg mb-1"></i>Nguồn dữ liệu<br><span class="font-normal text-slate-500">counter / cảm biến</span></div>
+      <i class="fa-solid fa-arrow-right text-slate-400"></i>
+      <div class="bg-blue-600 text-white rounded-xl px-4 py-3 ring-4 ring-blue-200"><i class="fa-solid fa-right-from-bracket block text-lg mb-1"></i>uart_tx<br><span class="font-normal text-blue-100">FSM + shift reg (RTL của bạn)</span></div>
+      <i class="fa-solid fa-arrow-right text-slate-400"></i>
+      <div class="bg-slate-100 border border-slate-300 rounded-xl px-4 py-3"><i class="fa-solid fa-plug text-primary block text-lg mb-1"></i>Cầu USB-UART<br><span class="font-normal text-slate-500">CP2102 / FT232 / CH340</span></div>
+      <i class="fa-solid fa-arrow-right text-slate-400"></i>
+      <div class="bg-slate-100 border border-slate-300 rounded-xl px-4 py-3"><i class="fa-solid fa-desktop text-accent block text-lg mb-1"></i>PC — Serial Terminal<br><span class="font-normal text-slate-500">PuTTY / Tera Term</span></div>
+    </div>
+    <p class="text-xs text-slate-500 mt-4 text-center"><i class="fa-solid fa-circle-info mr-1"></i>Nối dây: <strong>TX của FPGA → RX của cầu USB-UART</strong> (bắt chéo), và bắt buộc <strong>chung GND</strong>. Chiều ngược lại (PC gửi xuống FPGA) đi qua chân RX với khối <span class="font-mono">uart_rx</span>.</p>
+  </div>
+
+  <div class="overflow-x-auto bg-white rounded-2xl shadow-sm border border-slate-200">
+    <table class="w-full text-sm min-w-[640px]">
+      <thead>
+        <tr class="bg-slate-800 text-white text-left">
+          <th class="px-4 py-3 font-semibold w-44">Thuộc tính</th>
+          <th class="px-4 py-3 font-semibold">Khối uart_tx (tuần này thiết kế)</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100 text-slate-700">
+        <tr><td class="px-4 py-3 font-semibold text-slate-500">Input</td><td class="px-4 py-3"><span class="font-mono text-xs bg-slate-100 rounded px-1.5 py-0.5">clk</span>, <span class="font-mono text-xs bg-slate-100 rounded px-1.5 py-0.5">rst_n</span>, <span class="font-mono text-xs bg-slate-100 rounded px-1.5 py-0.5">tx_start</span> (xung yêu cầu gửi), <span class="font-mono text-xs bg-slate-100 rounded px-1.5 py-0.5">tx_data[7:0]</span> (byte cần gửi)</td></tr>
+        <tr><td class="px-4 py-3 font-semibold text-slate-500">Output</td><td class="px-4 py-3"><span class="font-mono text-xs bg-slate-100 rounded px-1.5 py-0.5">tx</span> (đường nối tiếp, idle = 1), <span class="font-mono text-xs bg-slate-100 rounded px-1.5 py-0.5">tx_busy</span> (đang gửi, chưa nhận byte mới)</td></tr>
+        <tr><td class="px-4 py-3 font-semibold text-slate-500">Loại mạch</td><td class="px-4 py-3"><strong>Tuần tự</strong> (FSM + 2 counter + shift register) — phần chọn mức ra cho <span class="font-mono text-xs">tx</span> là logic tổ hợp theo trạng thái</td></tr>
+        <tr><td class="px-4 py-3 font-semibold text-slate-500">Cần clock?</td><td class="px-4 py-3">Có — <strong>một clock hệ thống duy nhất</strong> (vd 50 MHz). Nhịp baud tạo bằng <strong>enable tick</strong>, tuyệt đối không chia clock thành "clock 9600 Hz" mới.</td></tr>
+        <tr><td class="px-4 py-3 font-semibold text-slate-500">Cần reset?</td><td class="px-4 py-3">Có — reset đưa FSM về IDLE và kéo <span class="font-mono text-xs">tx = 1</span> (idle), tránh phát rác lúc bật nguồn.</td></tr>
+        <tr><td class="px-4 py-3 font-semibold text-slate-500">Viết Verilog thế nào?</td><td class="px-4 py-3">FSM 3 khối (always_ff state, always_comb next-state, always_comb output) + always_ff cho baud counter, bit counter, shift register.</td></tr>
+        <tr><td class="px-4 py-3 font-semibold text-slate-500">Synthesis ra gì?</td><td class="px-4 py-3">≈ 2 FF trạng thái + 13 FF baud counter + 3 FF bit counter + 8 FF shift register + LUT so sánh/giải mã — vài chục phần tử, cực nhỏ so với một FPGA.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ===================== 6. INTERACTIVE DEMO ===================== -->
+<section id="demo" class="py-12">
+  <div class="flex items-center gap-3 mb-6">
+    <span class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-gamepad"></i></span>
+    <div>
+      <p class="text-[11px] font-bold uppercase tracking-widest text-primary">Section 6</p>
+      <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900">Demo Tương Tác — Máy Phát Khung UART</h2>
+    </div>
+  </div>
+  <p class="text-slate-600 max-w-3xl mb-6">Chọn một byte, chọn baud rate, bấm <strong>Send</strong> — và nhìn từng bit bò trên dây TX. Chấm xanh lá là điểm RX lấy mẫu <em>giữa mỗi bit</em>; thanh quét đỏ là "thời gian" đang trôi (đã làm chậm hàng nghìn lần để mắt người theo kịp).</p>
+
+  <div class="grid lg:grid-cols-3 gap-6">
+    <!-- Controls -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-4">
+      <h3 class="font-bold text-slate-800"><i class="fa-solid fa-sliders text-primary mr-2"></i>Bảng điều khiển TX</h3>
+      <div>
+        <label class="text-xs font-bold uppercase tracking-wider text-slate-500" for="charInput">Ký tự cần gửi (ASCII)</label>
+        <input id="charInput" maxlength="2" value="A" class="mt-1 w-full border-2 border-slate-200 rounded-xl px-3 py-2 font-mono text-lg font-bold text-center focus:border-primary focus:outline-none" />
+      </div>
+      <div>
+        <label class="text-xs font-bold uppercase tracking-wider text-slate-500" for="hexSelect">… hoặc chọn byte hex</label>
+        <select id="hexSelect" class="mt-1 w-full border-2 border-slate-200 rounded-xl px-3 py-2 text-sm font-mono focus:border-primary focus:outline-none">
+          <option value="">— nhập ký tự ở trên —</option>
+          <option value="41">0x41 — 'A'</option>
+          <option value="56">0x56 — 'V'</option>
+          <option value="30">0x30 — '0'</option>
+          <option value="55">0x55 — 'U' (0101 0101)</option>
+          <option value="AA">0xAA (1010 1010)</option>
+          <option value="00">0x00 (toàn 0)</option>
+          <option value="FF">0xFF (toàn 1)</option>
+          <option value="0A">0x0A — LF (xuống dòng)</option>
+        </select>
+      </div>
+      <div>
+        <p class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Baud rate</p>
+        <div class="flex gap-2">
+          <label class="baud-btn"><input type="radio" name="baud" value="9600" checked><span>9600</span></label>
+          <label class="baud-btn"><input type="radio" name="baud" value="115200"><span>115200</span></label>
+        </div>
+      </div>
+      <button id="btnSend" class="w-full bg-primary hover:bg-blue-700 text-white font-bold rounded-xl py-3 transition"><i class="fa-solid fa-paper-plane mr-2"></i>Send — phát khung 8N1</button>
+      <div class="text-[13px] text-slate-600 space-y-1.5 bg-slate-50 border border-slate-200 rounded-xl p-3">
+        <p>Byte: <span id="byteHex" class="font-mono font-bold text-primary">0x41</span> · nhị phân (bit 7→0): <span id="byteBin" class="font-mono font-bold">0100 0001</span></p>
+        <p>Thứ tự trên dây (LSB trước): <span id="byteOrder" class="font-mono font-bold text-accent">1,0,0,0,0,0,1,0</span></p>
+        <p>Bit time: <span id="bitTimeLbl" class="font-mono font-bold">104,17 µs</span> · cả khung 10 bit: <span id="frameTimeLbl" class="font-mono font-bold">1041,7 µs</span></p>
+        <p id="realTimeNote" class="text-xs text-slate-500">Hoạt ảnh chậm hơn thời gian thực ≈ 6.400 lần.</p>
+      </div>
+    </div>
+
+    <!-- Waveform -->
+    <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+      <h3 class="font-bold text-slate-800 mb-2"><i class="fa-solid fa-wave-square text-primary mr-2"></i>Dạng sóng trên chân TX</h3>
+      <div id="uartSvgWrap" class="overflow-x-auto"></div>
+      <div id="txStatus" class="mt-3 text-sm font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5">Bấm <strong>Send</strong> để phát một khung.</div>
+      <div id="rxRead" class="mt-2 text-[13px] font-mono text-slate-600 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-2.5 hidden"></div>
+      <div class="flex flex-wrap gap-4 mt-3 text-xs text-slate-500">
+        <span><span class="inline-block w-3 h-3 rounded-full bg-accent align-middle mr-1"></span>Điểm RX lấy mẫu (giữa bit)</span>
+        <span><span class="inline-block w-3 h-0.5 bg-danger align-middle mr-1"></span>Con trỏ thời gian đang quét</span>
+        <span><span class="inline-block w-3 h-3 bg-amber-100 border border-amber-300 align-middle mr-1"></span>Start</span>
+        <span><span class="inline-block w-3 h-3 bg-blue-100 border border-blue-300 align-middle mr-1"></span>Data D0–D7</span>
+        <span><span class="inline-block w-3 h-3 bg-emerald-100 border border-emerald-300 align-middle mr-1"></span>Stop</span>
+      </div>
+      <p class="text-xs text-slate-500 mt-2"><i class="fa-solid fa-circle-info mr-1"></i>Trong hình, đoạn idle trước/sau chỉ vẽ rộng 1 bit cho gọn — thực tế idle kéo dài bao lâu tùy ý, miễn giữ mức 1.</p>
+    </div>
+  </div>
+
+  <div class="grid md:grid-cols-2 gap-6 mt-6">
+    <!-- Oversampling panel -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+      <h3 class="font-bold text-slate-800 mb-2"><i class="fa-solid fa-magnifying-glass-chart text-primary mr-2"></i>RX lấy mẫu thế nào? — Oversampling ×16</h3>
+      <svg viewBox="0 0 640 170" class="w-full" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Oversampling 16 lần trong một bit">
+        <rect x="40" y="30" width="560" height="70" rx="6" fill="#dbeafe" stroke="#93c5fd"/>
+        <text x="320" y="22" text-anchor="middle" font-size="12" fill="#475569" font-weight="700">1 bit time (vd 104,17 µs @ 9600) — RX chia thành 16 tick</text>
+        <g stroke="#64748b" stroke-width="1">
+          <line x1="40" y1="100" x2="40" y2="112"/><line x1="75" y1="100" x2="75" y2="112"/><line x1="110" y1="100" x2="110" y2="112"/><line x1="145" y1="100" x2="145" y2="112"/>
+          <line x1="180" y1="100" x2="180" y2="112"/><line x1="215" y1="100" x2="215" y2="112"/><line x1="250" y1="100" x2="250" y2="112"/><line x1="285" y1="100" x2="285" y2="112"/>
+          <line x1="320" y1="100" x2="320" y2="118" stroke="#10b981" stroke-width="3"/>
+          <line x1="355" y1="100" x2="355" y2="112"/><line x1="390" y1="100" x2="390" y2="112"/><line x1="425" y1="100" x2="425" y2="112"/><line x1="460" y1="100" x2="460" y2="112"/>
+          <line x1="495" y1="100" x2="495" y2="112"/><line x1="530" y1="100" x2="530" y2="112"/><line x1="565" y1="100" x2="565" y2="112"/><line x1="600" y1="100" x2="600" y2="112"/>
+        </g>
+        <circle cx="320" cy="65" r="9" fill="#10b981"/>
+        <text x="320" y="140" text-anchor="middle" font-size="12" fill="#059669" font-weight="700">tick thứ 8 ≈ GIỮA bit → lấy mẫu tại đây</text>
+        <text x="40" y="128" font-size="10" fill="#64748b">tick 0</text>
+        <text x="600" y="128" text-anchor="end" font-size="10" fill="#64748b">tick 15</text>
+      </svg>
+      <ul class="text-[13px] text-slate-600 mt-2 space-y-1.5">
+        <li><i class="fa-solid fa-1 text-primary mr-2 text-xs"></i>RX chạy tick nhanh <strong>gấp 16 lần baud</strong> (cũng bằng counter + enable, không phải clock mới).</li>
+        <li><i class="fa-solid fa-2 text-primary mr-2 text-xs"></i>Thấy cạnh xuống → đếm <strong>8 tick</strong> (nửa bit) → vẫn 0? Đó là start thật, không phải gai nhiễu.</li>
+        <li><i class="fa-solid fa-3 text-primary mr-2 text-xs"></i>Từ đó cứ <strong>16 tick</strong> lấy mẫu một lần → luôn rơi vào giữa các bit D0…D7, stop.</li>
+      </ul>
+    </div>
+
+    <!-- Baud mismatch panel -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+      <h3 class="font-bold text-slate-800 mb-2"><i class="fa-solid fa-scale-unbalanced text-danger mr-2"></i>Vì sao baud lệch làm hỏng dữ liệu?</h3>
+      <p class="text-[13px] text-slate-600 leading-relaxed">RX chỉ căn thời gian <strong>một lần duy nhất</strong> tại cạnh xuống start bit, sau đó "đếm chay" theo đồng hồ của chính nó. Nếu đồng hồ RX chạy lệch e% so với TX, điểm lấy mẫu bit thứ k trôi đi <strong>(k + 1,5) × e% × bit time</strong> — sai số cộng dồn, không tự sửa.</p>
+      <div class="mt-3 flex items-center gap-3">
+        <label class="text-xs font-bold uppercase tracking-wider text-slate-500" for="errSelect">Sai lệch clock RX:</label>
+        <select id="errSelect" class="border-2 border-slate-200 rounded-lg px-2 py-1 text-sm font-mono focus:border-primary focus:outline-none">
+          <option value="0.5">0,5%</option>
+          <option value="2">2%</option>
+          <option value="6" selected>6%</option>
+          <option value="10">10%</option>
+        </select>
+      </div>
+      <div id="errOut" class="mt-3 text-[13px] leading-relaxed bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-700"></div>
+      <p class="text-xs text-slate-500 mt-2"><i class="fa-solid fa-circle-info mr-1"></i>Quy tắc thực dụng: tổng sai lệch hai bên nên <strong>≤ 2%</strong>; vượt ~5% là bit cuối (D7) bắt đầu bị lấy mẫu nhầm sang bit bên cạnh.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 7. ENGINEERING WORKFLOW ===================== -->
+<section id="workflow" class="py-12">
+  <div class="flex items-center gap-3 mb-6">
+    <span class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-diagram-project"></i></span>
+    <div>
+      <p class="text-[11px] font-bold uppercase tracking-widest text-primary">Section 7</p>
+      <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900">Engineering Workflow — Từ Yêu Cầu Đến Terminal</h2>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+    <ol class="relative border-l-2 border-blue-200 ml-3 space-y-6">
+      <li class="pl-6 relative">
+        <span class="absolute -left-[13px] top-0 w-6 h-6 rounded-full bg-primary text-white text-xs font-black flex items-center justify-center">1</span>
+        <h3 class="font-bold text-slate-800 text-sm">Requirement — chốt yêu cầu</h3>
+        <p class="text-sm text-slate-600 mt-1">"Gửi 1 byte từ FPGA về PC, chuẩn <strong>8N1</strong>, baud <strong>9600</strong>, clock hệ thống 50 MHz." Yêu cầu mơ hồ = mạch mơ hồ.</p>
+      </li>
+      <li class="pl-6 relative">
+        <span class="absolute -left-[13px] top-0 w-6 h-6 rounded-full bg-primary text-white text-xs font-black flex items-center justify-center">2</span>
+        <h3 class="font-bold text-slate-800 text-sm">Xác định I/O</h3>
+        <p class="text-sm text-slate-600 mt-1">Vào: <span class="font-mono text-xs">clk, rst_n, tx_start, tx_data[7:0]</span>. Ra: <span class="font-mono text-xs">tx, tx_busy</span>. Hỏi ngay: ai cấp <span class="font-mono text-xs">tx_start</span>? Điều gì xảy ra nếu gọi gửi khi đang bận? (→ cần <span class="font-mono text-xs">tx_busy</span>).</p>
+      </li>
+      <li class="pl-6 relative">
+        <span class="absolute -left-[13px] top-0 w-6 h-6 rounded-full bg-primary text-white text-xs font-black flex items-center justify-center">3</span>
+        <h3 class="font-bold text-slate-800 text-sm">Block diagram — chia khối</h3>
+        <p class="text-sm text-slate-600 mt-1">4 khối con: <strong>baud tick generator</strong> (counter so sánh), <strong>FSM</strong> (IDLE/START/DATA/STOP), <strong>shift register</strong> 8 bit, <strong>bit counter</strong> 3 bit. Nghĩ theo khối như Tuần 4 đã dạy.</p>
+      </li>
+      <li class="pl-6 relative">
+        <span class="absolute -left-[13px] top-0 w-6 h-6 rounded-full bg-primary text-white text-xs font-black flex items-center justify-center">4</span>
+        <h3 class="font-bold text-slate-800 text-sm">State table — bảng chuyển trạng thái</h3>
+        <p class="text-sm text-slate-600 mt-1">IDLE --tx_start--&gt; START --tick--&gt; DATA --(tick 8 lần)--&gt; STOP --tick--&gt; IDLE. Ghi rõ mức tx ở từng trạng thái: 1 / 0 / shift_reg[0] / 1.</p>
+      </li>
+      <li class="pl-6 relative">
+        <span class="absolute -left-[13px] top-0 w-6 h-6 rounded-full bg-primary text-white text-xs font-black flex items-center justify-center">5</span>
+        <h3 class="font-bold text-slate-800 text-sm">RTL — SystemVerilog</h3>
+        <p class="text-sm text-slate-600 mt-1">Viết theo mẫu 3 khối FSM + always_ff cho datapath (section Code bên dưới). Comment tiếng Việt cho chính mình 3 tháng sau đọc lại.</p>
+      </li>
+      <li class="pl-6 relative">
+        <span class="absolute -left-[13px] top-0 w-6 h-6 rounded-full bg-primary text-white text-xs font-black flex items-center justify-center">6</span>
+        <h3 class="font-bold text-slate-800 text-sm">Testbench &amp; simulate</h3>
+        <p class="text-sm text-slate-600 mt-1">Kích <span class="font-mono text-xs">tx_start</span> với byte 0x41, soi waveform: start bit có dài đúng ≈ 5208 chu kỳ clock? Bit đầu tiên sau start có phải bit 0 (=1) không? Đo cả khung ≈ 52.080 chu kỳ.</p>
+      </li>
+      <li class="pl-6 relative">
+        <span class="absolute -left-[13px] top-0 w-6 h-6 rounded-full bg-primary text-white text-xs font-black flex items-center justify-center">7</span>
+        <h3 class="font-bold text-slate-800 text-sm">Synthesize + gán chân</h3>
+        <p class="text-sm text-slate-600 mt-1">Synthesis, gán chân tx đúng chân nối vào cầu USB-UART trên board (tra sơ đồ board!), nạp bitstream — nhớ: nạp bitstream là <em>cấu hình FPGA</em>, khác với tape-out ASIC.</p>
+      </li>
+      <li class="pl-6 relative">
+        <span class="absolute -left-[13px] top-0 w-6 h-6 rounded-full bg-accent text-white text-xs font-black flex items-center justify-center">8</span>
+        <h3 class="font-bold text-slate-800 text-sm">Kiểm chứng trên PC</h3>
+        <p class="text-sm text-slate-600 mt-1">Mở Serial Terminal, chọn đúng cổng COM + baud 9600 + 8N1. Bấm nút trên board → ký tự 'A' hiện lên màn hình. Nếu ra ký tự lạ: nghi ngờ đầu tiên là <strong>lệch baud</strong> hoặc <strong>gửi MSB trước</strong>.</p>
+      </li>
+    </ol>
+  </div>
+</section>
+<!-- ===================== 8. CODE / RTL ===================== -->
+<section id="code-rtl" class="py-12">
+  <div class="flex items-center gap-3 mb-6">
+    <span class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-code"></i></span>
+    <div>
+      <p class="text-[11px] font-bold uppercase tracking-widest text-primary">Section 8</p>
+      <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900">Code RTL — uart_tx Bằng SystemVerilog</h2>
+    </div>
+  </div>
+  <p class="text-slate-600 max-w-3xl mb-6">Đúng công thức đã luyện từ Tuần 6–10: FSM 3 khối, datapath riêng, baud tick là <strong>enable pulse</strong> chứ không phải clock mới. Đọc comment trước, đọc code sau.</p>
+
+  <div class="rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-6">
+    <div class="flex items-center justify-between bg-slate-800 px-4 py-2.5">
+      <span class="text-xs font-bold text-slate-200 font-mono"><i class="fa-solid fa-file-code mr-2 text-blue-300"></i>uart_tx.sv — bộ phát 8N1, LSB trước</span>
+      <button class="copy-btn text-xs font-bold bg-slate-700 hover:bg-slate-600 text-white rounded-lg px-3 py-1.5" data-target="code-tx"><i class="fa-regular fa-copy mr-1"></i>Copy</button>
+    </div>
+<pre class="code" id="code-tx"><span class="tc">// ============================================================
+// uart_tx — Bộ phát UART 8N1 (8 data, no parity, 1 stop)
+// Idle = 1, start = 0, data LSB TRƯỚC, stop = 1
+// ============================================================</span>
+<span class="tk">module</span> uart_tx #(
+  <span class="tk">parameter int</span> CLK_FREQ_HZ = <span class="tn">50_000_000</span>, <span class="tc">// clock hệ thống 50 MHz</span>
+  <span class="tk">parameter int</span> BAUD_RATE   = <span class="tn">9600</span>        <span class="tc">// tốc độ đã "hẹn" với PC</span>
+)(
+  <span class="tk">input  logic</span>       clk,      <span class="tc">// MỘT clock duy nhất cho cả khối</span>
+  <span class="tk">input  logic</span>       rst_n,    <span class="tc">// reset bất đồng bộ, tích cực mức 0</span>
+  <span class="tk">input  logic</span>       tx_start, <span class="tc">// xung 1 chu kỳ: yêu cầu gửi 1 byte</span>
+  <span class="tk">input  logic</span> [<span class="tn">7</span>:<span class="tn">0</span>] tx_data,  <span class="tc">// byte cần gửi</span>
+  <span class="tk">output logic</span>       tx,       <span class="tc">// đường TX nối tiếp (idle = 1)</span>
+  <span class="tk">output logic</span>       tx_busy   <span class="tc">// 1 = đang gửi, khoan đưa byte mới</span>
+);
+
+  <span class="tc">// ---------- Khai báo trạng thái FSM ----------</span>
+  <span class="tk">typedef enum logic</span> [<span class="tn">1</span>:<span class="tn">0</span>] {<span class="tp">IDLE, START, DATA, STOP</span>} <span class="tp">state_t</span>;
+  <span class="tp">state_t</span> state, next_state;
+
+  <span class="tc">// ---------- 1) BAUD TICK GENERATOR ----------
+  // Counter so sánh, phát XUNG ENABLE rộng đúng 1 chu kỳ clk
+  // mỗi bit time. 50_000_000 / 9600 = 5208 (sai số ~0,006%).
+  // KHÔNG chia clock để tạo "clock 9600 Hz" mới! (xem Lỗi hay gặp)</span>
+  <span class="tk">localparam int</span> DIV = CLK_FREQ_HZ / BAUD_RATE;
+  <span class="tk">logic</span> [$clog2(DIV)-<span class="tn">1</span>:<span class="tn">0</span>] baud_cnt;
+  <span class="tk">logic</span>                   baud_tick;
+
+  <span class="tk">always_ff</span> @(<span class="tk">posedge</span> clk <span class="tk">or negedge</span> rst_n) <span class="tk">begin</span>
+    <span class="tk">if</span> (!rst_n)                 baud_cnt &lt;= <span class="tn">'0</span>;
+    <span class="tk">else if</span> (state == <span class="tp">IDLE</span>)     baud_cnt &lt;= <span class="tn">'0</span>;   <span class="tc">// nghỉ khi rảnh</span>
+    <span class="tk">else if</span> (baud_cnt == DIV-<span class="tn">1</span>) baud_cnt &lt;= <span class="tn">'0</span>;   <span class="tc">// đủ 1 bit time</span>
+    <span class="tk">else</span>                        baud_cnt &lt;= baud_cnt + <span class="tn">1'b1</span>;
+  <span class="tk">end</span>
+  <span class="tk">assign</span> baud_tick = (baud_cnt == DIV-<span class="tn">1</span>); <span class="tc">// pulse enable, KHÔNG phải clock</span>
+
+  <span class="tc">// ---------- 2) DATAPATH: shift register + bit counter ----------</span>
+  <span class="tk">logic</span> [<span class="tn">7</span>:<span class="tn">0</span>] shift_reg; <span class="tc">// byte đang gửi, dịch phải dần</span>
+  <span class="tk">logic</span> [<span class="tn">2</span>:<span class="tn">0</span>] bit_cnt;   <span class="tc">// 0..7: đã phát bao nhiêu bit dữ liệu</span>
+
+  <span class="tk">always_ff</span> @(<span class="tk">posedge</span> clk <span class="tk">or negedge</span> rst_n) <span class="tk">begin</span>
+    <span class="tk">if</span> (!rst_n) <span class="tk">begin</span>
+      shift_reg &lt;= <span class="tn">'0</span>;
+      bit_cnt   &lt;= <span class="tn">'0</span>;
+    <span class="tk">end else if</span> (state == <span class="tp">IDLE</span> &amp;&amp; tx_start) <span class="tk">begin</span>
+      shift_reg &lt;= tx_data;  <span class="tc">// NẠP SONG SONG cả byte trong 1 nhịp</span>
+      bit_cnt   &lt;= <span class="tn">'0</span>;
+    <span class="tk">end else if</span> (state == <span class="tp">DATA</span> &amp;&amp; baud_tick) <span class="tk">begin</span>
+      shift_reg &lt;= {<span class="tn">1'b0</span>, shift_reg[<span class="tn">7</span>:<span class="tn">1</span>]}; <span class="tc">// DỊCH PHẢI: bit kế rơi về [0]</span>
+      bit_cnt   &lt;= bit_cnt + <span class="tn">1'b1</span>;
+    <span class="tk">end</span>
+  <span class="tk">end</span>
+
+  <span class="tc">// ---------- 3) FSM khối 1: thanh ghi trạng thái (tuần tự, dùng &lt;=) ----------</span>
+  <span class="tk">always_ff</span> @(<span class="tk">posedge</span> clk <span class="tk">or negedge</span> rst_n) <span class="tk">begin</span>
+    <span class="tk">if</span> (!rst_n) state &lt;= <span class="tp">IDLE</span>;
+    <span class="tk">else</span>        state &lt;= next_state;
+  <span class="tk">end</span>
+
+  <span class="tc">// ---------- 4) FSM khối 2: next-state (tổ hợp, default trước tiên) ----------</span>
+  <span class="tk">always_comb begin</span>
+    next_state = state; <span class="tc">// default: đứng yên → không thể sinh latch</span>
+    <span class="tk">unique case</span> (state)
+      <span class="tp">IDLE</span>  : <span class="tk">if</span> (tx_start)                     next_state = <span class="tp">START</span>;
+      <span class="tp">START</span> : <span class="tk">if</span> (baud_tick)                    next_state = <span class="tp">DATA</span>;  <span class="tc">// hết 1 bit time</span>
+      <span class="tp">DATA</span>  : <span class="tk">if</span> (baud_tick &amp;&amp; bit_cnt == <span class="tn">3'd7</span>) next_state = <span class="tp">STOP</span>;  <span class="tc">// đủ 8 bit</span>
+      <span class="tp">STOP</span>  : <span class="tk">if</span> (baud_tick)                    next_state = <span class="tp">IDLE</span>;
+    <span class="tk">endcase</span>
+  <span class="tk">end</span>
+
+  <span class="tc">// ---------- 5) FSM khối 3: output (tổ hợp, default trước tiên) ----------</span>
+  <span class="tk">always_comb begin</span>
+    tx      = <span class="tn">1'b1</span>; <span class="tc">// default = mức idle</span>
+    tx_busy = <span class="tn">1'b1</span>; <span class="tc">// default = đang bận</span>
+    <span class="tk">unique case</span> (state)
+      <span class="tp">IDLE</span>  : <span class="tk">begin</span> tx = <span class="tn">1'b1</span>; tx_busy = <span class="tn">1'b0</span>; <span class="tk">end</span> <span class="tc">// dây nghỉ mức 1</span>
+      <span class="tp">START</span> : tx = <span class="tn">1'b0</span>;         <span class="tc">// start bit = 0 → cạnh xuống đánh thức RX</span>
+      <span class="tp">DATA</span>  : tx = shift_reg[<span class="tn">0</span>]; <span class="tc">// LSB TRƯỚC: luôn phát bit thấp nhất</span>
+      <span class="tp">STOP</span>  : tx = <span class="tn">1'b1</span>;         <span class="tc">// stop bit = 1, trả dây về idle</span>
+    <span class="tk">endcase</span>
+  <span class="tk">end</span>
+
+<span class="tk">endmodule</span></pre>
+  </div>
+
+  <div class="grid md:grid-cols-2 gap-6">
+    <div class="rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+      <div class="flex items-center justify-between bg-slate-800 px-4 py-2.5">
+        <span class="text-xs font-bold text-slate-200 font-mono"><i class="fa-solid fa-file-code mr-2 text-emerald-300"></i>uart_rx — ý tưởng (khung sườn)</span>
+        <button class="copy-btn text-xs font-bold bg-slate-700 hover:bg-slate-600 text-white rounded-lg px-3 py-1.5" data-target="code-rx"><i class="fa-regular fa-copy mr-1"></i>Copy</button>
+      </div>
+<pre class="code" id="code-rx"><span class="tc">// uart_rx — Ý TƯỞNG, hoàn thiện là bài tập Mức 3
+// Nguyên tắc vàng: bắt cạnh xuống, đợi nửa bit, lấy mẫu GIỮA bit.</span>
+<span class="tk">module</span> uart_rx_sketch (
+  <span class="tk">input  logic</span>       clk, rst_n,
+  <span class="tk">input  logic</span>       rx,       <span class="tc">// dây từ ngoài board — BẤT đồng bộ!</span>
+  <span class="tk">output logic</span> [<span class="tn">7</span>:<span class="tn">0</span>] rx_data,
+  <span class="tk">output logic</span>       rx_valid  <span class="tc">// xung 1 chu kỳ: nhận xong 1 byte</span>
+);
+  <span class="tc">// (1) Đồng bộ hóa rx qua 2 flip-flop trước khi dùng
+  //     (tín hiệu ngoài không theo clk → tránh metastability)</span>
+  <span class="tk">logic</span> rx_ff1, rx_ff2;
+  <span class="tk">always_ff</span> @(<span class="tk">posedge</span> clk) <span class="tk">begin</span>
+    rx_ff1 &lt;= rx;
+    rx_ff2 &lt;= rx_ff1;  <span class="tc">// phía sau CHỈ dùng rx_ff2</span>
+  <span class="tk">end</span>
+
+  <span class="tc">// (2) Phát hiện CẠNH XUỐNG: chu kỳ trước 1, chu kỳ này 0
+  //     → có thể là start bit.
+  // (3) Đợi NỬA bit time (DIV/2), kiểm tra rx_ff2 vẫn == 0
+  //     → start thật, không phải gai nhiễu; giờ ta đứng GIỮA start bit.
+  // (4) Từ đó cứ MỖI bit time lấy mẫu 1 lần = giữa D0..D7,
+  //     dồn vào shift register: rx_shift &lt;= {rx_ff2, rx_shift[7:1]};
+  //     (bit đến trước là LSB → chèn từ bên trái, đủ 8 lần)
+  // (5) Lấy mẫu thứ 10 phải == 1 (stop bit):
+  //     đúng → rx_data = rx_shift; rx_valid = 1 (một chu kỳ)
+  //     sai  → framing error: bỏ khung, quay lại chờ cạnh xuống.</span>
+<span class="tk">endmodule</span></pre>
+    </div>
+
+    <div class="space-y-4">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+        <h3 class="font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-microchip text-primary"></i>Code này synthesis ra phần cứng gì?</h3>
+        <ul class="mt-3 space-y-2 text-sm text-slate-600">
+          <li class="flex gap-2"><i class="fa-solid fa-square text-blue-400 text-[8px] mt-1.5"></i><span><span class="font-mono text-xs">baud_cnt</span> → counter 13 flip-flop + bộ so sánh (LUT); <span class="font-mono text-xs">baud_tick</span> chỉ là <strong>dây</strong> mang xung so sánh, không phải chân clock.</span></li>
+          <li class="flex gap-2"><i class="fa-solid fa-square text-blue-400 text-[8px] mt-1.5"></i><span><span class="font-mono text-xs">shift_reg</span> → 8 flip-flop nối đuôi, có MUX chọn "nạp song song / dịch / giữ nguyên" trước chân D.</span></li>
+          <li class="flex gap-2"><i class="fa-solid fa-square text-blue-400 text-[8px] mt-1.5"></i><span><span class="font-mono text-xs">state</span> → 2 flip-flop + logic tổ hợp next-state; <span class="font-mono text-xs">tx</span> là MUX 4 đầu vào chọn theo trạng thái.</span></li>
+          <li class="flex gap-2"><i class="fa-solid fa-square text-blue-400 text-[8px] mt-1.5"></i><span>Tất cả flip-flop đánh nhịp bằng <strong>cùng một clk</strong> — baud_tick chỉ điều khiển chân <em>enable</em>. Đây là điểm khác biệt sống còn với "clock chia".</span></li>
+        </ul>
+      </div>
+      <div class="bg-blue-50 border border-blue-200 rounded-2xl p-5">
+        <h3 class="font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-flask text-primary"></i>Testbench nên kiểm tra gì?</h3>
+        <ul class="mt-2 space-y-1.5 text-sm text-slate-700">
+          <li>• Sau <span class="font-mono text-xs">tx_start</span>, <span class="font-mono text-xs">tx</span> xuống 0 và giữ đúng ≈ 5208 chu kỳ clock (1 bit time @ 50 MHz / 9600).</li>
+          <li>• Bit ngay sau start là <span class="font-mono text-xs">tx_data[0]</span> (LSB) — không phải bit 7!</li>
+          <li>• <span class="font-mono text-xs">tx_busy</span> = 1 suốt 10 bit time, rồi về 0.</li>
+          <li>• Gửi 2 byte liên tiếp: byte 2 chỉ được nhận khi busy đã hạ.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 9. WAVEFORM / TIMING ===================== -->
+<section id="waveform" class="py-12">
+  <div class="flex items-center gap-3 mb-6">
+    <span class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-wave-square"></i></span>
+    <div>
+      <p class="text-[11px] font-bold uppercase tracking-widest text-primary">Section 9</p>
+      <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900">Waveform &amp; Timing — Đọc Khung 8N1 Như Kỹ Sư</h2>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-6">
+    <h3 class="font-bold text-slate-800 mb-1">Khung chuẩn: gửi ký tự 'A' (0x41) @ 9600 baud</h3>
+    <p class="text-sm text-slate-600 mb-3">Chấm xanh = điểm lấy mẫu lý tưởng của RX, luôn nằm <strong>giữa bit</strong>. Trục thời gian tính từ cạnh xuống của start bit (t = 0).</p>
+    <div class="overflow-x-auto">
+      <svg viewBox="0 0 780 215" class="w-full min-w-[680px]" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Khung UART 8N1 cho ký tự A">
+        <!-- nền từng vùng -->
+        <rect x="30" y="45" width="60" height="90" fill="#f1f5f9"/>
+        <rect x="90" y="45" width="60" height="90" fill="#fef3c7"/>
+        <rect x="150" y="45" width="480" height="90" fill="#dbeafe" opacity="0.55"/>
+        <rect x="630" y="45" width="60" height="90" fill="#d1fae5"/>
+        <rect x="690" y="45" width="60" height="90" fill="#f1f5f9"/>
+        <!-- lưới biên bit -->
+        <g stroke="#cbd5e1" stroke-dasharray="3 3">
+          <line x1="90" y1="40" x2="90" y2="172"/><line x1="150" y1="40" x2="150" y2="172"/><line x1="210" y1="40" x2="210" y2="172"/><line x1="270" y1="40" x2="270" y2="172"/>
+          <line x1="330" y1="40" x2="330" y2="172"/><line x1="390" y1="40" x2="390" y2="172"/><line x1="450" y1="40" x2="450" y2="172"/><line x1="510" y1="40" x2="510" y2="172"/>
+          <line x1="570" y1="40" x2="570" y2="172"/><line x1="630" y1="40" x2="630" y2="172"/><line x1="690" y1="40" x2="690" y2="172"/>
+        </g>
+        <!-- chú thích bit time -->
+        <line x1="150" y1="32" x2="210" y2="32" stroke="#64748b" marker-start="url(#ar1)" marker-end="url(#ar2)"/>
+        <defs>
+          <marker id="ar1" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M6,0 L0,3 L6,6" fill="none" stroke="#64748b"/></marker>
+          <marker id="ar2" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6" fill="none" stroke="#64748b"/></marker>
+        </defs>
+        <text x="180" y="24" text-anchor="middle" font-size="10" fill="#475569" font-weight="700">1 bit time = 104,17 µs</text>
+        <!-- dạng sóng -->
+        <polyline points="30,60 90,60 90,120 150,120 150,60 210,60 210,120 510,120 510,60 570,60 570,120 630,120 630,60 750,60" fill="none" stroke="#1d4ed8" stroke-width="3" stroke-linejoin="round"/>
+        <!-- điểm lấy mẫu -->
+        <g fill="#10b981">
+          <circle cx="120" cy="120" r="5"/><circle cx="180" cy="60" r="5"/><circle cx="240" cy="120" r="5"/><circle cx="300" cy="120" r="5"/><circle cx="360" cy="120" r="5"/>
+          <circle cx="420" cy="120" r="5"/><circle cx="480" cy="120" r="5"/><circle cx="540" cy="60" r="5"/><circle cx="600" cy="120" r="5"/><circle cx="660" cy="60" r="5"/>
+        </g>
+        <!-- giá trị bit -->
+        <g font-size="12" font-weight="700" text-anchor="middle" fill="#0f172a" font-family="monospace">
+          <text x="60" y="152">1</text><text x="120" y="152">0</text><text x="180" y="152">1</text><text x="240" y="152">0</text><text x="300" y="152">0</text>
+          <text x="360" y="152">0</text><text x="420" y="152">0</text><text x="480" y="152">0</text><text x="540" y="152">1</text><text x="600" y="152">0</text>
+          <text x="660" y="152">1</text><text x="720" y="152">1</text>
+        </g>
+        <!-- tên bit -->
+        <g font-size="9.5" text-anchor="middle" fill="#64748b" font-weight="600">
+          <text x="60" y="166">IDLE</text><text x="120" y="166">START</text><text x="180" y="166">D0</text><text x="240" y="166">D1</text><text x="300" y="166">D2</text>
+          <text x="360" y="166">D3</text><text x="420" y="166">D4</text><text x="480" y="166">D5</text><text x="540" y="166">D6</text><text x="600" y="166">D7</text>
+          <text x="660" y="166">STOP</text><text x="720" y="166">IDLE</text>
+        </g>
+        <!-- trục thời gian -->
+        <line x1="30" y1="180" x2="750" y2="180" stroke="#94a3b8"/>
+        <g font-size="8.5" text-anchor="middle" fill="#64748b" font-family="monospace">
+          <text x="90" y="196">0</text><text x="150" y="196">104</text><text x="210" y="196">208</text><text x="270" y="196">313</text><text x="330" y="196">417</text>
+          <text x="390" y="196">521</text><text x="450" y="196">625</text><text x="510" y="196">729</text><text x="570" y="196">833</text><text x="630" y="196">938</text>
+          <text x="690" y="196">1042</text>
+        </g>
+        <text x="750" y="196" text-anchor="end" font-size="8.5" fill="#94a3b8">µs</text>
+        <!-- mức logic -->
+        <text x="24" y="64" text-anchor="end" font-size="10" fill="#64748b" font-family="monospace">1</text>
+        <text x="24" y="124" text-anchor="end" font-size="10" fill="#64748b" font-family="monospace">0</text>
+      </svg>
+    </div>
+    <div class="grid md:grid-cols-3 gap-3 mt-4 text-[13px] text-slate-600">
+      <div class="bg-slate-50 border border-slate-200 rounded-xl p-3"><strong class="text-slate-800"><i class="fa-solid fa-anchor text-primary mr-1"></i>Một mốc duy nhất.</strong> RX chỉ "nhìn thấy" thời gian tại cạnh xuống start. Mọi điểm lấy mẫu sau đó đều là <em>đếm suy ra</em> — vì vậy đồng hồ hai bên phải đủ chính xác.</div>
+      <div class="bg-slate-50 border border-slate-200 rounded-xl p-3"><strong class="text-slate-800"><i class="fa-solid fa-hourglass-half text-secondary mr-1"></i>Không có "đổi ngay lập tức".</strong> Tại biên bit, tín hiệu cần thời gian chuyển mức (propagation delay của buffer, điện dung dây). Lấy mẫu giữa bit là cách tránh xa vùng chuyển tiếp đó.</div>
+      <div class="bg-slate-50 border border-slate-200 rounded-xl p-3"><strong class="text-slate-800"><i class="fa-solid fa-gauge-high text-accent mr-1"></i>Thông lượng thật.</strong> 10 bit trên dây / 8 bit dữ liệu → 9600 baud chỉ chở tối đa 960 byte/s. Muốn nhanh hơn: tăng baud (115200 → 11.520 byte/s), hai bên cùng đổi.</div>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-2xl shadow-sm border border-red-200 p-6">
+    <h3 class="font-bold text-slate-800 mb-1"><i class="fa-solid fa-triangle-exclamation text-danger mr-2"></i>Cùng khung đó, nhưng clock RX chậm 6% — drift tích lũy</h3>
+    <p class="text-sm text-slate-600 mb-3">Tick xám mảnh = điểm lấy mẫu lý tưởng. Chấm màu = điểm lấy mẫu thực tế của RX bị lệch 6%: mỗi bit trôi thêm ≈ 6,25 µs, đến D7 thì trôi hơn <strong>nửa bit</strong> → lấy mẫu nhầm sang stop bit.</p>
+    <div class="overflow-x-auto">
+      <svg viewBox="0 0 780 190" class="w-full min-w-[680px]" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Drift tích lũy khi lệch baud 6%">
+        <rect x="90" y="45" width="60" height="90" fill="#fef3c7"/>
+        <rect x="150" y="45" width="480" height="90" fill="#dbeafe" opacity="0.4"/>
+        <rect x="630" y="45" width="60" height="90" fill="#d1fae5"/>
+        <g stroke="#cbd5e1" stroke-dasharray="3 3">
+          <line x1="90" y1="40" x2="90" y2="150"/><line x1="150" y1="40" x2="150" y2="150"/><line x1="210" y1="40" x2="210" y2="150"/><line x1="270" y1="40" x2="270" y2="150"/>
+          <line x1="330" y1="40" x2="330" y2="150"/><line x1="390" y1="40" x2="390" y2="150"/><line x1="450" y1="40" x2="450" y2="150"/><line x1="510" y1="40" x2="510" y2="150"/>
+          <line x1="570" y1="40" x2="570" y2="150"/><line x1="630" y1="40" x2="630" y2="150"/><line x1="690" y1="40" x2="690" y2="150"/>
+        </g>
+        <polyline points="30,60 90,60 90,120 150,120 150,60 210,60 210,120 510,120 510,60 570,60 570,120 630,120 630,60 750,60" fill="none" stroke="#1d4ed8" stroke-width="3" stroke-linejoin="round"/>
+        <!-- mẫu lý tưởng (tick xám) -->
+        <g stroke="#94a3b8" stroke-width="2">
+          <line x1="120" y1="128" x2="120" y2="112"/><line x1="180" y1="68" x2="180" y2="52"/><line x1="240" y1="128" x2="240" y2="112"/><line x1="300" y1="128" x2="300" y2="112"/>
+          <line x1="360" y1="128" x2="360" y2="112"/><line x1="420" y1="128" x2="420" y2="112"/><line x1="480" y1="128" x2="480" y2="112"/><line x1="540" y1="68" x2="540" y2="52"/>
+          <line x1="600" y1="128" x2="600" y2="112"/><line x1="660" y1="68" x2="660" y2="52"/>
+        </g>
+        <!-- mẫu thực tế bị trôi 6% -->
+        <g>
+          <circle cx="121.8" cy="120" r="5.5" fill="#10b981"/>
+          <circle cx="185.4" cy="60" r="5.5" fill="#10b981"/>
+          <circle cx="249" cy="120" r="5.5" fill="#10b981"/>
+          <circle cx="312.6" cy="120" r="5.5" fill="#10b981"/>
+          <circle cx="376.2" cy="120" r="5.5" fill="#10b981"/>
+          <circle cx="439.8" cy="120" r="5.5" fill="#10b981"/>
+          <circle cx="503.4" cy="120" r="5.5" fill="#f59e0b"/>
+          <circle cx="567" cy="60" r="5.5" fill="#f59e0b"/>
+          <circle cx="630.6" cy="60" r="6.5" fill="#ef4444"/>
+          <circle cx="694.2" cy="60" r="5.5" fill="#94a3b8"/>
+        </g>
+        <text x="630.6" y="40" text-anchor="middle" font-size="10" font-weight="800" fill="#ef4444">mẫu "D7" rơi vào STOP → đọc 1 thay vì 0!</text>
+        <g font-size="9.5" text-anchor="middle" fill="#64748b" font-weight="600">
+          <text x="120" y="166">START</text><text x="180" y="166">D0</text><text x="240" y="166">D1</text><text x="300" y="166">D2</text><text x="360" y="166">D3</text>
+          <text x="420" y="166">D4</text><text x="480" y="166">D5</text><text x="540" y="166">D6</text><text x="600" y="166">D7</text><text x="660" y="166">STOP</text>
+        </g>
+        <g font-size="9" text-anchor="middle" fill="#475569">
+          <text x="503.4" y="182">trôi 39%</text>
+          <text x="630.6" y="182" fill="#ef4444" font-weight="700">trôi 51% — hỏng</text>
+        </g>
+      </svg>
+    </div>
+    <p class="text-sm text-slate-700 mt-3 bg-red-50 border border-red-200 rounded-xl p-3">
+      Kết quả: RX ghép ra <span class="font-mono font-bold">0xC1</span> thay vì <span class="font-mono font-bold">0x41</span> — và vì mẫu stop (điểm xám cuối) vẫn đọc được mức 1,
+      <strong>không hề có framing error</strong>. Dữ liệu hỏng trong im lặng — đó là lý do sai số baud phải giữ thật nhỏ (≈ ≤ 2% tổng hai bên),
+      và là lý do testbench phải đo <em>độ dài bit bằng con số chu kỳ clock</em>, không đo "bằng mắt".
+    </p>
+  </div>
+</section>
+<!-- ===================== 10. ACTIVE LEARNING ===================== -->
+<section id="active-learning" class="py-12">
+  <div class="flex items-center gap-3 mb-6">
+    <span class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-people-group"></i></span>
+    <div>
+      <p class="text-[11px] font-bold uppercase tracking-widest text-primary">Section 10</p>
+      <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900">Kịch Bản Buổi Học 60 Phút</h2>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+    <div class="space-y-4">
+      <div class="flex gap-4 items-start">
+        <span class="shrink-0 w-20 text-center bg-blue-600 text-white text-xs font-black rounded-lg py-2">0–5'</span>
+        <div><h3 class="font-bold text-sm text-slate-800">Quick check-in</h3><p class="text-sm text-slate-600">Hỏi nhanh: "Điện thoại của bạn đang 'nói chuyện' với những thiết bị nào?" Dẫn vào: xử lý xong dữ liệu thì phải <em>gửi đi</em>.</p></div>
+      </div>
+      <div class="flex gap-4 items-start">
+        <span class="shrink-0 w-20 text-center bg-blue-600 text-white text-xs font-black rounded-lg py-2">5–15'</span>
+        <div><h3 class="font-bold text-sm text-slate-800">Student presentation</h3><p class="text-sm text-slate-600">Nhóm được phân công trình bày 5 câu chuẩn bị: UART là gì, vì sao cần, TX/RX là gì, hoạt động cơ bản, dùng ở đâu. Cả lớp ghi lại điểm chưa rõ.</p></div>
+      </div>
+      <div class="flex gap-4 items-start">
+        <span class="shrink-0 w-20 text-center bg-amber-500 text-white text-xs font-black rounded-lg py-2">15–25'</span>
+        <div><h3 class="font-bold text-sm text-slate-800">Mentor correction</h3><p class="text-sm text-slate-600">Mentor chốt khung 8N1 trên demo tương tác, sửa 2 hiểu lầm kinh điển: "UART là con chip" và "chia clock làm baud". Chạy demo baud mismatch cho lớp xem dữ liệu hỏng thế nào.</p></div>
+      </div>
+      <div class="flex gap-4 items-start">
+        <span class="shrink-0 w-20 text-center bg-emerald-600 text-white text-xs font-black rounded-lg py-2">25–45'</span>
+        <div><h3 class="font-bold text-sm text-slate-800">Breakout room (15–20')</h3><p class="text-sm text-slate-600">Nhóm 3–4 người làm bộ câu hỏi ở Section 11: vẽ khung cho một byte tự chọn, tính DIV và throughput, chỉ ra UART trong project thực. Nộp "frame card" cuối giờ.</p></div>
+      </div>
+      <div class="flex gap-4 items-start">
+        <span class="shrink-0 w-20 text-center bg-emerald-600 text-white text-xs font-black rounded-lg py-2">45–55'</span>
+        <div><h3 class="font-bold text-sm text-slate-800">Group sharing</h3><p class="text-sm text-slate-600">Mỗi nhóm 2 phút: Reporter trình frame card; Skeptic nhóm khác kiểm tra thứ tự LSB và giá trị start/stop.</p></div>
+      </div>
+      <div class="flex gap-4 items-start">
+        <span class="shrink-0 w-20 text-center bg-slate-700 text-white text-xs font-black rounded-lg py-2">55–60'</span>
+        <div><h3 class="font-bold text-sm text-slate-800">Wrap-up</h3><p class="text-sm text-slate-600">Chốt 3 keyword: <strong>Communication, TX/RX, Serial data</strong>. Nhắc mini-project UART nhiệt độ + hẹn tuần 12 mang kết quả đến showcase.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 11. BREAKOUT ROOM GUIDE ===================== -->
+<section id="breakout" class="py-12">
+  <div class="flex items-center gap-3 mb-6">
+    <span class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-comments"></i></span>
+    <div>
+      <p class="text-[11px] font-bold uppercase tracking-widest text-primary">Section 11</p>
+      <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900">Breakout Room Guide</h2>
+    </div>
+  </div>
+
+  <div class="grid lg:grid-cols-3 gap-6">
+    <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+      <h3 class="font-bold text-slate-800 mb-3"><i class="fa-solid fa-circle-question text-primary mr-2"></i>Câu hỏi thảo luận (phân tích, không học vẹt)</h3>
+      <ol class="space-y-3 text-sm text-slate-700 list-decimal list-inside">
+        <li><strong>Nếu bỏ start bit</strong> mà vẫn giữ đúng baud hai bên, RX có nhận đúng dữ liệu không? Vì sao? <span class="text-slate-500">(Gợi ý: RX lấy mốc thời gian từ đâu? Byte 0xFF trông thế nào trên dây idle?)</span></li>
+        <li><strong>Tính toán:</strong> clock 50 MHz, baud 115200 → DIV = ? Sai số bao nhiêu phần trăm? Sai số đó một mình nó có làm hỏng khung không? <span class="text-slate-500">(DIV = 434, lệch ≈ 0,006% — cộng thêm sai số phía PC vẫn rất an toàn.)</span></li>
+        <li><strong>Throughput:</strong> gửi 100 byte ở 9600-8N1 mất bao lâu? Hệ thống của bạn đo cảm biến 1000 mẫu/giây, mỗi mẫu 2 byte — 9600 baud có đủ không, phải chọn baud nào? <span class="text-slate-500">(100 byte ≈ 104 ms; 2000 byte/s = 16.000 bit dữ liệu/s → 20.000 bit/s trên dây vì khung 10 bit/byte → 9600 không đủ, chọn 38400 trở lên.)</span></li>
+        <li><strong>Vì sao idle là mức 1 mà không phải mức 0?</strong> <span class="text-slate-500">(Gợi ý: start bit cần tạo cạnh gì? Dây bị đứt/mất nguồn thường đọc ra mức nào — phát hiện được không?)</span></li>
+        <li><strong>Trong project của nhóm</strong> (robot, trạm cảm biến, smart city): thiết bị A là gì, thiết bị B là gì, dữ liệu gì chạy qua UART, chỗ nào UART <em>không</em> đủ nhanh?</li>
+      </ol>
+    </div>
+    <div class="space-y-4">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+        <h3 class="font-bold text-slate-800 mb-2"><i class="fa-solid fa-user-group text-primary mr-2"></i>Vai trò trong nhóm</h3>
+        <ul class="text-sm text-slate-600 space-y-1.5">
+          <li><strong class="text-slate-800">Facilitator:</strong> giữ nhịp, mỗi câu ≤ 4 phút.</li>
+          <li><strong class="text-slate-800">Note keeper:</strong> vẽ frame card, ghi phép tính.</li>
+          <li><strong class="text-slate-800">Reporter:</strong> trình bày 2 phút trước lớp.</li>
+          <li><strong class="text-slate-800">Skeptic/Checker:</strong> soi từng bit — LSB có đi trước không, start có bằng 0 không?</li>
+        </ul>
+      </div>
+      <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-5">
+        <h3 class="font-bold text-slate-800 mb-2"><i class="fa-solid fa-file-export text-accent mr-2"></i>Sản phẩm nhóm nộp</h3>
+        <p class="text-sm text-slate-700 leading-relaxed"><strong>Frame card:</strong> 1 trang gồm (a) khung 8N1 vẽ tay cho byte nhóm tự chọn — đủ idle, start, D0→D7, stop, ghi giá trị từng bit; (b) phép tính DIV và throughput; (c) 1 dòng trả lời "UART trong project của nhóm nằm ở đâu".</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 12. COMMON MISTAKES ===================== -->
+<section id="mistakes" class="py-12">
+  <div class="flex items-center gap-3 mb-6">
+    <span class="w-10 h-10 rounded-xl bg-danger/10 text-danger flex items-center justify-center"><i class="fa-solid fa-bug"></i></span>
+    <div>
+      <p class="text-[11px] font-bold uppercase tracking-widest text-danger">Section 12</p>
+      <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900">Lỗi Hay Gặp — Và Cách Sửa</h2>
+    </div>
+  </div>
+
+  <div class="grid md:grid-cols-2 gap-4">
+    <div class="bg-white rounded-2xl border-2 border-red-200 p-5">
+      <h3 class="font-bold text-red-700 flex items-center gap-2"><i class="fa-solid fa-xmark-circle"></i>1. "UART là một con chip"</h3>
+      <p class="text-sm text-slate-600 mt-2"><strong>Vì sao sai:</strong> UART là <em>giao thức + khối chức năng</em>. Nó có thể là khối cứng trong MCU, là RTL bạn viết trên FPGA, hoặc nằm trong cầu CP2102.</p>
+      <p class="text-sm text-slate-700 mt-2 bg-emerald-50 border border-emerald-200 rounded-lg p-2.5"><strong class="text-emerald-700">Sửa đúng:</strong> nói "khối UART trong chip X" hoặc "giao thức UART". Trong bài này, uart_tx là ~26 flip-flop do chính bạn mô tả.</p>
+    </div>
+
+    <div class="bg-white rounded-2xl border-2 border-red-300 p-5">
+      <h3 class="font-bold text-red-700 flex items-center gap-2"><i class="fa-solid fa-xmark-circle"></i>2. Chia clock để tạo "clock baud" (nguy hiểm nhất)</h3>
+      <p class="text-sm text-slate-600 mt-2"><strong>Sai:</strong> <span class="font-mono text-xs bg-red-50 px-1 rounded">always @(posedge clk9600)</span> với clk9600 lấy từ counter. <strong>Vì sao nguy hiểm:</strong> tạo clock domain mới không qua tài nguyên clock chuyên dụng → skew, khó phân tích timing, tool khó kiểm soát — đúng cảnh báo Tuần 5 &amp; 10.</p>
+      <p class="text-sm text-slate-700 mt-2 bg-emerald-50 border border-emerald-200 rounded-lg p-2.5"><strong class="text-emerald-700">Sửa đúng:</strong> mọi FF chạy <span class="font-mono text-xs">posedge clk</span>; baud_tick chỉ là <strong>enable</strong>: <span class="font-mono text-xs">if (baud_tick) …</span></p>
+    </div>
+
+    <div class="bg-white rounded-2xl border-2 border-red-200 p-5">
+      <h3 class="font-bold text-red-700 flex items-center gap-2"><i class="fa-solid fa-xmark-circle"></i>3. Gửi MSB trước</h3>
+      <p class="text-sm text-slate-600 mt-2"><strong>Hiện tượng:</strong> gõ 'A' (0x41) nhưng terminal hiện ký tự lạ (0x82). <strong>Vì sao:</strong> UART quy ước <strong>LSB trước</strong>; phát <span class="font-mono text-xs">shift_reg[7]</span> là đảo ngược thứ tự bit.</p>
+      <p class="text-sm text-slate-700 mt-2 bg-emerald-50 border border-emerald-200 rounded-lg p-2.5"><strong class="text-emerald-700">Sửa đúng:</strong> phát <span class="font-mono text-xs">shift_reg[0]</span> và dịch phải <span class="font-mono text-xs">{1'b0, shift_reg[7:1]}</span>. Test nhanh bằng byte bất đối xứng như 0x4B.</p>
+    </div>
+
+    <div class="bg-white rounded-2xl border-2 border-orange-200 p-5">
+      <h3 class="font-bold text-orange-700 flex items-center gap-2"><i class="fa-solid fa-xmark-circle"></i>4. Đấu dây: TX–TX, và quên GND chung</h3>
+      <p class="text-sm text-slate-600 mt-2"><strong>Vì sao sai:</strong> TX là miệng, RX là tai — hai miệng nói với nhau thì không ai nghe. Không có GND chung thì "mức 1/mức 0" của hai bên không cùng thước đo điện áp (nhớ Tuần 1: mức logic là <em>khoảng điện áp</em>).</p>
+      <p class="text-sm text-slate-700 mt-2 bg-emerald-50 border border-emerald-200 rounded-lg p-2.5"><strong class="text-emerald-700">Sửa đúng:</strong> FPGA-TX → cầu-RX, FPGA-RX ← cầu-TX, GND nối GND. Ba dây, kiểm tra bằng đồng hồ trước khi cấp nguồn.</p>
+    </div>
+
+    <div class="bg-white rounded-2xl border-2 border-orange-200 p-5">
+      <h3 class="font-bold text-orange-700 flex items-center gap-2"><i class="fa-solid fa-xmark-circle"></i>5. Hai bên lệch baud (hoặc quên đổi cả hai)</h3>
+      <p class="text-sm text-slate-600 mt-2"><strong>Hiện tượng:</strong> terminal hiện toàn ký tự rác kiểu "ÿ†¤". <strong>Vì sao:</strong> RX đếm sai bit time, điểm lấy mẫu trôi dần và cắt khung sai chỗ — dữ liệu hỏng có khi không kèm lỗi nào.</p>
+      <p class="text-sm text-slate-700 mt-2 bg-emerald-50 border border-emerald-200 rounded-lg p-2.5"><strong class="text-emerald-700">Sửa đúng:</strong> kiểm tra baud ở <em>cả hai đầu</em> (parameter RTL và cài đặt terminal); giữ tổng sai số ≤ ~2%; đổi tốc độ thì đổi đồng bộ hai bên.</p>
+    </div>
+
+    <div class="bg-white rounded-2xl border-2 border-orange-200 p-5">
+      <h3 class="font-bold text-orange-700 flex items-center gap-2"><i class="fa-solid fa-xmark-circle"></i>6. RX lấy mẫu ở biên bit + quên đồng bộ 2 FF</h3>
+      <p class="text-sm text-slate-600 mt-2"><strong>Vì sao sai:</strong> tại biên bit tín hiệu đang chuyển mức → đọc lúc được lúc không. Dây rx từ ngoài board không đồng bộ với clk — đưa thẳng vào FSM có thể gây metastability (FF "lơ lửng").</p>
+      <p class="text-sm text-slate-700 mt-2 bg-emerald-50 border border-emerald-200 rounded-lg p-2.5"><strong class="text-emerald-700">Sửa đúng:</strong> luôn cho rx qua 2 flip-flop đồng bộ, đợi nửa bit sau cạnh xuống rồi lấy mẫu <strong>giữa bit</strong> (oversampling ×16).</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 13. MINI-PROJECT CONNECTION ===================== -->
+<section id="mini-project" class="py-12">
+  <div class="flex items-center gap-3 mb-6">
+    <span class="w-10 h-10 rounded-xl bg-accent/10 text-accent flex items-center justify-center"><i class="fa-solid fa-diagram-project"></i></span>
+    <div>
+      <p class="text-[11px] font-bold uppercase tracking-widest text-accent">Section 13</p>
+      <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900">Mini-Project — Gửi Nhiệt Độ Từ FPGA Về PC</h2>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+    <p class="text-slate-700 leading-relaxed max-w-3xl">
+      <strong>Đề bài:</strong> FPGA đọc giá trị nhiệt độ (từ cảm biến — hoặc nếu chưa có cảm biến, dùng giá trị giả lập bằng switch/counter),
+      đổi thành ký tự ASCII và gửi về PC mỗi giây một dòng, ví dụ <span class="font-mono bg-slate-100 px-1.5 rounded">25 C</span>.
+      Bạn mở Serial Terminal và <em>nhìn thấy dữ liệu của mạch mình chảy về máy tính</em> — "printf" đầu tiên của đời kỹ sư phần cứng.
+    </p>
+
+    <div class="mt-5 overflow-x-auto">
+      <div class="flex items-center gap-2 min-w-[620px] text-center text-xs font-semibold">
+        <div class="flex-1 bg-amber-50 border border-amber-300 rounded-xl px-3 py-3"><i class="fa-solid fa-temperature-half text-secondary block text-lg mb-1"></i>Nguồn nhiệt độ<br><span class="font-normal text-slate-500">cảm biến / switch giả lập (T3–T4)</span></div>
+        <i class="fa-solid fa-arrow-right text-slate-400"></i>
+        <div class="flex-1 bg-blue-50 border border-blue-300 rounded-xl px-3 py-3"><i class="fa-solid fa-table-cells text-primary block text-lg mb-1"></i>Binary → ASCII<br><span class="font-normal text-slate-500">tách chục/đơn vị + 0x30 (T4, T10)</span></div>
+        <i class="fa-solid fa-arrow-right text-slate-400"></i>
+        <div class="flex-1 bg-blue-50 border border-blue-300 rounded-xl px-3 py-3"><i class="fa-solid fa-list-ol text-primary block text-lg mb-1"></i>FSM gửi chuỗi<br><span class="font-normal text-slate-500">lần lượt '2','5',' ','C','\n' (T6)</span></div>
+        <i class="fa-solid fa-arrow-right text-slate-400"></i>
+        <div class="flex-1 bg-blue-600 text-white rounded-xl px-3 py-3 ring-2 ring-blue-300"><i class="fa-solid fa-right-from-bracket block text-lg mb-1"></i>uart_tx<br><span class="font-normal text-blue-100">khối tuần này</span></div>
+        <i class="fa-solid fa-arrow-right text-slate-400"></i>
+        <div class="flex-1 bg-emerald-50 border border-emerald-300 rounded-xl px-3 py-3"><i class="fa-solid fa-desktop text-accent block text-lg mb-1"></i>PC Terminal<br><span class="font-normal text-slate-500">9600-8N1</span></div>
+      </div>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-4 mt-6 text-sm">
+      <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+        <h3 class="font-bold text-slate-800 mb-2"><i class="fa-solid fa-list-check text-primary mr-1"></i>Các bước</h3>
+        <ol class="list-decimal list-inside space-y-1 text-slate-600">
+          <li>Chạy uart_tx đơn lẻ: gửi 'A' khi bấm nút.</li>
+          <li>Gửi chuỗi cố định "HI\n" bằng FSM nhỏ + tx_busy.</li>
+          <li>Đổi số 2 chữ số thành 2 ký tự ASCII (cộng 0x30).</li>
+          <li>Enable tick 1 Hz (T10) kích cả chuỗi mỗi giây.</li>
+          <li>Nối cảm biến thật nếu có — hoặc để Phase 2.</li>
+        </ol>
+      </div>
+      <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+        <h3 class="font-bold text-slate-800 mb-2"><i class="fa-solid fa-box-open text-accent mr-1"></i>Deliverables</h3>
+        <ul class="space-y-1 text-slate-600">
+          <li>• Ảnh chụp Serial Terminal hiện dữ liệu.</li>
+          <li>• Waveform mô phỏng 1 khung + đo bit time.</li>
+          <li>• Sơ đồ khối ghi rõ khối nào học tuần nào.</li>
+          <li>• 5 dòng "bug log": lỗi gặp và cách sửa.</li>
+        </ul>
+      </div>
+      <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+        <h3 class="font-bold text-slate-800 mb-2"><i class="fa-solid fa-rocket text-secondary mr-1"></i>Nâng cao (tùy chọn)</h3>
+        <ul class="space-y-1 text-slate-600">
+          <li>• Đổi baud lên 115200 — chỉ sửa 1 parameter.</li>
+          <li>• Nhận lệnh từ PC ('u'/'d') bằng uart_rx.</li>
+          <li>• Vẽ đồ thị nhiệt độ bằng Serial Plotter.</li>
+          <li>• Thêm checksum đơn giản cuối dòng.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- ===================== 14. QUIZ ===================== -->
+<section id="quiz" class="py-12">
+  <div class="flex items-center gap-3 mb-6">
+    <span class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-circle-question"></i></span>
+    <div>
+      <p class="text-[11px] font-bold uppercase tracking-widest text-primary">Section 14</p>
+      <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900">Quiz — 10 Câu Kiểm Tra Nhanh</h2>
+    </div>
+  </div>
+  <p class="text-slate-600 mb-6">Chọn đáp án — hệ thống chấm ngay và giải thích. Điểm hiện ở cuối.</p>
+
+  <div id="quizWrap" class="space-y-5">
+
+    <div class="quiz-q bg-white rounded-2xl shadow-sm border border-slate-200 p-5" data-answer="1">
+      <p class="font-bold text-slate-800">Câu 1. Khi không truyền gì (idle), đường TX của UART giữ mức nào?</p>
+      <div class="grid sm:grid-cols-2 gap-2 mt-3 text-sm">
+        <div class="quiz-opt rounded-xl px-4 py-2.5">A. Mức 0</div>
+        <div class="quiz-opt rounded-xl px-4 py-2.5">B. Mức 1</div>
+        <div class="quiz-opt rounded-xl px-4 py-2.5">C. Trở kháng cao (thả nổi)</div>
+        <div class="quiz-opt rounded-xl px-4 py-2.5">D. Tùy baud rate</div>
+      </div>
+      <div class="quiz-exp hidden mt-3 text-sm bg-blue-50 border border-blue-200 rounded-xl p-3 text-slate-700"><strong>Đáp án B.</strong> Idle = mức 1. Nhờ vậy start bit (0) tạo ra cạnh xuống rõ ràng làm mốc thời gian, và dây đứt/mất nguồn (đọc ra 0 kéo dài) cũng bị phát hiện là bất thường.</div>
+    </div>
+
+    <div class="quiz-q bg-white rounded-2xl shadow-sm border border-slate-200 p-5" data-answer="2">
+      <p class="font-bold text-slate-800">Câu 2. Vai trò đúng nhất của start bit là gì?</p>
+      <div class="grid sm:grid-cols-2 gap-2 mt-3 text-sm">
+        <div class="quiz-opt rounded-xl px-4 py-2.5">A. Chứa bit dữ liệu đầu tiên</div>
+        <div class="quiz-opt rounded-xl px-4 py-2.5">B. Kiểm tra lỗi cho cả khung</div>
+        <div class="quiz-opt rounded-xl px-4 py-2.5">C. Tạo cạnh xuống làm mốc thời gian để RX căn toàn bộ khung</div>
+        <div class="quiz-opt rounded-xl px-4 py-2.5">D. Tăng tốc độ truyền</div>
+      </div>
+      <div class="quiz-exp hidden mt-3 text-sm bg-blue-50 border border-blue-200 rounded-xl p-3 text-slate-700"><strong>Đáp án C.</strong> UART không có dây clock chung — cạnh xuống idle(1)→start(0) là mốc duy nhất để RX bắt đầu đếm thời gian và suy ra vị trí giữa của từng bit sau đó.</div>
+    </div>
+
+    <div class="quiz-q bg-white rounded-2xl shadow-sm border border-slate-200 p-5" data-answer="0">
+      <p class="font-bold text-slate-800">Câu 3. Gửi byte 0x4B (0100 1011). Bit dữ liệu <em>đầu tiên</em> xuất hiện trên dây ngay sau start bit là?</p>
+      <div class="grid sm:grid-cols-2 gap-2 mt-3 text-sm">
+        <div class="quiz-opt rounded-xl px-4 py-2.5">A. 1 — vì bit 0 (LSB) đi trước</div>
+        <div class="quiz-opt rounded-xl px-4 py-2.5">B. 0 — vì bit 7 (MSB) đi trước</div>
+        <div class="quiz-opt rounded-xl px-4 py-2.5">C. 0 — vì bit 0 (LSB) đi trước</div>
+        <div class="quiz-opt rounded-xl px-4 py-2.5">D. 1 — vì bit 7 (MSB) đi trước</div>
+      </div>
+      <div class="quiz-exp hidden mt-3 text-sm bg-blue-50 border border-blue-200 rounded-xl p-3 text-slate-700"><strong>Đáp án A.</strong> UART gửi LSB trước. 0x4B = 0100 1011, bit 0 = 1 → bit đầu tiên trên dây là 1. Toàn bộ thứ tự: 1,1,0,1,0,0,1,0 (bit 0 → bit 7).</div>
+    </div>
+
+    <div class="quiz-q bg-white rounded-2xl shadow-sm border border-slate-200 p-5" data-answer="2">
+      <p class="font-bold text-slate-800">Câu 4. Ở 9600 baud, một bit chiếm khoảng bao lâu trên dây?</p>
+      <div class="grid sm:grid-cols-2 gap-2 mt-3 text-sm">
+        <div class="quiz-opt rounded-xl px-4 py-2.5">A. 9,6 ms</div>
+        <div class="quiz-opt rounded-xl px-4 py-2.5">B. 1,04 µs</div>
+        <div class="quiz-opt rounded-xl px-4 py-2.5">C. ≈ 104,17 µs</div>
+        <div class="quiz-opt rounded-xl px-4 py-2.5">D. 9,6 µs</div>
+      </div>
+      <div class="quiz-exp hidden mt-3 text-sm bg-blue-50 border border-blue-200 rounded-xl p-3 text-slate-700"><strong>Đáp án C.</strong> Bit time = 1/9600 s ≈ 104,17 µs. Ở 115200 baud, bit time rút xuống ≈ 8,68 µs — nhanh gấp 12 lần.</div>
+    </div>
+
+    <div class="quiz-q bg-white rounded-2xl shadow-sm border border-slate-200 p-5" data-answer="3">
+      <p class="font-bold text-slate-800">Câu 5. Khung 8N1 cần bao nhiêu bit trên dây để chở 1 byte dữ liệu?</p>
+      <div class="grid sm:grid-cols-2 gap-2 mt-3 text-sm">
+        <div class="quiz-opt rounded-xl px-4 py-2.5">A. 8</div>
+        <div class="quiz-opt rounded-xl px-4 py-2.5">B. 9</div>
+        <div class="quiz-opt rounded-xl px-4 py-2.5">C. 11</div>
+        <div class="quiz-opt rounded-xl px-4 py-2.5">D. 10</div>
+      </div>
+      <div class="quiz-exp hidden mt-3 text-sm bg-blue-50 border border-blue-200 rounded-xl p-3 text-slate-700"><strong>Đáp án D.</strong> 1 start + 8 data + 1 stop = 10 bit → hiệu suất 80%. Vì vậy 9600 baud chỉ chở tối đa 960 byte/s, không phải 1200 byte/s.</div>
+    </div>
+
+    <div class="quiz-q bg-white rounded-2xl shadow-sm border border-slate-200 p-5" data-answer="1">
+      <p class="font-bold text-slate-800">Câu 6. Baud tick generator viết đúng chuẩn sẽ tạo ra gì?</p>
+      <div class="grid sm:grid-cols-2 gap-2 mt-3 text-sm">
+        <div class="quiz-opt rounded-xl px-4 py-2.5">A. Một clock 9600 Hz mới cấp cho FSM</div>
+        <div class="quiz-opt rounded-xl px-4 py-2.5">B. Một xung enable rộng đúng 1 chu kỳ clk, lặp lại mỗi bit time</div>
+        <div class="quiz-opt rounded-xl px-4 py-2.5">C. Một tín hiệu reset định kỳ</div>
+        <div class="quiz-opt rounded-xl px-4 py-2.5">D. Một clock lấy từ bit cao nhất của counter</div>
+      </div>
+      <div class="quiz-exp hidden mt-3 text-sm bg-blue-50 border border-blue-200 rounded-xl p-3 text-slate-700"><strong>Đáp án B.</strong> Mọi flip-flop vẫn đánh nhịp bằng clock hệ thống; baud_tick chỉ vào chân enable. Tạo clock mới từ counter (A, D) sinh clock domain khó kiểm soát timing — lỗi kinh điển đã cảnh báo từ Tuần 5.</div>
+    </div>
+
+    <div class="quiz-q bg-white rounded-2xl shadow-sm border border-slate-200 p-5" data-answer="2">
+      <p class="font-bold text-slate-800">Câu 7. RX nên lấy mẫu mỗi bit dữ liệu ở vị trí nào?</p>
+      <div class="grid sm:grid-cols-2 gap-2 mt-3 text-sm">
+        <div class="quiz-opt rounded-xl px-4 py-2.5">A. Ngay tại cạnh đầu bit</div>
+        <div class="quiz-opt rounded-xl px-4 py-2.5">B. Ngay trước cạnh cuối bit</div>
+        <div class="quiz-opt rounded-xl px-4 py-2.5">C. Giữa bit</div>
+        <div class="quiz-opt rounded-xl px-4 py-2.5">D. Vị trí nào cũng như nhau</div>
+      </div>
+      <div class="quiz-exp hidden mt-3 text-sm bg-blue-50 border border-blue-200 rounded-xl p-3 text-slate-700"><strong>Đáp án C.</strong> Giữa bit là điểm xa cả hai biên chuyển mức nhất — tín hiệu ổn định và chịu được drift lớn nhất (±50% bit time). Tại biên bit, tín hiệu đang chuyển mức do propagation delay nên đọc không tin cậy.</div>
+    </div>
+
+    <div class="quiz-q bg-white rounded-2xl shadow-sm border border-slate-200 p-5" data-answer="0">
+      <p class="font-bold text-slate-800">Câu 8. Chân TX của FPGA phải nối với gì để PC nhận được dữ liệu?</p>
+      <div class="grid sm:grid-cols-2 gap-2 mt-3 text-sm">
+        <div class="quiz-opt rounded-xl px-4 py-2.5">A. Chân RX của cầu USB-UART, kèm GND chung</div>
+        <div class="quiz-opt rounded-xl px-4 py-2.5">B. Chân TX của cầu USB-UART</div>
+        <div class="quiz-opt rounded-xl px-4 py-2.5">C. Chân clock của cầu USB-UART</div>
+        <div class="quiz-opt rounded-xl px-4 py-2.5">D. Chỉ cần cắm TX, không cần GND</div>
+      </div>
+      <div class="quiz-exp hidden mt-3 text-sm bg-blue-50 border border-blue-200 rounded-xl p-3 text-slate-700"><strong>Đáp án A.</strong> TX (miệng) phải gặp RX (tai) — nối chéo. GND chung là bắt buộc: mức 1/mức 0 là khoảng điện áp, phải đo trên cùng một mốc 0 V.</div>
+    </div>
+
+    <div class="quiz-q bg-white rounded-2xl shadow-sm border border-slate-200 p-5" data-answer="2">
+      <p class="font-bold text-slate-800">Câu 9. Clock của RX chạy chậm hơn TX 6%. Điều gì xảy ra với một khung 8N1?</p>
+      <div class="grid sm:grid-cols-2 gap-2 mt-3 text-sm">
+        <div class="quiz-opt rounded-xl px-4 py-2.5">A. Chỉ start bit bị đọc sai</div>
+        <div class="quiz-opt rounded-xl px-4 py-2.5">B. Mọi bit sai lệch như nhau nên vẫn đọc đúng</div>
+        <div class="quiz-opt rounded-xl px-4 py-2.5">C. Sai số tích lũy dần theo từng bit — bit cuối (D7) dễ bị lấy mẫu nhầm nhất</div>
+        <div class="quiz-opt rounded-xl px-4 py-2.5">D. Không sao vì stop bit sẽ sửa lỗi</div>
+      </div>
+      <div class="quiz-exp hidden mt-3 text-sm bg-blue-50 border border-blue-200 rounded-xl p-3 text-slate-700"><strong>Đáp án C.</strong> RX chỉ căn mốc một lần ở cạnh start rồi "đếm chay". Lệch e% thì điểm mẫu bit k trôi (k+1,5)·e% bit time: với 6%, đến D7 trôi ≈ 51% → rơi sang bit kế. Stop bit không có khả năng "sửa" — nhiều khi còn không phát hiện được lỗi.</div>
+    </div>
+
+    <div class="quiz-q bg-white rounded-2xl shadow-sm border border-slate-200 p-5" data-answer="1">
+      <p class="font-bold text-slate-800">Câu 10. RX dùng oversampling ×16 nhằm mục đích gì?</p>
+      <div class="grid sm:grid-cols-2 gap-2 mt-3 text-sm">
+        <div class="quiz-opt rounded-xl px-4 py-2.5">A. Tăng baud rate lên 16 lần</div>
+        <div class="quiz-opt rounded-xl px-4 py-2.5">B. Căn chính xác điểm giữa bit và lọc gai nhiễu ngắn trên đường dây</div>
+        <div class="quiz-opt rounded-xl px-4 py-2.5">C. Nhận 16 byte cùng lúc</div>
+        <div class="quiz-opt rounded-xl px-4 py-2.5">D. Giảm điện năng tiêu thụ</div>
+      </div>
+      <div class="quiz-exp hidden mt-3 text-sm bg-blue-50 border border-blue-200 rounded-xl p-3 text-slate-700"><strong>Đáp án B.</strong> Lưới tick mịn gấp 16 lần baud giúp RX: (1) đo nửa bit chính xác để xác nhận start thật; (2) đặt điểm lấy mẫu sát giữa bit; (3) có thể lấy nhiều mẫu quanh giữa bit để "bỏ phiếu" chống nhiễu. Tốc độ truyền không đổi.</div>
+    </div>
+
+  </div>
+
+  <div class="mt-6 bg-white rounded-2xl shadow-sm border border-slate-200 p-5 flex flex-wrap items-center gap-4">
+    <div id="quizScore" class="font-bold text-slate-800">Đã trả lời 0/10 — đúng 0</div>
+    <div class="flex-1"></div>
+    <button id="quizReset" class="text-sm font-bold bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-xl px-4 py-2"><i class="fa-solid fa-rotate-left mr-1.5"></i>Làm lại từ đầu</button>
+  </div>
+</section>
+
+<!-- ===================== 15. HOMEWORK ===================== -->
+<section id="homework" class="py-12">
+  <div class="flex items-center gap-3 mb-6">
+    <span class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-pen-to-square"></i></span>
+    <div>
+      <p class="text-[11px] font-bold uppercase tracking-widest text-primary">Section 15</p>
+      <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900">Bài Tập Về Nhà — 3 Mức</h2>
+    </div>
+  </div>
+
+  <div class="grid lg:grid-cols-3 gap-5">
+    <div class="bg-white rounded-2xl shadow-sm border-t-4 border-accent border border-slate-200 p-5">
+      <span class="text-[11px] font-black uppercase tracking-widest text-accent">Mức 1 — Nhận biết &amp; giải thích</span>
+      <h3 class="font-bold text-slate-800 mt-2">Vẽ khung &amp; tính nhịp</h3>
+      <ul class="mt-3 text-sm text-slate-600 space-y-2">
+        <li><strong>a)</strong> Vẽ khung 8N1 cho ký tự 'V' (0x56): idle → start → D0…D7 → stop, ghi giá trị từng bit.</li>
+        <li><strong>b)</strong> Tính bit time và thời gian cả khung ở 19200 baud.</li>
+        <li><strong>c)</strong> Trả lời 3 câu, mỗi câu ≤ 3 dòng: vì sao idle = 1? vì sao phải thống nhất LSB trước? vì sao lấy mẫu giữa bit?</li>
+      </ul>
+      <div class="mt-3 text-xs text-slate-500 space-y-1">
+        <p><strong>Nộp:</strong> 1 trang giấy/ảnh chụp.</p>
+        <p><strong>Gợi ý:</strong> nhập 0x56 vào demo để tự kiểm tra thứ tự bit.</p>
+        <p><strong>Đánh giá:</strong> đúng thứ tự LSB trước; số liệu đúng (52,08 µs; 520,8 µs); lập luận nêu được "cạnh xuống làm mốc".</p>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-sm border-t-4 border-secondary border border-slate-200 p-5">
+      <span class="text-[11px] font-black uppercase tracking-widest text-secondary">Mức 2 — Thiết kế &amp; mô hình hóa</span>
+      <h3 class="font-bold text-slate-800 mt-2">Block diagram + bảng trạng thái</h3>
+      <ul class="mt-3 text-sm text-slate-600 space-y-2">
+        <li><strong>a)</strong> Vẽ block diagram uart_tx với 4 khối con (baud tick, FSM, shift register, bit counter) và các mũi tên tín hiệu giữa chúng.</li>
+        <li><strong>b)</strong> Lập bảng chuyển trạng thái: trạng thái hiện tại / điều kiện / trạng thái kế / mức tx.</li>
+        <li><strong>c)</strong> Tính DIV cho hai cấu hình: 50 MHz–115200 và 27 MHz–9600; nêu sai số phần trăm và kết luận có dùng được không.</li>
+      </ul>
+      <div class="mt-3 text-xs text-slate-500 space-y-1">
+        <p><strong>Nộp:</strong> sơ đồ + 2 bảng (ảnh hoặc PDF).</p>
+        <p><strong>Gợi ý:</strong> DIV = round(f_clk / baud); sai số = |f_clk/DIV − baud| / baud.</p>
+        <p><strong>Đánh giá:</strong> đủ 4 khối; bảng đủ 4 trạng thái; DIV = 434 và 2813 (≈ 0,006% và 0,018% — đều an toàn).</p>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-sm border-t-4 border-primary border border-slate-200 p-5">
+      <span class="text-[11px] font-black uppercase tracking-widest text-primary">Mức 3 — RTL &amp; mini-project</span>
+      <h3 class="font-bold text-slate-800 mt-2">uart_tx chạy thật</h3>
+      <ul class="mt-3 text-sm text-slate-600 space-y-2">
+        <li><strong>a)</strong> Gõ lại uart_tx (không copy-paste!), viết testbench gửi 0x41 và 0x4B; dùng đếm chu kỳ kiểm tra start bit dài đúng DIV chu kỳ.</li>
+        <li><strong>b)</strong> Mô phỏng, chụp waveform, chú thích tay: start, D0…D7, stop.</li>
+        <li><strong>c)</strong> Nạp lên board: bấm nút gửi 'A'; sau đó nâng cấp thành mini-project gửi "25 C\n" mỗi giây (nhiệt độ giả lập bằng switch).</li>
+      </ul>
+      <div class="mt-3 text-xs text-slate-500 space-y-1">
+        <p><strong>Nộp:</strong> code + waveform + ảnh/video terminal.</p>
+        <p><strong>Gợi ý:</strong> sai baud là nghi phạm số 1 khi terminal ra ký tự rác; thử 0x55 để soi nhịp trên oscilloscope nếu có.</p>
+        <p><strong>Đánh giá:</strong> waveform đúng LSB trước; terminal hiện đúng; giải thích được từng khối khi vấn đáp.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 16. RUBRIC ===================== -->
+<section id="rubric" class="py-12">
+  <div class="flex items-center gap-3 mb-6">
+    <span class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-table-list"></i></span>
+    <div>
+      <p class="text-[11px] font-bold uppercase tracking-widest text-primary">Section 16</p>
+      <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900">Rubric Tự Đánh Giá</h2>
+    </div>
+  </div>
+
+  <div class="overflow-x-auto bg-white rounded-2xl shadow-sm border border-slate-200">
+    <table class="w-full text-[13px] min-w-[760px]">
+      <thead>
+        <tr class="bg-slate-800 text-white text-left">
+          <th class="px-3 py-3 font-semibold w-44">Tiêu chí</th>
+          <th class="px-3 py-3 font-semibold">Chưa đạt</th>
+          <th class="px-3 py-3 font-semibold">Đạt cơ bản</th>
+          <th class="px-3 py-3 font-semibold">Khá</th>
+          <th class="px-3 py-3 font-semibold">Tốt</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100 text-slate-600">
+        <tr>
+          <td class="px-3 py-3 font-bold text-slate-800">Hiểu khung UART</td>
+          <td class="px-3 py-3">Không vẽ được khung 8N1</td>
+          <td class="px-3 py-3">Vẽ đúng start/data/stop nhưng còn lẫn thứ tự bit</td>
+          <td class="px-3 py-3">Vẽ đúng hoàn toàn, LSB trước, idle mức 1</td>
+          <td class="px-3 py-3">Giải thích được <em>vì sao</em> mỗi thành phần tồn tại (cạnh xuống, mốc thời gian, trả về idle)</td>
+        </tr>
+        <tr>
+          <td class="px-3 py-3 font-bold text-slate-800">Baud &amp; bit time</td>
+          <td class="px-3 py-3">Nhầm baud với "byte/giây"</td>
+          <td class="px-3 py-3">Tính được bit time từ baud</td>
+          <td class="px-3 py-3">Tính DIV, sai số, throughput thực (80%)</td>
+          <td class="px-3 py-3">Phân tích được drift tích lũy và ngưỡng sai số ~2%</td>
+        </tr>
+        <tr>
+          <td class="px-3 py-3 font-bold text-slate-800">Mô hình hóa FSM + datapath</td>
+          <td class="px-3 py-3">Không tách được khối</td>
+          <td class="px-3 py-3">Nêu được 4 trạng thái</td>
+          <td class="px-3 py-3">Bảng chuyển trạng thái đầy đủ điều kiện tick/bit_cnt</td>
+          <td class="px-3 py-3">Tự đề xuất mở rộng (parity, 2 stop bit) trên cùng khung FSM</td>
+        </tr>
+        <tr>
+          <td class="px-3 py-3 font-bold text-slate-800">Viết RTL đúng chuẩn</td>
+          <td class="px-3 py-3">Chia clock làm baud; latch do thiếu default</td>
+          <td class="px-3 py-3">Code chạy nhưng cấu trúc lộn xộn</td>
+          <td class="px-3 py-3">FSM 3 khối, enable tick, LSB trước, có tx_busy</td>
+          <td class="px-3 py-3">Parameter hóa clock/baud, giải thích được phần cứng sinh ra</td>
+        </tr>
+        <tr>
+          <td class="px-3 py-3 font-bold text-slate-800">Mô phỏng &amp; waveform</td>
+          <td class="px-3 py-3">Chưa chạy mô phỏng</td>
+          <td class="px-3 py-3">Chạy testbench có sẵn, nhìn tổng thể</td>
+          <td class="px-3 py-3">Tự đo độ dài bit bằng số chu kỳ, chỉ ra từng bit</td>
+          <td class="px-3 py-3">Chủ động tạo case lỗi (busy đè, byte liên tiếp) và phân tích</td>
+        </tr>
+        <tr>
+          <td class="px-3 py-3 font-bold text-slate-800">Triển khai &amp; debug board</td>
+          <td class="px-3 py-3">Chưa lên board</td>
+          <td class="px-3 py-3">Gửi được 1 ký tự cố định</td>
+          <td class="px-3 py-3">Gửi chuỗi định kỳ, đúng terminal 9600-8N1</td>
+          <td class="px-3 py-3">Tự debug lỗi thực (rác ký tự → nghi baud/LSB/dây) có phương pháp</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+<!-- ===================== 17. MENTOR NOTES ===================== -->
+<section id="mentor-notes" class="py-12">
+  <div class="flex items-center gap-3 mb-6">
+    <span class="w-10 h-10 rounded-xl bg-dark text-amber-400 flex items-center justify-center"><i class="fa-solid fa-chalkboard-user"></i></span>
+    <div>
+      <p class="text-[11px] font-bold uppercase tracking-widest text-slate-500">Section 17</p>
+      <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900">Mentor Notes — Ghi Chú Cho Người Dẫn</h2>
+    </div>
+  </div>
+
+  <div class="bg-dark text-slate-200 rounded-2xl shadow-lg p-6 md:p-8 border border-slate-700">
+    <div class="grid md:grid-cols-2 gap-6">
+      <div>
+        <h3 class="font-bold text-amber-400 mb-2"><i class="fa-solid fa-star mr-2"></i>Nhấn mạnh gì</h3>
+        <ul class="space-y-2 text-sm">
+          <li>• 3 keyword của tuần: <strong class="text-white">Communication — TX/RX — Serial data</strong>. Thông điệp lõi: <em>logic xử lý dữ liệu, UART gửi dữ liệu</em>; hệ thống thật cần cả hai.</li>
+          <li>• UART là bài "lắp ráp" đẹp nhất khóa: FSM (T6) + shift register (T5) + enable tick (T10). Hãy chỉ tận tay từng viên gạch cũ trong code mới.</li>
+          <li>• Khung 8N1 phải thuộc như bảng cửu chương: idle 1 → start 0 → LSB trước → stop 1.</li>
+        </ul>
+        <h3 class="font-bold text-amber-400 mt-5 mb-2"><i class="fa-solid fa-person-falling-burst mr-2"></i>Sinh viên hay vấp ở đâu</h3>
+        <ul class="space-y-2 text-sm">
+          <li>• Tưởng "UART là con chip" — sửa bằng câu hỏi: "vậy uart_tx bạn vừa viết là gì?"</li>
+          <li>• Viết đúng hết nhưng gửi MSB trước — cho debug bằng byte 0x4B trên demo.</li>
+          <li>• Lấy hex 0x41 viết ra giấy rồi đọc từ trái sang phải khi điền khung — nhắc: <em>trái là bit 7, trên dây thì bit 0 đi đầu</em>.</li>
+          <li>• Nghĩ baud lệch nhỏ thì "chỉ sai chút" — chạy panel drift 6% cho cả lớp xem 0x41 biến thành 0xC1.</li>
+        </ul>
+      </div>
+      <div>
+        <h3 class="font-bold text-amber-400 mb-2"><i class="fa-solid fa-microphone-lines mr-2"></i>Câu hỏi vấn đáp nên dùng</h3>
+        <div class="space-y-3 text-sm">
+          <div class="bg-white/5 border border-white/10 rounded-xl p-3">
+            <p class="font-semibold text-white">"Vì sao idle phải là mức 1 chứ không phải mức 0?"</p>
+            <p class="text-slate-400 mt-1">Kỳ vọng: để start bit (0) tạo cạnh xuống rõ ràng làm mốc thời gian; đồng thời dây đứt/chập đất (đọc 0 kéo dài) bị phát hiện là bất thường (break) thay vì im lặng giả vờ bình thường.</p>
+          </div>
+          <div class="bg-white/5 border border-white/10 rounded-xl p-3">
+            <p class="font-semibold text-white">"baud_tick khác gì một clock mới?"</p>
+            <p class="text-slate-400 mt-1">Kỳ vọng: baud_tick là dây dữ liệu vào chân enable, mọi FF vẫn nhảy theo posedge clk duy nhất; còn clock mới tạo thêm clock domain, timing tool khó phân tích, dễ skew — bị cấm ở mức nhập môn.</p>
+          </div>
+          <div class="bg-white/5 border border-white/10 rounded-xl p-3">
+            <p class="font-semibold text-white">"RX làm sao biết lúc nào lấy mẫu, khi không có dây clock?"</p>
+            <p class="text-slate-400 mt-1">Kỳ vọng: bắt cạnh xuống start → đợi nửa bit kiểm tra start thật → sau đó mỗi bit time lấy mẫu giữa bit; nhờ thống nhất baud trước nên "đếm chay" vẫn trúng.</p>
+          </div>
+        </div>
+        <h3 class="font-bold text-amber-400 mt-5 mb-2"><i class="fa-solid fa-arrow-right-to-bracket mr-2"></i>Nối sang Tuần 12</h3>
+        <p class="text-sm text-slate-300">Giao mỗi bạn mang một "chiến lợi phẩm" đến buổi tổng kết: ảnh terminal, waveform, hoặc frame card. Tuần 12 không học bài mới — là showcase, tự đánh giá skill tree và chọn project Phase 2 (nhiều đề xuất dùng lại chính uart_tx này).</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 18. KEY VOCABULARY ===================== -->
+<section id="vocabulary" class="py-12">
+  <div class="flex items-center gap-3 mb-6">
+    <span class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-book"></i></span>
+    <div>
+      <p class="text-[11px] font-bold uppercase tracking-widest text-primary">Section 18</p>
+      <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900">Key Vocabulary — Từ Vựng Chuyên Ngành</h2>
+    </div>
+  </div>
+
+  <div class="overflow-x-auto bg-white rounded-2xl shadow-sm border border-slate-200">
+    <table class="w-full text-[13px] min-w-[820px]">
+      <thead>
+        <tr class="bg-slate-800 text-white text-left">
+          <th class="px-3 py-3 font-semibold">English term</th>
+          <th class="px-3 py-3 font-semibold">Nghĩa tiếng Việt</th>
+          <th class="px-3 py-3 font-semibold">Giải thích kỹ thuật</th>
+          <th class="px-3 py-3 font-semibold">Câu ví dụ</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100 text-slate-600">
+        <tr><td class="px-3 py-2.5 font-bold text-primary">UART</td><td class="px-3 py-2.5">Bộ thu phát nối tiếp bất đồng bộ</td><td class="px-3 py-2.5">Giao thức + khối chức năng truyền từng byte qua 2 dây TX/RX, không dây clock, hai bên hẹn trước baud.</td><td class="px-3 py-2.5 italic">"The FPGA sends debug data to the PC over UART."</td></tr>
+        <tr><td class="px-3 py-2.5 font-bold text-primary">TX / RX</td><td class="px-3 py-2.5">Chân truyền / chân nhận</td><td class="px-3 py-2.5">TX phát bit ra; RX thu bit vào. Luôn nối chéo TX↔RX và chung GND.</td><td class="px-3 py-2.5 italic">"Connect the board's TX pin to the adapter's RX pin."</td></tr>
+        <tr><td class="px-3 py-2.5 font-bold text-primary">Serial data</td><td class="px-3 py-2.5">Dữ liệu nối tiếp</td><td class="px-3 py-2.5">Các bit đi lần lượt trên một đường dây, đổi số dây lấy thời gian.</td><td class="px-3 py-2.5 italic">"Serial data needs only one wire per direction."</td></tr>
+        <tr><td class="px-3 py-2.5 font-bold text-primary">Baud rate</td><td class="px-3 py-2.5">Tốc độ truyền</td><td class="px-3 py-2.5">Số symbol/giây; với UART cơ bản = số bit/giây. Bit time = 1/baud.</td><td class="px-3 py-2.5 italic">"Both sides must agree on a 9600 baud rate."</td></tr>
+        <tr><td class="px-3 py-2.5 font-bold text-primary">Start bit</td><td class="px-3 py-2.5">Bit bắt đầu</td><td class="px-3 py-2.5">Mức 0 trong 1 bit time; cạnh xuống của nó là mốc thời gian cho cả khung.</td><td class="px-3 py-2.5 italic">"The falling edge of the start bit wakes up the receiver."</td></tr>
+        <tr><td class="px-3 py-2.5 font-bold text-primary">Stop bit</td><td class="px-3 py-2.5">Bit kết thúc</td><td class="px-3 py-2.5">Mức 1 trong ≥ 1 bit time; trả đường dây về idle, tạo khoảng nghỉ tối thiểu giữa hai khung.</td><td class="px-3 py-2.5 italic">"A missing stop bit causes a framing error."</td></tr>
+        <tr><td class="px-3 py-2.5 font-bold text-primary">Frame</td><td class="px-3 py-2.5">Khung truyền</td><td class="px-3 py-2.5">Một gói start + data + stop; 8N1 = 8 data, no parity, 1 stop → 10 bit/byte.</td><td class="px-3 py-2.5 italic">"Each UART frame carries exactly one byte in 8N1 mode."</td></tr>
+        <tr><td class="px-3 py-2.5 font-bold text-primary">LSB first</td><td class="px-3 py-2.5">Bit thấp nhất đi trước</td><td class="px-3 py-2.5">Quy ước thứ tự bit của UART: D0 phát trước, D7 phát cuối.</td><td class="px-3 py-2.5 italic">"UART shifts data out LSB first."</td></tr>
+        <tr><td class="px-3 py-2.5 font-bold text-primary">Shift register</td><td class="px-3 py-2.5">Thanh ghi dịch</td><td class="px-3 py-2.5">Chuỗi flip-flop nạp song song rồi dịch từng bit ra (TX) hoặc dồn từng bit vào (RX).</td><td class="px-3 py-2.5 italic">"The transmitter loads the byte into a shift register."</td></tr>
+        <tr><td class="px-3 py-2.5 font-bold text-primary">Oversampling</td><td class="px-3 py-2.5">Lấy mẫu vượt tốc</td><td class="px-3 py-2.5">RX tick nhanh ×16 baud để căn giữa bit chính xác và lọc gai nhiễu.</td><td class="px-3 py-2.5 italic">"Most UART receivers use 16x oversampling."</td></tr>
+        <tr><td class="px-3 py-2.5 font-bold text-primary">Framing error</td><td class="px-3 py-2.5">Lỗi khung</td><td class="px-3 py-2.5">Stop bit đọc ra 0 thay vì 1 — dấu hiệu lệch baud, nhiễu, hoặc khung sai.</td><td class="px-3 py-2.5 italic">"Garbage characters usually come with framing errors."</td></tr>
+        <tr><td class="px-3 py-2.5 font-bold text-primary">Serial terminal</td><td class="px-3 py-2.5">Trình đầu cuối nối tiếp</td><td class="px-3 py-2.5">Phần mềm PC (PuTTY, Tera Term) mở cổng COM, hiển thị byte nhận được dưới dạng ký tự.</td><td class="px-3 py-2.5 italic">"Open the serial terminal at 9600-8N1 to see the data."</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ===================== 19. FINAL SUMMARY ===================== -->
+<section id="summary" class="py-12">
+  <div class="flex items-center gap-3 mb-6">
+    <span class="w-10 h-10 rounded-xl bg-accent/10 text-accent flex items-center justify-center"><i class="fa-solid fa-flag-checkered"></i></span>
+    <div>
+      <p class="text-[11px] font-bold uppercase tracking-widest text-accent">Section 19</p>
+      <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900">Tổng Kết Tuần 11</h2>
+    </div>
+  </div>
+
+  <div class="grid lg:grid-cols-2 gap-6">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+      <h3 class="font-bold text-slate-800 mb-3"><i class="fa-solid fa-list-ol text-primary mr-2"></i>5 ý chính cần nhớ</h3>
+      <ol class="space-y-2.5 text-sm text-slate-700 list-decimal list-inside">
+        <li>Hệ thống số cần cả <strong>xử lý</strong> (logic) lẫn <strong>giao tiếp</strong> (UART): dữ liệu tính xong phải đến được nơi cần nó.</li>
+        <li>Khung 8N1: <strong>idle mức 1 → start bit 0 → 8 bit dữ liệu LSB trước → stop bit 1</strong> — 10 bit trên dây cho mỗi byte.</li>
+        <li><strong>Baud rate là hợp đồng</strong>: bit time = 1/baud; hai bên tự chạy clock riêng nên sai số tích lũy — giữ tổng lệch ≤ ~2%.</li>
+        <li>uart_tx = FSM 3 khối + <strong>baud tick là enable pulse</strong> (không phải clock mới) + shift register + bit counter — toàn viên gạch cũ.</li>
+        <li>RX bắt <strong>cạnh xuống start</strong>, đợi nửa bit, rồi lấy mẫu <strong>giữa mỗi bit</strong> (oversampling ×16) — đó là lý do lệch baud làm hỏng dữ liệu.</li>
+      </ol>
+    </div>
+    <div class="space-y-6">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+        <h3 class="font-bold text-slate-800 mb-3"><i class="fa-solid fa-person-circle-question text-secondary mr-2"></i>3 câu tự phản tỉnh</h3>
+        <ul class="space-y-2 text-sm text-slate-700">
+          <li>1. Không nhìn tài liệu, tôi có vẽ lại được khung truyền của ký tự tên viết tắt của mình không?</li>
+          <li>2. Tôi có giải thích được cho bạn cùng nhóm vì sao baud_tick không được làm clock không?</li>
+          <li>3. Nếu terminal hiện ký tự rác, tôi sẽ kiểm tra thứ gì đầu tiên — và thứ hai, thứ ba?</li>
+        </ul>
+      </div>
+      <div class="bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 text-white rounded-2xl p-6">
+        <i class="fa-solid fa-quote-left text-blue-300 text-xl"></i>
+        <p class="mt-2 text-sm leading-relaxed">Một con chip câm lặng là một con chip không ai debug nổi. Ngày bạn làm FPGA "nói" được câu đầu tiên qua UART, bạn có trong tay công cụ debug mạnh nhất của người kỹ sư số — và từ đây, mọi project đều có thể kể chuyện cho bạn nghe.</p>
+        <p class="mt-3 text-xs font-bold text-blue-300">— Mentor note, Tuần 11</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-6 bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+    <h3 class="font-bold text-slate-800 mb-3"><i class="fa-solid fa-square-check text-accent mr-2"></i>Sau buổi học, tôi có thể… <span id="sumCount" class="text-xs font-bold text-white bg-accent rounded-full px-2 py-0.5 ml-1">0/5</span></h3>
+    <div id="sumChecklist" class="grid md:grid-cols-2 gap-2.5">
+      <label class="flex items-start gap-3 bg-slate-50 border border-slate-200 rounded-xl p-3 cursor-pointer hover:border-emerald-300">
+        <input type="checkbox" class="chk mt-0.5"><span class="text-sm text-slate-700">Vẽ khung 8N1 cho một byte bất kỳ, đúng thứ tự LSB trước.</span>
+      </label>
+      <label class="flex items-start gap-3 bg-slate-50 border border-slate-200 rounded-xl p-3 cursor-pointer hover:border-emerald-300">
+        <input type="checkbox" class="chk mt-0.5"><span class="text-sm text-slate-700">Tính bit time, DIV và throughput cho một cặp clock/baud bất kỳ.</span>
+      </label>
+      <label class="flex items-start gap-3 bg-slate-50 border border-slate-200 rounded-xl p-3 cursor-pointer hover:border-emerald-300">
+        <input type="checkbox" class="chk mt-0.5"><span class="text-sm text-slate-700">Giải thích FSM 4 trạng thái của uart_tx và vai trò từng khối con.</span>
+      </label>
+      <label class="flex items-start gap-3 bg-slate-50 border border-slate-200 rounded-xl p-3 cursor-pointer hover:border-emerald-300">
+        <input type="checkbox" class="chk mt-0.5"><span class="text-sm text-slate-700">Chỉ ra 3 nguyên nhân khiến terminal hiện ký tự rác và cách loại trừ từng cái.</span>
+      </label>
+      <label class="flex items-start gap-3 bg-slate-50 border border-slate-200 rounded-xl p-3 cursor-pointer hover:border-emerald-300">
+        <input type="checkbox" class="chk mt-0.5"><span class="text-sm text-slate-700">Mô tả cách RX tìm điểm giữa bit chỉ bằng cạnh xuống start + đếm thời gian.</span>
+      </label>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ===================== FOOTER ===================== -->
+<footer class="mt-8 bg-dark text-slate-300">
+  <div class="max-w-6xl mx-auto px-4 py-10">
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+      <a href="Week10.html" class="group flex items-center gap-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl px-4 py-3">
+        <i class="fa-solid fa-arrow-left text-blue-300 group-hover:-translate-x-0.5 transition"></i>
+        <span class="text-sm"><span class="block text-[11px] uppercase tracking-wider text-slate-500">Tuần trước</span><strong class="text-white">Tuần 10 — Counter &amp; 7-Segment</strong></span>
+      </a>
+      <div class="text-center">
+        <p class="text-xs text-slate-500">Chương trình Mentoring Thiết kế Vi mạch số — 12 tuần</p>
+        <p class="text-[11px] text-slate-600 mt-1">Tuần 11: UART Communication Basics</p>
+        <p class="text-[11px] text-slate-600 mt-1">Bản quyền © Khoa Điện - Điện tử, Trường Kỹ thuật Phenikaa, Đại học Phenikaa · Giảng viên: ThS. Đinh Văn Nam</p>
+      </div>
+      <a href="Week12.html" class="group flex items-center gap-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl px-4 py-3">
+        <span class="text-sm text-right"><span class="block text-[11px] uppercase tracking-wider text-slate-500">Tuần sau</span><strong class="text-white">Tuần 12 — Wrap-up &amp; Next Steps</strong></span>
+        <i class="fa-solid fa-arrow-right text-emerald-300 group-hover:translate-x-0.5 transition"></i>
+      </a>
+    </div>
+  </div>
+</footer>
+<script>
+// ============================================================
+// Tuần 11 — UART Communication Basics — JS (vanilla, in-memory)
+// ============================================================
+function $id(x){ return document.getElementById(x); }
+
+// ---------- Checklist counters ----------
+function bindChecklist(listId, countId){
+  var boxes = document.querySelectorAll('#' + listId + ' input.chk');
+  var out = $id(countId);
+  function upd(){
+    var n = 0;
+    boxes.forEach(function(b){ if (b.checked) n++; });
+    out.textContent = n + '/' + boxes.length;
+  }
+  boxes.forEach(function(b){ b.addEventListener('change', upd); });
+  upd();
+}
+bindChecklist('prepChecklist', 'prepCount');
+bindChecklist('sumChecklist', 'sumCount');
+
+// ---------- Copy buttons ----------
+document.querySelectorAll('.copy-btn').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    var src = $id(btn.dataset.target);
+    var text = src ? src.innerText : '';
+    function done(){
+      var old = btn.innerHTML;
+      btn.innerHTML = '<i class="fa-solid fa-check mr-1"></i>Đã copy!';
+      setTimeout(function(){ btn.innerHTML = old; }, 1600);
+    }
+    function fallback(){
+      var ta = document.createElement('textarea');
+      ta.value = text; document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); } catch(e) {}
+      document.body.removeChild(ta); done();
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(done).catch(fallback);
+    } else { fallback(); }
+  });
+});
+
+// ============================================================
+// DEMO: UART frame transmitter
+// ============================================================
+var SLOT_W = 60, X0 = 40, Y_HI = 78, Y_LO = 150;
+var N_SLOT = 12;                 // 1 idle + 10 bit khung + 1 idle
+var ANIM_MS = 8000;
+var animRAF = null, animT0 = 0, meta = null;
+
+function getBaud(){
+  var r = document.querySelector('input[name="baud"]:checked');
+  return (r && r.value === '115200') ? 115200 : 9600;
+}
+function getByte(){
+  var sel = $id('hexSelect');
+  if (sel.value !== '') return { val: parseInt(sel.value, 16), warn: '' };
+  var s = $id('charInput').value;
+  if (!s) return { val: 0x41, warn: 'ô ký tự trống → dùng mặc định 0x41' };
+  var code = s.charCodeAt(0);
+  if (code > 255) return { val: code & 0xFF, warn: 'ký tự ngoài ASCII — chỉ lấy 8 bit thấp' };
+  return { val: code, warn: '' };
+}
+function buildBits(v){
+  var bits = [ { n: 'IDLE', v: 1, t: 'idle' }, { n: 'START', v: 0, t: 'start' } ];
+  for (var i = 0; i < 8; i++) bits.push({ n: 'D' + i, v: (v >> i) & 1, t: 'data' });
+  bits.push({ n: 'STOP', v: 1, t: 'stop' });
+  bits.push({ n: 'IDLE', v: 1, t: 'idle' });
+  return bits;
+}
+function viNum(x, dec){
+  return x.toFixed(dec).replace('.', ',');
+}
+
+function updateInfo(){
+  var baud = getBaud(), b = getByte(), bt = 1e6 / baud;
+  $id('byteHex').textContent = '0x' + b.val.toString(16).toUpperCase().padStart(2, '0');
+  var bin = b.val.toString(2).padStart(8, '0');
+  $id('byteBin').textContent = bin.slice(0, 4) + ' ' + bin.slice(4);
+  var order = [];
+  for (var i = 0; i < 8; i++) order.push((b.val >> i) & 1);
+  $id('byteOrder').textContent = order.join(',');
+  $id('bitTimeLbl').textContent = viNum(bt, 2) + ' µs';
+  $id('frameTimeLbl').textContent = viNum(10 * bt, 1) + ' µs' + (baud === 9600 ? ' (≈ 1,04 ms)' : '');
+  var realMs = N_SLOT * bt / 1000;
+  var slow = Math.round(ANIM_MS / realMs);
+  $id('realTimeNote').textContent = 'Hoạt ảnh chậm hơn thời gian thực ≈ ' + slow.toLocaleString('vi-VN') + ' lần.' + (b.warn ? ' Lưu ý: ' + b.warn + '.' : '');
+}
+
+function drawFrame(){
+  var baud = getBaud(), b = getByte(), bt = 1e6 / baud;
+  var bits = buildBits(b.val);
+  var fills = { idle: '#f1f5f9', start: '#fef3c7', data: '#dbeafe', stop: '#d1fae5' };
+  var W = X0 + N_SLOT * SLOT_W + 30;
+  var s = '<svg viewBox="0 0 ' + W + ' 235" class="w-full min-w-[640px]" xmlns="http://www.w3.org/2000/svg">';
+  var i, x;
+  // nền từng slot
+  for (i = 0; i < N_SLOT; i++){
+    x = X0 + i * SLOT_W;
+    s += '<rect id="cell' + i + '" x="' + x + '" y="64" width="' + SLOT_W + '" height="100" fill="' + fills[bits[i].t] + '" opacity="0.85"/>';
+  }
+  // biên bit + nhãn thời gian (t=0 tại cạnh xuống start)
+  for (i = 1; i <= 11; i++){
+    x = X0 + i * SLOT_W;
+    s += '<line x1="' + x + '" y1="58" x2="' + x + '" y2="188" stroke="#cbd5e1" stroke-dasharray="3 3"/>';
+    var t = (i - 1) * bt;
+    var lbl = (baud === 9600) ? Math.round(t) : viNum(t, 1);
+    s += '<text x="' + x + '" y="202" text-anchor="middle" font-size="8.5" fill="#64748b" font-family="monospace">' + lbl + '</text>';
+  }
+  s += '<text x="' + (W - 4) + '" y="202" text-anchor="end" font-size="8.5" fill="#94a3b8">µs</text>';
+  s += '<line x1="' + X0 + '" y1="188" x2="' + (X0 + N_SLOT * SLOT_W) + '" y2="188" stroke="#94a3b8"/>';
+  // mức logic
+  s += '<text x="' + (X0 - 8) + '" y="' + (Y_HI + 4) + '" text-anchor="end" font-size="10" fill="#64748b" font-family="monospace">1</text>';
+  s += '<text x="' + (X0 - 8) + '" y="' + (Y_LO + 4) + '" text-anchor="end" font-size="10" fill="#64748b" font-family="monospace">0</text>';
+  // dạng sóng
+  var pts = [], prevY = null;
+  for (i = 0; i < N_SLOT; i++){
+    x = X0 + i * SLOT_W;
+    var y = bits[i].v ? Y_HI : Y_LO;
+    if (prevY === null){ pts.push(x + ',' + y); }
+    else if (prevY !== y){ pts.push(x + ',' + prevY); pts.push(x + ',' + y); }
+    prevY = y;
+  }
+  pts.push((X0 + N_SLOT * SLOT_W) + ',' + prevY);
+  s += '<polyline points="' + pts.join(' ') + '" fill="none" stroke="#1d4ed8" stroke-width="3" stroke-linejoin="round"/>';
+  // giá trị + tên bit
+  for (i = 0; i < N_SLOT; i++){
+    var cx = X0 + (i + 0.5) * SLOT_W;
+    s += '<text x="' + cx + '" y="126" text-anchor="middle" font-size="13" font-weight="700" fill="#0f172a" font-family="monospace" class="bit-val">' + bits[i].v + '</text>';
+    s += '<text x="' + cx + '" y="180" text-anchor="middle" font-size="9" font-weight="600" fill="#64748b">' + bits[i].n + '</text>';
+  }
+  // điểm lấy mẫu giữa bit (slot 1..10)
+  var sampleXs = [], sampleVals = [];
+  for (i = 1; i <= 10; i++){
+    var sx = X0 + (i + 0.5) * SLOT_W;
+    var sy = bits[i].v ? Y_HI : Y_LO;
+    sampleXs.push(sx); sampleVals.push(bits[i].v);
+    s += '<line x1="' + sx + '" y1="' + sy + '" x2="' + sx + '" y2="164" stroke="#10b981" stroke-dasharray="2 3" opacity="0.7"/>';
+    s += '<circle id="smp' + (i - 1) + '" class="smpl" cx="' + sx + '" cy="' + sy + '" r="6" fill="#ffffff" stroke="#10b981" stroke-width="2.5"/>';
+  }
+  // con trỏ quét
+  s += '<line id="sweepLine" x1="' + X0 + '" y1="56" x2="' + X0 + '" y2="192" stroke="#ef4444" stroke-width="2.5" opacity="0"/>';
+  s += '</svg>';
+  $id('uartSvgWrap').innerHTML = s;
+  meta = { bits: bits, sampleXs: sampleXs, sampleVals: sampleVals, byte: b.val, baud: baud, bt: bt };
+}
+
+function resetDemoView(){
+  if (animRAF){ cancelAnimationFrame(animRAF); animRAF = null; }
+  drawFrame();
+  $id('txStatus').innerHTML = 'Bấm <strong>Send</strong> để phát một khung.';
+  $id('rxRead').classList.add('hidden');
+}
+
+function startAnim(){
+  if (animRAF){ cancelAnimationFrame(animRAF); animRAF = null; }
+  drawFrame(); // vẽ lại sạch theo lựa chọn hiện tại
+  var sampled = new Array(10).fill(false);
+  var rxParts = [], dataBits = [];
+  var sweep = $id('sweepLine');
+  sweep.setAttribute('opacity', '1');
+  var rxEl = $id('rxRead');
+  rxEl.classList.remove('hidden');
+  rxEl.textContent = 'RX lấy mẫu giữa bit: ';
+  animT0 = performance.now();
+
+  function step(now){
+    var p = (now - animT0) / ANIM_MS;
+    if (p > 1) p = 1;
+    var x = X0 + p * (N_SLOT * SLOT_W);
+    sweep.setAttribute('x1', x); sweep.setAttribute('x2', x);
+    var slot = Math.min(N_SLOT - 1, Math.floor((x - X0) / SLOT_W));
+    var tUs = ((x - X0) / SLOT_W - 1) * meta.bt;
+    var st;
+    if (slot === 0){
+      st = 'Đường TX đang <strong>idle (mức 1)</strong> — FSM ở IDLE, chờ tx_start…';
+    } else if (slot <= 10){
+      var bnames = { START: 'trạng thái START', STOP: 'trạng thái STOP' };
+      var bn = meta.bits[slot].n;
+      var role = (bn === 'START') ? 'start bit (cạnh xuống đánh thức RX)' : (bn === 'STOP') ? 'stop bit (trả dây về idle)' : bn + ' — shift_reg[0] đang trỏ vào bit này';
+      st = 'Đang truyền <strong>' + bn + ' = ' + meta.bits[slot].v + '</strong> · bit ' + slot + '/10 · t ≈ ' + viNum(Math.max(0, tUs), 1) + ' µs · ' + role;
+    } else {
+      st = 'Khung hoàn tất — TX trở về <strong>idle (mức 1)</strong>, tx_busy hạ xuống 0, sẵn sàng byte kế tiếp.';
+    }
+    $id('txStatus').innerHTML = st;
+
+    for (var k = 0; k < 10; k++){
+      if (!sampled[k] && x >= meta.sampleXs[k]){
+        sampled[k] = true;
+        var c = $id('smp' + k);
+        if (c){ c.setAttribute('fill', '#10b981'); }
+        var v = meta.sampleVals[k];
+        if (k === 0) rxParts.push('S=0✓');
+        else if (k === 9) rxParts.push('P=1✓');
+        else { rxParts.push('D' + (k - 1) + '=' + v); dataBits.push(v); }
+        rxEl.textContent = 'RX lấy mẫu giữa bit: ' + rxParts.join(' · ');
+      }
+    }
+
+    if (p < 1){ animRAF = requestAnimationFrame(step); }
+    else {
+      animRAF = null;
+      var byteVal = 0;
+      for (var i = 0; i < 8; i++) byteVal |= (dataBits[i] || 0) << i;
+      var hex = '0x' + byteVal.toString(16).toUpperCase().padStart(2, '0');
+      var ch = (byteVal >= 32 && byteVal < 127) ? " = '" + String.fromCharCode(byteVal) + "'" : '';
+      rxEl.textContent = 'RX lấy mẫu giữa bit: ' + rxParts.join(' · ') + '  →  ghép LSB-first: 0b' + byteVal.toString(2).padStart(8, '0') + ' = ' + hex + ch + ' ✔ (P = stop bit)';
+    }
+  }
+  animRAF = requestAnimationFrame(step);
+}
+
+$id('btnSend').addEventListener('click', function(){ updateInfo(); startAnim(); });
+$id('charInput').addEventListener('input', function(){
+  if (this.value.length > 1) this.value = this.value.slice(-1);
+  if (this.value !== '') $id('hexSelect').value = '';
+  updateInfo(); resetDemoView();
+});
+$id('hexSelect').addEventListener('change', function(){
+  if (this.value !== ''){
+    var v = parseInt(this.value, 16);
+    $id('charInput').value = (v >= 32 && v < 127) ? String.fromCharCode(v) : '';
+  }
+  updateInfo(); resetDemoView();
+});
+document.querySelectorAll('input[name="baud"]').forEach(function(r){
+  r.addEventListener('change', function(){ updateInfo(); resetDemoView(); updateErr(); });
+});
+
+// ---------- Panel baud mismatch ----------
+function updateErr(){
+  var e = parseFloat($id('errSelect').value); // %
+  var baud = getBaud(), T = 1e6 / baud, half = T / 2;
+  var offD7 = 8.5 * e / 100 * T;
+  var offStop = 9.5 * e / 100 * T;
+  var pctD7 = offD7 / T * 100;
+  var verdict, cls;
+  if (offD7 > half){
+    verdict = '<strong class="text-danger"><i class="fa-solid fa-circle-xmark mr-1"></i>HỎNG DỮ LIỆU:</strong> mẫu D7 trôi quá nửa bit — RX đọc nhầm sang bit bên cạnh. Có thể hỏng "trong im lặng" nếu mẫu stop vẫn vớ được mức 1.';
+  } else if (pctD7 > 35){
+    verdict = '<strong class="text-secondary"><i class="fa-solid fa-triangle-exclamation mr-1"></i>CHẬP CHỜN:</strong> chưa vượt nửa bit nhưng đã ăn gần hết dự trữ — thêm nhiễu hoặc méo cạnh là hỏng.';
+  } else {
+    verdict = '<strong class="text-accent"><i class="fa-solid fa-circle-check mr-1"></i>AN TOÀN:</strong> điểm mẫu vẫn nằm sâu trong bit đúng. (Khuyến nghị thực tế: tổng sai số hai bên ≤ 2%.)';
+  }
+  $id('errOut').innerHTML =
+    'Mỗi bit trôi thêm: <strong>' + viNum(e / 100 * T, 2) + ' µs</strong> (' + viNum(e, 1) + '% bit time)<br>' +
+    'Tại mẫu D7 (sau 8,5 bit): trôi <strong>' + viNum(offD7, 1) + ' µs = ' + viNum(pctD7, 0) + '% bit time</strong> (ngưỡng hỏng: 50% = ' + viNum(half, 1) + ' µs)<br>' +
+    'Tại mẫu stop (sau 9,5 bit): trôi <strong>' + viNum(offStop, 1) + ' µs</strong><br>' + verdict;
+}
+$id('errSelect').addEventListener('change', updateErr);
+
+// ---------- Quiz ----------
+var quizTotal = document.querySelectorAll('#quizWrap .quiz-q').length;
+var quizAnswered = 0, quizCorrect = 0;
+function updQuizScore(){
+  $id('quizScore').textContent = 'Đã trả lời ' + quizAnswered + '/' + quizTotal + ' — đúng ' + quizCorrect +
+    (quizAnswered === quizTotal ? ' → ' + quizCorrect + '/' + quizTotal + ' điểm' + (quizCorrect >= 8 ? ' — xuất sắc!' : quizCorrect >= 5 ? ' — khá, xem lại phần giải thích các câu sai.' : ' — nên đọc lại Section 4 và 9 rồi làm lại.') : '');
+}
+document.querySelectorAll('#quizWrap .quiz-q').forEach(function(q){
+  var opts = q.querySelectorAll('.quiz-opt');
+  opts.forEach(function(o, idx){
+    o.addEventListener('click', function(){
+      if (q.dataset.done) return;
+      q.dataset.done = '1';
+      var corr = parseInt(q.dataset.answer, 10);
+      opts.forEach(function(el, i){
+        el.classList.add('locked');
+        if (i === corr) el.classList.add('correct');
+      });
+      if (idx === corr){ quizCorrect++; } else { o.classList.add('wrong'); }
+      var exp = q.querySelector('.quiz-exp');
+      if (exp) exp.classList.remove('hidden');
+      quizAnswered++;
+      updQuizScore();
+    });
+  });
+});
+$id('quizReset').addEventListener('click', function(){
+  quizAnswered = 0; quizCorrect = 0;
+  document.querySelectorAll('#quizWrap .quiz-q').forEach(function(q){
+    delete q.dataset.done;
+    q.querySelectorAll('.quiz-opt').forEach(function(el){ el.classList.remove('locked', 'correct', 'wrong'); });
+    var exp = q.querySelector('.quiz-exp');
+    if (exp) exp.classList.add('hidden');
+  });
+  updQuizScore();
+});
+
+// ---------- Khởi tạo ----------
+updateInfo();
+resetDemoView();
+updateErr();
+updQuizScore();
+</script>
+</body>
+</html>

@@ -1,0 +1,39 @@
+name: "Báo lỗi nội dung / kỹ thuật"
+description: "Phát hiện một phát biểu kỹ thuật sai, thiếu chính xác hoặc gây hiểu lầm trên hub"
+title: "[Nội dung] "
+labels: ["content-error"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Cảm ơn bạn — báo lỗi nội dung là đóng góp giá trị nhất cho hub.
+        Lưu ý: trang thuộc khu **legacy/** (V1/V2) là bản lưu trữ bất biến — lỗi sẽ được
+        ghi nhận vào VERSION_NOTES/evolution thay vì sửa tại chỗ (xem docs/VERSIONING_POLICY.md).
+  - type: input
+    id: url
+    attributes:
+      label: "Trang chứa lỗi (URL)"
+      placeholder: "https://.../articles/... hoặc .../legacy/versions/v3/Week05.html"
+    validations:
+      required: true
+  - type: textarea
+    id: quote
+    attributes:
+      label: "Trích nguyên văn đoạn có vấn đề"
+      description: "Copy đúng câu/đoạn trên trang — đừng diễn đạt lại."
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: "Vì sao sai / thiếu chính xác?"
+      description: "Giải thích kỹ thuật. Nếu phát biểu chỉ đúng trong một phạm vi (FPGA vs ASIC, tool cụ thể…), nêu rõ phạm vi."
+    validations:
+      required: true
+  - type: textarea
+    id: source
+    attributes:
+      label: "Nguồn tin cậy đối chiếu"
+      description: "Sách/paper/tài liệu chính thức của vendor/chuẩn — kèm link hoặc trích dẫn đầy đủ nếu có."
+    validations:
+      required: false

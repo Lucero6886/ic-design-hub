@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="Giảng Viên Đinh Văn Nam">
+<title>Ghi chú phiên bản — Version 2 | IC Design Mentoring</title>
+<link rel="stylesheet" href="../../assets/css/site.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-in">
+    <a class="brand" href="../../index.html"><span class="logo">IC</span>
+      <span>IC Design Mentoring<small>Version 2 · Ghi chú phiên bản</small></span></a>
+    <nav class="nav" aria-label="Điều hướng chính">
+      <a href="../../index.html">Trang chủ</a>
+      <a href="index.html">Mục lục V2</a>
+      <a href="../v1/VERSION_NOTES.html">Notes V1</a>
+      <a href="../../evolution.html">Tiến hóa</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap prose">
+  <div class="vhead" style="margin-top:34px"><span class="badge b-v2">V2 · BẢN MỞ RỘNG</span></div>
+  <h1>Ghi chú phiên bản — Version 2</h1>
+
+  <h2>Nguồn gốc</h2>
+  <ul>
+    <li><b>Nguồn:</b> <code>version2.zip</code> — 383.611 byte, 12 file HTML, ngày file 10/07/2026. Bản nguyên trạng lưu tại <code>_source/version2.zip</code> của kho mã.</li>
+    <li><b>Bản chất:</b> giáo trình tự học tương tác + tài liệu mentor, ~6.300–10.100 từ/tuần, khung 18 section lặp lại đủ 12 tuần.</li>
+    <li><b>Thương hiệu:</b> cả 12 file gắn Phenikaa University.</li>
+  </ul>
+
+  <h2>Danh mục file</h2>
+  <div class="tblwrap">
+    <table class="tbl">
+      <tr><th>File</th><th>Kích thước</th><th>Chủ đề</th></tr>
+      <tr><td><code>Week1.html</code></td><td>112,6 KB</td><td>Why Semiconductor? Why IC Design?</td></tr>
+      <tr><td><code>Week2.html</code></td><td>116,0 KB</td><td>From Idea to Chip</td></tr>
+      <tr><td><code>Week3.html</code></td><td>123,4 KB</td><td>Logic Gates in Real Systems</td></tr>
+      <tr><td><code>Week4.html</code></td><td>118,3 KB</td><td>Combinational Logic Circuits</td></tr>
+      <tr><td><code>Week5.html</code></td><td>117,6 KB</td><td>Sequential Logic &amp; Memory <span class="dim">(tuần bổ sung mới so với V1)</span></td></tr>
+      <tr><td><code>Week6.html</code></td><td>146,3 KB</td><td>Finite State Machines</td></tr>
+      <tr><td><code>Week7.html</code></td><td>111,2 KB</td><td>What Is Verilog?</td></tr>
+      <tr><td><code>Week8.html</code></td><td>112,1 KB</td><td>FPGA vs ASIC</td></tr>
+      <tr><td><code>Week9.html</code></td><td>145,1 KB</td><td>Traffic Light Controller</td></tr>
+      <tr><td><code>Week10.html</code></td><td>124,1 KB</td><td>Counter &amp; 7-Segment Display</td></tr>
+      <tr><td><code>Week11.html</code></td><td>143,4 KB</td><td>UART Communication Basics</td></tr>
+      <tr><td><code>Week12.html</code></td><td>178,3 KB</td><td>Course Wrap-up &amp; Next Steps <span class="dim">(trang dài nhất, ~10.000 từ)</span></td></tr>
+    </table>
+  </div>
+
+  <h2>Kết quả thẩm định (rà soát 07/08/2026)</h2>
+  <ul>
+    <li><b>Render &amp; tương tác:</b> cả 12 trang không phát sinh lỗi JavaScript; quiz của cả 5 biến thể cài đặt chấm điểm đúng (máy chọn toàn bộ đáp án đúng → 10/10 hoặc 9/9); điều hướng tuần trước/sau đúng 100% (kiểm từng liên kết).</li>
+    <li><b>Chuyên môn — các phần kiểm trực tiếp đều chính xác:</b> code Tuần 9 tách Controller/Datapath, FSM 3 khối chống latch, tick-enable kèm cảnh báo "không dùng tick làm clock", testbench có invariant check; Tuần 7 dạy đúng ngữ nghĩa <code>assign</code>/latch/<code>#delay</code>; Tuần 11 đúng toàn bộ số liệu UART (bit time, DIV 5208/434/2813, sai số 0,006%/0,018%, throughput tính đủ overhead khung 10 bit).</li>
+    <li><b>Không đồng nhất giữa các tuần</b> (dấu vết biên soạn theo đợt): ≥5 biến thể quiz engine; Tuần 4 và 10 có 9 câu quiz trong khi các tuần khác 10; format <code>&lt;title&gt;</code> khác nhau; mức độ giải thích đáp án khác nhau giữa các tuần.</li>
+    <li><b>Phụ thuộc ngoài:</b> <code>cdn.tailwindcss.com</code>, <code>cdnjs.cloudflare.com</code>, <code>fonts.googleapis.com</code>/<code>gstatic.com</code>; liên kết ngoài tới <code>edaplayground.com</code> ở 6 tuần (1, 2, 3, 6, 7, 9) — liên kết giáo dục lịch sử, giữ nguyên.</li>
+  </ul>
+
+  <h2>Quan hệ với Version 3</h2>
+  <ul>
+    <li>V3 chọn V2 làm nền nội dung (không viết lại từ đầu) rồi: tái cấu trúc 4 lớp, gộp T9–11 thành một project, bỏ CDN, thống nhất một quiz engine, thêm lưu tiến độ và mục lục.</li>
+    <li>8 phát biểu kỹ thuật của V2 được hiệu chỉnh có hồ sơ — nguyên văn V2 giữ nguyên tại đây, đối chiếu tại <a href="../../evolution.html#audit">Tiến hóa §8 hiệu chỉnh</a> và <a href="../v3/TECHNICAL_AUDIT.html">Technical Audit</a>.</li>
+    <li>Danh sách thay đổi đầy đủ: <a href="../v3/CHANGELOG_V2_TO_V3.html">CHANGELOG_V2_TO_V3</a>.</li>
+  </ul>
+
+  <h2>Hub đã thay đổi gì trên các trang này?</h2>
+  <ul>
+    <li>Chèn <b>một thanh điều hướng</b> ở đầu mỗi trang tuần (về Learning Hub, mục lục V2, tuần trước/sau, chuyển phiên bản). Prev/next gốc của V2 ở cuối trang <b>giữ nguyên</b>. Nội dung giảng dạy gốc không đổi một chữ nào.</li>
+    <li>Tạo mới 2 trang không thuộc bản gốc, đánh dấu rõ: <code>index.html</code> (mục lục) và <code>VERSION_NOTES.html</code> (trang này).</li>
+    <li>Toàn bộ thay đổi ghi tại <a href="../../docs/CONTENT_CHANGELOG.md">docs/CONTENT_CHANGELOG.md</a>; bản gốc nguyên trạng tại <code>_source/version2.zip</code>.</li>
+  </ul>
+
+  <p><a class="btn" href="index.html">← Mục lục V2</a> <a class="btn" href="../../index.html">Learning Hub</a></p>
+
+  <div class="footer">
+    <b>IC Design Mentoring — Version 2 (lưu trữ)</b>
+    <span class="org">Khoa Điện – Điện tử · Trường Kỹ thuật · Đại học Phenikaa · Biên soạn: <b>Giảng Viên Đinh Văn Nam</b></span>
+    <span class="org">© 2026 · Bản quyền thuộc về Giảng Viên Đinh Văn Nam, Khoa Điện-Điện Tử, Trường Kỹ Thuật, Đại học Phenikaa.</span>
+  </div>
+</main>
+</body>
+</html>

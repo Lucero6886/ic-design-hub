@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="Giảng Viên Đinh Văn Nam">
+<meta name="copyright" content="© 2026 · Bản quyền thuộc về Giảng Viên Đinh Văn Nam, Khoa Điện-Điện Tử, Trường Kỹ Thuật, Đại học Phenikaa">
+<meta name="description" content="Báo cáo kiểm định Version 3 — IC Design Mentoring Version 3. Khoa Điện – Điện tử · Trường Kỹ thuật · Đại học Phenikaa. Biên soạn: Giảng Viên Đinh Văn Nam.">
+<title>Báo cáo kiểm định Version 3 | IC Design Mentoring v3</title>
+<link rel="stylesheet" href="css/style.css">
+<script src="js/app.js" defer></script>
+</head>
+<body data-week="doc">
+
+<header class="topbar">
+  <div class="topbar-in">
+    <a class="brand" href="index.html"><span class="logo">IC</span>
+      <span>IC Design Mentoring<small>Tài liệu vận hành · Version 3</small></span></a>
+    <nav class="layer-chips">
+      <a class="chip" href="../../index.html" title="Learning Hub — cổng ba phiên bản giáo trình; đây là V3, bản hiện hành được khuyến nghị">⌂ Hub · V3</a>
+      <a class="chip" href="README.html">README</a>
+      <a class="chip" href="CURRICULUM_MAP.html">Curriculum Map</a>
+      <a class="chip" href="MENTOR_GUIDE.html">Mentor Guide</a>
+      <a class="chip" href="PROJECT_GUIDE.html">Project Guide</a>
+      <a class="chip" href="TECHNICAL_AUDIT.html">Technical Audit</a>
+      <a class="chip" href="CHANGELOG_V2_TO_V3.html">Changelog</a>
+      <span class="chip active">Validation</span>
+      <a class="chip" href="implementation-notes.html">Implementation Notes</a>
+      <a class="chip" href="index.html">← Mục lục</a>
+    </nav>
+  </div>
+  <div class="scrollbar"><div></div></div>
+</header>
+
+<section class="doc-hero">
+  <div class="wrap">
+    <div class="pill-row">
+      <span class="pill">Tài liệu vận hành</span>
+      <span class="pill acc">Validation</span>
+      <span class="pill">Khoa Điện – Điện tử · ĐH Phenikaa</span>
+    </div>
+    <h1>Báo cáo kiểm định Version 3</h1>
+    <p class="sub">Cấu trúc · trình duyệt offline · biên dịch và mô phỏng RTL thật</p>
+    <p class="src">Bản văn bản gốc: <b>VALIDATION_REPORT.md</b> · cùng thư mục</p>
+  </div>
+</section>
+
+<main class="wrap doc-main">
+<nav class="doc-toc"><b>Nội dung tài liệu</b><ul class="plain"><li><a href="#m-1-day-du-amp-dieu-huong">1. Đầy đủ &amp; điều hướng</a></li><li><a href="#m-2-cau-truc-trang-script-kiem-16-tieu-chi-12-tu">2. Cấu trúc trang (script kiểm 16 tiêu chí × 12 tuần)</a></li><li><a href="#m-3-javascript-amp-tuong-tac-render-that-tung-tr">3. JavaScript &amp; tương tác (render thật từng trang)</a></li><li><a href="#m-4-rtl-bien-dich-amp-mo-phong-that-diem-kiem-ma">4. RTL — biên dịch &amp; mô phỏng THẬT (điểm kiểm mạnh nhất)</a></li><li><a href="#m-5-nhat-quan-ky-thuat-amp-thuat-ngu">5. Nhất quán kỹ thuật &amp; thuật ngữ</a></li><li><a href="#m-6-ba-loi-phat-hien-amp-da-sua-trong-qua-trinh-">6. Ba lỗi phát hiện &amp; đã sửa trong quá trình validation</a></li><li><a href="#m-6b-ra-soat-hoc-thuat-toan-khoa-08082026-40-hie">6b. Rà soát học thuật toàn khóa (08/08/2026) — 40 hiệu chỉnh</a></li><li><a href="#m-7-pham-vi-chua-kiem-khai-bao-minh-bach">7. Phạm vi chưa kiểm (khai báo minh bạch)</a></li></ul></nav>
+<article class="doc-body">
+<p>Toàn bộ kiểm định được chạy tự động (script cấu trúc Python + trình duyệt headless Chromium/Playwright + biên dịch &amp; mô phỏng RTL bằng Icarus Verilog 12, cờ <code>-g2012</code>). Kết luận chung: <strong>PASS toàn bộ</strong> sau 3 hiệu chỉnh phát hiện trong quá trình kiểm định (ghi ở mục 6).</p>
+<h2 id="m-1-day-du-amp-dieu-huong">1. Đầy đủ &amp; điều hướng</h2>
+<ul>
+<li>✔ Đủ 12 tuần <a href="Week01.html"><code>Week01.html</code></a>–<a href="Week12.html"><code>Week12.html</code></a> + <a href="index.html"><code>index.html</code></a> + <code>css/style.css</code> + <code>js/app.js</code> + <code>assets/</code> + 8 tài liệu .md.</li>
+<li>✔ Điều hướng tuần trước/sau: kiểm từng link — W(n) trỏ đúng W(n−1)/W(n+1); W01 prev → index; W12 next → index. Index có đủ 12 link tuần.</li>
+<li>✔ Không có bất kỳ URL ngoài nào (http/https) trong 13 trang HTML — hoạt động offline hoàn toàn (đã render thật với network bị chặn: trang vẫn nguyên vẹn).</li>
+</ul>
+<h2 id="m-2-cau-truc-trang-script-kiem-16-tieu-chi-12-tu">2. Cấu trúc trang (script kiểm 16 tiêu chí × 12 tuần)</h2>
+<ul>
+<li>✔ 4 layer A/B/C/D hiện diện đúng thứ tự ở cả 12 tuần; <code>data-week</code> đúng chuẩn 2 chữ số.</li>
+<li>✔ Quiz: đúng 5 câu/tuần, mỗi câu 4 lựa chọn A–D + đúng 1 <code>data-answer</code> + giải thích trỏ về mục Layer C; phân bố đáp án không dồn về một chữ cái.</li>
+<li>✔ Rubric: đúng 5 hàng, trọng số 25/20/20/20/15 ở cả 12 tuần.</li>
+<li>✔ Tổng kết chuẩn 6 ô (I can explain/design/verify/connect · I am still unsure · Next week) + ô phản tư tự lưu — đủ ở cả 12 tuần.</li>
+<li>✔ Timeline buổi học đúng 6 khung giờ; khối mentor-only đủ ở mọi tuần.</li>
+<li>✔ Không có <code>&lt;script&gt;</code> thực thi inline trong 12 trang tuần (chỉ <code>application/json</code> cho widget FSM; index.html có script đọc tiến độ — chủ đích).</li>
+<li>✔ EQ→RQ (Engineering→Research Question) có mặt từ tuần 6 trở đi, đúng đặc tả.</li>
+</ul>
+<h2 id="m-3-javascript-amp-tuong-tac-render-that-tung-tr">3. JavaScript &amp; tương tác (render thật từng trang)</h2>
+<ul>
+<li>✔ 13/13 trang tải không lỗi JavaScript (pageerror = 0, console error = 0).</li>
+<li>✔ Quiz engine: chọn đáp án đúng cho cả 5 câu → điểm &quot;5/5&quot; trên cả 12 tuần; chọn sai hiện đúng màu + giải thích; nút &quot;Làm lại&quot; hoạt động.</li>
+<li>✔ Lưu tiến độ: trả lời quiz / tick checklist / bật mentor → reload trang → trạng thái được khôi phục (kiểm bằng reload thật).</li>
+<li>✔ Widget hoạt động: counter (W5), fsm &quot;101&quot; (W6), tt (W1/W3/W4/W8), traffic (W9), seg7 + traffic-seg (W10), uart frame (W11); bug hunt bấm trúng cả 10 dòng lỗi cài sẵn (W4/W5/W7/W9); wr predict-reveal mở/đóng đúng.</li>
+<li>✔ Mentor toggle bật/tắt và lưu lựa chọn xuyên trang.</li>
+</ul>
+<h2 id="m-4-rtl-bien-dich-amp-mo-phong-that-diem-kiem-ma">4. RTL — biên dịch &amp; mô phỏng THẬT (điểm kiểm mạnh nhất)</h2>
+<p>Trích tự động mọi khối RTL/testbench &quot;chuẩn&quot; (bỏ các khối cố tình sai đã dán nhãn SAI/bughunt) từ trang, biên dịch bằng <code>iverilog -g2012</code>:</p>
+<div class="tblwrap"><table class="tbl">
+<thead>
+<tr>
+<th>Nhóm</th>
+<th>Modules</th>
+<th>Kết quả</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>W5</td>
+<td>counter_mod10 + tb</td>
+<td>✔ compile + <strong>mô phỏng chạy đúng</strong> (đếm 0→9, wrap, enable)</td>
+</tr>
+<tr>
+<td>W6</td>
+<td>seq_detect_101 (+ TB kiểm định riêng)</td>
+<td>✔ compile + <strong>chuỗi &quot;10101&quot;+&quot;1101&quot; ra đúng 3 lần detect (gối chuỗi hoạt động)</strong></td>
+</tr>
+<tr>
+<td>W7</td>
+<td>majority3/vote_unit, half_adder</td>
+<td>✔ compile</td>
+</tr>
+<tr>
+<td>W9</td>
+<td>tick_gen + traffic_ctrl + tb_traffic</td>
+<td>✔ compile + mô phỏng 2 vòng đèn + reset giữa chừng: <strong>0 vi phạm invariant</strong>, chuỗi pha 0→1→2→3 đúng</td>
+</tr>
+<tr>
+<td>W10</td>
+<td>seg7_decoder + display_mux</td>
+<td>✔ compile (ghi chú: <code>unique case</code> được iverilog chấp nhận nhưng bỏ qua kiểm unique — tool thương mại sẽ kiểm)</td>
+</tr>
+<tr>
+<td>W11</td>
+<td>uart_tx + tb + status_tx + traffic_system_top</td>
+<td>✔ compile + <strong>tb đo start bit đúng 8 chu kỳ</strong>, start-khi-busy bị bỏ qua đúng spec</td>
+</tr>
+<tr>
+<td><strong>Toàn hệ</strong></td>
+<td>tick_gen + traffic_ctrl + seg7_decoder + status_tx + uart_tx + traffic_system_top</td>
+<td>✔ <strong>mô phỏng end-to-end: giải mã byte UART đầu tiên trên dây tx = 0x47 = &#39;G&#39; (đúng thông điệp &quot;GN …&quot;), stop bit đúng</strong></td>
+</tr>
+</tbody></table></div>
+<p>Ghi chú: TB khung sườn <code>tb_traffic_top</code> ở W10 là skeleton có chủ đích (bảng giải mã để học viên tự chép đủ) — không đưa vào biên dịch tự động.</p>
+<h2 id="m-5-nhat-quan-ky-thuat-amp-thuat-ngu">5. Nhất quán kỹ thuật &amp; thuật ngữ</h2>
+<ul>
+<li>✔ Tín hiệu thống nhất toàn khóa: <code>clk</code>, <code>rst_n</code> (bất đồng bộ mức thấp), <code>enable</code>/<code>tick</code>, <code>state</code>, <code>next_state</code>, <code>count</code>; interface project khớp 100% giữa W9 → W10 → W11 → PROJECT_GUIDE.</li>
+<li>✔ Một clock duy nhất trong mọi RTL; mọi nhịp chậm là clock-enable (không có <code>@(posedge tick)</code> ở bất kỳ code chuẩn nào).</li>
+<li>✔ 8 nhóm hiệu chỉnh 5.1–5.8 hiện diện đúng chỗ; script quét các phát biểu cấm (&quot;NRE = 0&quot;, &quot;100% mảnh ghép&quot;, &quot;loại bỏ hoàn toàn metastability&quot;, &quot;luôn ngẫu nhiên&quot;) xác nhận chúng <strong>chỉ xuất hiện dưới dạng trích-dẫn-sai để sửa</strong> (trong callout hiệu chỉnh, phương án quiz sai, cảnh báo mentor) — không còn là phát biểu của giáo trình.</li>
+<li>✔ Tiên quyết tuần nối tuần khớp CURRICULUM_MAP (retrieval đầu buổi của tuần N hỏi đúng nội dung tuần N−1 ở cả 11 tuần có tuần trước).</li>
+<li>✔ Không trùng lặp nội dung lớn: mỗi trang 33–47 KB (v2: 111–178 KB), khái niệm nhắc lại đều là spiral có chủ đích kèm tham chiếu tuần gốc.</li>
+</ul>
+<h2 id="m-6-ba-loi-phat-hien-amp-da-sua-trong-qua-trinh-">6. Ba lỗi phát hiện &amp; đã sửa trong quá trình validation</h2>
+<ol>
+<li><strong>W6 <code>seq_detect_101</code>:</strong> dạng <code>next_state = din ? S1 : S0</code> hợp lệ theo LRM nhưng iverilog (công cụ miễn phí học viên dễ dùng nhất) yêu cầu cast tường minh với enum → đổi sang dạng <code>if/else</code> tương đương, dễ đọc hơn với người mới và biên dịch được trên mọi tool.</li>
+<li><strong>W11 <code>tb_uart_tx</code>:</strong> phép đo start bit dùng <code>@(negedge tx)</code> ngay sau xung start → dính race lịch trình (bắt nhầm negedge của D0→D1, đo ra 41/7 thay vì 8). Sửa thành: lái stimulus đồng bộ bằng non-blocking (<code>start &lt;= 1</code>) + lấy mẫu ở cạnh xuống clk. Chính quá trình sửa này là bài học TB được ghi lại trong comment code.</li>
+<li><strong>W12:</strong> ô cuối tổng kết ghi &quot;Next stage&quot; → chuẩn hóa lại nhãn &quot;Next week — Phase 2&quot; theo format bắt buộc mục 26 của đặc tả.</li>
+<li><strong>Sơ đồ kiến trúc (rà soát 08/08/2026, do người dùng phát hiện):</strong> năm sơ đồ ASCII — <code>PROJECT_GUIDE</code> §2, Week09 §C1, Week11 §C6, <code>CURRICULUM_MAP</code> (khối &quot;Kiến trúc project tích hợp W9–11&quot;) và Week10 §C1 — đều <strong>thiếu những nối kết có thật trong RTL</strong> — <code>clk</code>/<code>rst_n</code> chỉ được vẽ tới khối đầu tiên thay vì tới mọi khối tuần tự; <code>tick</code> chỉ vẽ tới <code>traffic_ctrl</code> trong khi <code>status_tx</code> cũng nhận <code>tick</code>; và đường phản hồi <code>tx_busy</code> từ <code>uart_tx</code> về <code>status_tx</code> bị bỏ hẳn. Riêng sơ đồ trong <code>PROJECT_GUIDE</code> còn có một chỗ giao đường (<code>┼</code>) không thể đọc được là nối hay cắt. Đã thay bằng <strong>hai hình SVG vẽ đúng theo netlist của <code>traffic_system_top.sv</code></strong> (<code>assets/fig-system-top.svg</code>, <code>assets/fig-controller-datapath.svg</code>) kèm chú giải quy ước, và bổ sung <strong>bảng liên kết tín hiệu</strong> (§2.4 của PROJECT_GUIDE) làm bản đặc tả chuẩn — đối chiếu từng dòng với RTL: đúng 6 dây nội bộ và 6 cổng mức đỉnh. Hai sơ đồ còn lại được sửa cùng đợt: <code>CURRICULUM_MAP</code> bỏ hình ASCII, thay bằng <strong>bảng netlist mỗi dòng một dây</strong> trỏ về §2.4 và <code>assets/fig-system-top.svg</code> (hình ASCII cũ còn vẽ <code>display_mux</code>/<code>an[1:0]</code> như phần bắt buộc — sai, đó là mở rộng tự chọn — và viết nhầm &quot;6 byte ASIC&quot; thay vì ASCII); Week10 §C1 vẽ <code>clk</code>/<code>rst_n</code> tới cả <code>tick_gen</code> lẫn <code>traffic_ctrl</code>, kèm ghi chú <code>seg7_decoder</code> là tổ hợp thuần nên không có clk.</li>
+</ol>
+<h2 id="m-6b-ra-soat-hoc-thuat-toan-khoa-08082026-40-hie">6b. Rà soát học thuật toàn khóa (08/08/2026) — 40 hiệu chỉnh</h2>
+<p>Đợt rà soát này do người dùng yêu cầu: <em>&quot;đảm bảo chuẩn học thuật, người đọc dễ hiểu, nắm bản chất và đúng chính xác; tránh lỗi học thuật và rườm rà phức tạp.&quot;</em> Phương pháp gồm hai vòng, vòng sau kiểm chính kết quả vòng trước — vì lần trước chính người dùng, chứ không phải công cụ của tôi, là người phát hiện lỗi sơ đồ.</p>
+<p><strong>Vòng 1 — 5 tác nhân rà soát song song</strong> trên toàn bộ 12 trang tuần và 8 tài liệu. Mọi phát hiện đều phải kèm trích dẫn nguyên văn và được kiểm tra tồn tại trong file trước khi sửa. Kết quả: <strong>25 hiệu chỉnh</strong>.</p>
+<p><strong>Vòng 2 — 3 tác nhân kiểm ngược chính các đoạn vừa viết lại</strong> (không rà soát lại phần khác), cộng thêm chứng minh bằng mô phỏng cho các khẳng định về ngôn ngữ. Kết quả: <strong>15 hiệu chỉnh nữa, trong đó 5 lỗi nằm ngay trong bản sửa của vòng 1.</strong> Đây là số liệu đáng ghi lại: một lần rà soát là không đủ.</p>
+<h3>Nhóm 1 — Khẳng định sai về ngôn ngữ SystemVerilog (đã chứng minh bằng iverilog)</h3>
+<div class="tblwrap"><table class="tbl">
+<thead>
+<tr>
+<th>Trang</th>
+<th>Trước</th>
+<th>Sau</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>W5 §C4</td>
+<td>&quot;so sánh <code>4&#39;d16</code> (bị cắt thành 0) → điều kiện wrap không bao giờ khớp → counter chạy tự do 0…15&quot;</td>
+<td>Ngược hẳn: <code>4&#39;d16</code> bị cắt thành <code>4&#39;d0</code> nên <code>count == 0</code> <strong>khớp ngay sau reset</strong> → counter <strong>đứng yên tại 0</strong>. Trường hợp &quot;chạy tự do 0…15&quot; là của hằng <em>không khai kích thước</em> <code>count == 16</code>. Cả hai đã mô phỏng đối chứng.</td>
+</tr>
+<tr>
+<td>W5 §C4</td>
+<td>&quot;so sánh <code>== 4&#39;d10</code> → không bao giờ tới → thành counter 16&quot; (v2)</td>
+<td><code>4&#39;d10</code> <strong>tới được</strong> → thành mod-11 (off-by-one)</td>
+</tr>
+<tr>
+<td>W7 Bẫy 3</td>
+<td>Giải thích &quot;hằng <code>1</code> mở rộng 32 bit&quot; nhưng minh họa bằng <code>x &lt;= x + 1&#39;b1</code></td>
+<td>Minh họa bằng <code>x &lt;= x + 1</code>; thêm đoạn nói rõ <code>x + 1&#39;b1</code> được tính <strong>ngay ở 4 bit</strong> nên giá trị 16 không bao giờ tồn tại — cùng kết quả, khác cơ chế. Đo bằng <code>$bits</code>: <code>x+1</code> rộng 32, <code>x+1&#39;b1</code> rộng 4.</td>
+</tr>
+<tr>
+<td>W7 §C6</td>
+<td>&quot;<code>initial</code> sống trong testbench, không tổng hợp được&quot;</td>
+<td>Nói rõ ngoại lệ: tool FPGA <strong>có</strong> nhận <code>initial</code> để đặt giá trị FF lúc nạp bitstream; vẫn xếp vào ô testbench vì (a) flow ASIC không có, (b) giá trị đó chỉ áp tại thời điểm nạp cấu hình, không thay được <code>rst_n</code></td>
+</tr>
+<tr>
+<td>W4</td>
+<td>&quot;chuỗi <code>if</code> thiếu <code>else</code> cuối cũng cùng số phận (sinh latch)&quot;</td>
+<td>Khi đã gán giá trị mặc định ở đầu khối thì thiếu <code>else</code> <strong>không</strong> sinh latch</td>
+</tr>
+<tr>
+<td>W6 quiz 5</td>
+<td>Tiền đề bất khả: 4 state lấp kín 2 bit mà vẫn hỏi về <code>default</code></td>
+<td>Đổi sang 5 state trên 3 bit; giải thích nêu rõ khi nào <code>default</code> thực sự có tác dụng</td>
+</tr>
+</tbody></table></div>
+<h3>Nhóm 2 — Sơ đồ và waveform không khớp RTL</h3>
+<div class="tblwrap"><table class="tbl">
+<thead>
+<tr>
+<th>Trang</th>
+<th>Lỗi</th>
+<th>Sửa</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>W9 §C5</td>
+<td>Waveform vẽ GREEN_EW dài 7 nhịp trong khi <code>time_left</code> ngay phía trên đọc 6 nhịp; pha YELLOW_EW bị nuốt mất nhãn</td>
+<td>Thêm vạch chuyển pha tại nhịp thứ 7, nhãn <code>YELLOW_EW</code> và <code>ew=VÀNG</code>, kéo dài lane thêm một ô</td>
+</tr>
+<tr>
+<td>W9</td>
+<td>Ghi chú &quot;gai tại <code>cnt==9</code>&quot;</td>
+<td><code>tick</code> là tín hiệu <strong>đã đăng ký</strong> nên trùng với <code>cnt==0</code></td>
+</tr>
+<tr>
+<td>W10 §C1</td>
+<td>Sơ đồ vẽ <code>clk</code>/<code>rst_n</code> chỉ tới <code>tick_gen</code></td>
+<td>Vẽ tới cả <code>traffic_ctrl</code>; ghi rõ <code>seg7_decoder</code> là tổ hợp thuần nên không có clk</td>
+</tr>
+<tr>
+<td>W10 §C3/§C5</td>
+<td><code>.DIV(50_000_000)</code> cứng ở C3 nhưng testbench C5 dùng <code>#(.DIV(10))</code> — lỗi elaboration</td>
+<td>Tham số hóa <code>.DIV(DIV)</code></td>
+</tr>
+<tr>
+<td>W10</td>
+<td><code>tick</code> vẽ như xung vuông 50% duty, mâu thuẫn với &quot;rộng đúng 1 chu kỳ&quot;</td>
+<td>Vẽ thành gai hẹp</td>
+</tr>
+<tr>
+<td>W12 §C3</td>
+<td>Sơ đồ dùng tên không tồn tại <code>sec_left</code>/<code>state</code>; thiếu nhánh <code>tick</code> → <code>status_tx</code></td>
+<td>Đổi thành <code>time_left[4]</code>, <code>phase[2]</code>; thêm nhánh <code>tick</code> rẽ đôi và đường phản hồi <code>tx_busy</code></td>
+</tr>
+<tr>
+<td>CURRICULUM_MAP</td>
+<td>Hình ASCII vẽ <code>display_mux</code>/<code>an[1:0]</code> như phần bắt buộc, thiếu fan-out của <code>tick</code>, thiếu <code>tx_busy</code>, viết nhầm &quot;6 byte ASIC&quot;</td>
+<td><strong>Bỏ hình ASCII</strong>, thay bằng bảng netlist mỗi dòng một dây, trỏ về §2.4 và <code>assets/fig-system-top.svg</code></td>
+</tr>
+</tbody></table></div>
+<h3>Nhóm 3 — Mô hình kinh tế và quy trình (W8, W12)</h3>
+<ul>
+<li>Bảng chi phí FPGA/ASIC ghi cột &quot;rẻ hơn ~80 lần / ~6 lần&quot;. <strong>Tỉ số không bất biến</strong> với phần NRE thiết kế chung đã bị bỏ khỏi cả hai cột (thêm 500.000$ chung là &quot;80 lần&quot; tụt còn ~5 lần), trong khi <strong>hiệu số thì bất biến</strong>. Đổi cột thành hiệu số tiền, kèm đoạn giải thích vì sao — đó chính là kỷ luật đọc mô hình chi phí.</li>
+<li>&quot;NRE bổ sung coi như nhỏ&quot; (tái phạm bẫy FPGA-NRE≈0 của v2) → nói rõ NRE thiết kế <strong>có ở cả hai phương án và được giả định xấp xỉ bằng nhau nên triệt tiêu khi lấy hiệu</strong>; thực tế phía ASIC còn nặng hơn nên hòa vốn thật dịch sang phải.</li>
+<li>Time-to-market: hai con số nêu như sự thật phổ quát → dán nhãn &quot;bậc độ lớn minh họa&quot;, và sửa &quot;hai bậc độ lớn&quot; thành &quot;một đến hai bậc&quot; cho khớp chính dải vừa nêu.</li>
+<li>W12: &quot;physical implementation và STA là của riêng ASIC&quot; → sai, FPGA cũng có cả hai; chỉ <strong>DFT</strong> là hoàn toàn mới.</li>
+<li>W12: đề cương nghiên cứu đòi <code>evidence</code>/<code>conclusion</code> <strong>trước</strong> khi làm thí nghiệm → đổi thành &quot;tiêu chí bằng chứng&quot; + &quot;dạng kết luận dự kiến&quot;.</li>
+</ul>
+<h3>Nhóm 4 — Đặc tả tự mâu thuẫn và tài liệu lệch nhau</h3>
+<ul>
+<li>W6 &quot;khóa số 2 nút&quot;: spec viết &quot;bấm sai quay về đầu&quot; nhưng phần sau lại nói &quot;ở lại GOT_A&quot; → spec viết lại tường minh.</li>
+<li>W11 mở đầu nói <code>uart_tx</code> &quot;đúng khuôn T6&quot; (3 khối) trong khi RTL ở C3 cố ý <strong>gộp</strong> thành một <code>always_ff</code>; W6 cũng khẳng định <code>uart_tx</code> là &quot;biến thể của đúng khuôn này&quot;. Sửa cả ba chỗ (W6, W11 mở đầu, ghi chú mentor W11) thành: dùng đúng <em>bộ đồ nghề</em> T6 nhưng gộp khối — và biến chính việc gộp thành câu hỏi luyện tập.</li>
+<li>Invariant an toàn bị phát biểu yếu đi (&quot;không bao giờ hai hướng cùng xanh&quot;) ở W2 và W8, trong khi testbench thật kiểm &quot;luôn có ít nhất một hướng ĐỎ&quot; — bản yếu cho lọt tổ hợp xanh–vàng. Đã thống nhất.</li>
+<li><code>PROJECT_GUIDE</code> §2.4 tự nhận là &quot;toàn bộ tín hiệu trong hệ&quot; nhưng §2.5/§2.6 lại nhắc <code>next_state</code>, <code>timer_done</code>, <code>baud_tick</code> không có trong bảng → giới hạn lại phạm vi: bảng đặc tả <strong>tín hiệu mức đỉnh</strong>.</li>
+<li><code>PROJECT_GUIDE</code> quy tắc 4 giải thích bắt tay ngược chiều nhân quả (nói <code>status_tx</code> chậm hơn <code>uart_tx</code>). Thực tế <code>status_tx</code> chạy một trạng thái mỗi <code>clk</code> nên <strong>nhanh hơn hàng nghìn lần</strong> — đó mới là lý do cần <code>tx_busy</code>.</li>
+<li><code>PROJECT_GUIDE</code> M4 viết &quot;start bit đúng <code>DIV</code> chu kỳ&quot; nhưng trong tài liệu này <code>DIV</code> là tham số của <code>tick_gen</code> → nói rõ là <code>CLK_HZ/BAUD</code>.</li>
+<li><code>MENTOR_GUIDE</code> chỉ mentor đọc RTL trong <a href="PROJECT_GUIDE.html" title="Mở PROJECT_GUIDE.html"><code>PROJECT_GUIDE.md</code></a> — tài liệu đó <strong>không có dòng RTL nào</strong>; RTL nằm ở Layer C các trang tuần.</li>
+<li><code>MENTOR_GUIDE</code> gộp &quot;nhầm latch với FF&quot; (vốn là T5) vào nhãn T4/T7; danh sách EQ→RQ của T9–T11 liệt kê 4 chủ đề cho 3 tuần và gán nhầm &quot;chiến lược reset&quot; (thực ra là T7).</li>
+<li><code>TECHNICAL_AUDIT</code> §5.4 viết &quot;timing spec được giữ&quot; → timing là <strong>ràng buộc</strong> do STA kiểm và <strong>có thể trượt</strong>; §5.1 &quot;init chỉ giải quyết lần bật nguồn đầu tiên&quot; → đúng ra là &quot;chỉ có hiệu lực tại thời điểm nạp cấu hình&quot;.</li>
+<li><code>CURRICULUM_MAP</code>: gán nhầm nơi chứa phát biểu chuẩn đầu ra; chuỗi trừu tượng ghi 4 tầng thay vì 6; số chặng quy trình sai; lấy <code>S=GN T=09</code> làm mặc định (thực ra <code>GN 09</code> mới là mặc định).</li>
+<li>W10 §C5: mô hình tham chiếu trong testbench có <code>default</code> trả về một mẫu 7 đoạn <strong>trông hợp lệ</strong>, nên bảng chép thiếu sẽ đổ lỗi nhầm cho RTL. Đổi thành trả <code>x</code> kèm <code>$error</code> riêng — nguyên tắc: <em>mô hình tham chiếu phải hỏng ồn ào, không hỏng lặng lẽ.</em></li>
+</ul>
+<h3>Kiểm định lại sau khi sửa</h3>
+<div class="tblwrap"><table class="tbl">
+<thead>
+<tr>
+<th>Hạng mục</th>
+<th>Kết quả</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Biên dịch RTL (<code>iverilog -g2012</code>, 22 khối trích tự động + 23 module)</td>
+<td>✔ 0 lỗi</td>
+</tr>
+<tr>
+<td><code>tb_counter_mod10</code>, <code>tb_traffic</code>, <code>tb_traffic_top</code>, <code>tb_uart_tx</code></td>
+<td>✔ 0 <code>$error</code></td>
+</tr>
+<tr>
+<td>Mô phỏng toàn hệ <code>traffic_system_top</code> (giải mã ngược luồng UART)</td>
+<td>✔ 0 vi phạm invariant; luồng đọc ra `GN 08</td>
+</tr>
+<tr>
+<td>Script cấu trúc (21 trang: link chết, tài nguyên ngoài, 4 layer, rubric = 100%, đáp án quiz nằm trong tập lựa chọn, namespace lưu trữ, thương hiệu/tác giả)</td>
+<td>✔ 0 lỗi, 0 cảnh báo</td>
+</tr>
+<tr>
+<td><code>DIV = (CLK_HZ + BAUD/2)/BAUD</code> (đổi từ phép cắt sang làm tròn cho khớp quy tắc dạy ở Layer A)</td>
+<td>✔ 434 @ 50 MHz/115200; mô phỏng lại toàn hệ đạt</td>
+</tr>
+</tbody></table></div>
+<h2 id="m-7-pham-vi-chua-kiem-khai-bao-minh-bach">7. Phạm vi chưa kiểm (khai báo minh bạch)</h2>
+<ul>
+<li>Chưa chạy synthesis thật trên tool FPGA (Vivado/Quartus/Gowin) — RTL viết trong tập synthesizable chuẩn và đã mô phỏng đúng, nhưng con số tài nguyên trong bài là ước lượng giảng dạy.</li>
+<li><code>unique case</code> chỉ được kiểm ngữ nghĩa trên tool thương mại (iverilog bỏ qua quality này — không ảnh hưởng hành vi).</li>
+<li>Render kiểm trên Chromium; Firefox/Safari dùng chung chuẩn HTML/CSS cơ bản, rủi ro thấp nhưng chưa kiểm trực tiếp.</li>
+</ul>
+</article>
+
+<div class="doc-foot-nav">
+      <a class="home" href="index.html">← Mục lục chương trình</a>
+      <a href="README.html">README</a>
+      <a href="CURRICULUM_MAP.html">Curriculum Map</a>
+      <a href="MENTOR_GUIDE.html">Mentor Guide</a>
+      <a href="PROJECT_GUIDE.html">Project Guide</a>
+      <a href="TECHNICAL_AUDIT.html">Technical Audit</a>
+      <a href="CHANGELOG_V2_TO_V3.html">Changelog</a>
+      <a href="implementation-notes.html">Implementation Notes</a>
+</div>
+
+<div class="footer">
+      <b>IC Design Mentoring — Version 3 · Phase 1</b>
+      <span class="org">Khoa Điện – Điện tử · Trường Kỹ thuật · Đại học Phenikaa</span>
+      <span>Biên soạn: <b style="display:inline">Giảng Viên Đinh Văn Nam</b></span>
+      <span class="cr">© 2026 · Bản quyền thuộc về Giảng Viên Đinh Văn Nam, Khoa Điện-Điện Tử, Trường Kỹ Thuật, Đại học Phenikaa. Tài liệu phục vụ đào tạo — vui lòng giữ nguyên thông tin tác giả khi chia sẻ.</span>
+      <span class="cr">Hoạt động offline — không cần Internet.</span>
+    </div>
+</main>
+</body>
+</html>

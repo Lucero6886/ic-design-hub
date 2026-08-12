@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="Giảng Viên Đinh Văn Nam">
+<meta name="copyright" content="© 2026 · Bản quyền thuộc về Giảng Viên Đinh Văn Nam, Khoa Điện-Điện Tử, Trường Kỹ Thuật, Đại học Phenikaa">
+<meta name="description" content="IC Design Mentoring — Version 3, Phase 1 (12 tuần). Khoa Điện – Điện tử · Trường Kỹ thuật · Đại học Phenikaa. Biên soạn: Giảng Viên Đinh Văn Nam.">
+<title>Tuần 4 — Combinational Building Blocks | IC Design Mentoring v3</title>
+<link rel="stylesheet" href="css/style.css">
+<script src="js/app.js" defer></script>
+</head>
+<body data-week="04">
+
+<!-- ================= TOP BAR ================= -->
+<header class="topbar">
+  <div class="topbar-in">
+    <a class="brand" href="index.html"><span class="logo">IC</span>
+      <span>IC Design Mentoring<small>Tuần 4/12 · Combinational Building Blocks</small></span></a>
+    <nav class="layer-chips">
+      <a class="chip" href="../../index.html" title="Learning Hub — cổng ba phiên bản giáo trình; đây là V3, bản hiện hành được khuyến nghị">⌂ Hub · V3</a>
+      <a class="chip chip-a" href="#layer-a"><span class="dot"></span>A · Trước buổi</a>
+      <a class="chip chip-b" href="#layer-b"><span class="dot"></span>B · Buổi học 60′</a>
+      <a class="chip chip-c" href="#layer-c"><span class="dot"></span>C · Lab</a>
+      <a class="chip chip-d" href="#layer-d"><span class="dot"></span>D · Sau buổi</a>
+      <a class="chip" href="index.html">Mục lục</a>
+    </nav>
+    <span class="mentor-sw" title="Hiện/ẩn nội dung dành riêng cho mentor"><span class="tr"></span> Mentor</span>
+  </div>
+  <div class="scrollbar"><div></div></div>
+</header>
+
+<!-- ================= HERO ================= -->
+<section class="hero">
+  <div class="wrap">
+    <div class="pill-row">
+      <span class="pill">Tuần 4 / 12</span>
+      <span class="pill acc">Nền tảng số · think in blocks</span>
+      <span class="pill">Khoa Điện – Điện tử · ĐH Phenikaa</span>
+    </div>
+    <h1>Combinational Building Blocks</h1>
+    <p class="sub">Khối tổ hợp — nghĩ theo khối chức năng, không theo từng cổng</p>
+    <p>Tuần 3 cho bạn nguyên liệu: cổng logic và truth table. Nhưng không kỹ sư nào ghép CPU từ từng cổng — họ lắp từ những <b>khối chức năng</b> có tên tuổi: MUX chọn dữ liệu, decoder giải mã, encoder nén mã, comparator so sánh, adder cộng. Tuần này bạn học cách nhìn mạch theo khối, và lần đầu <b>đọc – gõ lại RTL tổ hợp SystemVerilog</b> thật, kèm quy tắc vàng chống latch.</p>
+    <div class="outcomes">
+      <div class="outcome"><b>Mục tiêu 1.</b> Mô tả 5 khối cơ bản (MUX, decoder, encoder, comparator, adder) theo bộ ba <em>Input – Output – Function</em>.</div>
+      <div class="outcome"><b>Mục tiêu 2.</b> Chọn đúng khối cho một yêu cầu cụ thể và ghép ≥2 khối thành block diagram — design-before-code.</div>
+      <div class="outcome"><b>Mục tiêu 3.</b> Đọc hiểu và gõ lại RTL tổ hợp dùng <code>always_comb</code> + gán default; trả lời được "phần cứng nào được suy ra".</div>
+      <div class="outcome"><b>Mục tiêu 4.</b> Giải thích propagation delay và dự đoán vì sao bộ cộng ripple-carry càng rộng càng chậm.</div>
+    </div>
+    <div class="pos">
+      <div><b>Tuần trước — T3.</b> Cổng logic + truth table: quy trình tình huống → bảng → biểu thức → mạch.</div>
+      <div><b>Tuần này — T4.</b> Đóng gói cổng thành khối tái sử dụng + RTL tổ hợp đầu tiên (mức đọc hiểu, có dẫn dắt).</div>
+      <div><b>Tuần sau — T5.</b> Thêm "trí nhớ": flip-flop, clock — mạch bắt đầu có trạng thái theo thời gian.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= LAYER A ================= -->
+<section id="layer-a" class="layer layer-a">
+  <div class="wrap layer-head">
+    <div class="band">
+      <span class="layer-badge">A</span>
+      <h2>Trước buổi học</h2>
+      <span class="time">⏱ 15–25 phút · chỉ cần đọc phần này</span>
+    </div>
+    <p class="lead">Bạn KHÔNG cần đọc Layer C trước buổi học. Chuẩn bị đủ ở đây là bạn sẵn sàng thảo luận. Layer C dành cho lúc thực hành sau buổi.</p>
+  </div>
+  <div class="wrap layer-body">
+    <div class="grid2">
+      <div class="card">
+        <h3>Vì sao tuần này quan trọng</h3>
+        <p>Không kỹ sư nào ghép chip từ từng cổng rời. Mọi datapath của project T9–11 — timer đèn giao thông, giải mã LED 7 đoạn, shift register của UART — đều lắp từ 5 khối tuần này. RTL tuần này ở mức <b>đọc hiểu + gõ lại theo mẫu</b>, chưa yêu cầu tự viết từ số 0 (T7 mới hệ thống hóa).</p>
+        <p class="small muted"><b>Điều kiện tiên quyết:</b> T3 — truth table, hành vi AND/OR/NOT/XOR.</p>
+      </div>
+      <div class="card">
+        <h3>Hoạt động chuẩn bị (10′)</h3>
+        <p>Quan sát 1 thiết bị có chức năng "chọn nguồn vào": loa bluetooth chọn AUX/BT/USB, TV chọn HDMI1/HDMI2/AV. Viết ra giấy 2 dòng: <b>có mấy nguồn vào, và tín hiệu "chọn" là gì</b> (nút bấm? núm xoay?). Mang tờ giấy đến buổi học — đó chính là một MUX đời thực.</p>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Khái niệm thiết yếu — đọc chậm, 5 ý</h3>
+      <ul>
+        <li><b>MUX n:1</b> = bộ chọn kênh: n đường dữ liệu vào, 1 đường ra, tín hiệu <code>sel</code> quyết định đường nào được nối. Chọn 1 trong n cần <b>⌈log₂n⌉ bit</b> select.</li>
+        <li><b>Decoder</b> = biến mã nhị phân n bit thành <b>one-hot</b> 2ⁿ đường: đúng một đường bằng 1. Nó không có data input — nó biến "mã số" thành "vị trí".</li>
+        <li><b>Encoder</b> = chiều ngược của decoder: nhìn đường vào nào đang tích cực, xuất ra mã nhị phân của vị trí đó.</li>
+        <li><b>Comparator</b> = so sánh hai số: xuất <code>eq</code> (bằng), <code>gt</code> (lớn hơn), <code>lt</code> (nhỏ hơn) — đúng một trong ba bằng 1.</li>
+        <li><b>Adder</b>: <b>half adder</b> cộng 2 bit; <b>full adder</b> cộng 3 bit (thêm carry-in) — nhờ carry-in mà ghép chuỗi được thành bộ cộng n bit.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>2 câu hỏi tự chẩn đoán</h3>
+      <p class="small muted">Trả lời trong đầu trước, rồi mới mở đáp án. Nếu sai cũng không sao — buổi học sẽ xử lý đúng chỗ này.</p>
+      <details class="reveal"><summary>1. MUX 4:1 cần mấy bit select? Vì sao?</summary>
+        <div class="rv-body">2 bit. n bit select phân biệt được 2ⁿ kênh; 2² = 4 nên 2 bit là đủ để gọi tên cả 4 đường vào. Nhầm phổ biến: nghĩ "4 kênh thì 4 bit" — đó là mã one-hot của decoder, không phải mã chọn của MUX.</div>
+      </details>
+      <details class="reveal"><summary>2. Full adder khác half adder chỗ nào, và vì sao cần sự khác đó?</summary>
+        <div class="rv-body">Full adder có input thứ ba: <b>carry-in</b> — nhận số nhớ từ hàng thấp hơn, giống cộng tay "nhớ 1 sang cột kế". Nhờ đó các full adder <b>ghép chuỗi</b> được thành bộ cộng nhiều bit; half adder không có carry-in nên chỉ đứng được ở hàng thấp nhất.</div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ================= LAYER B ================= -->
+<section id="layer-b" class="layer layer-b">
+  <div class="wrap layer-head">
+    <div class="band">
+      <span class="layer-badge">B</span>
+      <h2>Buổi mentoring 60 phút</h2>
+      <span class="time">🗺 Mentor Session Guide</span>
+    </div>
+    <p class="lead">Kịch bản buổi học — mentor điều phối theo timeline này, không cần đọc hết Layer C để đứng lớp. Học viên nhìn vào đây để biết mình sẽ làm gì.</p>
+  </div>
+  <div class="wrap layer-body">
+    <div class="card">
+      <div class="timeline">
+        <div class="tl-row">
+          <span class="tl-time">0–5′</span>
+          <h4>Retrieval — kiểm tra tuần 3</h4>
+          <ul>
+            <li>De Morgan phát biểu thế nào? Dùng để làm gì?</li>
+            <li>XOR ra 1 khi nào?</li>
+            <li>"Hai mạch khác nhau, cùng truth table" nghĩa là gì?</li>
+          </ul>
+        </div>
+        <div class="tl-row">
+          <span class="tl-time">5–15′</span>
+          <h4>Học viên giải thích</h4>
+          <p>2–3 học viên trình bày bài chuẩn bị "thiết bị chọn nguồn" theo Input – Output – Function. Cả lớp đoán: tín hiệu "chọn" cần mấy bit nếu làm bằng mạch số? Mentor chưa sửa vội.</p>
+        </div>
+        <div class="tl-row">
+          <span class="tl-time">15–25′</span>
+          <h4>Mentor sửa &amp; giảng sâu</h4>
+          <p>Chốt 3 điều bắt buộc đúng: (1) <b>MUX có data input, decoder không</b> — decoder biến mã thành vị trí one-hot; (2) chọn 1 trong n kênh cần <b>⌈log₂n⌉ bit select</b>; (3) khối tổ hợp <b>không có trí nhớ</b> — trong <code>always_comb</code> mọi output phải được gán ở mọi nhánh (default trước), thiếu là tool chèn latch.</p>
+        </div>
+        <div class="tl-row">
+          <span class="tl-time">25–45′</span>
+          <h4>Active design — thiết kế trên giấy (nhóm 2–3 người)</h4>
+          <p><b>Đề bài:</b> mạch hiển thị số lớn hơn trong 2 số 2-bit A, B lên 2 LED: LED_A sáng nếu A &gt; B, LED_B sáng nếu B &gt; A, cả hai tắt nếu bằng nhau.</p>
+          <ul>
+            <li>Chọn KHỐI phù hợp trước (gợi ý: khối nào "so sánh"?) — chưa nghĩ đến cổng.</li>
+            <li><b>Dự đoán trước</b> 3 cặp (A, B) cụ thể: LED nào sáng?</li>
+            <li>Truth table 16 hàng (hoặc rút gọn theo cặp) → biểu thức → block diagram: 1 comparator 2 bit + 2 đường LED.</li>
+          </ul>
+          <p class="small muted">Artifact nhóm: 1 tờ giấy có block diagram + bảng + 3 dự đoán đã kiểm lại.</p>
+        </div>
+        <div class="tl-row">
+          <span class="tl-time">45–55′</span>
+          <h4>Chia sẻ &amp; tranh luận kỹ thuật</h4>
+          <p>Hai nhóm trình bày. Câu hỏi ép suy nghĩ: có nhóm nào làm thẳng bằng cổng rời không — so độ phức tạp? Nếu spec nâng từ 2 bit lên 4 bit, cách nào sống sót mà gần như không đổi sơ đồ? Chốt thông điệp tuần: <b>think in functional blocks, not individual gates</b>.</p>
+        </div>
+        <div class="tl-row">
+          <span class="tl-time">55–60′</span>
+          <h4>Chốt &amp; giao việc</h4>
+          <ul>
+            <li><b>Nhớ:</b> mô tả mọi khối bằng Input – Output – Function; trong <code>always_comb</code> gán default trước.</li>
+            <li><b>Tránh:</b> nhầm MUX (có data input) với decoder (không có — chỉ biến mã thành vị trí).</li>
+            <li><b>Artifact sau buổi:</b> gõ lại <code>mux2.sv</code> + <code>comparator2.sv</code> + testbench quét đủ tổ hợp (Layer D).</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <p class="mentor-hint">💡 Bật công tắc <b>Mentor</b> trên thanh tiêu đề để xem ghi chú dành riêng cho mentor (đáp án kỳ vọng, câu hỏi cứu nguy, mở rộng cho học viên giỏi).</p>
+
+    <div class="mentor-only">
+      <div class="mentor-box">
+        <span class="mtag">Mentor only · Tuần 4</span>
+        <h3>Ghi chú vận hành buổi học</h3>
+        <div class="grid2">
+          <div>
+            <h4>Mục tiêu mentor cần chốt được</h4>
+            <ul class="small">
+              <li>Chuyển hệ quy chiếu "cổng" → "khối": ai kể tên cổng, hỏi ngược "khối này Input gì – Output gì – Function gì?".</li>
+              <li>Phân biệt MUX / decoder / encoder theo <b>dòng chảy dữ liệu</b>, không theo hình vẽ.</li>
+              <li>"Gán default trước trong <code>always_comb</code>" thành phản xạ — nền cho mọi RTL về sau.</li>
+            </ul>
+            <h4>Hiểu sai kinh điển (chờ sẵn)</h4>
+            <ul class="small">
+              <li>"MUX là công tắc cơ khí" — không: nó là logic tổ hợp, không có tiếp điểm chuyển động.</li>
+              <li>Lẫn encoder với decoder — phân xử bằng câu hỏi "mã nhị phân nằm ở đầu vào hay đầu ra?".</li>
+              <li>"Adder biết số thập phân" — không, nó chỉ thấy bit: 1 + 1 = 10₂ (Sum 0, Carry 1).</li>
+              <li>"MUX 4:1 cần 4 bit select" — 2 bit; 4 đường one-hot là chuyện của decoder.</li>
+            </ul>
+          </div>
+          <div>
+            <h4>Câu hỏi chẩn đoán → đáp án tốt → hỏi tiếp</h4>
+            <p class="small"><b>Hỏi:</b> "Vì sao ALU được xây quanh adder + MUX?"<br>
+            <b>Đáp tốt:</b> mỗi phép toán một khối, tất cả tính <em>song song cùng lúc</em>; MUX chọn kết quả theo opcode.<br>
+            <b>Hỏi tiếp (nếu đúng):</b> "Opcode 3 bit chọn được tối đa mấy phép toán?" → 2³ = 8 — chính quy tắc ⌈log₂n⌉ vừa học.</p>
+            <p class="small"><b>Cứu nguy (nếu bí):</b> MUX = vòi trộn nước: hai đường nóng/lạnh là data input, núm gạt là <code>sel</code>, một vòi ra là output. Decoder = bảng nút thang máy: bấm mã tầng, đúng một đèn sáng.</p>
+            <p class="small"><b>Mở rộng học viên giỏi:</b> "Vì sao bộ cộng ripple 32 bit chậm?" → carry lan qua 32 tầng, t<sub>pd</sub> cộng dồn theo chuỗi — mầm của <em>critical path</em>; T5 đặt "hạn chót" cho nó bằng chu kỳ clock.</p>
+          </div>
+        </div>
+        <div class="co co-warn small"><b>Nhịp buổi học.</b> Không giảng quá 10 phút liên tục. Phần 25–45′ là lõi: đi từng nhóm, hỏi "vì sao chọn khối này?", đừng cho đáp án sớm. Nhóm nhanh: thêm "LED thứ 3 sáng khi A == B" hoặc nâng đề lên 3 bit — sơ đồ khối gần như không đổi, đó chính là bài học.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= LAYER C ================= -->
+<section id="layer-c" class="layer layer-c">
+  <div class="wrap layer-head">
+    <div class="band">
+      <span class="layer-badge">C</span>
+      <h2>Technical Lab — Deep Dive</h2>
+      <span class="time">🔬 Tự học sâu · sau buổi hoặc khi thực hành</span>
+    </div>
+    <p class="lead">Toàn bộ kỹ thuật chi tiết nằm ở đây, chia thành mục gập/mở. Không bắt buộc đọc hết một lần — đi theo thứ tự khi làm bài tập.</p>
+  </div>
+  <div class="wrap layer-body">
+    <div class="dd-tools"><button data-dd="open">Mở tất cả</button><button data-dd="close">Đóng tất cả</button></div>
+
+    <!-- C1 -->
+    <details class="dd" open>
+      <summary><span class="no">C1</span> "Think in blocks" — vì sao và 5 viên gạch <span class="est">~8′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <p><b>Nhắc nền:</b> mạch tổ hợp = output chỉ phụ thuộc input <em>hiện tại</em>: Y = f(input), không phần tử nhớ, không clock, không reset — nhưng <em>có</em> propagation delay (C4). Một đống cổng nối lung tung chưa phải thiết kế; <b>khối</b> là mạch tổ hợp có đặc tả rõ: I/O và hành vi xác định.</p>
+        <p><b>Vì sao nghĩ theo khối?</b> (1) <b>Tái sử dụng</b> — một comparator viết đúng dùng lại ở mọi project; (2) <b>interface rõ</b> — biết Input – Output – Function là ghép được; (3) <b>giấu chi tiết</b> — bộ cộng 32 bit chứa hàng trăm cổng, không ai cần nhớ từng cổng. Khi synthesis, tool tự chuyển mô tả chức năng thành lưới cổng/LUT tương đương đã tối ưu.</p>
+        <div class="tblwrap">
+        <table class="tbl">
+          <tr><th>Khối</th><th>Chức năng một câu</th><th>Xuất hiện trong project T9–11</th></tr>
+          <tr><td><b>MUX</b> n:1</td><td>Chọn 1 trong n đường dữ liệu theo <code>sel</code></td><td>Chọn giá trị nạp cho timer theo pha đèn (T9); chọn digit hiển thị (T10)</td></tr>
+          <tr><td><b>Decoder</b></td><td>Mã nhị phân n bit → one-hot 2ⁿ đường</td><td>Giải mã BCD → LED 7 đoạn (T10)</td></tr>
+          <tr><td><b>Encoder</b></td><td>One-hot / nhiều đường → mã nhị phân</td><td>Đọc phím, priority encoder trong interrupt controller (ví dụ ngoài project)</td></tr>
+          <tr><td><b>Comparator</b></td><td>So sánh ==, &gt;, &lt; giữa hai số</td><td><code>timer_done</code>: count == thời gian đặt (T9)</td></tr>
+          <tr><td><b>Adder</b></td><td>Cộng nhị phân, có carry</td><td>Counter +1 — trái tim của timer (T5, T9)</td></tr>
+        </table>
+        </div>
+      </div>
+    </details>
+
+    <!-- C2 -->
+    <details class="dd">
+      <summary><span class="no">C2</span> MUX &amp; Decoder — chọn dữ liệu vs giải mã vị trí <span class="est">~12′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <p><b>MUX 2:1</b> — khối "quyết định" nhỏ nhất: hai đường vào <code>a</code> (kênh 0), <code>b</code> (kênh 1), một tín hiệu <code>sel</code>, một đường ra <code>y</code>. Coi a, b là biến thì truth table chỉ cần 2 hàng:</p>
+        <div class="tblwrap">
+        <table class="tbl">
+          <tr><th>sel</th><th>y</th></tr>
+          <tr><td>0</td><td>y = a</td></tr>
+          <tr><td>1</td><td>y = b</td></tr>
+        </table>
+        </div>
+        <p class="small">Biểu thức: <code>y = sel ? b : a</code>. Đời sống: TV chọn HDMI — nhiều nguồn, một màn hình. <b>MUX 4:1</b> tương tự: 4 kênh d0…d3, <code>sel[1:0]</code> 2 bit (2² = 4), y = kênh có chỉ số bằng sel. Trong IC: chọn toán hạng cho ALU; LUT của FPGA về bản chất cũng là MUX lớn.</p>
+        <p><b>Decoder 2-to-4</b> — nhận mã 2 bit, "bật" đúng một trong 4 đường ra (<b>one-hot</b>), kèm <code>en</code> (enable): en = 0 thì mọi đường ra bằng 0, khi đó input là "x" — <b>don't care</b>. Đời sống: bấm tầng 3 trong thang máy → chỉ đèn "3" sáng. Hai hàng đầu cho sẵn — tự điền 3 hàng còn lại rồi bấm kiểm tra:</p>
+        <div class="widget" data-widget="tt">
+          <div class="wtitle">Tự điền truth table decoder 2-to-4 (bấm ô: ? → 0 → 1)</div>
+          <div class="tblwrap">
+          <table class="tbl">
+            <tr><th>en</th><th>a[1]</th><th>a[0]</th><th>y[3]</th><th>y[2]</th><th>y[1]</th><th>y[0]</th></tr>
+            <tr><td>0</td><td>x</td><td>x</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+            <tr><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td></tr>
+            <tr><td>1</td><td>0</td><td>1</td><td class="tt-cell" data-exp="0"></td><td class="tt-cell" data-exp="0"></td><td class="tt-cell" data-exp="1"></td><td class="tt-cell" data-exp="0"></td></tr>
+            <tr><td>1</td><td>1</td><td>0</td><td class="tt-cell" data-exp="0"></td><td class="tt-cell" data-exp="1"></td><td class="tt-cell" data-exp="0"></td><td class="tt-cell" data-exp="0"></td></tr>
+            <tr><td>1</td><td>1</td><td>1</td><td class="tt-cell" data-exp="1"></td><td class="tt-cell" data-exp="0"></td><td class="tt-cell" data-exp="0"></td><td class="tt-cell" data-exp="0"></td></tr>
+          </table>
+          </div>
+          <button class="tt-check wbtn">Kiểm tra</button> <span class="tt-out small"></span>
+          <div class="wnote">Tính chất one-hot: mỗi hàng (khi en = 1) có đúng một số 1 ở nhóm y. Đường được bật là đường có chỉ số bằng giá trị của a[1:0].</div>
+        </div>
+        <div class="co co-info"><b>Phân xử MUX vs decoder trong 1 câu.</b> MUX <em>có nhiều data input</em> và chọn một đưa ra; decoder <em>không có data input</em> — nó biến mã số thành vị trí. Cả hai đều có "2 bit điều khiển" nên rất dễ lẫn — hãy hỏi "dữ liệu chảy từ đâu đến đâu?".</div>
+      </div>
+    </details>
+
+    <!-- C3 -->
+    <details class="dd">
+      <summary><span class="no">C3</span> Encoder &amp; Comparator <span class="est">~8′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <p><b>Encoder 4-to-2</b> — chiều ngược của decoder: 4 đường vào (thường one-hot), xuất mã nhị phân 2 bit của đường đang bằng 1. Đời sống: nhấn phím "7" → mạch xuất mã của phím đó. Điểm tinh tế: nếu <em>hai</em> input cùng bằng 1, encoder cần <b>quy tắc ưu tiên</b> (priority encoder) — không thể "mã hóa cả hai"; interrupt controller của CPU dùng đúng khối này để chọn ngắt ưu tiên cao nhất.</p>
+        <p><b>Comparator</b> — so sánh hai số n bit, xuất bộ ba <code>eq</code> / <code>gt</code> / <code>lt</code>, đúng một tín hiệu bằng 1.</p>
+        <ul>
+          <li><b>So sánh bằng (equality)</b> rẻ bất ngờ: XNOR từng cặp bit (bằng nhau → 1) rồi AND tất cả lại — không cần "trừ hai số" như nhiều bạn nghĩ. Với 2 bit: <code>eq = (a[1] ~^ b[1]) &amp; (a[0] ~^ b[0])</code>.</li>
+          <li><b>So sánh lớn/nhỏ (magnitude)</b> — mức ý tưởng: đi từ bit cao xuống bit thấp; bit cao nào phân thắng bại trước thì quyết định luôn (đúng với số nhị phân <b>không dấu</b>; số có dấu đảo nghĩa bit MSB — Phase 2), các bit thấp hơn chỉ được xét khi mọi bit cao bằng nhau.</li>
+        </ul>
+        <p class="small muted">Comparator là khối bạn gặp nhiều nhất trong project: <code>count == 4'd9</code> của counter T5, <code>timer_done</code> của T9 — đều là comparator do tool suy ra từ phép so sánh trong RTL.</p>
+      </div>
+    </details>
+
+    <!-- C4 -->
+    <details class="dd">
+      <summary><span class="no">C4</span> Adder &amp; propagation delay — mạch cộng và cái giá của nó <span class="est">~12′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <p><b>Half adder</b> cộng 2 bit — bạn đã "gặp lén" nó từ T1/T3: <code>sum = a ^ b</code> (XOR), <code>carry = a &amp; b</code> (AND). <b>Full adder</b> cộng 3 bit (a + b + carry-in) = <b>2 half adder + 1 cổng OR</b> gom carry: <code>sum = a ^ b ^ cin</code>; <code>cout = (a &amp; b) | ((a ^ b) &amp; cin)</code>.</p>
+        <p><b>Ghép chuỗi ripple-carry:</b> nối 4 full adder, carry-out tầng dưới vào carry-in tầng trên: Cin → FA0 → c1 → FA1 → c2 → FA2 → c3 → FA3 → Cout. Lưu ý: cộng hai số 4 bit có thể cần 5 bit (1111 + 0001 = 10000) — cắt mất carry-out là bug overflow âm thầm.</p>
+        <p><b>Propagation delay (t<sub>pd</sub>):</b> mỗi tầng cổng cần một khoảng thời gian nhỏ để output phản ứng theo input. Không có gì "ngay lập tức":</p>
+        <div class="wavebox">
+          <svg viewBox="0 0 680 160" width="680" height="160">
+            <g transform="translate(70,14)">
+              <line class="wv-grid" x1="0" y1="0" x2="0" y2="110"/>
+              <line class="wv-mark" x1="120" y1="0" x2="120" y2="110"/>
+              <line class="wv-mark" x1="360" y1="0" x2="360" y2="110"/>
+              <polyline class="wv-sig" points="0,40 120,40 120,20 360,20 360,40 560,40"/>
+              <polyline class="wv-sig2" points="0,110 160,110 160,90 400,90 400,110 560,110"/>
+              <line class="wv-mark" x1="120" y1="70" x2="160" y2="70" style="stroke:#fca5a5"/>
+              <text class="wv-note" x="124" y="64">t_pd</text>
+              <text class="wv-note" x="122" y="136">vùng chưa ổn định</text>
+            </g>
+            <text class="wv-lab" x="10" y="50">a</text>
+            <text class="wv-lab" x="10" y="120">y</text>
+          </svg>
+        </div>
+        <p class="small"><b>Đọc hình:</b> <code>y</code> chỉ đáng tin <b>sau</b> khi tín hiệu lan truyền xong — khoảng <code>t_pd</code> tính từ lúc đầu vào đổi. Trong khoảng đó đầu ra có thể nhấp nháy qua vài giá trị trung gian (glitch); mạch tổ hợp không "sai", nó chỉ <em>chưa xong</em>.</p>
+        <p><b>Vì sao mạch cộng rộng thì chậm:</b> bit tổng cao nhất phải chờ carry "chạy tiếp sức" qua <em>tất cả</em> các tầng. Nếu mỗi full adder trễ ~1 ns thì S3 của adder 4 bit đáng tin sau ~4 ns; bộ cộng 32 bit kiểu ripple: ~32 ns. Đường trễ dài nhất quyết định tốc độ của cả khối — T5 sẽ đặt cho nó "hạn chót" bằng chu kỳ clock, và t<sub>pd</sub> trở thành nhân vật chính. (Kiến trúc cộng nhanh hơn như carry-lookahead: chủ đề Phase 2. Tuần này chỉ cần trực giác: <b>nhiều tầng nối tiếp = chậm</b>.)</p>
+      </div>
+    </details>
+
+    <!-- C5 -->
+    <details class="dd">
+      <summary><span class="no">C5</span> RTL tổ hợp có dẫn dắt: mux2.sv &amp; comparator2.sv <span class="est">~15′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <p>Mục tiêu: <b>đọc hiểu từng dòng và gõ lại</b> hai module dưới đây — chưa cần tự viết từ số 0. Với mỗi dòng, tự hỏi: "dòng này sinh ra phần cứng gì?".</p>
+        <div class="co co-info"><b>Quy tắc vàng của mạch tổ hợp.</b> Trong <code>always_comb</code>: <b>gán giá trị mặc định cho MỌI output ngay dòng đầu</b>, rồi <code>if</code>/<code>case</code> ghi đè. Mọi nhánh đều xác định giá trị → tool không phải "nhớ giá trị cũ" → không sinh latch. Dùng blocking <code>=</code> cho tổ hợp; non-blocking <code>&lt;=</code> để dành cho mạch tuần tự (T5).</div>
+        <div class="rtl-frame">
+          <div class="rtl-head"><span class="ftag ftag-rtl">RTL</span><span class="fname">mux2.sv</span><span class="muted">· synthesizable</span></div>
+<pre class="code"><code>module mux2 (
+  input  logic a,    // kênh 0
+  input  logic b,    // kênh 1
+  input  logic sel,  // chọn kênh
+  output logic y
+);
+  always_comb begin
+    y = a;           // GÁN DEFAULT TRƯỚC — quy tắc vàng chống latch
+    if (sel) y = b;  // ghi đè khi sel = 1 (blocking '=')
+  end
+endmodule</code></pre>
+          <div class="rtl-meta">
+            <div><b>1 · Mục đích</b>Chọn 1 trong 2 đường dữ liệu theo <code>sel</code> — khối "quyết định" nhỏ nhất của mọi datapath.</div>
+            <div><b>2 · Interface</b><code>a</code>, <code>b</code>, <code>sel</code> vào; <code>y</code> ra. Không <code>clk</code>, không <code>rst_n</code> — tổ hợp thuần không có nhịp, không có nhớ.</div>
+            <div><b>3 · Phần cứng suy ra</b>Đúng 1 MUX 2:1 (FPGA: 1 LUT 3 đầu vào). Tương đương hoàn toàn với <code>assign y = sel ? b : a;</code> — hai cách mô tả, một phần cứng.</div>
+            <div><b>4 · Chiến lược test</b>Exhaustive: quét đủ 8 tổ hợp (a, b, sel) — mạch tổ hợp nhỏ luôn quét được toàn bộ, không có lý do bỏ sót.</div>
+            <div><b>5 · Waveform kỳ vọng</b>Khi sel = 0, y bám a; khi sel = 1, y bám b. Trong mô phỏng RTL, y đổi cùng thời điểm input; phần cứng thật trễ thêm t<sub>pd</sub> nhỏ.</div>
+            <div><b>6 · Bug kinh điển</b>Xóa dòng default rồi thêm nhánh <code>if</code> khác → latch; hoặc dùng <code>&lt;=</code> trong <code>always_comb</code> — sai ngữ nghĩa tổ hợp.</div>
+          </div>
+        </div>
+        <div class="rtl-frame">
+          <div class="rtl-head"><span class="ftag ftag-rtl">RTL</span><span class="fname">comparator2.sv</span><span class="muted">· synthesizable</span></div>
+<pre class="code"><code>module comparator2 (
+  input  logic [1:0] a, b,   // hai số 2 bit
+  output logic       gt,     // a &gt; b
+  output logic       lt,     // a &lt; b
+  output logic       eq      // a == b
+);
+  always_comb begin
+    gt = 1'b0;               // default CẢ BA output trước
+    lt = 1'b0;
+    eq = 1'b0;
+    if (a &gt; b)            gt = 1'b1;
+    else if (a &lt; b)       lt = 1'b1;
+    else                  eq = 1'b1;
+  end
+endmodule</code></pre>
+          <div class="rtl-meta">
+            <div><b>1 · Mục đích</b>So sánh hai số 2 bit — đúng khối của bài breakout 2 LED; phiên bản n bit chính là <code>timer_done</code> của T9.</div>
+            <div><b>2 · Interface</b><code>a[1:0]</code>, <code>b[1:0]</code> vào; <code>gt</code>/<code>lt</code>/<code>eq</code> ra — đúng một trong ba bằng 1.</div>
+            <div><b>3 · Phần cứng suy ra</b>Comparator 2 bit: vài cổng XNOR/AND/OR (FPGA: 2–3 LUT). 0 flip-flop, 0 latch — log synthesis phải sạch.</div>
+            <div><b>4 · Chiến lược test</b>Exhaustive 16 tổ hợp (a, b) bằng vòng for; mỗi bước kiểm thêm bất biến "đúng một output bằng 1".</div>
+            <div><b>5 · Waveform kỳ vọng</b>Mỗi lần (a, b) đổi, bộ ba (gt, lt, eq) đổi theo; không bao giờ thấy hai tín hiệu cùng bằng 1.</div>
+            <div><b>6 · Bug kinh điển</b>Default chỉ gán <code>gt</code> mà quên <code>lt</code>, <code>eq</code> → 2 latch cho 2 output thiếu. Lưu ý phân biệt: khi <b>đã</b> gán default đủ ba output, bỏ nhánh <code>else</code> cuối <b>không</b> sinh latch — chỉ làm <code>eq</code> kẹt ở 0 (bug chức năng, waveform bắt được nhưng log synthesis vẫn sạch).</div>
+          </div>
+        </div>
+        <p class="small">Gợi ý testbench exhaustive cho bài tập (đối chiếu từng hàng với truth table lập tay):</p>
+<pre class="code standalone"><code>// Trong testbench: quét ĐỦ 16 tổ hợp (a, b) của comparator2
+initial begin
+  for (int i = 0; i &lt; 16; i++) begin
+    {a, b} = i[3:0];   // 2 bit a ghép 2 bit b
+    #10;               // chờ, rồi so waveform với bảng đã lập tay
+  end
+  $finish;
+end</code></pre>
+      </div>
+    </details>
+
+    <!-- C6 -->
+    <details class="dd">
+      <summary><span class="no">C6</span> Săn bug: mạch chọn 3 nguồn sinh latch ngoài ý muốn <span class="est">~8′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <p><b>Đề:</b> module dưới đây <em>định</em> là mạch chọn 1 trong 3 nguồn dữ liệu (thuần tổ hợp), nhưng log synthesis báo "latch inferred". Chỉ có <b>MỘT khiếm khuyết</b> — tổ hợp <code>sel = 2'b11</code> không được nhánh nào phủ — nhưng có <b>2 vị trí sửa thay thế nhau</b>. Bấm để tìm cả hai, rồi trả lời: bạn chọn cách nào và vì sao? (Sửa một trong hai là hết latch.)</p>
+        <pre class="code bughunt"><code><span class="bh-line">module sel3 (</span>
+<span class="bh-line">  input  logic [7:0] a, b, c,   // 3 nguồn dữ liệu</span>
+<span class="bh-line">  input  logic [1:0] sel,</span>
+<span class="bh-line">  output logic [7:0] y</span>
+<span class="bh-line">);</span>
+<span class="bh-line" data-bug data-msg="Thiếu gán default ngay dòng đầu khối. Sửa: thêm y = a; (hoặc y = '0;) ngay sau begin — khi đó mọi nhánh đều xác định y, tool không phải 'giữ giá trị cũ' và không chèn latch.">  always_comb begin</span>
+<span class="bh-line">    if (sel == 2'b00)      y = a;</span>
+<span class="bh-line">    else if (sel == 2'b01) y = b;</span>
+<span class="bh-line" data-bug data-msg="Chuỗi if/else if kết thúc mà KHÔNG có else: khi sel == 2'b11 không nhánh nào gán y → tool suy ra 'giữ giá trị cũ' → chèn latch. Sửa: thêm else y = a; hoặc dựa vào gán default ở đầu khối để mọi trường hợp đều có giá trị.">    else if (sel == 2'b10) y = c;</span>
+<span class="bh-line">  end</span>
+<span class="bh-line">endmodule</span></code></pre>
+        <div class="bh-out">Chưa tìm thấy lỗi nào — bấm vào dòng code để kiểm tra.</div>
+        <div class="co co-warn small"><b>Red flag phải sửa ngay.</b> Chữ "latch inferred" trong log synthesis/elaborate không phải ghi chú vô hại: mạch đã có phần tử nhớ ngoài ý muốn, không còn thuần tổ hợp, timing khó phân tích. Chữa gốc rễ: <b>gán giá trị mặc định ngay dòng đầu <code>always_comb</code></b>. Tool thường chỉ <em>cảnh báo</em>, không báo lỗi — bạn phải tự đọc log.</div>
+      </div>
+    </details>
+
+    <!-- C7 vocab -->
+    <details class="dd">
+      <summary><span class="no">C7</span> Từ vựng kỹ thuật tuần 4 <span class="est">~5′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <div class="tblwrap">
+        <table class="tbl vocab">
+          <tr><th>Thuật ngữ</th><th>Nghĩa</th><th>Câu ví dụ (EN)</th></tr>
+          <tr><td>Multiplexer (MUX)</td><td>Bộ chọn kênh — chọn 1 trong 2ⁿ data input theo n bit select</td><td class="en">Use a 2-to-1 mux to select between two sensors.</td></tr>
+          <tr><td>Demultiplexer (DEMUX)</td><td>Ngược MUX: 1 đường vào → lái tới 1 trong n đường ra</td><td class="en">A demux routes the data to the selected output.</td></tr>
+          <tr><td>Decoder</td><td>Bộ giải mã — mã n bit → 2ⁿ đường one-hot</td><td class="en">The address decoder selects one RAM row.</td></tr>
+          <tr><td>Encoder</td><td>Bộ mã hóa — nhiều đường vào → mã nhị phân của đường tích cực</td><td class="en">A priority encoder resolves multiple requests.</td></tr>
+          <tr><td>One-hot</td><td>Vector chỉ có đúng 1 bit bằng 1</td><td class="en">Decoder outputs are one-hot signals.</td></tr>
+          <tr><td>Comparator</td><td>Bộ so sánh — xuất eq/gt/lt khi so hai số</td><td class="en">The comparator raises "gt" when A is greater.</td></tr>
+          <tr><td>Half adder</td><td>Bộ cộng 2 bit: sum = XOR, carry = AND, không có carry-in</td><td class="en">A half adder is built from XOR and AND.</td></tr>
+          <tr><td>Full adder</td><td>Bộ cộng 3 bit (có carry-in) — ghép chuỗi thành adder n bit</td><td class="en">Chain four full adders for a 4-bit adder.</td></tr>
+          <tr><td>Carry</td><td>Số nhớ — bit tràn sang cột kế khi tổng vượt 1</td><td class="en">The carry ripples through the chain.</td></tr>
+          <tr><td>Propagation delay (t<sub>pd</sub>)</td><td>Độ trễ lan truyền qua các tầng cổng</td><td class="en">Total propagation delay limits the speed.</td></tr>
+          <tr><td>ALU</td><td>Khối tính toán số học/logic của CPU — adder + logic + MUX chọn kết quả</td><td class="en">The ALU is built around an adder and muxes.</td></tr>
+        </table>
+        </div>
+      </div>
+    </details>
+  </div>
+</section>
+
+<!-- ================= LAYER D ================= -->
+<section id="layer-d" class="layer layer-d">
+  <div class="wrap layer-head">
+    <div class="band">
+      <span class="layer-badge">D</span>
+      <h2>Sau buổi học</h2>
+      <span class="time">📝 Quiz 5 câu · bài tập · phản tư</span>
+    </div>
+  </div>
+  <div class="wrap layer-body">
+
+    <div class="card">
+      <h3>Quiz tự kiểm tra — 5 câu</h3>
+      <p class="small muted">Chọn đáp án; chấm ngay và hiện giải thích. Câu hỏi kiểu dự đoán/suy luận — nếu sai, quay lại đúng mục Layer C được ghi trong giải thích.</p>
+      <div class="quiz" id="quiz">
+        <div class="qz-item" data-answer="C">
+          <p class="qz-q">1. Bạn cần chọn 1 trong 8 kênh cảm biến đưa về một bộ hiển thị. MUX 8:1 cần mấy bit select?</p>
+          <button class="qz-opt" data-key="A">1 bit</button>
+          <button class="qz-opt" data-key="B">2 bit</button>
+          <button class="qz-opt" data-key="C">3 bit</button>
+          <button class="qz-opt" data-key="D">8 bit</button>
+          <div class="qz-expl"><b>Giải thích:</b> n bit select phân biệt được 2ⁿ kênh; 2³ = 8 → 3 bit. Tổng quát: chọn 1 trong N cần ⌈log₂N⌉ bit. Đáp án "8 bit" là nhầm sang mã one-hot của decoder. Xem C2.</div>
+        </div>
+        <div class="qz-item" data-answer="A">
+          <p class="qz-q">2. Một <code>always_comb</code> chứa <code>case (sel)</code> đủ 4 nhánh + <code>default</code>, mỗi nhánh gán <code>y</code> từ một trong các nguồn d0…d3. Phần cứng nào được suy ra?</p>
+          <button class="qz-opt" data-key="A">Một MUX 4:1 — lưới logic tổ hợp thuần túy, không có FF nào</button>
+          <button class="qz-opt" data-key="B">4 flip-flop, mỗi nhánh case một FF</button>
+          <button class="qz-opt" data-key="C">Một latch, vì case luôn sinh latch</button>
+          <button class="qz-opt" data-key="D">Một bộ nhớ 4 ô đọc theo địa chỉ sel — cần thêm clock</button>
+          <div class="qz-expl"><b>Giải thích:</b> case đủ nhánh + default → mọi đường thi hành đều gán y → thuần tổ hợp, tool suy ra MUX 4:1. FF chỉ xuất hiện với <code>always_ff</code> và cạnh clock; latch chỉ xuất hiện khi có nhánh <em>không</em> gán. Xem C5.</div>
+        </div>
+        <div class="qz-item" data-answer="D">
+          <p class="qz-q">3. Trong <code>always_comb</code>, một chuỗi if/else if không phủ hết trường hợp và không có gán default. Điều gì xảy ra, và vì sao nguy hiểm?</p>
+          <button class="qz-opt" data-key="A">Mạch nhỏ và nhanh hơn vì ít logic phải sinh ra</button>
+          <button class="qz-opt" data-key="B">Trình biên dịch báo lỗi, không mô phỏng được</button>
+          <button class="qz-opt" data-key="C">Tool tự gán 0 cho các trường hợp thiếu — an toàn</button>
+          <button class="qz-opt" data-key="D">Tool suy ra "giữ giá trị cũ" và chèn latch — mạch không còn thuần tổ hợp, mà thường chỉ có một dòng cảnh báo trong log</button>
+          <div class="qz-expl"><b>Giải thích:</b> nhánh không gán nghĩa là "cần nhớ giá trị cũ" → cần phần tử nhớ → latch. Nguy hiểm vì tool không báo lỗi, chỉ cảnh báo — mạch "chạy được" lúc mô phỏng nhưng timing hỗn loạn trên phần cứng. Xem C6.</div>
+        </div>
+        <div class="qz-item" data-answer="B">
+          <p class="qz-q">4. Vì sao full adder cần đến 3 input trong khi half adder chỉ có 2?</p>
+          <button class="qz-opt" data-key="A">Để cộng được các số thập phân lớn hơn 9</button>
+          <button class="qz-opt" data-key="B">Input thứ 3 là carry-in nhận số nhớ từ hàng thấp hơn — nhờ đó ghép chuỗi được thành bộ cộng n bit</button>
+          <button class="qz-opt" data-key="C">Để dự phòng khi một input bị hỏng</button>
+          <button class="qz-opt" data-key="D">Để full adder tính được cả phép trừ</button>
+          <div class="qz-expl"><b>Giải thích:</b> giống cộng tay "nhớ 1 sang cột kế": mỗi hàng phải nhận số nhớ của hàng trước. Half adder không có carry-in nên chỉ đứng được ở hàng thấp nhất; full adder ghép chuỗi ripple-carry thành adder bất kỳ độ rộng. Xem C4.</div>
+        </div>
+        <div class="qz-item" data-answer="A">
+          <p class="qz-q">5. Thang máy hiển thị tầng: mã nhị phân 2 bit của tầng hiện tại phải làm sáng đúng 1 trong 4 đèn. Chọn khối nào?</p>
+          <button class="qz-opt" data-key="A">Decoder 2-to-4</button>
+          <button class="qz-opt" data-key="B">MUX 4:1</button>
+          <button class="qz-opt" data-key="C">Encoder 4-to-2</button>
+          <button class="qz-opt" data-key="D">Comparator 2 bit</button>
+          <div class="qz-expl"><b>Giải thích:</b> "mã nhị phân → đúng 1 đường sáng" là định nghĩa của decoder (output one-hot). MUX cần data input để chọn — ở đây không có; encoder là chiều ngược lại (đèn → mã). Xem C2 và C3.</div>
+        </div>
+        <div class="qz-bar"><span class="qz-score"></span><span class="qz-verdict"></span><button class="qz-reset">Làm lại</button></div>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <h3>Bài tập bắt buộc <span class="badge badge-req">nộp trước buổi 5</span></h3>
+        <p><b>Hai module tổ hợp đầu tiên</b> — làm đúng chuỗi: lập bảng tay → gõ code → mô phỏng → đối chiếu.</p>
+        <ul class="small">
+          <li>Lập tay truth table cho <code>mux2</code> (8 tổ hợp a, b, sel) và <code>comparator2</code> (16 tổ hợp a, b) TRƯỚC khi mô phỏng.</li>
+          <li>Gõ lại <code>mux2.sv</code> và <code>comparator2.sv</code> từ C5 (không copy-paste) — mô phỏng trên EDA Playground hoặc tool nhóm đang dùng.</li>
+          <li>Viết testbench quét ĐỦ tổ hợp input (exhaustive, mẫu vòng for ở C5); kiểm tra log không có "latch inferred".</li>
+          <li>Đối chiếu waveform với bảng đã lập: tick ✓ từng hàng.</li>
+        </ul>
+        <p class="small"><b>Nộp (deliverable):</b> 2 file .sv + testbench + ảnh waveform + bảng đối chiếu có tick ✓ + 2 dòng: "hàng nào lệch dự đoán của tôi, vì sao".</p>
+      </div>
+      <div class="card">
+        <h3>Thử thách nâng cao <span class="badge badge-opt">tự chọn</span></h3>
+        <p><b>full_adder.sv từ 2 half adder:</b> viết <code>half_adder.sv</code> (sum = a ^ b, carry = a &amp; b) rồi ghép 2 instance + 1 cổng OR thành full adder — <em>structural instantiation</em>, bước làm quen hierarchy trước khi T7 hệ thống hóa. Testbench quét đủ 8 tổ hợp (a, b, cin).</p>
+        <p class="small">Câu hỏi kèm: phần cứng của bản structural có khác bản viết thẳng <code>assign sum = a ^ b ^ cin;</code> không? (Gợi ý: synthesis sinh mạng cổng/LUT tương đương đã tối ưu — cùng hành vi, tool có thể ra cùng một mạch.)</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Rubric tuần 4</h3>
+      <div class="tblwrap">
+      <table class="tbl rubric">
+        <tr><th>Tiêu chí</th><th>Trọng số</th><th>Đạt khi…</th></tr>
+        <tr><td>Hiểu khái niệm</td><td class="pct">25%</td><td>Phân biệt MUX/decoder/encoder theo dòng chảy dữ liệu; giải thích được vì sao thiếu gán default sinh latch.</td></tr>
+        <tr><td>Kiến trúc</td><td class="pct">20%</td><td>Chọn đúng khối cho một yêu cầu mới; block diagram đủ tên tín hiệu + độ rộng bit, không có "dây mồ côi".</td></tr>
+        <tr><td>RTL đúng</td><td class="pct">20%</td><td><code>always_comb</code> có gán default; log synthesis/elaborate không có "latch inferred"; waveform khớp truth table.</td></tr>
+        <tr><td>Verification</td><td class="pct">20%</td><td>Testbench quét đủ tổ hợp (exhaustive); bảng đối chiếu tick ✓ từng hàng, ghi rõ hàng lệch (nếu có).</td></tr>
+        <tr><td>Giao tiếp kỹ thuật</td><td class="pct">15%</td><td>Trình bày khối theo Input – Output – Function mạch lạc; nói được "phần cứng nào được suy ra" từ chính code của mình.</td></tr>
+      </table>
+      </div>
+      <p class="small muted">Code chạy được chưa phải điểm tối đa — phải giải thích được vì sao nó đúng.</p>
+    </div>
+
+    <div class="card">
+      <h3>Tổng kết tuần 4</h3>
+      <div class="ican">
+        <div><b>I can explain</b>① Vì sao kỹ sư nghĩ theo khối: tái sử dụng, interface rõ, giấu chi tiết. ② Chức năng 5 khối theo Input – Output – Function, và cách phân xử MUX vs decoder bằng dòng chảy dữ liệu. ③ Vì sao thiếu gán default trong <code>always_comb</code> sinh latch, và vì sao "latch inferred" trong log là red flag.</div>
+        <div><b>I can design</b>Chọn khối và ghép thành block diagram cho bài "so sánh 2 số, báo LED" — hoàn chỉnh trên giấy trước khi viết dòng code nào.</div>
+        <div><b>I can verify</b>Viết testbench quét đủ tổ hợp cho khối tổ hợp nhỏ và đối chiếu waveform với truth table lập tay, tick từng hàng.</div>
+        <div><b>I can connect</b>Timer của đèn giao thông T9 = counter (T5) + <b>comparator</b> + <b>MUX</b> chọn giá trị nạp — đều của tuần này; seg7 T10 chính là một <b>decoder</b> lớn hơn.</div>
+        <div class="unsure"><b>I am still unsure about…</b><textarea class="reflect" id="unsure4" placeholder="Điều tôi giải thích được tuần này mà tuần trước chưa giải thích được là… / Điều tôi còn mơ hồ là… (tự động lưu trên máy bạn)"></textarea></div>
+        <div class="nextwk"><b>Next week</b>Bạn đã có phần "tính". T5 thêm <b>TRÍ NHỚ</b>: flip-flop, clock, và RTL tuần tự đầu tiên — một bộ đếm thật sự, lắp từ chính adder + comparator + MUX của tuần này.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="weeknav">
+      <a href="Week03.html"><small>← Tuần trước</small><b>T3 · Logic Gates &amp; Boolean Thinking</b></a>
+      <a class="next" href="Week05.html"><small>Tuần sau →</small><b>T5 · Sequential Logic &amp; Memory</b></a>
+    </div>
+    <div class="footer">
+      <b>IC Design Mentoring — Version 3 · Phase 1</b>
+      <span class="org">Khoa Điện – Điện tử · Trường Kỹ thuật · Đại học Phenikaa</span>
+      <span>Biên soạn: <b style="display:inline">Giảng Viên Đinh Văn Nam</b></span>
+      <span class="cr">© 2026 · Bản quyền thuộc về Giảng Viên Đinh Văn Nam, Khoa Điện-Điện Tử, Trường Kỹ Thuật, Đại học Phenikaa. Tài liệu phục vụ đào tạo — vui lòng giữ nguyên thông tin tác giả khi chia sẻ.</span>
+      <span class="cr">Hoạt động offline — không cần Internet.</span>
+    </div>
+  </div>
+</footer>
+</body>
+</html>

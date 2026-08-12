@@ -1,0 +1,47 @@
+{
+  "$comment": "Version manifest of the IC Design Mentoring Learning Hub. Used by tooling (search index, validators) and by maintainers adding future versions. The version cards on index.html are static HTML by design (the site must work without JavaScript) — when adding a version, update BOTH this manifest and the static cards. See docs/VERSIONING_POLICY.md.",
+  "versions": [
+    {
+      "id": "v1",
+      "title": "Version 1 — Original Baseline",
+      "titleVi": "Version 1 — Bản lưu trữ gốc",
+      "status": "historical",
+      "recommended": false,
+      "packaged": "2026-07-09",
+      "weekCount": 11,
+      "weeksMissing": ["Week5"],
+      "weekFilePattern": "Week{n}.html",
+      "path": "versions/v1/",
+      "offline": false,
+      "description": "11 phiếu điều phối buổi sinh hoạt 60 phút — điểm khởi đầu của chương trình. Tuần 5 không có trong bản lưu trữ và không được tạo bù. Cần Internet (CDN) để hiển thị đúng."
+    },
+    {
+      "id": "v2",
+      "title": "Version 2 — Expanded Curriculum",
+      "titleVi": "Version 2 — Bản mở rộng",
+      "status": "historical",
+      "recommended": false,
+      "packaged": "2026-07-10",
+      "weekCount": 12,
+      "weeksMissing": [],
+      "weekFilePattern": "Week{n}.html",
+      "path": "versions/v2/",
+      "offline": false,
+      "description": "Giáo trình tự học tương tác 12 tuần, khung 18 section, quiz tự chấm, RTL chất lượng công nghiệp, rubric và mentor notes. Nền nội dung của V3. Cần Internet (CDN) để hiển thị đúng."
+    },
+    {
+      "id": "v3",
+      "title": "Version 3 — Current Recommended",
+      "titleVi": "Version 3 — Bản hiện hành (khuyến nghị)",
+      "status": "current",
+      "recommended": true,
+      "packaged": "2026-08-08",
+      "weekCount": 12,
+      "weeksMissing": [],
+      "weekFilePattern": "Week{nn}.html",
+      "path": "versions/v3/",
+      "offline": true,
+      "description": "Hệ thống 4 lớp (trước buổi · buổi 60′ · lab · sau buổi), project tích hợp Tuần 9–11, capstone + cầu nối nghiên cứu Tuần 12, chế độ mentor, lưu tiến độ, hoạt động offline hoàn toàn, kèm Technical Audit và Validation Report."
+    }
+  ]
+}

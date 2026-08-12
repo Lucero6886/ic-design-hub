@@ -1,0 +1,52 @@
+---
+/** Danh sách entry chuẩn cho mọi collection — mỗi mục: badge, title, summary, meta */
+import { href, fmtDate } from "~/utils/url";
+import { label } from "~/utils/content";
+import { trackById } from "~/data/tracks";
+
+export interface Item {
+  url: string;
+  title: string;
+  summary: string;
+  date?: Date;
+  updated?: Date;
+  badges?: { text: string; tone?: "acc" | "green" | "warn" | "gray" | "danger" }[];
+  track?: string;
+  tags?: string[];
+}
+interface Props {
+  items: Item[];
+  emptyText?: string;
+}
+const { items, emptyText = "Chưa có nội dung trong mục này." } = Astro.props;
+---
+
+{
+  items.length === 0 ? (
+    <p class="muted">{emptyText}</p>
+  ) : (
+    <ul class="entry-list">
+      {items.map((it) => (
+        <li>
+          <div class="title">
+            <a href={it.url}>{it.title}</a>
+          </div>
+          <p class="summary">{it.summary}</p>
+          <div class="meta">
+            {(it.badges ?? []).map((b) => (
+              <span class={`badge ${b.tone ?? "gray"}`}>{b.text}</span>
+            ))}
+            {it.track && trackById(it.track) && (
+              <span class="badge acc">{trackById(it.track)!.label}</span>
+            )}
+            {it.date && <span>{fmtDate(it.date)}</span>}
+            {it.updated && <span>cập nhật {fmtDate(it.updated)}</span>}
+            {(it.tags ?? []).slice(0, 5).map((t) => (
+              <a class="tag" href={href(`tags/${t}/`)}>#{t}</a>
+            ))}
+          </div>
+        </li>
+      ))}
+    </ul>
+  )
+}

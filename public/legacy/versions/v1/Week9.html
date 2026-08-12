@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tuần 9: Traffic Light Controller | IC Design Mentoring</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Consolas', 'Monaco', 'Courier New', 'monospace'],
+                    },
+                    colors: {
+                        primary: '#2563eb', // Blue 600
+                        secondary: '#f59e0b', // Amber 500
+                        accent: '#10b981', // Emerald 500
+                        dark: '#1e293b', // Slate 800
+                        light: '#f8fafc', // Slate 50
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        details > summary { list-style: none; }
+        details > summary::-webkit-details-marker { display: none; }
+        details[open] summary ~ * { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .custom-checkbox {
+            appearance: none;
+            background-color: #fff;
+            margin: 0;
+            font: inherit;
+            color: currentColor;
+            width: 1.25em;
+            height: 1.25em;
+            border: 2px solid #cbd5e1;
+            border-radius: 0.25em;
+            display: grid;
+            place-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+        }
+        .custom-checkbox::before {
+            content: "";
+            width: 0.65em;
+            height: 0.65em;
+            transform: scale(0);
+            transition: 120ms transform ease-in-out;
+            box-shadow: inset 1em 1em white;
+            background-color: white;
+            transform-origin: center;
+            clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+        }
+        .custom-checkbox:checked {
+            background-color: #10b981;
+            border-color: #10b981;
+        }
+        .custom-checkbox:checked::before { transform: scale(1); }
+        .task-item.completed { text-decoration: line-through; color: #94a3b8; }
+        
+        /* FSM Active States */
+        .fsm-state { transition: all 0.3s ease; }
+        .fsm-state.active { transform: scale(1.1); stroke-width: 4; stroke: #fff; }
+        .fsm-path { transition: all 0.3s ease; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased selection:bg-primary selection:text-white pb-20">
+<div id="lichub-nav-top" data-lichub="v1" role="navigation" aria-label="Điều hướng Learning Hub (bổ sung, không thuộc trang gốc)" style="background:#0f172a;color:#e2e8f0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:13.5px;line-height:1.6;padding:8px 16px;display:flex;flex-wrap:wrap;gap:4px 16px;align-items:center;border-bottom:3px solid #f59e0b"><a href="../../index.html" style="color:#7dd3fc;text-decoration:none;font-weight:600">⌂ Learning Hub</a><span style="font-size:11px;font-weight:700;letter-spacing:.04em;color:#f59e0b;border:1px solid #f59e0b;border-radius:6px;padding:1px 7px;white-space:nowrap">V1 · BẢN LƯU TRỮ GỐC</span><a href="index.html" style="color:#cbd5e1;text-decoration:none">Mục lục V1</a><span style="flex:1"></span><a href="Week8.html" style="color:#7dd3fc;text-decoration:none" title="FPGA vs ASIC">← Tuần 8</a><a href="Week10.html" style="color:#7dd3fc;text-decoration:none" title="Counter & 7-Segment Display">Tuần 10 →</a><span aria-hidden="true" style="color:#475569">|</span><span style="display:inline-flex;gap:8px;align-items:center"><span style="color:#94a3b8">Chuyển bản:</span> <b aria-current="true" style="color:#f59e0b">V1</b> <a href="../v2/index.html" style="color:#cbd5e1;text-decoration:none">V2</a> <a href="../v3/index.html" style="color:#cbd5e1;text-decoration:none">V3</a></span></div>
+
+
+    <header class="bg-gradient-to-br from-dark to-slate-700 text-white pt-16 pb-20 px-6 shadow-xl relative overflow-hidden">
+        <div class="absolute top-0 right-0 opacity-10 pointer-events-none">
+            <i class="fa-solid fa-traffic-light text-[20rem] -mt-10 -mr-10"></i>
+        </div>
+        
+        <div class="max-w-4xl mx-auto relative z-10">
+            <div class="flex flex-wrap items-center gap-3 mb-4">
+                <span class="bg-primary text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Tuần 9</span>
+                <span class="bg-secondary text-dark text-xs font-bold px-3 py-1 rounded-full"><i class="fa-solid fa-diagram-project mr-1"></i> Thiết Kế Điều Khiển</span>
+                <span class="bg-white/20 text-white border border-white/30 text-xs font-semibold px-3 py-1 rounded-full"><i class="fa-solid fa-university mr-1"></i> Phenikaa University</span>
+            </div>
+            
+            <h1 class="text-4xl md:text-5xl font-extrabold mb-3 leading-tight text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-300">
+                Traffic Light Controller
+            </h1>
+            <h2 class="text-xl md:text-2xl font-medium text-slate-300 mb-6 border-l-4 border-primary pl-4">
+                Thiết Kế Bộ Điều Khiển Đèn Giao Thông Bằng FSM/Verilog
+            </h2>
+            
+            <div class="bg-white/10 backdrop-blur-md rounded-xl p-5 border border-white/20 mb-8 max-w-3xl">
+                <p class="text-lg leading-relaxed">
+                    <i class="fa-solid fa-quote-left text-primary opacity-50 mr-2"></i>
+                    Đèn giao thông là bài toán "nhập môn" kinh điển nhưng cực kỳ quan trọng. Tuần này, chúng ta sẽ kết nối lý thuyết FSM (Tuần 6) với thực hành Verilog (Tuần 7) để tạo ra một bộ điều khiển hoàn chỉnh có thể chạy trên FPGA.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="flex items-start gap-3">
+                    <div class="bg-white/20 w-8 h-8 flex items-center justify-center rounded-lg text-secondary shrink-0"><i class="fa-solid fa-code-branch"></i></div>
+                    <p class="text-sm mt-1">Biết cách mô hình hóa hệ thống đèn (Đỏ - Xanh - Vàng) dưới dạng FSM.</p>
+                </div>
+                <div class="flex items-start gap-3">
+                    <div class="bg-white/20 w-8 h-8 flex items-center justify-center rounded-lg text-secondary shrink-0"><i class="fa-solid fa-stopwatch"></i></div>
+                    <p class="text-sm mt-1">Hiểu cách kết hợp Bộ định thời (Timer) với Bộ điều khiển (Controller).</p>
+                </div>
+                <div class="flex items-start gap-3">
+                    <div class="bg-white/20 w-8 h-8 flex items-center justify-center rounded-lg text-secondary shrink-0"><i class="fa-solid fa-microchip"></i></div>
+                    <p class="text-sm mt-1">Chuyển đổi sơ đồ trạng thái (State Diagram) thành mã Verilog.</p>
+                </div>
+                <div class="flex items-start gap-3">
+                    <div class="bg-white/20 w-8 h-8 flex items-center justify-center rounded-lg text-secondary shrink-0"><i class="fa-solid fa-display"></i></div>
+                    <p class="text-sm mt-1">Cảm nhận được luồng công việc của một dự án thiết kế mini thực tế.</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 sm:px-6 -mt-10 relative z-20 space-y-8">
+
+        <section class="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
+            <div class="bg-blue-50 border-b border-blue-100 px-6 py-4 flex items-center justify-between">
+                <h3 class="text-xl font-bold text-dark flex items-center gap-2">
+                    <i class="fa-solid fa-mug-hot text-primary"></i> Chuẩn Bị Trước Buổi Học
+                </h3>
+            </div>
+            <div class="p-6">
+                <p class="text-slate-600 mb-6">
+                    Đừng vội mở phần mềm lên viết code Verilog ngay! Hãy lấy giấy bút ra, xác định các trạng thái (States) và thời gian chờ (Timers). Một FSM tốt bắt nguồn từ một sơ đồ thiết kế rõ ràng.
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 hover:border-primary/30 transition-colors">
+                        <h4 class="font-bold text-dark mb-4 border-b pb-2 flex items-center gap-2">
+                            <i class="fa-solid fa-list-check text-primary"></i> Checklist Tự Học
+                        </h4>
+                        <ul class="space-y-3" id="prep-checklist">
+                            <li class="flex items-start gap-3 group">
+                                <input type="checkbox" class="custom-checkbox mt-0.5" id="task1" onclick="toggleTask(this)">
+                                <label for="task1" class="cursor-pointer text-sm text-slate-700 task-item group-hover:text-primary transition-colors">Liệt kê 3 trạng thái cơ bản của một cột đèn giao thông</label>
+                            </li>
+                            <li class="flex items-start gap-3 group">
+                                <input type="checkbox" class="custom-checkbox mt-0.5" id="task2" onclick="toggleTask(this)">
+                                <label for="task2" class="cursor-pointer text-sm text-slate-700 task-item group-hover:text-primary transition-colors">Tương tác với Demo FSM Controller bên dưới</label>
+                            </li>
+                            <li class="flex items-start gap-3 group">
+                                <input type="checkbox" class="custom-checkbox mt-0.5" id="task3" onclick="toggleTask(this)">
+                                <label for="task3" class="cursor-pointer text-sm text-slate-700 task-item group-hover:text-primary transition-colors">Xác định điều kiện để chuyển trạng thái (Tín hiệu <code>timer_done</code>)</label>
+                            </li>
+                            <li class="flex items-start gap-3 group">
+                                <input type="checkbox" class="custom-checkbox mt-0.5" id="task4" onclick="toggleTask(this)">
+                                <label for="task4" class="cursor-pointer text-sm text-slate-700 task-item group-hover:text-primary transition-colors">Đọc trước về từ khóa <code>case</code> trong Verilog</label>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-blue-50 p-5 rounded-xl border border-blue-200 relative overflow-hidden">
+                        <i class="fa-regular fa-lightbulb absolute -right-4 -bottom-4 text-6xl text-blue-200 opacity-50"></i>
+                        <h4 class="font-bold text-primary mb-4 border-b border-blue-200 pb-2 relative z-10">Tư Duy Khởi Động</h4>
+                        <ul class="space-y-3 list-disc list-inside text-sm text-slate-700 relative z-10">
+                            <li>Hệ thống đèn giao thông cần gì để biết đã đến lúc chuyển từ Đèn Đỏ sang Đèn Xanh?</li>
+                            <li>Nếu có một nút bấm cho người đi bộ sang đường (Pedestrian Button), sơ đồ trạng thái sẽ thay đổi thế nào?</li>
+                            <li>Tại sao chúng ta tách riêng mạch đếm thời gian (Timer) và mạch FSM (Controller)?</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- KHÁI NIỆM & DEMO -->
+        <section class="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
+                <h3 class="text-xl font-bold text-dark flex items-center gap-2">
+                    <i class="fa-solid fa-microchip text-primary"></i> Khái Niệm & Demo Trực Quan
+                </h3>
+            </div>
+            
+            <div class="p-6 divide-y divide-slate-100">
+                <div class="py-5 first:pt-0">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="text-lg font-bold text-primary mb-2 flex items-center gap-2">
+                                <span class="bg-primary/10 text-primary w-6 h-6 rounded-full flex items-center justify-center text-sm">1</span> Tách biệt Data Path và Controller
+                            </h4>
+                            <p class="text-slate-600 text-sm leading-relaxed mb-4">
+                                Trong thiết kế vi mạch, kỹ sư thường tách hệ thống thành 2 phần: <strong>Data Path</strong> (Bộ đếm thời gian Timer) và <strong>Controller</strong> (Bộ não FSM). FSM nhận tín hiệu <code>timer_done</code> từ Timer để quyết định chuyển đèn, rồi ra lệnh cho Timer đếm lại từ đầu.
+                            </p>
+                        </div>
+                        <div>
+                            <h4 class="text-lg font-bold text-primary mb-2 flex items-center gap-2">
+                                <span class="bg-primary/10 text-primary w-6 h-6 rounded-full flex items-center justify-center text-sm">2</span> Luồng FSM Cơ Bản
+                            </h4>
+                            <p class="text-slate-600 text-sm leading-relaxed mb-4">
+                                Một cột đèn giao thông 1 chiều đơn giản có luồng tuần tự: <strong>RED &rarr; GREEN &rarr; YELLOW &rarr; quay lại RED</strong>. Điều kiện chuyển trạng thái duy nhất ở ví dụ này là "Hết thời gian chờ".
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- INTERACTIVE FSM DEMO (SVG Driven) -->
+                <div class="py-5">
+                    <div class="bg-gradient-to-br from-slate-900 to-slate-800 p-6 rounded-2xl border border-slate-700 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.5)] relative overflow-hidden">
+                        <!-- Background grid effect -->
+                        <div class="absolute inset-0 opacity-20 pointer-events-none" style="background-image: radial-gradient(#64748b 1px, transparent 1px); background-size: 20px 20px;"></div>
+
+                        <div class="relative z-10 mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-700 pb-4">
+                            <div>
+                                <h4 class="text-xl font-bold text-white flex items-center gap-2"><i class="fa-solid fa-gamepad text-secondary"></i> Live Demo: Traffic Light Controller</h4>
+                                <p class="text-sm text-slate-400 mt-1">Bấm nút để kích hoạt tín hiệu <code class="text-secondary bg-slate-800 px-1 rounded">timer_done</code> và quan sát Controller ra quyết định.</p>
+                            </div>
+                            <button id="btnTimerDone" class="bg-gradient-to-r from-blue-600 to-primary hover:from-blue-500 hover:to-blue-600 text-white font-bold py-3 px-6 rounded-xl shadow-[0_0_15px_rgba(37,99,235,0.4)] active:scale-95 transition-all flex items-center gap-2 border border-blue-400/50 group">
+                                <i class="fa-solid fa-stopwatch group-hover:animate-spin"></i> Gửi tín hiệu 'timer_done'
+                            </button>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch relative z-10">
+                            
+                            <!-- 1. SVG FSM DIAGRAM -->
+                            <div class="bg-slate-950/60 backdrop-blur-sm p-4 rounded-xl border border-slate-700 flex flex-col items-center justify-center relative shadow-inner">
+                                <span class="absolute top-3 left-4 text-[10px] font-bold text-slate-500 tracking-widest uppercase"><i class="fa-solid fa-project-diagram mr-1"></i> FSM Model</span>
+                                
+                                <svg viewBox="0 0 300 260" class="w-full max-w-[260px] h-auto font-mono mt-6 overflow-visible">
+                                    <defs>
+                                        <marker id="arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                            <polygon points="0 0, 10 3.5, 0 7" fill="#64748b"/>
+                                        </marker>
+                                        <marker id="arrow-active" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                            <polygon points="0 0, 10 3.5, 0 7" fill="#ffffff"/>
+                                        </marker>
+                                        <!-- Glow Filters -->
+                                        <filter id="glow-red" x="-20%" y="-20%" width="140%" height="140%">
+                                            <feGaussianBlur stdDeviation="5" result="blur" />
+                                            <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                                        </filter>
+                                        <filter id="glow-green" x="-20%" y="-20%" width="140%" height="140%">
+                                            <feGaussianBlur stdDeviation="5" result="blur" />
+                                            <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                                        </filter>
+                                        <filter id="glow-yellow" x="-20%" y="-20%" width="140%" height="140%">
+                                            <feGaussianBlur stdDeviation="5" result="blur" />
+                                            <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                                        </filter>
+                                    </defs>
+
+                                    <!-- STATE: RED (Top Center) -->
+                                    <g id="state-R" class="fsm-state transition-all duration-300" transform-origin="150 40">
+                                        <circle cx="150" cy="40" r="30" fill="#0f172a" stroke="#ef4444" stroke-width="3"/>
+                                        <text x="150" y="45" fill="white" text-anchor="middle" font-weight="bold" font-size="14">RED</text>
+                                    </g>
+
+                                    <!-- STATE: GREEN (Bottom Right) -->
+                                    <g id="state-G" class="fsm-state transition-all duration-300 opacity-40" transform-origin="240 190">
+                                        <circle cx="240" cy="190" r="30" fill="#0f172a" stroke="#10b981" stroke-width="3"/>
+                                        <text x="240" y="195" fill="white" text-anchor="middle" font-weight="bold" font-size="14">GREEN</text>
+                                    </g>
+
+                                    <!-- STATE: YELLOW (Bottom Left) -->
+                                    <g id="state-Y" class="fsm-state transition-all duration-300 opacity-40" transform-origin="60 190">
+                                        <circle cx="60" cy="190" r="30" fill="#0f172a" stroke="#f59e0b" stroke-width="3"/>
+                                        <text x="60" y="195" fill="white" text-anchor="middle" font-weight="bold" font-size="14">YELLOW</text>
+                                    </g>
+
+                                    <!-- TRANSITIONS (Curved Paths) -->
+                                    <!-- R to G -->
+                                    <path id="path-R-G" d="M 172 60 Q 230 110 240 155" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)" stroke-dasharray="4,4" class="fsm-path"/>
+                                    <text x="230" y="105" fill="#94a3b8" font-size="10" font-weight="bold" text-anchor="middle" transform="rotate(35, 230, 105)">timer_done</text>
+
+                                    <!-- G to Y -->
+                                    <path id="path-G-Y" d="M 205 190 L 95 190" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)" stroke-dasharray="4,4" class="fsm-path"/>
+                                    <text x="150" y="208" fill="#94a3b8" font-size="10" font-weight="bold" text-anchor="middle">timer_done</text>
+
+                                    <!-- Y to R -->
+                                    <path id="path-Y-R" d="M 60 155 Q 70 110 128 60" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)" stroke-dasharray="4,4" class="fsm-path"/>
+                                    <text x="70" y="105" fill="#94a3b8" font-size="10" font-weight="bold" text-anchor="middle" transform="rotate(-35, 70, 105)">timer_done</text>
+                                </svg>
+                            </div>
+
+                            <!-- 2. TERMINAL CONSOLE (Logic Output) -->
+                            <div class="bg-black rounded-xl border border-slate-700 flex flex-col overflow-hidden shadow-[inset_0_0_20px_rgba(0,0,0,1)] relative">
+                                <div class="bg-slate-800 px-3 py-1.5 flex items-center justify-between border-b border-slate-700">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                                        <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                                        <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                                        <span class="text-[10px] text-slate-400 font-mono ml-2 uppercase">Controller_Log.exe</span>
+                                    </div>
+                                    <button id="btnClearLog" class="text-slate-400 hover:text-white transition-colors p-1" title="Xóa Log">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </div>
+                                <div id="terminal-output" class="p-4 font-mono text-[11px] leading-loose h-full min-h-[200px] overflow-y-auto flex flex-col justify-end space-y-1">
+                                    <!-- Logs will be injected here via JS -->
+                                    <div class="text-slate-500">>> FSM Initialized.</div>
+                                    <div class="text-slate-400">>> Current State: <span class="text-red-400 font-bold">RED</span></div>
+                                    <div class="text-slate-400">>> Output active: Red Light</div>
+                                    <div class="text-slate-500 animate-pulse mt-2">>> Waiting for timer_done...</div>
+                                </div>
+                            </div>
+
+                            <!-- 3. PHYSICAL TRAFFIC LIGHT -->
+                            <div class="bg-slate-950/60 backdrop-blur-sm p-4 rounded-xl border border-slate-700 flex flex-col items-center justify-center relative shadow-inner">
+                                <span class="absolute top-3 left-4 text-[10px] font-bold text-slate-500 tracking-widest uppercase"><i class="fa-solid fa-lightbulb mr-1"></i> Output</span>
+                                
+                                <!-- Realistic Housing -->
+                                <div class="bg-slate-900 border-4 border-slate-950 rounded-full p-3 flex flex-col gap-3 shadow-[8px_8px_0px_rgba(0,0,0,0.4)] mt-4">
+                                    <!-- Red -->
+                                    <div class="relative w-14 h-14 bg-black rounded-full border-4 border-slate-800/80 shadow-[inset_0_4px_4px_rgba(0,0,0,0.6)]">
+                                        <div class="absolute -top-1 -left-2 -right-2 h-6 bg-slate-950 rounded-t-full opacity-60 pointer-events-none"></div> <!-- Visor -->
+                                        <div id="light-red" class="absolute inset-0 rounded-full bg-red-500 shadow-[0_0_25px_#ef4444] transition-all duration-300 opacity-100"></div>
+                                    </div>
+                                    <!-- Yellow -->
+                                    <div class="relative w-14 h-14 bg-black rounded-full border-4 border-slate-800/80 shadow-[inset_0_4px_4px_rgba(0,0,0,0.6)]">
+                                        <div class="absolute -top-1 -left-2 -right-2 h-6 bg-slate-950 rounded-t-full opacity-60 pointer-events-none"></div>
+                                        <div id="light-yellow" class="absolute inset-0 rounded-full bg-yellow-400 shadow-[0_0_25px_#facc15] transition-all duration-300 opacity-10"></div>
+                                    </div>
+                                    <!-- Green -->
+                                    <div class="relative w-14 h-14 bg-black rounded-full border-4 border-slate-800/80 shadow-[inset_0_4px_4px_rgba(0,0,0,0.6)]">
+                                        <div class="absolute -top-1 -left-2 -right-2 h-6 bg-slate-950 rounded-t-full opacity-60 pointer-events-none"></div>
+                                        <div id="light-green" class="absolute inset-0 rounded-full bg-emerald-500 shadow-[0_0_25px_#10b981] transition-all duration-300 opacity-10"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- STUDENT TASK SECTION -->
+        <section class="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
+            <div class="bg-amber-50 border-b border-amber-200 px-6 py-4 flex items-center justify-between">
+                <h3 class="text-xl font-bold text-dark flex items-center gap-2">
+                    <i class="fa-solid fa-users-gear text-secondary"></i> Nhiệm Vụ Của Nhóm
+                </h3>
+                <span class="text-xs bg-amber-200 text-amber-800 px-3 py-1 rounded-full font-bold shadow-sm">Thuyết trình 10 phút</span>
+            </div>
+            <div class="p-6">
+                <div class="flex items-start gap-4 mb-6 bg-yellow-50 p-4 rounded-xl border-l-4 border-secondary shadow-sm">
+                    <i class="fa-solid fa-lightbulb text-secondary text-xl mt-1"></i>
+                    <div>
+                        <p class="text-sm font-bold text-slate-800 mb-1">Quy tắc Mentor:</p>
+                        <p class="text-sm text-slate-600 italic">"Hãy tập trung giải thích Sơ đồ chuyển trạng thái (State Diagram) trước khi nói về code. Trình bày rõ: Có bao nhiêu trạng thái? Đầu ra ở mỗi trạng thái là gì? Khi nào thì mũi tên chuyển đi?"</p>
+                    </div>
+                </div>
+
+                <h4 class="font-bold text-dark mb-3 text-sm uppercase tracking-wider">Gợi ý nội dung Slide nhóm (5-7 trang):</h4>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-slate-700 mb-2">
+                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 flex gap-3 items-center hover:border-amber-300 transition-colors">
+                        <span class="bg-dark text-white rounded w-6 h-6 flex items-center justify-center shrink-0 font-bold text-xs">1</span>
+                        <p class="font-medium">Hệ thống đèn giao thông dùng để làm gì? Xác định Inputs/Outputs.</p>
+                    </div>
+                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 flex gap-3 items-center hover:border-amber-300 transition-colors">
+                        <span class="bg-dark text-white rounded w-6 h-6 flex items-center justify-center shrink-0 font-bold text-xs">2</span>
+                        <p class="font-medium">Mô tả 3 trạng thái cơ bản (RED, GREEN, YELLOW) và Output tương ứng.</p>
+                    </div>
+                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 flex gap-3 items-center hover:border-amber-300 transition-colors">
+                        <span class="bg-dark text-white rounded w-6 h-6 flex items-center justify-center shrink-0 font-bold text-xs">3</span>
+                        <p class="font-medium">Vẽ và giải thích sơ đồ FSM (Luật chuyển trạng thái - Transition rules).</p>
+                    </div>
+                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 flex gap-3 items-center hover:border-amber-300 transition-colors">
+                        <span class="bg-dark text-white rounded w-6 h-6 flex items-center justify-center shrink-0 font-bold text-xs">4</span>
+                        <p class="font-medium">Từ khóa <code>case</code> trong Verilog liên hệ thế nào với FSM?</p>
+                    </div>
+                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 flex gap-3 items-center sm:col-span-2 hover:border-amber-300 transition-colors bg-gradient-to-r from-amber-50 to-white">
+                        <span class="bg-secondary text-white rounded w-6 h-6 flex items-center justify-center shrink-0 font-bold text-xs"><i class="fa-solid fa-code"></i></span>
+                        <p class="font-medium">Cấu trúc 3 khối (3-always block) chuẩn khi code FSM trong Verilog là gì?</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- DURING SESSION (TIMELINE) -->
+        <section class="bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
+            <h3 class="text-xl font-bold text-dark mb-6 flex items-center gap-2 border-b pb-4">
+                <i class="fa-solid fa-stopwatch text-accent"></i> Tiến Trình Buổi Học (60 Phút)
+            </h3>
+            
+            <div class="relative border-l-2 border-slate-200 ml-3 md:ml-6 space-y-6">
+                <!-- Timeline Items -->
+                <div class="relative pl-6 md:pl-8 group">
+                    <div class="absolute w-4 h-4 bg-accent rounded-full -left-[9px] top-1 border-4 border-white shadow group-hover:scale-125 transition-transform"></div>
+                    <div class="flex flex-col md:flex-row md:items-center gap-1 md:gap-4 mb-1">
+                        <span class="text-accent font-bold text-sm w-16 bg-accent/10 px-2 py-0.5 rounded text-center">0' - 5'</span>
+                        <h4 class="font-bold text-dark text-lg">Quick Check-in</h4>
+                    </div>
+                    <p class="text-sm text-slate-600 bg-slate-50 p-2 rounded border border-slate-100">Mentor đặt vấn đề: Làm sao để mở rộng FSM trên thành ngã tư 2 chiều?</p>
+                </div>
+                
+                <div class="relative pl-6 md:pl-8 group">
+                    <div class="absolute w-4 h-4 bg-primary rounded-full -left-[9px] top-1 border-4 border-white shadow group-hover:scale-125 transition-transform"></div>
+                    <div class="flex flex-col md:flex-row md:items-center gap-1 md:gap-4 mb-1">
+                        <span class="text-primary font-bold text-sm w-16 bg-primary/10 px-2 py-0.5 rounded text-center">5' - 15'</span>
+                        <h4 class="font-bold text-dark text-lg">Student Presentation</h4>
+                    </div>
+                    <p class="text-sm text-slate-600 bg-slate-50 p-2 rounded border border-slate-100">Đại diện nhóm thuyết trình thiết kế FSM Đèn giao thông.</p>
+                </div>
+
+                <div class="relative pl-6 md:pl-8 group">
+                    <div class="absolute w-4 h-4 bg-dark rounded-full -left-[9px] top-1 border-4 border-white shadow group-hover:scale-125 transition-transform"></div>
+                    <div class="flex flex-col md:flex-row md:items-center gap-1 md:gap-4 mb-1">
+                        <span class="text-dark font-bold text-sm w-16 bg-slate-200 px-2 py-0.5 rounded text-center">15' - 25'</span>
+                        <h4 class="font-bold text-dark text-lg">Mentor Guidance</h4>
+                    </div>
+                    <p class="text-sm text-slate-600 bg-slate-50 p-2 rounded border border-slate-100">Mentor nhận xét sơ đồ. <strong class="text-red-500">Demo việc dịch từ State Diagram sang code Verilog (lệnh case)</strong>.</p>
+                </div>
+
+                <div class="relative pl-6 md:pl-8 group">
+                    <div class="absolute w-4 h-4 bg-secondary rounded-full -left-[9px] top-1 border-4 border-white shadow group-hover:scale-125 transition-transform"></div>
+                    <div class="flex flex-col md:flex-row md:items-center gap-1 md:gap-4 mb-1">
+                        <span class="text-secondary font-bold text-sm w-16 bg-secondary/10 px-2 py-0.5 rounded text-center">25' - 45'</span>
+                        <h4 class="font-bold text-dark text-lg">Breakout Room</h4>
+                    </div>
+                    <p class="text-sm text-slate-600 bg-slate-50 p-2 rounded border border-slate-100">Các nhóm thảo luận nâng cấp hệ thống (thêm chức năng ban đêm hoặc nút bấm cho người đi bộ).</p>
+                </div>
+
+                <div class="relative pl-6 md:pl-8 group">
+                    <div class="absolute w-4 h-4 bg-purple-500 rounded-full -left-[9px] top-1 border-4 border-white shadow group-hover:scale-125 transition-transform"></div>
+                    <div class="flex flex-col md:flex-row md:items-center gap-1 md:gap-4 mb-1">
+                        <span class="text-purple-500 font-bold text-sm w-16 bg-purple-100 px-2 py-0.5 rounded text-center">45' - 55'</span>
+                        <h4 class="font-bold text-dark text-lg">Group Sharing</h4>
+                    </div>
+                    <p class="text-sm text-slate-600 bg-slate-50 p-2 rounded border border-slate-100">Các nhóm trình bày sơ đồ FSM vừa được nâng cấp của nhóm mình.</p>
+                </div>
+
+                <div class="relative pl-6 md:pl-8 group">
+                    <div class="absolute w-4 h-4 bg-emerald-600 rounded-full -left-[9px] top-1 border-4 border-white shadow group-hover:scale-125 transition-transform"></div>
+                    <div class="flex flex-col md:flex-row md:items-center gap-1 md:gap-4 mb-1">
+                        <span class="text-emerald-600 font-bold text-sm w-16 bg-emerald-100 px-2 py-0.5 rounded text-center">55' - 60'</span>
+                        <h4 class="font-bold text-dark text-lg">Wrap-up & Task</h4>
+                    </div>
+                    <p class="text-sm text-slate-600 bg-slate-50 p-2 rounded border border-slate-100">Hướng dẫn đăng ký tham gia nhóm Demo FPGA thực tế. Điền form điểm danh.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- BREAKOUT ROOM GUIDE -->
+        <section class="bg-gradient-to-br from-slate-800 to-dark text-white rounded-2xl shadow-lg overflow-hidden border border-slate-700">
+            <div class="px-6 py-4 border-b border-white/10 flex flex-wrap items-center justify-between gap-2">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-comments text-secondary text-xl"></i>
+                    <h3 class="text-xl font-bold">Hướng Dẫn Breakout Room</h3>
+                </div>
+                <span class="text-[10px] uppercase font-bold bg-white/10 px-2 py-1 rounded text-slate-300">Feature Upgrade</span>
+            </div>
+
+            <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    <h4 class="font-semibold text-secondary mb-3 uppercase tracking-wider text-sm flex items-center gap-2">
+                        <i class="fa-regular fa-message"></i> Yêu cầu Thảo Luận
+                    </h4>
+                    <p class="text-sm text-slate-300 mb-4 italic bg-black/20 p-3 rounded">Mở rộng bài toán: Đèn giao thông tại một ngã tư nhỏ thường có thêm tính năng <strong>"Đèn vàng nhấp nháy vào ban đêm" (Night Mode)</strong>.</p>
+                    <ul class="space-y-3">
+                        <li class="bg-white/5 p-3 rounded-lg text-sm border-l-2 border-secondary hover:bg-white/10 transition-colors">
+                            <span class="font-bold text-secondary mr-2">Q1.</span> Chúng ta cần thêm tín hiệu Input nào để FSM biết trời đã tối?
+                        </li>
+                        <li class="bg-white/5 p-3 rounded-lg text-sm border-l-2 border-secondary hover:bg-white/10 transition-colors">
+                            <span class="font-bold text-secondary mr-2">Q2.</span> Cần bổ sung thêm State(s) nào vào mô hình hiện tại để thực hiện chức năng nhấp nháy đèn Vàng?
+                        </li>
+                        <li class="bg-white/5 p-3 rounded-lg text-sm border-l-2 border-secondary hover:bg-white/10 transition-colors">
+                            <span class="font-bold text-secondary mr-2">Q3.</span> Từ bất kỳ State nào (Đỏ, Xanh), làm sao để nhảy sang chế độ Night Mode? Vẽ nháp các đường mũi tên mới.
+                        </li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold text-accent mb-3 uppercase tracking-wider text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-users"></i> Vai Trò Tổ Chức Nhóm
+                    </h4>
+                    <div class="space-y-2 mb-4 bg-black/20 p-3 rounded-xl border border-white/5">
+                        <div class="flex items-center gap-3">
+                            <div class="bg-white/10 w-8 h-8 rounded-full flex items-center justify-center shrink-0"><i class="fa-solid fa-user-tie text-accent text-sm"></i></div>
+                            <p class="text-sm"><strong class="text-white">Facilitator:</strong> Đảm bảo nhóm không đi vào phân tích mạch Timer, chỉ tập trung vào FSM.</p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="bg-white/10 w-8 h-8 rounded-full flex items-center justify-center shrink-0"><i class="fa-solid fa-pen-clip text-accent text-sm"></i></div>
+                            <p class="text-sm"><strong class="text-white">Note Keeper:</strong> Cập nhật sơ đồ State Diagram, thêm mũi tên và điều kiện Input mới.</p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="bg-white/10 w-8 h-8 rounded-full flex items-center justify-center shrink-0"><i class="fa-solid fa-bullhorn text-accent text-sm"></i></div>
+                            <p class="text-sm"><strong class="text-white">Reporter:</strong> Share màn hình sơ đồ FSM mới và trình bày logic chuyển đổi khi về Main room.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- KEY VOCABULARY BILINGUAL -->
+        <section class="bg-slate-50 rounded-2xl shadow-sm border border-slate-200 p-6">
+            <h3 class="text-xl font-bold text-dark flex items-center gap-2 mb-6">
+                <i class="fa-solid fa-language text-accent"></i> Từ Vựng Tiếng Anh Chuyên Ngành
+            </h3>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 hover:border-primary transition-all duration-300">
+                    <h4 class="font-bold text-primary text-lg mb-1">State</h4>
+                    <p class="text-sm font-bold text-dark mb-1">Trạng thái</p>
+                    <p class="text-[11px] text-slate-500">Mỗi trạng thái hoạt động độc lập của hệ thống (RED, GREEN, YELLOW).</p>
+                </div>
+                
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 hover:border-primary transition-all duration-300">
+                    <h4 class="font-bold text-primary text-lg mb-1">Timer</h4>
+                    <p class="text-sm font-bold text-dark mb-1">Bộ định thời</p>
+                    <p class="text-[11px] text-slate-500">Khối Data Path đếm thời gian và cấp tín hiệu <code>timer_done</code> cho Controller.</p>
+                </div>
+                
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 hover:border-primary transition-all duration-300">
+                    <h4 class="font-bold text-primary text-lg mb-1">Transition</h4>
+                    <p class="text-sm font-bold text-dark mb-1">Sự chuyển trạng thái</p>
+                    <p class="text-[11px] text-slate-500">Hành động nhảy từ State hiện tại sang State tiếp theo dựa trên Input.</p>
+                </div>
+                
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 hover:border-primary transition-all duration-300">
+                    <h4 class="font-bold text-primary text-lg mb-1">Output Control</h4>
+                    <p class="text-sm font-bold text-dark mb-1">Điều khiển đầu ra</p>
+                    <p class="text-[11px] text-slate-500">Khối logic quyết định giá trị các cổng Output (Đèn nào sáng) tùy thuộc vào State hiện hành.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- TWO COLUMNS SECTION: MENTOR NOTE & PROJECTS -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <section class="bg-blue-600 text-white rounded-2xl shadow-lg p-6 relative overflow-hidden flex flex-col">
+                <i class="fa-solid fa-code-branch absolute -right-6 -bottom-6 text-9xl text-blue-500 opacity-30"></i>
+                <div class="relative z-10 flex-1">
+                    <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-lightbulb text-yellow-300"></i> Lời Khuyên Từ Mentor
+                    </h3>
+                    
+                    <div class="space-y-4">
+                        <div class="bg-yellow-500/20 p-3 rounded-lg border border-yellow-400/50 backdrop-blur-sm">
+                            <span class="text-yellow-300 text-xs font-bold uppercase tracking-wider block mb-1"><i class="fa-solid fa-triangle-exclamation"></i> Sửa Lỗi Tư Duy (Misconception)</span>
+                            <p class="text-sm text-white leading-relaxed">Khi mới học thiết kế FSM trên Verilog, nhiều sinh viên viết gộp chung phần đếm thời gian (Timer) và phần chuyển trạng thái (Controller) vào cùng một khối <code>always</code>. Điều này gây khó khăn trong việc debug và thiết kế không chuẩn. <strong>Sự thật:</strong> Hãy tách Timer ra một module riêng, FSM chỉ nhận tín hiệu <code>timer_done</code>.</p>
+                        </div>
+
+                        <div class="border-t border-blue-400/50 pt-3">
+                            <p class="text-base font-bold text-yellow-300 italic mb-2">"A good FSM starts with a clear diagram."</p>
+                            <p class="text-sm text-blue-50 leading-relaxed">Mọi FSM phức tạp đều có thể được mô tả bằng cấu trúc 3-always block trong Verilog (Next State Logic, State Memory, Output Logic). Nắm vững cấu trúc này là bạn nắm được 50% kỹ năng thiết kế số.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="bg-white rounded-2xl shadow-lg border border-slate-200 p-6 flex flex-col">
+                <h3 class="text-xl font-bold text-dark mb-4 flex items-center gap-2 border-b pb-3">
+                    <i class="fa-solid fa-plug-circle-bolt text-secondary"></i> Kết Nối Dự Án (Mini-Projects)
+                </h3>
+                <p class="text-sm text-slate-600 mb-4">
+                    FSM là mô hình thiết kế chuẩn cho mọi thiết bị thông minh quanh ta. Bài toán đèn giao thông có thể mở rộng thành các dự án thực tế:
+                </p>
+                <div class="grid grid-cols-2 gap-3 flex-grow">
+                    <div class="bg-slate-50 border border-slate-100 rounded-lg p-3 flex flex-col items-center justify-center text-center hover:border-emerald-300 transition-colors shadow-sm">
+                        <i class="fa-solid fa-road text-2xl text-emerald-600 mb-2"></i>
+                        <h4 class="font-bold text-xs text-dark">One-way Traffic</h4>
+                        <p class="text-[10px] text-slate-500 mt-1">Hệ thống cơ bản 3 trạng thái</p>
+                    </div>
+                    <div class="bg-slate-50 border border-slate-100 rounded-lg p-3 flex flex-col items-center justify-center text-center hover:border-blue-400 transition-colors shadow-sm">
+                        <i class="fa-solid fa-arrows-cross text-2xl text-blue-500 mb-2"></i>
+                        <h4 class="font-bold text-xs text-dark">Two-way Traffic</h4>
+                        <p class="text-[10px] text-slate-500 mt-1">Điều khiển đèn 2 chiều độc lập ở ngã tư</p>
+                    </div>
+                    <div class="bg-slate-50 border border-slate-100 rounded-lg p-3 flex flex-col items-center justify-center text-center hover:border-amber-400 transition-colors shadow-sm">
+                        <i class="fa-solid fa-person-walking text-2xl text-amber-500 mb-2"></i>
+                        <h4 class="font-bold text-xs text-dark">Pedestrian Button</h4>
+                        <p class="text-[10px] text-slate-500 mt-1">Đèn cho người đi bộ sang đường</p>
+                    </div>
+                    <div class="bg-slate-50 border border-slate-100 rounded-lg p-3 flex flex-col items-center justify-center text-center hover:border-purple-400 transition-colors shadow-sm">
+                        <i class="fa-solid fa-microchip text-2xl text-purple-500 mb-2"></i>
+                        <h4 class="font-bold text-xs text-dark">FPGA Demo</h4>
+                        <p class="text-[10px] text-slate-500 mt-1">Nạp code và test bằng LED trên board</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <section class="bg-emerald-50 rounded-2xl shadow-sm border border-emerald-200 overflow-hidden">
+            <div class="bg-emerald-100/50 px-6 py-4 border-b border-emerald-200">
+                <h3 class="text-xl font-bold text-emerald-800 flex items-center gap-2">
+                    <i class="fa-solid fa-forward-step"></i> Hành Động Sau Buổi Học
+                </h3>
+            </div>
+            <div class="p-6">
+                <!-- Mini Task -->
+                <div class="bg-white p-5 rounded-xl border border-emerald-100 shadow-sm mb-6 relative overflow-hidden">
+                    <div class="absolute right-0 top-0 w-1 h-full bg-emerald-400"></div>
+                    <h4 class="font-bold text-emerald-700 mb-2 flex items-center gap-2"><i class="fa-solid fa-fire text-secondary"></i> Task Tuần Này (FSM Design)</h4>
+                    <p class="text-sm text-slate-700 mb-3">Mỗi bạn hãy chọn một <strong>phiên bản Đèn giao thông</strong> (1 chiều, 2 chiều, có người đi bộ...) và thiết kế sơ đồ FSM post lên Group lớp:</p>
+                    <ul class="list-disc list-inside text-sm text-slate-600 space-y-1 ml-2 font-mono bg-slate-50 p-3 rounded border border-slate-200">
+                        <li><strong>Version:</strong> (VD: Đèn 1 chiều có chế độ ban đêm)</li>
+                        <li><strong>States:</strong> Liệt kê tên các trạng thái.</li>
+                        <li><strong>Inputs / Outputs:</strong> (VD: Input: timer_done, dark_sensor | Output: Red, Green, Yellow)</li>
+                        <li><strong>Transition Rules:</strong> Viết luật chuyển đổi ngắn gọn.</li>
+                        <li><strong>State Diagram:</strong> Đính kèm hình vẽ sơ đồ FSM.</li>
+                    </ul>
+                </div>
+
+                <div class="space-y-3">
+                    <details class="group bg-white rounded-lg border border-slate-200 transition-all">
+                        <summary class="flex items-center justify-between p-4 cursor-pointer font-semibold text-slate-800 group-open:text-emerald-700 hover:bg-slate-50 transition-colors rounded-lg">
+                            <span class="flex items-center gap-2"><i class="fa-solid fa-clipboard-check text-emerald-500"></i> Mục tiêu sinh viên đạt được</span>
+                            <span class="transition-transform duration-300 group-open:rotate-180">
+                                <i class="fa-solid fa-chevron-down text-slate-400"></i>
+                            </span>
+                        </summary>
+                        <div class="p-4 border-t border-slate-100 text-sm text-slate-600 bg-slate-50/50">
+                            <ul class="space-y-2">
+                                <li class="flex items-start gap-2"><i class="fa-solid fa-check text-emerald-500 mt-1"></i> Có khả năng mô hình hóa một hệ thống thực tế (Đèn giao thông) thành FSM.</li>
+                                <li class="flex items-start gap-2"><i class="fa-solid fa-check text-emerald-500 mt-1"></i> Xác định rõ ràng các Trạng thái (States) và Đầu ra (Outputs) tương ứng.</li>
+                                <li class="flex items-start gap-2"><i class="fa-solid fa-check text-emerald-500 mt-1"></i> Mô tả được luật chuyển trạng thái dựa trên tín hiệu từ môi trường (Inputs).</li>
+                                <li class="flex items-start gap-2"><i class="fa-solid fa-check text-emerald-500 mt-1"></i> Hiểu cách dịch từ Sơ đồ trạng thái sang cú pháp Verilog (cấu trúc <code>case</code>).</li>
+                                <li class="flex items-start gap-2"><i class="fa-solid fa-check text-emerald-500 mt-1"></i> Sẵn sàng để thực hiện một dự án Mini-Project trên phần cứng FPGA.</li>
+                            </ul>
+                        </div>
+                    </details>
+
+                    <details class="group bg-white rounded-lg border border-slate-200 transition-all">
+                        <summary class="flex items-center justify-between p-4 cursor-pointer font-semibold text-slate-800 group-open:text-blue-700 hover:bg-slate-50 transition-colors rounded-lg">
+                            <span class="flex items-center gap-2"><i class="fa-solid fa-link text-blue-500"></i> Điền Google Form (Bắt buộc sau buổi học)</span>
+                            <span class="transition-transform duration-300 group-open:rotate-180">
+                                <i class="fa-solid fa-chevron-down text-slate-400"></i>
+                            </span>
+                        </summary>
+                        <div class="p-4 border-t border-slate-100 bg-blue-50/30">
+                            <p class="text-sm text-slate-600 mb-4">Vui lòng hoàn thành Form để Mentor nắm được mức độ tiếp thu của bạn và tổ chức nhóm Project.</p>
+                            <div class="bg-white border border-slate-200 p-4 rounded-lg shadow-sm">
+                                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Mentor sẽ hỏi 5 nội dung sau:</p>
+                                <ol class="list-decimal list-inside text-sm text-slate-700 space-y-1.5 font-medium">
+                                    <li>Xác nhận tham gia buổi học Week 9?</li>
+                                    <li>Em hiểu cách mô tả traffic light bằng FSM ở mức nào (1-5)?</li>
+                                    <li>Bước nào em thấy khó khăn nhất (Xác định State, Transition, hay viết Verilog)?</li>
+                                    <li>Em muốn thử làm phiên bản Traffic Light nào cho bài tập?</li>
+                                    <li>Em có hứng thú tham gia nhóm Demo Mini-project trên FPGA thực tế không?</li>
+                                </ol>
+                            </div>
+                            <a href="https://forms.gle/4ZFMSAyY3GHe2soZA" target="_blank" class="mt-4 bg-primary hover:bg-blue-700 text-white font-semibold py-2.5 px-6 rounded-lg transition-colors inline-flex items-center gap-2 shadow-md hover:shadow-lg">
+                                <i class="fa-brands fa-google"></i> Mở Google Form Tuần 9
+                            </a>
+                        </div>
+                    </details>
+                </div>
+            </div>
+        </section>
+        
+    </main>
+
+    <footer class="mt-16 bg-slate-900 text-slate-300 py-12 text-center border-t-4 border-primary">
+        <div class="max-w-4xl mx-auto px-4">
+            <div class="flex justify-center items-center gap-3 mb-6">
+                <i class="fa-solid fa-microchip text-2xl text-slate-600"></i>
+                <div class="h-px bg-slate-700 w-16"></div>
+                <i class="fa-solid fa-laptop-code text-2xl text-primary drop-shadow-[0_0_8px_rgba(37,99,235,0.8)]"></i>
+                <div class="h-px bg-slate-700 w-16"></div>
+                <i class="fa-solid fa-users-rays text-2xl text-secondary"></i>
+            </div>
+            
+            <h4 class="text-xl font-bold text-white mb-2">IC Design Mentoring Community</h4>
+            <p class="text-lg italic text-slate-400 font-light mb-8">"Learn a little, build a little, share a little, grow a little."</p>
+            
+            <div class="bg-slate-800/80 inline-block p-4 rounded-xl border border-slate-700 mx-auto text-center max-w-2xl">
+                <div class="flex items-center justify-center gap-2 mb-2 text-white">
+                    <i class="fa-solid fa-copyright"></i> <span class="font-bold">Bản quyền nội dung:</span>
+                </div>
+                <p class="text-sm text-slate-300 mb-1">Khoa Điện - Điện tử, Trường Kỹ Thuật, Đại học Phenikaa</p>
+                <p class="text-sm text-amber-400 font-medium">Giảng viên biên soạn: ThS. Đinh Văn Nam</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // 1. Checklist Logic
+        function toggleTask(checkbox) {
+            const label = checkbox.nextElementSibling;
+            if (checkbox.checked) {
+                label.classList.add('completed');
+            } else {
+                label.classList.remove('completed');
+            }
+        }
+
+        // 2. Interactive SVG FSM Demo Logic (Traffic Light)
+        document.addEventListener('DOMContentLoaded', () => {
+            const btnTimerDone = document.getElementById('btnTimerDone');
+            const terminal = document.getElementById('terminal-output');
+            const btnClearLog = document.getElementById('btnClearLog');
+            
+            // FSM Graphic States
+            const stateR = document.getElementById('state-R');
+            const stateG = document.getElementById('state-G');
+            const stateY = document.getElementById('state-Y');
+            
+            // Paths
+            const pathRG = document.getElementById('path-R-G');
+            const pathGY = document.getElementById('path-G-Y');
+            const pathYR = document.getElementById('path-Y-R');
+
+            // Physical Traffic Lights
+            const lightRed = document.getElementById('light-red');
+            const lightYellow = document.getElementById('light-yellow');
+            const lightGreen = document.getElementById('light-green');
+
+            // Define FSM Sequence
+            const fsmSequence = ['RED', 'GREEN', 'YELLOW'];
+            let currentStateIndex = 0;
+
+            function logTerminal(msg, type = 'info') {
+                let colorClass = 'text-slate-400';
+                if (type === 'action') colorClass = 'text-blue-400 font-bold';
+                if (type === 'success') colorClass = 'text-emerald-400 font-bold';
+                if (type === 'warn') colorClass = 'text-yellow-400 font-bold';
+                if (type === 'error') colorClass = 'text-red-400 font-bold';
+                if (type === 'wait') colorClass = 'text-slate-500 animate-pulse mt-2';
+
+                // Remove previous waiting message if exists
+                const lastLog = terminal.lastElementChild;
+                if(lastLog && lastLog.innerHTML.includes('Waiting')) {
+                    terminal.removeChild(lastLog);
+                }
+
+                const logEntry = document.createElement('div');
+                logEntry.className = colorClass;
+                logEntry.innerHTML = `>> ${msg}`;
+                terminal.appendChild(logEntry);
+                
+                // GIỚI HẠN SỐ DÒNG LOG (AUTO-TRIM) ĐỂ KHÔNG BỊ KÉO DÀI
+                const MAX_LOGS = 15;
+                while (terminal.childElementCount > MAX_LOGS) {
+                    terminal.removeChild(terminal.firstElementChild);
+                }
+
+                // Auto scroll to bottom
+                terminal.scrollTop = terminal.scrollHeight;
+            }
+
+            // Nút Clear Log Thủ Công
+            if (btnClearLog) {
+                btnClearLog.addEventListener('click', () => {
+                    terminal.innerHTML = '';
+                    logTerminal('System Log Cleared by user.', 'warn');
+                    updateUI(false); // In lại trạng thái hiện tại để màn hình không bị trống
+                });
+            }
+
+            function updateUI(transitioning = false) {
+                const currentState = fsmSequence[currentStateIndex];
+
+                // Reset all states and paths
+                [stateR, stateG, stateY].forEach(el => {
+                    el.classList.remove('opacity-100', 'scale-110');
+                    el.classList.add('opacity-40');
+                    el.querySelector('circle').setAttribute('stroke-width', '3');
+                    el.querySelector('circle').removeAttribute('filter');
+                });
+                
+                [pathRG, pathGY, pathYR].forEach(p => {
+                    p.setAttribute('stroke', '#64748b');
+                    p.setAttribute('stroke-width', '2');
+                    p.setAttribute('marker-end', 'url(#arrow)');
+                    p.setAttribute('stroke-dasharray', '4,4');
+                });
+
+                // Turn off all physical lights
+                lightRed.classList.replace('opacity-100', 'opacity-10');
+                lightYellow.classList.replace('opacity-100', 'opacity-10');
+                lightGreen.classList.replace('opacity-100', 'opacity-10');
+
+                if (!transitioning) {
+                    // Activate current state
+                    if (currentState === 'RED') {
+                        stateR.classList.replace('opacity-40', 'opacity-100');
+                        stateR.classList.add('scale-110');
+                        stateR.querySelector('circle').setAttribute('stroke-width', '4');
+                        stateR.querySelector('circle').setAttribute('filter', 'url(#glow-red)');
+                        lightRed.classList.replace('opacity-10', 'opacity-100');
+                        logTerminal(`Current State: <span class="text-red-400 font-bold">RED</span>`);
+                        logTerminal(`Output active: Red Light`);
+                        logTerminal(`Waiting for timer_done...`, `wait`);
+                    } 
+                    else if (currentState === 'GREEN') {
+                        stateG.classList.replace('opacity-40', 'opacity-100');
+                        stateG.classList.add('scale-110');
+                        stateG.querySelector('circle').setAttribute('stroke-width', '4');
+                        stateG.querySelector('circle').setAttribute('filter', 'url(#glow-green)');
+                        lightGreen.classList.replace('opacity-10', 'opacity-100');
+                        logTerminal(`Current State: <span class="text-emerald-400 font-bold">GREEN</span>`);
+                        logTerminal(`Output active: Green Light`);
+                        logTerminal(`Waiting for timer_done...`, `wait`);
+                    } 
+                    else if (currentState === 'YELLOW') {
+                        stateY.classList.replace('opacity-40', 'opacity-100');
+                        stateY.classList.add('scale-110');
+                        stateY.querySelector('circle').setAttribute('stroke-width', '4');
+                        stateY.querySelector('circle').setAttribute('filter', 'url(#glow-yellow)');
+                        lightYellow.classList.replace('opacity-10', 'opacity-100');
+                        logTerminal(`Current State: <span class="text-yellow-400 font-bold">YELLOW</span>`);
+                        logTerminal(`Output active: Yellow Light`);
+                        logTerminal(`Waiting for timer_done...`, `wait`);
+                    }
+                }
+            }
+
+            function triggerTransition() {
+                // Disable button briefly
+                btnTimerDone.disabled = true;
+                btnTimerDone.classList.add('opacity-70', 'scale-95');
+                btnTimerDone.querySelector('i').classList.remove('animate-spin');
+
+                const currentState = fsmSequence[currentStateIndex];
+                let activePath = null;
+                let nextStateName = '';
+
+                logTerminal(`[INPUT] timer_done = 1`, `action`);
+
+                // Determine path and next state
+                if (currentState === 'RED') { activePath = pathRG; nextStateName = 'GREEN'; }
+                if (currentState === 'GREEN') { activePath = pathGY; nextStateName = 'YELLOW'; }
+                if (currentState === 'YELLOW') { activePath = pathYR; nextStateName = 'RED'; }
+
+                logTerminal(`Evaluating Next State...`);
+
+                // Highlight path transition
+                if (activePath) {
+                    activePath.setAttribute('stroke', '#ffffff');
+                    activePath.setAttribute('stroke-width', '4');
+                    activePath.removeAttribute('stroke-dasharray');
+                    activePath.setAttribute('marker-end', 'url(#arrow-active)');
+                }
+
+                // Simulate processing delay
+                setTimeout(() => {
+                    logTerminal(`[TRANSITION] ${currentState} -> ${nextStateName}`, `success`);
+                    
+                    currentStateIndex = (currentStateIndex + 1) % fsmSequence.length;
+                    updateUI(false);
+                    
+                    // Re-enable button
+                    setTimeout(() => {
+                        btnTimerDone.disabled = false;
+                        btnTimerDone.classList.remove('opacity-70', 'scale-95');
+                        btnTimerDone.querySelector('i').classList.add('animate-spin');
+                    }, 200);
+
+                }, 600); // Path highlight duration
+            }
+
+            // Bind Event
+            btnTimerDone.addEventListener('click', triggerTransition);
+        });
+    </script>
+
+<div id="lichub-nav-bottom" data-lichub="v1" role="navigation" aria-label="Điều hướng Learning Hub (bổ sung, không thuộc trang gốc)" style="background:#0f172a;color:#e2e8f0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:13.5px;line-height:1.6;padding:8px 16px;display:flex;flex-wrap:wrap;gap:4px 16px;align-items:center;border-top:3px solid #f59e0b"><a href="../../index.html" style="color:#7dd3fc;text-decoration:none;font-weight:600">⌂ Learning Hub</a><span style="font-size:11px;font-weight:700;letter-spacing:.04em;color:#f59e0b;border:1px solid #f59e0b;border-radius:6px;padding:1px 7px;white-space:nowrap">V1 · BẢN LƯU TRỮ GỐC</span><a href="index.html" style="color:#cbd5e1;text-decoration:none">Mục lục V1</a><span style="flex:1"></span><a href="Week8.html" style="color:#7dd3fc;text-decoration:none" title="FPGA vs ASIC">← Tuần 8</a><a href="Week10.html" style="color:#7dd3fc;text-decoration:none" title="Counter & 7-Segment Display">Tuần 10 →</a><span aria-hidden="true" style="color:#475569">|</span><span style="display:inline-flex;gap:8px;align-items:center"><span style="color:#94a3b8">Chuyển bản:</span> <b aria-current="true" style="color:#f59e0b">V1</b> <a href="../v2/index.html" style="color:#cbd5e1;text-decoration:none">V2</a> <a href="../v3/index.html" style="color:#cbd5e1;text-decoration:none">V3</a></span></div>
+</body>
+</html>

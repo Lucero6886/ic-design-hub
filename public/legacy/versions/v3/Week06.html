@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="Giảng Viên Đinh Văn Nam">
+<meta name="copyright" content="© 2026 · Bản quyền thuộc về Giảng Viên Đinh Văn Nam, Khoa Điện-Điện Tử, Trường Kỹ Thuật, Đại học Phenikaa">
+<meta name="description" content="IC Design Mentoring — Version 3, Phase 1 (12 tuần). Khoa Điện – Điện tử · Trường Kỹ thuật · Đại học Phenikaa. Biên soạn: Giảng Viên Đinh Văn Nam.">
+<title>Tuần 6 — Finite-State Machines | IC Design Mentoring v3</title>
+<link rel="stylesheet" href="css/style.css">
+<script src="js/app.js" defer></script>
+</head>
+<body data-week="06">
+
+<!-- ================= TOP BAR ================= -->
+<header class="topbar">
+  <div class="topbar-in">
+    <a class="brand" href="index.html"><span class="logo">IC</span>
+      <span>IC Design Mentoring<small>Tuần 6/12 · Finite-State Machines</small></span></a>
+    <nav class="layer-chips">
+      <a class="chip" href="../../index.html" title="Learning Hub — cổng ba phiên bản giáo trình; đây là V3, bản hiện hành được khuyến nghị">⌂ Hub · V3</a>
+      <a class="chip chip-a" href="#layer-a"><span class="dot"></span>A · Trước buổi</a>
+      <a class="chip chip-b" href="#layer-b"><span class="dot"></span>B · Buổi học 60′</a>
+      <a class="chip chip-c" href="#layer-c"><span class="dot"></span>C · Lab</a>
+      <a class="chip chip-d" href="#layer-d"><span class="dot"></span>D · Sau buổi</a>
+      <a class="chip" href="index.html">Mục lục</a>
+    </nav>
+    <span class="mentor-sw" title="Hiện/ẩn nội dung dành riêng cho mentor"><span class="tr"></span> Mentor</span>
+  </div>
+  <div class="scrollbar"><div></div></div>
+</header>
+
+<!-- ================= HERO ================= -->
+<section class="hero">
+  <div class="wrap">
+    <div class="pill-row">
+      <span class="pill">Tuần 6 / 12</span>
+      <span class="pill acc">Nền tảng số · tuần chốt</span>
+      <span class="pill">Khoa Điện – Điện tử · ĐH Phenikaa</span>
+    </div>
+    <h1>Finite-State Machines</h1>
+    <p class="sub">Máy trạng thái hữu hạn — khi phần cứng biết ra quyết định</p>
+    <p>Tuần 5 cho bạn phần tử nhớ — nhưng counter chỉ biết đếm đều. Đèn giao thông phải đi ĐỎ→XANH→VÀNG theo luật; khóa số phải nhớ bạn đã bấm đúng mấy nút. Công cụ mô tả các hệ "ra quyết định theo trạng thái" là <b>FSM</b>: tập hữu hạn state + luật transition theo input. Sơ đồ trạng thái không phải hình vẽ học thuật — nó là <b>bản đặc tả</b>, được hiện thực thẳng thành FF + cổng logic. Tuần này: vẽ sơ đồ đúng <em>trước</em>, rồi mới dịch thành RTL 3 khối, qua case study kinh điển — bộ phát hiện chuỗi "101".</p>
+    <div class="outcomes">
+      <div class="outcome"><b>Mục tiêu 1.</b> Giải thích FSM qua state / transition / state diagram — và vì sao diagram là đặc tả (specification), code chỉ là hiện thực.</div>
+      <div class="outcome"><b>Mục tiêu 2.</b> Phân biệt Moore và Mealy: nguồn của output và thời điểm output đổi trên waveform.</div>
+      <div class="outcome"><b>Mục tiêu 3.</b> Thiết kế FSM theo quy trình 5 bước: liệt kê state → vẽ diagram → lập transition table → chọn kiểu máy → viết RTL.</div>
+      <div class="outcome"><b>Mục tiêu 4.</b> Đọc và viết FSM 3 khối SystemVerilog (state register / next-state logic / output logic); nói được mỗi khối suy ra phần cứng gì.</div>
+    </div>
+    <div class="pos">
+      <div><b>Tuần trước — T5.</b> FF, register, counter — phần "nhớ" của hệ thống và nhịp clock chung điều khiển tất cả.</div>
+      <div><b>Tuần này — T6.</b> Dùng "nhớ" để ra quyết định: FSM 3 khối — tuần chốt của nền tảng trước khi vào project.</div>
+      <div><b>Tuần sau — T7.</b> Hệ thống hóa luật viết RTL sạch — gọi tên những quy tắc bạn đã dùng suốt 3 tuần qua.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= LAYER A ================= -->
+<section id="layer-a" class="layer layer-a">
+  <div class="wrap layer-head">
+    <div class="band">
+      <span class="layer-badge">A</span>
+      <h2>Trước buổi học</h2>
+      <span class="time">⏱ 15–25 phút · chỉ cần đọc phần này</span>
+    </div>
+    <p class="lead">Bạn KHÔNG cần đọc Layer C trước buổi học. Chuẩn bị đủ ở đây là bạn sẵn sàng thảo luận. Layer C dành cho lúc thực hành sau buổi.</p>
+  </div>
+  <div class="wrap layer-body">
+    <div class="grid2">
+      <div class="card">
+        <h3>Vì sao tuần này quan trọng</h3>
+        <p>FSM là <b>"bộ não ra quyết định"</b> của mọi hệ điều khiển số: đèn giao thông T9 và uart_tx T11 đều là FSM. Đây cũng là tuần cuối của phần nền tảng — sau tuần này bạn vào RTL kỷ luật (T7) và project thật (T9).</p>
+        <p class="small muted"><b>Điều kiện tiên quyết:</b> T5 — flip-flop, counter, <code>always_ff</code>; T4 — <code>always_comb</code> và gán default.</p>
+      </div>
+      <div class="card">
+        <h3>Hoạt động chuẩn bị (10′)</h3>
+        <p>Quan sát <b>máy giặt hoặc thang máy</b>. Liệt kê ra giấy: các <b>"chế độ" (state)</b> nó đi qua, và <b>sự kiện gì</b> làm nó chuyển chế độ (nút bấm? hết thời gian? cảm biến?). Mang tờ giấy đến buổi học — bạn sẽ vẽ nó thành sơ đồ trạng thái.</p>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Khái niệm thiết yếu — đọc chậm, 5 ý</h3>
+      <ul>
+        <li><b>State (trạng thái)</b> = tình huống hệ đang ở — tóm tắt đúng phần quá khứ cần nhớ để quyết định tương lai.</li>
+        <li><b>Transition (chuyển trạng thái)</b> = luật chuyển state theo input; với FSM đồng bộ, chỉ xảy ra <b>tại cạnh lên clock</b>.</li>
+        <li><b>State diagram (sơ đồ trạng thái)</b> = đặc tả bằng hình: vòng tròn = state, mũi tên có nhãn input = transition.</li>
+        <li><b>Moore vs Mealy:</b> Moore — output chỉ theo state; Mealy — output theo state <em>và</em> input hiện tại.</li>
+        <li><b>FSM 3 khối</b> = state register (nhớ) + next-state logic (tính) + output logic (tính) — chính là cách tách <b>nhớ/tính</b> của T5, nâng cấp.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>2 câu hỏi tự chẩn đoán</h3>
+      <p class="small muted">Trả lời trong đầu trước, rồi mới mở đáp án. Nếu sai cũng không sao — buổi học sẽ xử lý đúng chỗ này.</p>
+      <details class="reveal"><summary>1. Trong sơ đồ trạng thái, cái gì nằm TRONG vòng tròn, cái gì nằm TRÊN mũi tên?</summary>
+        <div class="rv-body">Trong vòng tròn là <b>state</b> — tình huống hệ đang ở (với Moore, output ghi kèm theo state). Trên mũi tên là <b>điều kiện input</b> gây transition. Đọc: "đang ở state này, gặp input kia thì đi sang state nọ".</div>
+      </details>
+      <details class="reveal"><summary>2. Cùng phát hiện chuỗi "101": máy Moore và máy Mealy khác nhau cơ bản ở chỗ nào?</summary>
+        <div class="rv-body">Khác ở <b>nguồn và thời điểm của output</b>. Moore: output = f(state) — chỉ đổi sau cạnh clock, khi state đổi. Mealy: output = f(state, input) — có thể bật ngay giữa chu kỳ khi input đổi, sớm hơn ~1 chu kỳ nhưng kém "sạch" hơn.</div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ================= LAYER B ================= -->
+<section id="layer-b" class="layer layer-b">
+  <div class="wrap layer-head">
+    <div class="band">
+      <span class="layer-badge">B</span>
+      <h2>Buổi mentoring 60 phút</h2>
+      <span class="time">🗺 Mentor Session Guide</span>
+    </div>
+    <p class="lead">Kịch bản buổi học — mentor điều phối theo timeline này, không cần đọc hết Layer C để đứng lớp. Học viên nhìn vào đây để biết mình sẽ làm gì.</p>
+  </div>
+  <div class="wrap layer-body">
+    <div class="card">
+      <div class="timeline">
+        <div class="tl-row">
+          <span class="tl-time">0–5′</span>
+          <h4>Retrieval — kiểm tra tuần 5</h4>
+          <ul>
+            <li>FF chụp giá trị D khi nào?</li>
+            <li>Counter mod-6 cần mấy flip-flop?</li>
+            <li>Vì sao trong <code>always_ff</code> phải dùng <code>&lt;=</code>?</li>
+          </ul>
+        </div>
+        <div class="tl-row">
+          <span class="tl-time">5–15′</span>
+          <h4>Học viên giải thích</h4>
+          <p>1–2 học viên trình bày "chế độ máy giặt/thang máy" từ bài chuẩn bị. Cả lớp cùng gọi tên: đâu là <b>state</b>, đâu là <b>input</b> gây chuyển, đâu là <b>output</b> của mỗi chế độ. Mentor chưa sửa vội.</p>
+        </div>
+        <div class="tl-row">
+          <span class="tl-time">15–25′</span>
+          <h4>Mentor sửa &amp; giảng sâu</h4>
+          <p>Chốt 3 điều bắt buộc đúng: (1) diagram là <b>đặc tả</b> — được hiện thực thành FF + cổng, diagram sai thì chip sai; (2) transition chỉ "ăn" <b>tại cạnh lên clock</b> — input đổi giữa chu kỳ phải chờ; (3) mỗi state phải có lối đi cho <b>mọi</b> giá trị input. Chiếu widget C4 (máy "101") nếu có máy.</p>
+        </div>
+        <div class="tl-row">
+          <span class="tl-time">25–45′</span>
+          <h4>Active design — thiết kế TRÊN GIẤY (nhóm 2–3 người)</h4>
+          <p><b>Đề bài "khóa số 2 nút":</b> cửa mở (<code>unlock = 1</code>, kiểu Moore) khi bấm đúng thứ tự nút A rồi B. Bấm B khi chưa có A thì về đầu; nhưng đang ở GOT_A mà bấm lại A thì <b>ở lại GOT_A</b> — A vẫn là tiền tố hợp lệ của mẫu (đúng tinh thần ô khó "S1 gặp 1" của máy "101"). Mỗi lần bấm = một input lấy mẫu tại một cạnh clock.</p>
+          <ul>
+            <li>Liệt kê state, đặt tên có nghĩa → vẽ state diagram → lập transition table.</li>
+            <li><b>Dự đoán trước:</b> chuỗi "A A B" và "B A B" — cửa có mở không, ở bước nào?</li>
+            <li>CHƯA viết code — tuần này thắng thua ở tờ giấy.</li>
+          </ul>
+          <p class="small muted">Artifact nhóm: diagram + transition table + 2 chuỗi dự đoán có giải thích.</p>
+        </div>
+        <div class="tl-row">
+          <span class="tl-time">45–55′</span>
+          <h4>Chia sẻ &amp; tranh luận kỹ thuật</h4>
+          <p>Hai nhóm trình bày. Câu hỏi ép suy nghĩ: 2 state đủ chưa, hay cần 3 (IDLE, GOT_A, OPEN)? Đang ở GOT_A mà bấm A thì đi đâu — và vì sao ở lại GOT_A là đúng (A vẫn là tiền tố hợp lệ)? Nhóm bạn đã đếm đủ mũi tên = số state × số input chưa?</p>
+        </div>
+        <div class="tl-row">
+          <span class="tl-time">55–60′</span>
+          <h4>Chốt &amp; giao việc</h4>
+          <ul>
+            <li><b>Nhớ:</b> diagram trước, code sau; FSM = state register + next-state + output logic.</li>
+            <li><b>Tránh:</b> nhét dữ liệu đếm vào state; bỏ sót transition cho một input.</li>
+            <li><b>Artifact sau buổi:</b> hoàn thiện khóa 2 nút thành RTL 3 khối + testbench (Layer D).</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <p class="mentor-hint">💡 Bật công tắc <b>Mentor</b> trên thanh tiêu đề để xem ghi chú dành riêng cho mentor (đáp án kỳ vọng, câu hỏi cứu nguy, mở rộng cho học viên giỏi).</p>
+
+    <div class="mentor-only">
+      <div class="mentor-box">
+        <span class="mtag">Mentor only · Tuần 6</span>
+        <h3>Ghi chú vận hành buổi học</h3>
+        <div class="grid2">
+          <div>
+            <h4>Mục tiêu mentor cần chốt được</h4>
+            <ul class="small">
+              <li>Học viên vẽ được diagram + bảng <b>trước khi nghĩ đến code</b> — quy trình 5 bước thành phản xạ.</li>
+              <li>Phân biệt Moore/Mealy bằng <b>hàm output</b>, không phải bằng tên gọi.</li>
+              <li>Thấy FSM 3 khối = tách nhớ/tính của T5 — không phải kiến thức mới rơi từ trên trời.</li>
+            </ul>
+            <h4>Hiểu sai kinh điển (chờ sẵn)</h4>
+            <ul class="small">
+              <li>"FSM chỉ là hình vẽ học thuật" — sai: diagram là ĐẶC TẢ, hiện thực trực tiếp thành FF + cổng; diagram sai thì chip sai.</li>
+              <li>"Mealy tốt hơn Moore" — không, đây là trade-off: sớm ~1 chu kỳ đổi lấy output có thể rung theo input.</li>
+              <li>Quên transition cho một giá trị input ở một state — FSM "không biết đi đâu".</li>
+              <li>Nhét dữ liệu đếm vào state ("chờ 100 chu kỳ = 100 state") — bùng nổ trạng thái.</li>
+            </ul>
+          </div>
+          <div>
+            <h4>Câu hỏi chẩn đoán → đáp án tốt → hỏi tiếp</h4>
+            <p class="small"><b>Hỏi:</b> "Output của máy Moore đổi lúc nào?"<br>
+            <b>Đáp tốt:</b> chỉ sau cạnh clock, khi state đổi — output đồng bộ, sạch glitch hơn ở mức nhập môn.<br>
+            <b>Hỏi tiếp (nếu trả lời đúng):</b> "Vậy output Mealy đổi lúc nào — và điều gì xảy ra nếu din rung giữa chu kỳ (nút bấm nhiễu)?"</p>
+            <p class="small"><b>Cứu nguy (nếu bí):</b> FSM = "chế độ máy giặt + luật bấm nút": mỗi chế độ một vòng tròn, mỗi sự kiện một mũi tên. Máy đang Ngâm mà bấm Vắt thì sao? — đó chính là câu hỏi transition.</p>
+            <p class="small"><b>Mở rộng học viên giỏi:</b> "Nếu công cụ synthesis chọn one-hot thì next-state logic đơn giản đi thế nào — đổi lại cái gì?" → so sánh state chỉ còn kiểm tra 1 bit, logic nông hơn; đổi lại nhiều FF hơn. Dẫn thẳng vào EQ→RQ ở Layer D.</p>
+          </div>
+        </div>
+        <div class="co co-warn small"><b>Nhịp buổi học.</b> Không giảng quá 10 phút liên tục. Phần 25–45′ là lõi: đi từng nhóm, hỏi "ô GOT_A gặp A đi đâu?", đừng cho đáp án sớm — để nhóm tự tranh luận bằng bảng của họ. Nhóm nhanh: thêm input <code>cancel</code> đưa mọi state về đầu, bảng đổi thế nào?</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= LAYER C ================= -->
+<section id="layer-c" class="layer layer-c">
+  <div class="wrap layer-head">
+    <div class="band">
+      <span class="layer-badge">C</span>
+      <h2>Technical Lab — Deep Dive</h2>
+      <span class="time">🔬 Tự học sâu · sau buổi hoặc khi thực hành</span>
+    </div>
+    <p class="lead">Toàn bộ kỹ thuật chi tiết nằm ở đây, chia thành mục gập/mở. Không bắt buộc đọc hết một lần — đi theo thứ tự khi làm bài tập.</p>
+  </div>
+  <div class="wrap layer-body">
+    <div class="dd-tools"><button data-dd="open">Mở tất cả</button><button data-dd="close">Đóng tất cả</button></div>
+
+    <!-- C1 -->
+    <details class="dd" open>
+      <summary><span class="no">C1</span> FSM là gì — state, transition, state diagram <span class="est">~10′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <p><b>Định nghĩa.</b> FSM là mô hình của hệ chỉ có <b>một số hữu hạn trạng thái</b>, tại mỗi thời điểm ở đúng một state, và chuyển state theo <b>luật rõ ràng</b> khi có input. <b>Bản chất kỹ thuật:</b> state = "hệ đang ở đâu trong câu chuyện" — tóm tắt đúng phần quá khứ cần nhớ; transition = luật đi tiếp; với FSM đồng bộ, transition chỉ xảy ra <b>tại cạnh lên clock</b> (đúng bài FF T5: input đổi giữa hai cạnh thì state vẫn đứng yên).</p>
+        <p><b>State diagram</b> vẽ mô hình đó: vòng tròn = state, mũi tên có nhãn input = transition, mũi tên "reset" chỉ vào state khởi đầu. Một câu đời sống: bàn cờ tỷ phú — ô đang đứng là state, xúc xắc là input, luật di chuyển là transition. <b>Trong IC/FPGA:</b> control unit của CPU, bộ điều khiển UART/SPI/I2C, arbiter của bus — kỹ sư RTL viết FSM gần như mỗi ngày.</p>
+        <div class="co co-info"><b>Chốt quan trọng nhất tuần:</b> state diagram là <b>đặc tả (specification)</b>, code chỉ là <b>hiện thực</b>. Diagram được dịch thành FF + cổng logic thật — diagram sai thì chip sai. Vì vậy mỗi state phải có lối đi cho <em>mọi</em> giá trị input, kể cả tình huống "người dùng bấm sai".</div>
+      </div>
+    </details>
+
+    <!-- C2 -->
+    <details class="dd">
+      <summary><span class="no">C2</span> Quy trình 5 bước — vẽ trước, code sau <span class="est">~8′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <p>Quy trình BẮT BUỘC của khóa này (và của kỹ sư chuyên nghiệp) — đúng tinh thần design-before-code:</p>
+        <ul>
+          <li><b>Bước 1.</b> Liệt kê state, <b>đặt tên có nghĩa</b> (IDLE, GOT_A… — không phải A/B/C trần trụi). Mỗi state một câu ý nghĩa; ý nghĩa rõ thì transition tự hiện ra.</li>
+          <li><b>Bước 2.</b> Vẽ <b>state diagram</b>: đủ vòng tròn, đủ mũi tên, đánh dấu state khởi đầu sau reset.</li>
+          <li><b>Bước 3.</b> Lập <b>transition table</b> — "bảng chân lý của trạng thái". Kiểm tra chéo cơ học: <b>số ô trong bảng chuyển = số state × số tổ hợp giá trị input (k input 1 bit → 2^k tổ hợp); trên sơ đồ nhiều ô có thể gộp chung một mũi tên nếu ghi rõ điều kiện</b>; thiếu một ô là chưa xong.</li>
+          <li><b>Bước 4.</b> Chọn <b>Moore hay Mealy</b> cho output, ghi rõ vào spec (xem C6 — nhập môn ưu tiên Moore).</li>
+          <li><b>Bước 5.</b> Lúc này mới viết <b>RTL 3 khối</b> theo khuôn C5 — gần như dịch cơ học từ bảng.</li>
+        </ul>
+        <div class="co co-warn"><b>"Code trước, vẽ sau"</b> là nguồn bug FSM số một của người mới: transition bỏ sót, output lệch 1 chu kỳ, state thừa. Nếu bạn không vẽ nổi diagram thì code chắc chắn chưa thể đúng — vì bạn chưa có spec để đối chiếu.</div>
+      </div>
+    </details>
+
+    <!-- C3 -->
+    <details class="dd">
+      <summary><span class="no">C3</span> Case study "101" — diagram &amp; transition table <span class="est">~12′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <p><b>Đề bài.</b> Mỗi chu kỳ clock nhận 1 bit <code>din</code>; khi 3 bit gần nhất là <b>1-0-1</b> thì <code>detected = 1</code> đúng 1 chu kỳ (kiểu Moore), <b>cho phép gối chuỗi (overlap)</b>: "10101" chứa "101" hai lần. Đây là "Hello World" của FSM — cùng họ với khóa mật mã và dò bit start/stop của UART T11.</p>
+        <p><b>4 state</b> — ý nghĩa của state là "hậu tố dài nhất của dòng bit khớp với phần đầu của mẫu": <b>S0</b> chưa có gì · <b>S1</b> …1 · <b>S2</b> …10 · <b>S3</b> …101 (state duy nhất có out = 1).</p>
+        <div class="tblwrap">
+        <table class="tbl">
+          <tr><th>State (ý nghĩa)</th><th>din = 0 →</th><th>din = 1 →</th><th>Output (Moore)</th></tr>
+          <tr><td>S0 · chưa có gì</td><td>S0</td><td>S1</td><td>0</td></tr>
+          <tr><td>S1 · …1</td><td>S2</td><td>S1</td><td>0</td></tr>
+          <tr><td>S2 · …10</td><td>S0</td><td>S3</td><td>0</td></tr>
+          <tr><td>S3 · …101 ✓</td><td>S2</td><td>S1</td><td><b>1</b></td></tr>
+        </table>
+        </div>
+        <p><b>Hai ô "khó" đáng suy nghĩ:</b></p>
+        <ul>
+          <li><b>S1 gặp 1 → ở lại S1:</b> với chuỗi "11…", bit 1 mới nhất vẫn là tiền tố hợp lệ của "101"; các bit 1 trước đó thành vô dụng. Không quay về S0!</li>
+          <li><b>S3 gặp 0 → S2 (tái dùng hậu tố):</b> sau "101", hai bit cuối "10" chính là hai bit đầu của mẫu kế tiếp. Nhờ đó "10101" cho detect 2 lần. Tương tự S3 gặp 1 → S1 (bit 1 mở đầu chuỗi mới).</li>
+        </ul>
+        <p class="small">Kiểm đếm: 4 state × 2 giá trị din = <b>8 mũi tên</b> — bảng trên đủ 8 ô, không bỏ sót tình huống nào.</p>
+        <div class="wr">
+          <p><b>Predict-before-check.</b> Reset xong (S0), bơm chuỗi <code>0, 1, 1, 0, 1</code>. Trace bằng bảng trên: state cuối là gì, detected bật mấy lần? Nghĩ xong hãy bấm.</p>
+          <button class="wr-btn wbtn alt" data-label="Hiện đáp án">Hiện đáp án</button>
+          <div class="wr-ans"><div class="co co-ok">0→S0, 1→S1, 1→S1 (ở lại!), 0→S2, 1→S3 — state cuối <b>S3</b>, detected bật <b>1 lần</b> (chu kỳ ở S3). Nếu bạn ra S0 ở bước "11", xem lại ô khó thứ nhất.</div></div>
+        </div>
+      </div>
+    </details>
+
+    <!-- C4 -->
+    <details class="dd">
+      <summary><span class="no">C4</span> Chạy thử máy trạng thái "101" <span class="est">~8′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <p>Widget dưới đây hiện thực đúng transition table ở C3. Mỗi lần bấm <b>din = 0/1</b> tương đương một cạnh lên clock: FSM lấy mẫu input và chuyển state.</p>
+        <div class="widget" data-widget="fsm">
+          <div class="wtitle">Chạy thử máy trạng thái "101"</div>
+          <div class="wnote">Trước khi bấm, hãy <b>dự đoán trên giấy</b>: với chuỗi 1, 0, 1, 0, 1 — FSM đi qua những state nào, output bật mấy lần? Rồi bấm từng bit để đối chiếu (kỳ vọng: 2 lần, nhờ gối chuỗi). Thử tiếp chuỗi "phá" của riêng bạn: 1, 1, 0, 0, 1…</div>
+          <script type="application/json">{"initial":"S0","states":{"S0":{"label":"S0 · chưa có gì","out":"0"},"S1":{"label":"S1 · …1","out":"0"},"S2":{"label":"S2 · …10","out":"0"},"S3":{"label":"S3 · …101 ✓","out":"1"}},"inputs":["0","1"],"next":{"S0":{"0":"S0","1":"S1"},"S1":{"0":"S2","1":"S1"},"S2":{"0":"S0","1":"S3"},"S3":{"0":"S2","1":"S1"}}}</script>
+        </div>
+        <p class="small muted">Đọc waveform FSM = tra bảng từng cạnh một: "state đang là gì, din đang là gì → state kế là gì". Máy chỉ làm thay bạn việc tra bảng.</p>
+      </div>
+    </details>
+
+    <!-- C5 -->
+    <details class="dd">
+      <summary><span class="no">C5</span> RTL 3 khối: seq_detect_101.sv <span class="est">~15′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <p>Khuôn quan trọng nhất tuần: <b>1 typedef enum + 3 khối</b>. Tách bạch để đọc code là thấy diagram, công cụ synthesis nhận dạng được FSM, và bug có địa chỉ rõ: lỗi transition nằm ở khối 2, lỗi output nằm ở khối 3. FSM đèn giao thông T9 là biến thể trực tiếp của khuôn này. <code>uart_tx</code> T11 dùng đúng bộ đồ nghề (enum có tên, non-blocking, nhánh đủ) nhưng <b>gộp</b> ba khối thành một <code>always_ff</code> cho gọn — sẽ nói rõ tại T11 vì sao gộp được và mất gì khi gộp.</p>
+        <div class="rtl-frame">
+          <div class="rtl-head"><span class="ftag ftag-rtl">RTL</span><span class="fname">seq_detect_101.sv</span><span class="muted">· synthesizable</span></div>
+<pre class="code"><code>module seq_detect_101 (
+  input  logic clk,
+  input  logic rst_n,
+  input  logic din,       // 1 bit dữ liệu mỗi chu kỳ clock
+  output logic detected   // Moore: =1 đúng 1 chu kỳ khi 3 bit gần nhất là "101"
+);
+  // RTL biểu diễn state bằng 2 bit. Công cụ synthesis có thể GIỮ nguyên
+  // hoặc MÃ HÓA LẠI (ví dụ one-hot trên FPGA) tùy tool và cài đặt tối ưu.
+  typedef enum logic [1:0] { S0 = 2'd0, S1 = 2'd1, S2 = 2'd2, S3 = 2'd3 } state_t;
+  state_t state, next_state;
+
+  // Khối 1 — STATE REGISTER (tuần tự): thanh ghi trạng thái điều khiển
+  // cần khởi tạo xác định -&gt; có reset.
+  always_ff @(posedge clk or negedge rst_n) begin
+    if (!rst_n) state &lt;= S0;
+    else        state &lt;= next_state;
+  end
+
+  // Khối 2 — NEXT-STATE LOGIC (tổ hợp: default trước, không latch)
+  always_comb begin
+    next_state = state;
+    case (state)
+      S0: if (din) next_state = S1; else next_state = S0;
+      S1: if (din) next_state = S1; else next_state = S2;
+      S2: if (din) next_state = S3; else next_state = S0;
+      S3: if (din) next_state = S1; else next_state = S2; // tái sử dụng hậu tố -&gt; bắt chuỗi gối nhau
+      default: next_state = S0;        // state lạ -&gt; kéo về trạng thái an toàn
+    endcase
+  end
+
+  // Khối 3 — OUTPUT LOGIC kiểu Moore (tổ hợp, default an toàn)
+  always_comb begin
+    detected = 1'b0;
+    if (state == S3) detected = 1'b1;
+  end
+endmodule</code></pre>
+          <div class="rtl-meta">
+            <div><b>1 · Mục đích</b>Phát hiện "101" có gối chuỗi, kiểu Moore — hiện thực đúng diagram + transition table ở C3, không thêm không bớt.</div>
+            <div><b>2 · Interface</b><code>clk</code>, <code>rst_n</code>, <code>din</code> vào; <code>detected</code> ra. Một clock duy nhất, reset bất đồng bộ mức thấp — đúng quy ước cả khóa.</div>
+            <div><b>3 · Phần cứng suy ra</b>RTL biểu diễn state bằng 2 bit → state register 2 FF + next-state logic và decoder output là cổng tổ hợp. <b>Công cụ synthesis có thể giữ nguyên hoặc mã hóa lại</b> (ví dụ one-hot 4 FF trên FPGA) tùy tool và cài đặt.</div>
+            <div><b>4 · Chiến lược test</b>Bơm chuỗi trúng (…101…), trượt (…100…), gối nhau (10101 → phải detect 2 lần); so state với transition table từng cạnh clock.</div>
+            <div><b>5 · Waveform kỳ vọng</b>state đổi sau mỗi cạnh lên (trễ t<sub>CQ</sub>); detected = 1 trọn đúng 1 chu kỳ mỗi lần vào S3 — với 10101: sau bit thứ 3 và sau bit thứ 5.</div>
+            <div><b>6 · Bug kinh điển</b>Quên default → next_state thành latch; quên transition cho một input ở một state; để output trong <code>always_ff</code> → output bị thanh ghi hóa, trễ thêm 1 nhịp ngoài ý muốn.</div>
+          </div>
+        </div>
+        <div class="co co-fix"><span class="tag">Hiệu chỉnh kỹ thuật so với v2</span> Hai chỗ bản v2 nói chưa chính xác: <b>(1)</b> v2 viết "4 state → 2 bit → 2 FF" như điều chắc chắn — đúng ra RTL chỉ <em>biểu diễn</em> state bằng 2 bit; công cụ synthesis có thể giữ nguyên hoặc <b>mã hóa lại</b> (one-hot, Gray…) tùy tool/cài đặt, nên số FF thực tế đọc từ báo cáo synthesis. <b>(2)</b> v2 viết "sau bật nguồn FF luôn ngẫu nhiên nên reset là bắt buộc" — phát biểu đúng: <b>thanh ghi trạng thái điều khiển cần khởi tạo xác định</b> (lý do kiến trúc); còn trạng thái sau bật nguồn tùy công nghệ — FPGA nạp cấu hình thường khởi tạo xác định, ASIC không đảm bảo, mô phỏng hiện X = "chưa biết" (xem lại T5 · C6).</div>
+      </div>
+    </details>
+
+    <!-- C6 -->
+    <details class="dd">
+      <summary><span class="no">C6</span> Moore vs Mealy &amp; Controller–Datapath <span class="est">~10′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <div class="tblwrap">
+        <table class="tbl">
+          <tr><th>Tiêu chí</th><th>Moore</th><th>Mealy</th></tr>
+          <tr><td>Nguồn output</td><td>f(state) — chỉ state hiện tại</td><td>f(state, input) — cả input hiện tại</td></tr>
+          <tr><td>Thời điểm output đổi</td><td>Sau cạnh clock, khi state đổi — ổn định trọn chu kỳ</td><td>Ngay trong chu kỳ, sớm hơn ~1 chu kỳ — có thể rung theo input</td></tr>
+          <tr><td>Số state thường cần</td><td>Nhiều hơn ("101" cần 4 — S3 riêng cho out = 1)</td><td>Ít hơn ("101" chỉ cần 3 — output gắn trên cung S2 khi din = 1)</td></tr>
+          <tr><td>Khuyến nghị nhập môn</td><td><b>Ưu tiên dùng</b> — output đồng bộ, dễ đọc waveform, dễ debug</td><td>Dùng khi cần phản hồi trong cùng chu kỳ, hiểu rõ hệ quả timing</td></tr>
+        </table>
+        </div>
+        <p><b>Controller–Datapath.</b> Hệ thống số lớn chia đôi: <b>FSM (controller) ra lệnh</b> — phát tín hiệu điều khiển (enable, load, clear); <b>datapath làm việc nặng</b> — counter, register, adder của T4–T5, và báo lại tín hiệu trạng thái (done, zero). Ví dụ đèn giao thông T9: FSM 4 pha + timer; timer chạy cùng <b>một clock hệ thống</b>, nhịp giây tạo bằng clock-enable (tick) chứ không tạo clock mới.</p>
+        <div class="co co-danger"><b>Đừng nhét thời gian vào state.</b> "Đèn xanh 30 giây" mà vẽ mỗi giây một state là <b>bùng nổ trạng thái</b>: diagram không vẽ nổi, đổi 30 → 60 phải vẽ lại từ đầu. Đúng bài: FSM chỉ giữ "đang ở pha nào" (vài state), việc đếm giao cho counter trong datapath — FSM chỉ nhìn tín hiệu <code>done</code>. Đây chính là kiến trúc T9.</div>
+      </div>
+    </details>
+
+    <!-- C7 vocab -->
+    <details class="dd">
+      <summary><span class="no">C7</span> Từ vựng kỹ thuật tuần 6 <span class="est">~5′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <div class="tblwrap">
+        <table class="tbl vocab">
+          <tr><th>Thuật ngữ</th><th>Nghĩa</th><th>Câu ví dụ (EN)</th></tr>
+          <tr><td>Finite-state machine (FSM)</td><td>Máy trạng thái hữu hạn — tập hữu hạn state + luật chuyển theo input</td><td class="en">The UART transmitter is controlled by a four-state FSM.</td></tr>
+          <tr><td>Transition</td><td>Chuyển trạng thái — chỉ "ăn" tại cạnh lên clock (FSM đồng bộ)</td><td class="en">The transition from S2 to S3 happens when din equals 1.</td></tr>
+          <tr><td>State diagram</td><td>Sơ đồ trạng thái — bản đặc tả bằng hình của FSM</td><td class="en">Always draw the state diagram before writing any RTL.</td></tr>
+          <tr><td>Transition table</td><td>Bảng chuyển trạng thái — "bảng chân lý của trạng thái"</td><td class="en">Every state needs a table entry for every input value.</td></tr>
+          <tr><td>Moore machine</td><td>Máy Moore — output chỉ phụ thuộc state</td><td class="en">We chose a Moore machine so the output stays clean.</td></tr>
+          <tr><td>Mealy machine</td><td>Máy Mealy — output phụ thuộc state và input hiện tại</td><td class="en">A Mealy machine can flag the pattern one cycle earlier.</td></tr>
+          <tr><td>State register</td><td>Thanh ghi trạng thái — nhóm FF lưu state, phần tuần tự duy nhất của FSM</td><td class="en">The state register must reset to a known state.</td></tr>
+          <tr><td>Next-state logic</td><td>Logic trạng thái kế — mạch tổ hợp tính next_state từ state + input</td><td class="en">A missing default in the next-state logic infers a latch.</td></tr>
+          <tr><td>State encoding</td><td>Mã hóa trạng thái — gán bit cho state (binary, one-hot, Gray…)</td><td class="en">The synthesis tool re-encoded the FSM as one-hot.</td></tr>
+          <tr><td>Controller / Datapath</td><td>Cặp kiến trúc: FSM ra lệnh — datapath làm việc nặng (đếm, chứa, tính)</td><td class="en">The controller tells the datapath when to start counting.</td></tr>
+        </table>
+        </div>
+      </div>
+    </details>
+  </div>
+</section>
+
+<!-- ================= LAYER D ================= -->
+<section id="layer-d" class="layer layer-d">
+  <div class="wrap layer-head">
+    <div class="band">
+      <span class="layer-badge">D</span>
+      <h2>Sau buổi học</h2>
+      <span class="time">📝 Quiz 5 câu · bài tập · phản tư</span>
+    </div>
+  </div>
+  <div class="wrap layer-body">
+
+    <div class="card">
+      <h3>Quiz tự kiểm tra — 5 câu</h3>
+      <p class="small muted">Chọn đáp án; chấm ngay và hiện giải thích. Câu hỏi kiểu dự đoán/suy luận — nếu sai, quay lại đúng mục Layer C được ghi trong giải thích.</p>
+      <div class="quiz" id="quiz">
+        <div class="qz-item" data-answer="C">
+          <p class="qz-q">1. Reset xong (S0), bơm chuỗi <code>din</code> = 1, 1, 0, 1 (mỗi bit một cạnh clock). Sau cạnh thứ tư, state là gì và <code>detected</code> đã bật mấy lần?</p>
+          <button class="qz-opt" data-key="A">S1 — 0 lần; cặp "11" làm hỏng chuỗi nên phải chờ mẫu mới</button>
+          <button class="qz-opt" data-key="B">S0 — 0 lần; gặp "11" FSM quay về đầu</button>
+          <button class="qz-opt" data-key="C">S3 — 1 lần; trace: 1→S1, 1→S1 (ở lại), 0→S2, 1→S3</button>
+          <button class="qz-opt" data-key="D">S3 — 2 lần vì chuỗi chứa hai bit 1 liên tiếp</button>
+          <div class="qz-expl"><b>Giải thích:</b> tra bảng từng cạnh: S1 gặp 1 <em>ở lại S1</em> (bit 1 mới vẫn là tiền tố hợp lệ), nên "1101" vẫn kết thúc bằng "101" → vào S3, detected bật đúng 1 lần. Trace lại bằng bảng và widget ở C3–C4.</div>
+        </div>
+        <div class="qz-item" data-answer="A">
+          <p class="qz-q">2. Vì sao khối next-state logic luôn mở đầu bằng <code>next_state = state;</code> và case luôn có nhánh <code>default</code>?</p>
+          <button class="qz-opt" data-key="A">Default-trước bảo đảm mọi nhánh đều gán giá trị → không suy diễn latch; nhánh default kéo state lạ về nơi an toàn</button>
+          <button class="qz-opt" data-key="B">Để mô phỏng chạy nhanh hơn vì ít nhánh phải tính</button>
+          <button class="qz-opt" data-key="C">Vì cú pháp SystemVerilog bắt buộc — thiếu là không compile được</button>
+          <button class="qz-opt" data-key="D">Để giảm số FF của state register sau synthesis</button>
+          <div class="qz-expl"><b>Giải thích:</b> nhánh nào không gán next_state → công cụ hiểu "giữ giá trị cũ" → suy diễn latch ngoài ý muốn (ôn T4). Nhánh <code>default</code> còn kèm vai trò an toàn: tổ hợp bit không thuộc state nào bị kéo về S0. Compiler không bắt lỗi này cho bạn. Xem C5.</div>
+        </div>
+        <div class="qz-item" data-answer="B">
+          <p class="qz-q">3. Phát biểu nào <b>chính xác</b> về Moore và Mealy?</p>
+          <button class="qz-opt" data-key="A">Mealy luôn tốt hơn vì phản ứng sớm hơn 1 chu kỳ</button>
+          <button class="qz-opt" data-key="B">Moore: output = f(state), chỉ đổi sau cạnh clock; Mealy: output = f(state, input), có thể đổi ngay giữa chu kỳ theo input</button>
+          <button class="qz-opt" data-key="C">Moore cần ít state hơn Mealy trong mọi bài toán</button>
+          <button class="qz-opt" data-key="D">Mealy không cần state register nên tiết kiệm FF</button>
+          <div class="qz-expl"><b>Giải thích:</b> khác biệt nằm ở <em>hàm output</em> và hệ quả thời điểm: Mealy sớm hơn ~1 chu kỳ nhưng output có thể rung theo input; Moore thường cần nhiều state hơn ("101": 4 vs 3) và cả hai đều là FSM đồng bộ có state register. Đây là trade-off, không có bên "luôn tốt hơn". Xem C6.</div>
+        </div>
+        <div class="qz-item" data-answer="D">
+          <p class="qz-q">4. RTL khai báo <code>typedef enum logic [1:0]</code> cho 4 state. Sau synthesis, có <b>chắc chắn</b> mạch dùng đúng 2 FF cho state không?</p>
+          <button class="qz-opt" data-key="A">Chắc chắn — RTL viết 2 bit thì phần cứng phải là 2 FF</button>
+          <button class="qz-opt" data-key="B">Chắc chắn 4 FF — FPGA luôn dùng one-hot</button>
+          <button class="qz-opt" data-key="C">Chắc chắn 2 FF nếu code có nhánh default</button>
+          <button class="qz-opt" data-key="D">Không chắc — RTL chỉ biểu diễn state bằng 2 bit; tool có thể giữ nguyên hoặc mã hóa lại (vd one-hot 4 FF) tùy tool/cài đặt</button>
+          <div class="qz-expl"><b>Giải thích:</b> RTL mô tả <em>hành vi</em>; mã hóa vật lý là quyết định của công cụ synthesis (có thể chỉnh bằng cài đặt). Muốn biết số FF thật, đọc báo cáo synthesis — đây là điểm đã hiệu chỉnh so với v2. Xem C5 (co-fix).</div>
+        </div>
+        <div class="qz-item" data-answer="A">
+          <p class="qz-q">5. Một FSM 5 trạng thái mã hóa nhị phân trên 3 bit — còn 3 tổ hợp không thuộc state nào. Ở mức RTL nhập môn, thiết kế chống đỡ tình huống rơi vào tổ hợp thừa bằng cách nào?</p>
+          <button class="qz-opt" data-key="A">Nhánh default trong next-state logic kéo state lạ về trạng thái an toàn (S0), cộng với reset đưa FSM về điểm khởi đầu xác định</button>
+          <button class="qz-opt" data-key="B">Không cần làm gì — synthesis đã xóa mọi tổ hợp bit không dùng khỏi phần cứng</button>
+          <button class="qz-opt" data-key="C">Cấp cho state register một clock riêng chậm hơn để tránh nhiễu</button>
+          <button class="qz-opt" data-key="D">Chuyển sang Mealy để giảm số state, hết tổ hợp thừa</button>
+          <div class="qz-expl"><b>Giải thích:</b> phần cứng không tự xóa tổ hợp thừa. Phòng thủ chuẩn: default kéo về nơi an toàn + khởi tạo xác định bằng reset. Lưu ý phạm vi: với máy "101" ở C5 — 4 state lấp đầy cả 4 tổ hợp 2 bit — <em>không</em> tồn tại tổ hợp lạ, nên ở đó nhánh <code>default</code> chỉ là thói quen phòng thủ và để bắt giá trị X trong mô phỏng. Nó thật sự cứu được khi số state không lấp đầy mã hóa (như câu này), hoặc khi công cụ mã hóa lại one-hot kèm tùy chọn safe-FSM. Clock riêng vi phạm quy tắc một clock của khóa. Xem C5.</div>
+        </div>
+        <div class="qz-bar"><span class="qz-score"></span><span class="qz-verdict"></span><button class="qz-reset">Làm lại</button></div>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <h3>Bài tập bắt buộc <span class="badge badge-req">nộp trước buổi 7</span></h3>
+        <p><b>Khóa số 2 nút</b> (từ breakout) — đi đủ chuỗi: spec trên giấy → RTL → bằng chứng mô phỏng.</p>
+        <ul class="small">
+          <li>Hoàn thiện state diagram + transition table (kiểm đếm: đủ mũi tên = số state × số input).</li>
+          <li>Viết RTL 3 khối theo đúng khuôn <code>seq_detect_101.sv</code>: enum có tên, default đủ ở cả hai khối tổ hợp.</li>
+          <li>Testbench bơm 3 chuỗi: <b>"AAB"</b>, <b>"BAB"</b>, <b>"ABAB"</b> — dự đoán <code>unlock</code> trên giấy trước khi chạy.</li>
+          <li>Chụp waveform, <b>chú thích bằng tay thời điểm cửa mở</b> và giải thích vì sao.</li>
+        </ul>
+        <p class="small"><b>Nộp (deliverable):</b> diagram + transition table + file .sv + testbench + ảnh waveform có chú thích.</p>
+      </div>
+      <div class="card">
+        <h3>Thử thách nâng cao <span class="badge badge-opt">tự chọn</span></h3>
+        <p>Chọn một trong hai — và <b>vẽ lại diagram trước khi sửa code</b>:</p>
+        <ul class="small">
+          <li><b>Đổi mẫu:</b> sửa detector thành "110". Những ô nào trong transition table đổi? Ô gối chuỗi mới nằm ở đâu?</li>
+          <li><b>Thêm input <code>cancel</code></b> đưa mọi state về S0: bảng đổi thế nào (mỗi state thêm mấy lối đi)? Có cần state mới không?</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Engineering Question → Research Question</h3>
+      <p class="small muted">Từ tuần này, mỗi tuần một cặp EQ→RQ chính thức: cách kỹ sư biến một lựa chọn thiết kế thành câu hỏi nghiên cứu có thể kiểm chứng.</p>
+      <div class="eqrq">
+        <div class="eq"><b>Câu hỏi kỹ thuật</b>Chọn mã hóa state nào cho FSM này — binary, one-hot hay Gray?</div>
+        <div class="arr">→</div>
+        <div class="rq"><b>Câu hỏi nghiên cứu</b>Binary / one-hot / Gray ảnh hưởng thế nào tới diện tích, timing, công suất và độ bền lỗi (illegal state)? Thí nghiệm khả dĩ: cùng một FSM, ép công cụ dùng 2 kiểu mã hóa, so sánh báo cáo tài nguyên.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Rubric tuần 6</h3>
+      <div class="tblwrap">
+      <table class="tbl rubric">
+        <tr><th>Tiêu chí</th><th>Trọng số</th><th>Đạt khi…</th></tr>
+        <tr><td>Hiểu khái niệm</td><td class="pct">25%</td><td>Giải thích được vì sao diagram là đặc tả; phân biệt Moore/Mealy bằng hàm output và thời điểm; trace được chuỗi bất kỳ trên bảng "101".</td></tr>
+        <tr><td>Kiến trúc</td><td class="pct">20%</td><td>State đặt tên có nghĩa, đủ mũi tên = state × input; không nhét dữ liệu đếm vào state — chỉ đúng vai controller/datapath.</td></tr>
+        <tr><td>RTL đúng</td><td class="pct">20%</td><td>3 khối tách bạch đúng khuôn; enum có tên; default đủ ở next-state lẫn output; không latch, không blocking trong <code>always_ff</code>.</td></tr>
+        <tr><td>Verification</td><td class="pct">20%</td><td>Testbench chạy đủ 3 chuỗi AAB/BAB/ABAB; waveform chú thích thời điểm unlock; đối chiếu được với dự đoán từ transition table.</td></tr>
+        <tr><td>Giao tiếp kỹ thuật</td><td class="pct">15%</td><td>Trình bày theo đúng thứ tự thiết kế (diagram → bảng → code → waveform); nói được "dự đoán của tôi lệch ở đâu, vì sao".</td></tr>
+      </table>
+      </div>
+      <p class="small muted">Code chạy được chưa phải điểm tối đa — phải giải thích được vì sao nó đúng.</p>
+    </div>
+
+    <div class="card">
+      <h3>Tổng kết tuần 6</h3>
+      <div class="ican">
+        <div><b>I can explain</b>① Vì sao state diagram là đặc tả còn RTL chỉ là hiện thực — diagram sai thì chip sai. ② Moore vs Mealy: nguồn output và thời điểm đổi trên waveform. ③ Ba khối của FSM và phần cứng mỗi khối suy ra (FF vs cổng tổ hợp).</div>
+        <div><b>I can design</b>Từ mô tả bằng lời → liệt kê state có tên nghĩa, vẽ diagram, lập transition table đủ mũi tên — rồi mới dịch thành RTL 3 khối (khóa số 2 nút).</div>
+        <div><b>I can verify</b>Viết testbench bơm chuỗi kích thích trúng / trượt / gối nhau; đối chiếu waveform với transition table từng cạnh clock một.</div>
+        <div><b>I can connect</b><code>traffic_ctrl</code> của T9 = đúng khuôn FSM 3 khối tuần này + timer T5 làm datapath — giữ nguyên khuôn, chỉ đổi state và điều kiện chuyển.</div>
+        <div class="unsure"><b>I am still unsure about…</b><textarea class="reflect" id="unsure6" placeholder="Điều tôi giải thích được tuần này mà tuần trước chưa giải thích được là… / Điều tôi còn mơ hồ là… (tự động lưu trên máy bạn)"></textarea></div>
+        <div class="nextwk"><b>Next week</b>Bạn đã dùng default, non-blocking, khuôn 3 khối suốt 3 tuần theo kiểu "làm theo mẫu". T7 hệ thống hóa toàn bộ <b>luật viết RTL sạch</b> — gọi tên từng luật và giải thích vì sao.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="weeknav">
+      <a href="Week05.html"><small>← Tuần trước</small><b>T5 · Sequential Logic &amp; Memory</b></a>
+      <a class="next" href="Week07.html"><small>Tuần sau →</small><b>T7 · Writing Clean RTL in SystemVerilog</b></a>
+    </div>
+    <div class="footer">
+      <b>IC Design Mentoring — Version 3 · Phase 1</b>
+      <span class="org">Khoa Điện – Điện tử · Trường Kỹ thuật · Đại học Phenikaa</span>
+      <span>Biên soạn: <b style="display:inline">Giảng Viên Đinh Văn Nam</b></span>
+      <span class="cr">© 2026 · Bản quyền thuộc về Giảng Viên Đinh Văn Nam, Khoa Điện-Điện Tử, Trường Kỹ Thuật, Đại học Phenikaa. Tài liệu phục vụ đào tạo — vui lòng giữ nguyên thông tin tác giả khi chia sẻ.</span>
+      <span class="cr">Hoạt động offline — không cần Internet.</span>
+    </div>
+  </div>
+</footer>
+</body>
+</html>

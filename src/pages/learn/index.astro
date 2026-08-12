@@ -1,0 +1,138 @@
+---
+import BaseLayout from "~/layouts/BaseLayout.astro";
+import { LEGACY } from "~/config/site";
+import { href, fmtDate } from "~/utils/url";
+import { getPublished } from "~/utils/content";
+import { TRACKS } from "~/data/tracks";
+import versionsManifest from "../../../public/legacy/data/versions.json";
+
+const paths = await getPublished("learning-paths");
+const versions = versionsManifest.versions;
+const current = versions.find((v) => v.status === "current");
+---
+
+<BaseLayout
+  title="Học IC Design"
+  description="Lộ trình học thiết kế vi mạch: giáo trình IC Design Foundations 12 tuần (V3), lộ trình có hướng dẫn, và lịch sử phát triển giáo trình."
+  path="learn/"
+>
+  <section class="hero">
+    <div class="wrap">
+      <div class="kicker">Learn</div>
+      <h1>Học IC Design</h1>
+      <p class="sub">
+        Bắt đầu từ nền tảng số, đi qua RTL/SystemVerilog và FPGA, kết thúc Phase 1 bằng một
+        hệ thống tích hợp chạy được — theo giáo trình đã được audit kỹ thuật.
+      </p>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="current-h">
+    <div class="wrap">
+      <h2 id="current-h" class="sec">Giáo trình hiện hành — IC Design Foundations (Phase 1)</h2>
+      <p class="sec-sub">
+        Version 3 · 12 tuần · mô hình 4 lớp (trước buổi → buổi 60′ → lab → sau buổi) · project tích hợp Tuần 9–11 · hoạt động offline.
+      </p>
+      {current && (
+        <div class="card" style="border-color: var(--acc2); max-width:860px">
+          <span><span class="badge green">HIỆN HÀNH · KHUYẾN NGHỊ</span></span>
+          <h3 style="font-size:19px"><a href={href(LEGACY.v3)}>{current.titleVi}</a></h3>
+          <p>{current.description}</p>
+          <div class="btn-row" style="margin-top:10px">
+            <a class="btn primary" href={href(LEGACY.v3)}>Vào giáo trình V3</a>
+            <a class="btn" href={href(LEGACY.v3CurriculumMap)}>Curriculum Map</a>
+            <a class="btn" href={href(LEGACY.v3ProjectGuide)}>Project Guide (T9–11)</a>
+            <a class="btn" href={href(LEGACY.v3TechnicalAudit)}>Technical Audit</a>
+          </div>
+          <p class="muted small" style="margin-top:8px">
+            Giáo trình mở trong giao diện gốc của nó (cây lưu trữ nguyên trạng) — tiến độ học, quiz
+            và chế độ mentor hoạt động như thiết kế ban đầu. Dùng nút "⌂ Hub" trong trang để quay lại.
+          </p>
+        </div>
+      )}
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="paths-h" id="paths">
+    <div class="wrap">
+      <h2 id="paths-h" class="sec">Lộ trình học có hướng dẫn</h2>
+      <p class="sec-sub">Mỗi lộ trình là một chuỗi bước có thứ tự — theo được từ đầu đến cuối.</p>
+      {paths.length === 0 ? (
+        <p class="muted">Chưa có lộ trình nào được công bố.</p>
+      ) : (
+        <div class="grid cols-2">
+          {paths.map((p) => (
+            <div class="card">
+              <span>
+                <span class="badge acc">{p.data.level === "foundation" ? "Nền tảng" : p.data.level === "intermediate" ? "Trung cấp" : "Nâng cao"}</span>
+                {p.data.duration && <span class="badge gray">{p.data.duration}</span>}
+              </span>
+              <h3><a href={href(`learn/${p.id}/`)}>{p.data.title}</a></h3>
+              <p>{p.data.summary}</p>
+              <div class="meta">
+                {p.data.audience && <span>Dành cho: {p.data.audience}</span>}
+                <span>{p.data.steps.length} chặng</span>
+                <span>{fmtDate(p.data.date)}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="history-h">
+    <div class="wrap">
+      <h2 id="history-h" class="sec">Lịch sử giáo trình — các phiên bản lưu trữ</h2>
+      <p class="sec-sub">
+        Phiên bản đã lưu trữ là <b>bất biến</b>: không viết lại, không "hiện đại hóa", không tạo bù nội dung thiếu.
+      </p>
+      <div class="grid cols-3">
+        {versions.map((v) => (
+          <div class="card">
+            <span>
+              <span class={`badge ${v.status === "current" ? "green" : "gray"}`}>
+                {v.status === "current" ? "HIỆN HÀNH" : "LƯU TRỮ"}
+              </span>
+            </span>
+            <h3><a href={href(`legacy/${v.path}index.html`)}>{v.titleVi}</a></h3>
+            <p>{v.description}</p>
+            <div class="meta">
+              <span>{v.weekCount} tuần</span>
+              <span>· đóng gói {v.packaged}</span>
+              {!v.offline && <span>· cần Internet (CDN)</span>}
+            </div>
+          </div>
+        ))}
+      </div>
+      <p style="margin-top:16px">
+        <a class="btn" href={href("learn/evolution/")}>Giáo trình đã tiến hóa thế nào? (V1 → V2 → V3)</a>
+      </p>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="tracks-h" style="padding-bottom:28px">
+    <div class="wrap">
+      <h2 id="tracks-h" class="sec">Bản đồ chủ đề IC Design</h2>
+      <p class="sec-sub">
+        Taxonomy tri thức của hub. Chủ đề gắn nhãn <b>Định hướng</b> là khu vực dự kiến mở rộng —
+        chưa có nội dung, và hub không bịa nội dung để lấp chỗ trống.
+      </p>
+      <div class="grid cols-3">
+        {TRACKS.map((t) => (
+          <div class="card flat">
+            <span>
+              <span class={`badge ${t.status === "active" ? "acc" : "gray"}`}>
+                {t.status === "active" ? "Đang có nội dung" : "Định hướng"}
+              </span>
+            </span>
+            <h3 style="font-size:15.5px">
+              {t.status === "active" ? <a href={href(`tags/${t.id}/`)}>{t.label}</a> : t.label}
+            </h3>
+            <p class="small">{t.description}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+</BaseLayout>

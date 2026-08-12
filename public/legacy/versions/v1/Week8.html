@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tuần 8: FPGA vs ASIC | IC Design Mentoring</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Consolas', 'Monaco', 'Courier New', 'monospace'],
+                    },
+                    colors: {
+                        primary: '#2563eb', // Blue 600
+                        secondary: '#f59e0b', // Amber 500
+                        accent: '#10b981', // Emerald 500
+                        dark: '#1e293b', // Slate 800
+                        light: '#f8fafc', // Slate 50
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        details > summary { list-style: none; }
+        details > summary::-webkit-details-marker { display: none; }
+        details[open] summary ~ * { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .custom-checkbox {
+            appearance: none;
+            background-color: #fff;
+            margin: 0;
+            font: inherit;
+            color: currentColor;
+            width: 1.25em;
+            height: 1.25em;
+            border: 2px solid #cbd5e1;
+            border-radius: 0.25em;
+            display: grid;
+            place-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+        }
+        .custom-checkbox::before {
+            content: "";
+            width: 0.65em;
+            height: 0.65em;
+            transform: scale(0);
+            transition: 120ms transform ease-in-out;
+            box-shadow: inset 1em 1em white;
+            background-color: white;
+            transform-origin: center;
+            clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+        }
+        .custom-checkbox:checked {
+            background-color: #10b981;
+            border-color: #10b981;
+        }
+        .custom-checkbox:checked::before { transform: scale(1); }
+        .task-item.completed { text-decoration: line-through; color: #94a3b8; }
+        
+        /* Decision Tool Animation */
+        .decision-highlight {
+            animation: highlightPulse 1.5s ease-out;
+        }
+        @keyframes highlightPulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.7); }
+            50% { transform: scale(1.02); box-shadow: 0 0 0 10px rgba(37, 99, 235, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased selection:bg-primary selection:text-white pb-20">
+<div id="lichub-nav-top" data-lichub="v1" role="navigation" aria-label="Điều hướng Learning Hub (bổ sung, không thuộc trang gốc)" style="background:#0f172a;color:#e2e8f0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:13.5px;line-height:1.6;padding:8px 16px;display:flex;flex-wrap:wrap;gap:4px 16px;align-items:center;border-bottom:3px solid #f59e0b"><a href="../../index.html" style="color:#7dd3fc;text-decoration:none;font-weight:600">⌂ Learning Hub</a><span style="font-size:11px;font-weight:700;letter-spacing:.04em;color:#f59e0b;border:1px solid #f59e0b;border-radius:6px;padding:1px 7px;white-space:nowrap">V1 · BẢN LƯU TRỮ GỐC</span><a href="index.html" style="color:#cbd5e1;text-decoration:none">Mục lục V1</a><span style="flex:1"></span><a href="Week7.html" style="color:#7dd3fc;text-decoration:none" title="What Is Verilog?">← Tuần 7</a><a href="Week9.html" style="color:#7dd3fc;text-decoration:none" title="Traffic Light Controller">Tuần 9 →</a><span aria-hidden="true" style="color:#475569">|</span><span style="display:inline-flex;gap:8px;align-items:center"><span style="color:#94a3b8">Chuyển bản:</span> <b aria-current="true" style="color:#f59e0b">V1</b> <a href="../v2/index.html" style="color:#cbd5e1;text-decoration:none">V2</a> <a href="../v3/index.html" style="color:#cbd5e1;text-decoration:none">V3</a></span></div>
+
+
+    <header class="bg-gradient-to-br from-dark to-slate-700 text-white pt-16 pb-20 px-6 shadow-xl relative overflow-hidden">
+        <div class="absolute top-0 right-0 opacity-10 pointer-events-none">
+            <i class="fa-solid fa-scale-balanced text-[20rem] -mt-10 -mr-10"></i>
+        </div>
+        
+        <div class="max-w-4xl mx-auto relative z-10">
+            <div class="flex flex-wrap items-center gap-3 mb-4">
+                <span class="bg-primary text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Tuần 8</span>
+                <span class="bg-secondary text-dark text-xs font-bold px-3 py-1 rounded-full"><i class="fa-solid fa-microchip mr-1"></i> Kiến Trúc Phần Cứng</span>
+                <span class="bg-white/20 text-white border border-white/30 text-xs font-semibold px-3 py-1 rounded-full"><i class="fa-solid fa-university mr-1"></i> Phenikaa University</span>
+            </div>
+            
+            <h1 class="text-4xl md:text-5xl font-extrabold mb-3 leading-tight text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-300">
+                FPGA vs ASIC
+            </h1>
+            <h2 class="text-xl md:text-2xl font-medium text-slate-300 mb-6 border-l-4 border-primary pl-4">
+                Lựa Chọn Nền Tảng Nào Cho Hệ Thống Của Bạn?
+            </h2>
+            
+            <div class="bg-white/10 backdrop-blur-md rounded-xl p-5 border border-white/20 mb-8 max-w-3xl">
+                <p class="text-lg leading-relaxed">
+                    <i class="fa-solid fa-quote-left text-primary opacity-50 mr-2"></i>
+                    Viết code Verilog xong, chúng ta chạy nó ở đâu? Tuần này, chúng ta sẽ so sánh 2 con đường chính để biến mã code thành phần cứng thực tế: <strong>FPGA</strong> (nhanh, linh hoạt để học tập và thử nghiệm) và <strong>ASIC</strong> (tối ưu, sản xuất hàng loạt).
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="flex items-start gap-3">
+                    <div class="bg-white/20 w-8 h-8 flex items-center justify-center rounded-lg text-secondary shrink-0"><i class="fa-solid fa-code-compare"></i></div>
+                    <p class="text-sm mt-1">Phân biệt được rõ ràng bản chất giữa chip FPGA và chip ASIC.</p>
+                </div>
+                <div class="flex items-start gap-3">
+                    <div class="bg-white/20 w-8 h-8 flex items-center justify-center rounded-lg text-secondary shrink-0"><i class="fa-solid fa-stopwatch"></i></div>
+                    <p class="text-sm mt-1">Phân tích sâu 4 tiêu chí đánh đổi: Volume, PPA, Time-to-market, Flexibility.</p>
+                </div>
+                <div class="flex items-start gap-3">
+                    <div class="bg-white/20 w-8 h-8 flex items-center justify-center rounded-lg text-secondary shrink-0"><i class="fa-solid fa-vial"></i></div>
+                    <p class="text-sm mt-1">Hiểu quy trình dùng FPGA làm Mẫu thử nghiệm (Prototype) trước khi đúc ASIC.</p>
+                </div>
+                <div class="flex items-start gap-3">
+                    <div class="bg-white/20 w-8 h-8 flex items-center justify-center rounded-lg text-secondary shrink-0"><i class="fa-solid fa-graduation-cap"></i></div>
+                    <p class="text-sm mt-1">Giải thích được vì sao sinh viên cần học FPGA để bước vào ngành IC Design.</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 sm:px-6 -mt-10 relative z-20 space-y-8">
+
+        <section class="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
+            <div class="bg-blue-50 border-b border-blue-100 px-6 py-4 flex items-center justify-between">
+                <h3 class="text-xl font-bold text-dark flex items-center gap-2">
+                    <i class="fa-solid fa-mug-hot text-primary"></i> Chuẩn Bị Trước Buổi Học
+                </h3>
+            </div>
+            <div class="p-6">
+                <p class="text-slate-600 mb-6">
+                    "Engineering is all about Trade-offs" (Kỹ thuật là bài toán đánh đổi). <strong>FPGA</strong> giống như một bảng Lego mà bạn có thể xếp đi xếp lại nhiều lần (linh hoạt). Còn <strong>ASIC</strong> giống như một bức tượng đúc bằng đồng nguyên khối (tối ưu nhưng không thể sửa).
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 hover:border-primary/30 transition-colors">
+                        <h4 class="font-bold text-dark mb-4 border-b pb-2 flex items-center gap-2">
+                            <i class="fa-solid fa-list-check text-primary"></i> Checklist Tự Học
+                        </h4>
+                        <ul class="space-y-3" id="prep-checklist">
+                            <li class="flex items-start gap-3 group">
+                                <input type="checkbox" class="custom-checkbox mt-0.5" id="task1" onclick="toggleTask(this)">
+                                <label for="task1" class="cursor-pointer text-sm text-slate-700 task-item group-hover:text-primary transition-colors">Đọc định nghĩa: FPGA là gì? ASIC là gì?</label>
+                            </li>
+                            <li class="flex items-start gap-3 group">
+                                <input type="checkbox" class="custom-checkbox mt-0.5" id="task2" onclick="toggleTask(this)">
+                                <label for="task2" class="cursor-pointer text-sm text-slate-700 task-item group-hover:text-primary transition-colors">Hiểu khái niệm NRE Cost (Chi phí nghiên cứu ban đầu)</label>
+                            </li>
+                            <li class="flex items-start gap-3 group">
+                                <input type="checkbox" class="custom-checkbox mt-0.5" id="task3" onclick="toggleTask(this)">
+                                <label for="task3" class="cursor-pointer text-sm text-slate-700 task-item group-hover:text-primary transition-colors">Trải nghiệm "Bảng Phân Tích Đánh Đổi" (Trade-off Matrix) bên dưới</label>
+                            </li>
+                            <li class="flex items-start gap-3 group">
+                                <input type="checkbox" class="custom-checkbox mt-0.5" id="task4" onclick="toggleTask(this)">
+                                <label for="task4" class="cursor-pointer text-sm text-slate-700 task-item group-hover:text-primary transition-colors">Chuẩn bị các câu hỏi thảo luận cho Mentor</label>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-blue-50 p-5 rounded-xl border border-blue-200 relative overflow-hidden">
+                        <i class="fa-regular fa-lightbulb absolute -right-4 -bottom-4 text-6xl text-blue-200 opacity-50"></i>
+                        <h4 class="font-bold text-primary mb-4 border-b border-blue-200 pb-2 relative z-10">Tư Duy Khởi Động</h4>
+                        <ul class="space-y-3 list-disc list-inside text-sm text-slate-700 relative z-10">
+                            <li>Tại sao Apple tốn hàng tỷ USD thiết kế chip M4 (ASIC) thay vì mua hàng triệu con chip FPGA về để nhúng vào Macbook cho nhanh?</li>
+                            <li>Ngược lại, nếu Start-up của bạn làm vệ tinh nhân tạo chỉ phóng 5 cái lên vũ trụ, bạn sẽ dùng chip gì?</li>
+                            <li>Đồ thị "Điểm hòa vốn" (Break-even point) giữa FPGA và ASIC có ý nghĩa gì đối với Giám đốc công nghệ (CTO)?</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
+                <h3 class="text-xl font-bold text-dark flex items-center gap-2">
+                    <i class="fa-solid fa-microchip text-primary"></i> Khái Niệm Cốt Lõi & Demo Đánh Giá
+                </h3>
+            </div>
+            
+            <div class="p-6 divide-y divide-slate-100">
+                <div class="py-5 first:pt-0">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="text-lg font-bold text-primary mb-2 flex items-center gap-2">
+                                <span class="bg-primary/10 text-primary w-6 h-6 rounded-full flex items-center justify-center text-sm">1</span> FPGA (Field-Programmable Gate Array)
+                            </h4>
+                            <p class="text-slate-600 text-sm leading-relaxed mb-4">
+                                Chip có thể <strong>xóa và cấu hình lại phần cứng</strong> bằng code bất cứ lúc nào. Chi phí NRE (Thiết kế ban đầu) gần như bằng 0. Rất phù hợp để thử nghiệm (Prototype), thời gian ra mắt (Time-to-Market) cực nhanh, linh hoạt. Tuy nhiên, giá thành mỗi con chip khá đắt, tốn pin và tốc độ chậm hơn ASIC.
+                            </p>
+                        </div>
+                        <div>
+                            <h4 class="text-lg font-bold text-primary mb-2 flex items-center gap-2">
+                                <span class="bg-primary/10 text-primary w-6 h-6 rounded-full flex items-center justify-center text-sm">2</span> ASIC (Application-Specific IC)
+                            </h4>
+                            <p class="text-slate-600 text-sm leading-relaxed mb-4">
+                                Chip được <strong>đúc cứng vĩnh viễn</strong> tại xưởng (Foundry) cho một ứng dụng cụ thể. Chi phí NRE khổng lồ (hàng triệu USD để thiết kế mặt nạ quang khắc). Bù lại, khi sản xuất hàng triệu con, giá trên từng chip rất rẻ, PPA (Tốc độ, Tiêu thụ pin, Diện tích) cực kỳ tối ưu.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- NEW Advanced Interactive Decision Tool (SVG Driven) -->
+                <div class="py-5">
+                    <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 shadow-inner">
+                        <div class="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div>
+                                <p class="text-sm font-semibold text-white"><i class="fa-solid fa-chart-line text-secondary"></i> Bảng Phân Tích Đánh Đổi (Trade-off Analysis Dashboard)</p>
+                                <p class="text-xs text-slate-400 italic mt-1">Đóng vai CTO: Hãy điều chỉnh 4 yêu cầu của dự án để xem đồ thị kinh tế và quyết định cuối cùng.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start bg-slate-900 p-6 rounded-lg border border-slate-600">
+                            
+                            <!-- Left: 4 Sliders Controls -->
+                            <div class="space-y-6">
+                                <div>
+                                    <div class="flex justify-between text-xs font-bold text-slate-300 mb-2 uppercase tracking-wider">
+                                        <span>Số lượng SX (Volume)</span>
+                                        <span id="volLabel" class="text-primary font-mono bg-primary/20 px-2 py-0.5 rounded">Rất Ít (100)</span>
+                                    </div>
+                                    <input type="range" id="sliderVol" min="0" max="100" value="10" class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-primary">
+                                    <div class="flex justify-between text-[10px] text-slate-500 mt-1 font-mono">
+                                        <span>Prototype</span>
+                                        <span>Mass Production</span>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div class="flex justify-between text-xs font-bold text-slate-300 mb-2 uppercase tracking-wider">
+                                        <span>Yêu cầu PPA (Hiệu năng/Pin)</span>
+                                        <span id="ppaLabel" class="text-emerald-400 font-mono bg-emerald-400/20 px-2 py-0.5 rounded">Bình thường</span>
+                                    </div>
+                                    <input type="range" id="sliderPPA" min="0" max="100" value="30" class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-400">
+                                </div>
+
+                                <div>
+                                    <div class="flex justify-between text-xs font-bold text-slate-300 mb-2 uppercase tracking-wider">
+                                        <span>Thời gian ra mắt (Time-to-Market)</span>
+                                        <span id="ttmLabel" class="text-amber-400 font-mono bg-amber-400/20 px-2 py-0.5 rounded">Rất Gấp (Vài tháng)</span>
+                                    </div>
+                                    <input type="range" id="sliderTTM" min="0" max="100" value="10" class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-amber-400">
+                                    <div class="flex justify-between text-[10px] text-slate-500 mt-1 font-mono">
+                                        <span>Càng sớm càng tốt</span>
+                                        <span>Có thể đợi 2 năm</span>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div class="flex justify-between text-xs font-bold text-slate-300 mb-2 uppercase tracking-wider">
+                                        <span>Khả năng Sửa đổi/Cập nhật</span>
+                                        <span id="flexLabel" class="text-purple-400 font-mono bg-purple-400/20 px-2 py-0.5 rounded">Cần sửa lỗi liên tục</span>
+                                    </div>
+                                    <input type="range" id="sliderFlex" min="0" max="100" value="80" class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-purple-400">
+                                </div>
+                            </div>
+
+                            <!-- Right: Visual Result & Graph Panel -->
+                            <div class="flex flex-col h-full gap-4">
+                                <!-- SVG Graph: Break-Even Point -->
+                                <div class="bg-slate-800 border border-slate-600 rounded-lg p-3 relative h-48 w-full flex items-center justify-center">
+                                    <span class="absolute top-2 left-2 text-[10px] text-slate-400 font-bold uppercase tracking-widest z-10">Total Cost (Chi phí tổng)</span>
+                                    <span class="absolute bottom-2 right-2 text-[10px] text-slate-400 font-bold uppercase tracking-widest z-10">Volume</span>
+                                    
+                                    <!-- Academic Break-even SVG -->
+                                    <svg viewBox="0 0 100 100" class="w-full h-full p-2 overflow-visible" preserveAspectRatio="none">
+                                        <!-- Axes -->
+                                        <line x1="0" y1="100" x2="100" y2="100" stroke="#475569" stroke-width="1"/>
+                                        <line x1="0" y1="0" x2="0" y2="100" stroke="#475569" stroke-width="1"/>
+                                        
+                                        <!-- ASIC Line: Start high (NRE), grow slow (Unit Cost) -->
+                                        <line x1="0" y1="30" x2="100" y2="10" stroke="#10b981" stroke-width="2" stroke-dasharray="3,2" opacity="0.8"/>
+                                        <text x="80" y="8" fill="#10b981" font-size="6" font-weight="bold">ASIC</text>
+                                        
+                                        <!-- FPGA Line: Start zero (NRE), grow fast (Unit Cost) -->
+                                        <line x1="0" y1="95" x2="100" y2="20" stroke="#3b82f6" stroke-width="2"/>
+                                        <text x="85" y="28" fill="#3b82f6" font-size="6" font-weight="bold">FPGA</text>
+
+                                        <!-- Intersection Point ~ X=65 -->
+                                        <circle cx="65" cy="18" r="2" fill="#f59e0b" class="animate-pulse"/>
+                                        <text x="50" y="12" fill="#f59e0b" font-size="4">Break-even Point</text>
+                                        
+                                        <!-- Dynamic User Volume Line -->
+                                        <line id="userVolLine" x1="10" y1="0" x2="10" y2="100" stroke="#f43f5e" stroke-width="1" class="transition-all duration-300 ease-out"/>
+                                        <polygon id="userVolMarker" points="6,100 14,100 10,95" fill="#f43f5e" class="transition-all duration-300 ease-out"/>
+                                    </svg>
+                                </div>
+
+                                <!-- Result Box -->
+                                <div id="resultPanel" class="relative flex-1 flex flex-col items-center justify-center p-4 bg-[#1e293b] rounded-lg border-2 transition-all duration-500 decision-highlight">
+                                    <div class="absolute inset-0 bg-gradient-to-br opacity-20 rounded-lg" id="resultGlow"></div>
+                                    
+                                    <div class="flex items-center justify-center gap-6 z-10 w-full mb-3">
+                                        <div id="fpgaIcon" class="flex flex-col items-center transition-all duration-300">
+                                            <div class="w-12 h-12 rounded bg-blue-900 border-2 border-blue-400 flex items-center justify-center">
+                                                <i class="fa-solid fa-cube text-2xl text-blue-300"></i>
+                                            </div>
+                                            <span class="text-blue-400 font-bold text-sm mt-1">FPGA</span>
+                                        </div>
+                                        <div id="asicIcon" class="flex flex-col items-center transition-all duration-300">
+                                            <div class="w-12 h-12 rounded bg-emerald-900 border-2 border-emerald-400 flex items-center justify-center">
+                                                <i class="fa-solid fa-microchip text-2xl text-emerald-300"></i>
+                                            </div>
+                                            <span class="text-emerald-400 font-bold text-sm mt-1">ASIC</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <p id="reasonText" class="text-sm text-slate-300 text-left w-full z-10 font-mono leading-relaxed bg-black/40 p-3 rounded shadow-inner">
+                                        Khuyên dùng: FPGA.
+                                    </p>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
+            <div class="bg-amber-50 border-b border-amber-200 px-6 py-4 flex items-center justify-between">
+                <h3 class="text-xl font-bold text-dark flex items-center gap-2">
+                    <i class="fa-solid fa-users-gear text-secondary"></i> Nhiệm Vụ Của Nhóm
+                </h3>
+                <span class="text-xs bg-amber-200 text-amber-800 px-3 py-1 rounded-full font-bold shadow-sm">Thuyết trình 10 phút</span>
+            </div>
+            <div class="p-6">
+                <div class="flex items-start gap-4 mb-6 bg-yellow-50 p-4 rounded-xl border-l-4 border-secondary shadow-sm">
+                    <i class="fa-solid fa-lightbulb text-secondary text-xl mt-1"></i>
+                    <div>
+                        <p class="text-sm font-bold text-slate-800 mb-1">Quy tắc Mentor:</p>
+                        <p class="text-sm text-slate-600 italic">"Đừng đọc slide so sánh khô khan. Hãy đặt một tình huống cụ thể (Ví dụ: Thiết kế máy chơi game mới, hoặc vệ tinh Starlink) và yêu cầu nhóm quyết định dùng chip gì, giải thích dựa trên các rào cản kinh tế và kỹ thuật."</p>
+                    </div>
+                </div>
+
+                <h4 class="font-bold text-dark mb-3 text-sm uppercase tracking-wider">Gợi ý nội dung Slide nhóm (5-7 trang):</h4>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-slate-700 mb-2">
+                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 flex gap-3 items-center hover:border-amber-300 transition-colors">
+                        <span class="bg-dark text-white rounded w-6 h-6 flex items-center justify-center shrink-0 font-bold text-xs">1</span>
+                        <p class="font-medium">Giải thích đơn giản: Bản chất phần cứng của FPGA và ASIC khác nhau ở đâu?</p>
+                    </div>
+                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 flex gap-3 items-center hover:border-amber-300 transition-colors">
+                        <span class="bg-dark text-white rounded w-6 h-6 flex items-center justify-center shrink-0 font-bold text-xs">2</span>
+                        <p class="font-medium">Giải thích NRE Cost và Unit Cost. Mối quan hệ với Số lượng sản xuất (Volume).</p>
+                    </div>
+                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 flex gap-3 items-center hover:border-amber-300 transition-colors">
+                        <span class="bg-dark text-white rounded w-6 h-6 flex items-center justify-center shrink-0 font-bold text-xs">3</span>
+                        <p class="font-medium">Khi nào một dự án bắt buộc phải chọn FPGA (Time-to-market ngắn, cần sửa lỗi sau bán)?</p>
+                    </div>
+                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 flex gap-3 items-center hover:border-amber-300 transition-colors">
+                        <span class="bg-dark text-white rounded w-6 h-6 flex items-center justify-center shrink-0 font-bold text-xs">4</span>
+                        <p class="font-medium">Khi nào một công ty sẵn sàng đổ hàng triệu USD đúc ASIC?</p>
+                    </div>
+                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 flex gap-3 items-center sm:col-span-2 hover:border-amber-300 transition-colors bg-gradient-to-r from-amber-50 to-white">
+                        <span class="bg-secondary text-white rounded w-6 h-6 flex items-center justify-center shrink-0 font-bold text-xs"><i class="fa-solid fa-graduation-cap"></i></span>
+                        <p class="font-medium">Kết luận: Tại sao sinh viên làm quen với vi mạch lại bắt đầu bằng việc code trên board FPGA?</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- DURING SESSION (TIMELINE) -->
+        <section class="bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
+            <h3 class="text-xl font-bold text-dark mb-6 flex items-center gap-2 border-b pb-4">
+                <i class="fa-solid fa-stopwatch text-accent"></i> Tiến Trình Buổi Học (60 Phút)
+            </h3>
+            
+            <div class="relative border-l-2 border-slate-200 ml-3 md:ml-6 space-y-6">
+                <!-- Timeline Items -->
+                <div class="relative pl-6 md:pl-8 group">
+                    <div class="absolute w-4 h-4 bg-accent rounded-full -left-[9px] top-1 border-4 border-white shadow group-hover:scale-125 transition-transform"></div>
+                    <div class="flex flex-col md:flex-row md:items-center gap-1 md:gap-4 mb-1">
+                        <span class="text-accent font-bold text-sm w-16 bg-accent/10 px-2 py-0.5 rounded text-center">0' - 5'</span>
+                        <h4 class="font-bold text-dark text-lg">Quick Check-in</h4>
+                    </div>
+                    <p class="text-sm text-slate-600 bg-slate-50 p-2 rounded border border-slate-100">Khởi động: "Tại sao chip iPhone đắt thế mà Apple không dùng FPGA cho rẻ ban đầu?".</p>
+                </div>
+                
+                <div class="relative pl-6 md:pl-8 group">
+                    <div class="absolute w-4 h-4 bg-primary rounded-full -left-[9px] top-1 border-4 border-white shadow group-hover:scale-125 transition-transform"></div>
+                    <div class="flex flex-col md:flex-row md:items-center gap-1 md:gap-4 mb-1">
+                        <span class="text-primary font-bold text-sm w-16 bg-primary/10 px-2 py-0.5 rounded text-center">5' - 15'</span>
+                        <h4 class="font-bold text-dark text-lg">Student Presentation</h4>
+                    </div>
+                    <p class="text-sm text-slate-600 bg-slate-50 p-2 rounded border border-slate-100">Đại diện lên thuyết trình phân biệt FPGA và ASIC dựa trên PPA và Cost.</p>
+                </div>
+
+                <div class="relative pl-6 md:pl-8 group">
+                    <div class="absolute w-4 h-4 bg-dark rounded-full -left-[9px] top-1 border-4 border-white shadow group-hover:scale-125 transition-transform"></div>
+                    <div class="flex flex-col md:flex-row md:items-center gap-1 md:gap-4 mb-1">
+                        <span class="text-dark font-bold text-sm w-16 bg-slate-200 px-2 py-0.5 rounded text-center">15' - 25'</span>
+                        <h4 class="font-bold text-dark text-lg">Mentor Guidance</h4>
+                    </div>
+                    <p class="text-sm text-slate-600 bg-slate-50 p-2 rounded border border-slate-100">Mentor phân tích: <strong class="text-red-500">Mọi ASIC đều từng chạy thử trên FPGA (Prototyping)</strong>. Nhấn mạnh việc FPGA là sân chơi rủi ro thấp.</p>
+                </div>
+
+                <div class="relative pl-6 md:pl-8 group">
+                    <div class="absolute w-4 h-4 bg-secondary rounded-full -left-[9px] top-1 border-4 border-white shadow group-hover:scale-125 transition-transform"></div>
+                    <div class="flex flex-col md:flex-row md:items-center gap-1 md:gap-4 mb-1">
+                        <span class="text-secondary font-bold text-sm w-16 bg-secondary/10 px-2 py-0.5 rounded text-center">25' - 45'</span>
+                        <h4 class="font-bold text-dark text-lg">Breakout Room</h4>
+                    </div>
+                    <p class="text-sm text-slate-600 bg-slate-50 p-2 rounded border border-slate-100">Vào phòng nhỏ. Phân tích case study: Đóng vai CTO chọn công nghệ cho dự án Drone.</p>
+                </div>
+
+                <div class="relative pl-6 md:pl-8 group">
+                    <div class="absolute w-4 h-4 bg-purple-500 rounded-full -left-[9px] top-1 border-4 border-white shadow group-hover:scale-125 transition-transform"></div>
+                    <div class="flex flex-col md:flex-row md:items-center gap-1 md:gap-4 mb-1">
+                        <span class="text-purple-500 font-bold text-sm w-16 bg-purple-100 px-2 py-0.5 rounded text-center">45' - 55'</span>
+                        <h4 class="font-bold text-dark text-lg">Group Sharing</h4>
+                    </div>
+                    <p class="text-sm text-slate-600 bg-slate-50 p-2 rounded border border-slate-100">Các nhóm bảo vệ quan điểm lựa chọn nền tảng của mình (Tranh biện Trade-offs).</p>
+                </div>
+
+                <div class="relative pl-6 md:pl-8 group">
+                    <div class="absolute w-4 h-4 bg-emerald-600 rounded-full -left-[9px] top-1 border-4 border-white shadow group-hover:scale-125 transition-transform"></div>
+                    <div class="flex flex-col md:flex-row md:items-center gap-1 md:gap-4 mb-1">
+                        <span class="text-emerald-600 font-bold text-sm w-16 bg-emerald-100 px-2 py-0.5 rounded text-center">55' - 60'</span>
+                        <h4 class="font-bold text-dark text-lg">Wrap-up & Task</h4>
+                    </div>
+                    <p class="text-sm text-slate-600 bg-slate-50 p-2 rounded border border-slate-100">Tổng kết tầm quan trọng của việc luyện code trên FPGA. Giao task.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="bg-gradient-to-br from-slate-800 to-dark text-white rounded-2xl shadow-lg overflow-hidden border border-slate-700">
+            <div class="px-6 py-4 border-b border-white/10 flex flex-wrap items-center justify-between gap-2">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-comments text-secondary text-xl"></i>
+                    <h3 class="text-xl font-bold">Hướng Dẫn Breakout Room</h3>
+                </div>
+                <span class="text-[10px] uppercase font-bold bg-white/10 px-2 py-1 rounded text-slate-300">Engineering Trade-offs</span>
+            </div>
+
+            <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    <h4 class="font-semibold text-secondary mb-3 uppercase tracking-wider text-sm flex items-center gap-2">
+                        <i class="fa-regular fa-message"></i> Case Study Thảo Luận
+                    </h4>
+                    <p class="text-sm text-slate-300 mb-4 bg-black/20 p-3 rounded border border-white/10">Công ty A muốn làm một thiết bị điều khiển máy bay không người lái (Drone). Ban đầu họ cần 50 cái để bay thử nghiệm. Nếu thành công, họ sẽ bán ra thị trường 5 triệu cái.</p>
+                    <ul class="space-y-3">
+                        <li class="bg-white/5 p-3 rounded-lg text-sm border-l-2 border-secondary hover:bg-white/10 transition-colors">
+                            <span class="font-bold text-secondary mr-2">Q1.</span> Ở giai đoạn làm 50 cái thử nghiệm, công ty nên thiết kế bằng mạch FPGA hay đặt đúc ASIC? Tại sao?
+                        </li>
+                        <li class="bg-white/5 p-3 rounded-lg text-sm border-l-2 border-secondary hover:bg-white/10 transition-colors">
+                            <span class="font-bold text-secondary mr-2">Q2.</span> Ở giai đoạn sản xuất 5 triệu cái, nếu tiếp tục dùng FPGA thì sẽ gặp bất lợi gì về giá cả (Unit Cost) và Pin (Power)?
+                        </li>
+                        <li class="bg-white/5 p-3 rounded-lg text-sm border-l-2 border-secondary hover:bg-white/10 transition-colors">
+                            <span class="font-bold text-secondary mr-2">Q3.</span> Nếu thuật toán điều khiển Drone liên tục phải cập nhật qua WiFi, FPGA có điểm mạnh gì so với ASIC?
+                        </li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold text-accent mb-3 uppercase tracking-wider text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-users"></i> Vai Trò Tổ Chức Nhóm
+                    </h4>
+                    <div class="space-y-2 mb-4 bg-black/20 p-3 rounded-xl border border-white/5">
+                        <div class="flex items-center gap-3">
+                            <div class="bg-white/10 w-8 h-8 rounded-full flex items-center justify-center shrink-0"><i class="fa-solid fa-user-tie text-accent text-sm"></i></div>
+                            <p class="text-sm"><strong class="text-white">Facilitator:</strong> Điều phối để các thành viên so sánh ưu nhược điểm (Trade-offs).</p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="bg-white/10 w-8 h-8 rounded-full flex items-center justify-center shrink-0"><i class="fa-solid fa-pen-clip text-accent text-sm"></i></div>
+                            <p class="text-sm"><strong class="text-white">Note Keeper:</strong> Ghi chép câu trả lời cho từng giai đoạn của Drone.</p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="bg-white/10 w-8 h-8 rounded-full flex items-center justify-center shrink-0"><i class="fa-solid fa-bullhorn text-accent text-sm"></i></div>
+                            <p class="text-sm"><strong class="text-white">Reporter:</strong> Thay mặt công ty thuyết trình kế hoạch sử dụng phần cứng cho Drone.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="bg-slate-50 rounded-2xl shadow-sm border border-slate-200 p-6">
+            <h3 class="text-xl font-bold text-dark flex items-center gap-2 mb-6">
+                <i class="fa-solid fa-language text-accent"></i> Từ Vựng Tiếng Anh Chuyên Ngành
+            </h3>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 hover:border-primary transition-all duration-300">
+                    <h4 class="font-bold text-primary text-lg mb-1">Prototype</h4>
+                    <p class="text-sm font-bold text-dark mb-1">Mẫu thử / Nguyên mẫu</p>
+                    <p class="text-[11px] text-slate-500">Phiên bản chạy được ban đầu để kiểm tra chức năng trước khi sản xuất hàng loạt.</p>
+                </div>
+                
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 hover:border-primary transition-all duration-300">
+                    <h4 class="font-bold text-primary text-lg mb-1">NRE Cost</h4>
+                    <p class="text-sm font-bold text-dark mb-1">Chi phí thiết kế</p>
+                    <p class="text-[11px] text-slate-500">(Non-Recurring Engineering) Chi phí ban đầu để R&D, thiết kế mặt nạ đúc chip (rất đắt với ASIC).</p>
+                </div>
+                
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 hover:border-primary transition-all duration-300">
+                    <h4 class="font-bold text-primary text-lg mb-1">PPA</h4>
+                    <p class="text-sm font-bold text-dark mb-1">Bộ 3 tiêu chí đo lường</p>
+                    <p class="text-[11px] text-slate-500">Power (Năng lượng), Performance (Hiệu năng), Area (Diện tích/Kích thước).</p>
+                </div>
+                
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 hover:border-primary transition-all duration-300">
+                    <h4 class="font-bold text-primary text-lg mb-1">Time to Market</h4>
+                    <p class="text-sm font-bold text-dark mb-1">Thời gian ra mắt</p>
+                    <p class="text-[11px] text-slate-500">Khoảng thời gian từ lúc có ý tưởng đến lúc có sản phẩm bán ra thị trường.</p>
+                </div>
+            </div>
+        </section>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <section class="bg-blue-600 text-white rounded-2xl shadow-lg p-6 relative overflow-hidden flex flex-col">
+                <i class="fa-solid fa-graduation-cap absolute -right-6 -bottom-6 text-9xl text-blue-500 opacity-30"></i>
+                <div class="relative z-10 flex-1">
+                    <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-lightbulb text-yellow-300"></i> Lời Khuyên Từ Mentor
+                    </h3>
+                    
+                    <div class="space-y-4">
+                        <div class="bg-yellow-500/20 p-3 rounded-lg border border-yellow-400/50 backdrop-blur-sm">
+                            <span class="text-yellow-300 text-xs font-bold uppercase tracking-wider block mb-1"><i class="fa-solid fa-triangle-exclamation"></i> Sửa Lỗi Tư Duy (Misconception)</span>
+                            <p class="text-sm text-white leading-relaxed">Nhiều bạn nghĩ FPGA chỉ là công cụ dành cho sinh viên thực hành, còn kỹ sư thật phải làm ASIC. <strong>Sự thật:</strong> Rất nhiều hệ thống quân sự, không gian, viễn thông, radar sử dụng chip FPGA trong sản phẩm cuối cùng vì nhu cầu phải cập nhật thuật toán liên tục (Reconfigurable) mà không cần thay phần cứng mới.</p>
+                        </div>
+
+                        <div class="border-t border-blue-400/50 pt-3">
+                            <p class="text-base font-bold text-yellow-300 italic mb-2">"Fail fast, fail cheap."</p>
+                            <p class="text-sm text-blue-50 leading-relaxed">FPGA cho phép kỹ sư sai và sửa code liên tục với chi phí 0 đồng. ASIC sai một dòng code, sửa lại tốn nhiều tháng và hàng triệu đô. Đừng bao giờ làm ASIC nếu chưa chạy thử nghiệm kỹ (Prototyping) trên FPGA.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="bg-white rounded-2xl shadow-lg border border-slate-200 p-6 flex flex-col">
+                <h3 class="text-xl font-bold text-dark mb-4 flex items-center gap-2 border-b pb-3">
+                    <i class="fa-solid fa-plug-circle-bolt text-secondary"></i> Kết Nối Dự Án (Mini-Projects)
+                </h3>
+                <p class="text-sm text-slate-600 mb-4">
+                    Tại sao khóa học này lại dùng Board FPGA? Vì đây là nền tảng học tập chuẩn công nghiệp để bạn chứng minh mọi đoạn code Verilog của mình chạy được ngoài đời thực:
+                </p>
+                <div class="grid grid-cols-2 gap-3 flex-grow">
+                    <div class="bg-slate-50 border border-slate-100 rounded-lg p-3 flex flex-col items-center justify-center text-center hover:border-emerald-300 transition-colors shadow-sm">
+                        <i class="fa-solid fa-traffic-light text-2xl text-emerald-600 mb-2"></i>
+                        <h4 class="font-bold text-xs text-dark">Logic Verification</h4>
+                        <p class="text-[10px] text-slate-500 mt-1">Nạp code FSM Đèn giao thông xem LED nhấp nháy chuẩn chưa.</p>
+                    </div>
+                    <div class="bg-slate-50 border border-slate-100 rounded-lg p-3 flex flex-col items-center justify-center text-center hover:border-blue-400 transition-colors shadow-sm">
+                        <i class="fa-solid fa-stopwatch-20 text-2xl text-blue-500 mb-2"></i>
+                        <h4 class="font-bold text-xs text-dark">Timing Analysis</h4>
+                        <p class="text-[10px] text-slate-500 mt-1">Kiểm tra Clock chạy đúng tần số trên phần cứng không.</p>
+                    </div>
+                    <div class="bg-slate-50 border border-slate-100 rounded-lg p-3 flex flex-col items-center justify-center text-center hover:border-amber-400 transition-colors shadow-sm">
+                        <i class="fa-solid fa-network-wired text-2xl text-amber-500 mb-2"></i>
+                        <h4 class="font-bold text-xs text-dark">UART Comms</h4>
+                        <p class="text-[10px] text-slate-500 mt-1">Giao tiếp chip với máy tính PC thực tế.</p>
+                    </div>
+                    <div class="bg-slate-50 border border-slate-100 rounded-lg p-3 flex flex-col items-center justify-center text-center hover:border-purple-400 transition-colors shadow-sm">
+                        <i class="fa-solid fa-microchip text-2xl text-purple-500 mb-2"></i>
+                        <h4 class="font-bold text-xs text-dark">ASIC-ready Code</h4>
+                        <p class="text-[10px] text-slate-500 mt-1">Viết Verilog trên FPGA chuẩn bị cho tổng hợp ASIC.</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <section class="bg-emerald-50 rounded-2xl shadow-sm border border-emerald-200 overflow-hidden">
+            <div class="bg-emerald-100/50 px-6 py-4 border-b border-emerald-200">
+                <h3 class="text-xl font-bold text-emerald-800 flex items-center gap-2">
+                    <i class="fa-solid fa-forward-step"></i> Hành Động Sau Buổi Học
+                </h3>
+            </div>
+            <div class="p-6">
+                <!-- Mini Task -->
+                <div class="bg-white p-5 rounded-xl border border-emerald-100 shadow-sm mb-6 relative overflow-hidden">
+                    <div class="absolute right-0 top-0 w-1 h-full bg-emerald-400"></div>
+                    <h4 class="font-bold text-emerald-700 mb-2 flex items-center gap-2"><i class="fa-solid fa-fire text-secondary"></i> Task Tuần Này (Make a Decision)</h4>
+                    <p class="text-sm text-slate-700 mb-3">Mỗi bạn hãy chọn <strong>1 ứng dụng/sản phẩm công nghệ</strong> và trả lời các câu hỏi sau lên Group lớp:</p>
+                    <ul class="list-disc list-inside text-sm text-slate-600 space-y-1 ml-2 font-mono bg-slate-50 p-3 rounded border border-slate-200">
+                        <li><strong>Ứng dụng:</strong> Máy siêu âm bệnh viện / Chuột chơi game giá rẻ...</li>
+                        <li><strong>Chọn FPGA hay ASIC?</strong> Tại sao? (Cân nhắc số lượng sản xuất, giá cả và NRE).</li>
+                        <li><strong>Bạn có thể tự làm phiên bản đơn giản (Prototype) trên Board FPGA của trường không?</strong></li>
+                    </ul>
+                </div>
+
+                <div class="space-y-3">
+                    <details class="group bg-white rounded-lg border border-slate-200 transition-all">
+                        <summary class="flex items-center justify-between p-4 cursor-pointer font-semibold text-slate-800 group-open:text-emerald-700 hover:bg-slate-50 transition-colors rounded-lg">
+                            <span class="flex items-center gap-2"><i class="fa-solid fa-clipboard-check text-emerald-500"></i> Mục tiêu sinh viên đạt được</span>
+                            <span class="transition-transform duration-300 group-open:rotate-180">
+                                <i class="fa-solid fa-chevron-down text-slate-400"></i>
+                            </span>
+                        </summary>
+                        <div class="p-4 border-t border-slate-100 text-sm text-slate-600 bg-slate-50/50">
+                            <ul class="space-y-2">
+                                <li class="flex items-start gap-2"><i class="fa-solid fa-check text-emerald-500 mt-1"></i> Giải thích được sự khác nhau cốt lõi giữa khả năng lập trình linh hoạt của FPGA và phần cứng cố định của ASIC.</li>
+                                <li class="flex items-start gap-2"><i class="fa-solid fa-check text-emerald-500 mt-1"></i> Đánh giá được điểm hòa vốn dựa trên Volume, NRE Cost và Unit Cost.</li>
+                                <li class="flex items-start gap-2"><i class="fa-solid fa-check text-emerald-500 mt-1"></i> Hiểu vai trò của FPGA trong việc làm Prototype kiểm chứng (Verification) trước khi đúc chip ASIC.</li>
+                                <li class="flex items-start gap-2"><i class="fa-solid fa-check text-emerald-500 mt-1"></i> Có tư duy tổng quan (PPA, Time-to-Market) khi thiết kế một hệ thống vi mạch thực tế.</li>
+                            </ul>
+                        </div>
+                    </details>
+
+                    <details class="group bg-white rounded-lg border border-slate-200 transition-all">
+                        <summary class="flex items-center justify-between p-4 cursor-pointer font-semibold text-slate-800 group-open:text-blue-700 hover:bg-slate-50 transition-colors rounded-lg">
+                            <span class="flex items-center gap-2"><i class="fa-solid fa-link text-blue-500"></i> Điền Google Form (Bắt buộc sau buổi học)</span>
+                            <span class="transition-transform duration-300 group-open:rotate-180">
+                                <i class="fa-solid fa-chevron-down text-slate-400"></i>
+                            </span>
+                        </summary>
+                        <div class="p-4 border-t border-slate-100 bg-blue-50/30">
+                            <p class="text-sm text-slate-600 mb-4">Vui lòng hoàn thành Form để Mentor đánh giá chất lượng buổi học và giải đáp thắc mắc.</p>
+                            <div class="bg-white border border-slate-200 p-4 rounded-lg shadow-sm">
+                                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Mentor sẽ hỏi 5 nội dung sau:</p>
+                                <ol class="list-decimal list-inside text-sm text-slate-700 space-y-1.5 font-medium">
+                                    <li>Xác nhận tham gia buổi học Week 8?</li>
+                                    <li>Em hiểu sự khác biệt giữa FPGA và ASIC ở mức nào (1-5)?</li>
+                                    <li>Đồ thị kinh tế (Điểm hòa vốn) có giúp em dễ hiểu hơn không?</li>
+                                    <li>Tiêu chí PPA (Power, Performance, Area) có điểm nào em chưa rõ?</li>
+                                    <li>Em mong muốn thử làm project gì trên board FPGA?</li>
+                                </ol>
+                            </div>
+                            <a href="https://forms.gle/4ZFMSAyY3GHe2soZA" target="_blank" class="mt-4 bg-primary hover:bg-blue-700 text-white font-semibold py-2.5 px-6 rounded-lg transition-colors inline-flex items-center gap-2 shadow-md hover:shadow-lg">
+                                <i class="fa-brands fa-google"></i> Mở Google Form Tuần 8
+                            </a>
+                        </div>
+                    </details>
+                </div>
+            </div>
+        </section>
+        
+    </main>
+
+    <footer class="mt-16 bg-slate-900 text-slate-300 py-12 text-center border-t-4 border-primary">
+        <div class="max-w-4xl mx-auto px-4">
+            <div class="flex justify-center items-center gap-3 mb-6">
+                <i class="fa-solid fa-microchip text-2xl text-slate-600"></i>
+                <div class="h-px bg-slate-700 w-16"></div>
+                <i class="fa-solid fa-laptop-code text-2xl text-primary drop-shadow-[0_0_8px_rgba(37,99,235,0.8)]"></i>
+                <div class="h-px bg-slate-700 w-16"></div>
+                <i class="fa-solid fa-users-rays text-2xl text-secondary"></i>
+            </div>
+            
+            <h4 class="text-xl font-bold text-white mb-2">IC Design Mentoring Community</h4>
+            <p class="text-lg italic text-slate-400 font-light mb-8">"Learn a little, build a little, share a little, grow a little."</p>
+            
+            <div class="bg-slate-800/80 inline-block p-4 rounded-xl border border-slate-700 mx-auto text-center max-w-2xl">
+                <div class="flex items-center justify-center gap-2 mb-2 text-white">
+                    <i class="fa-solid fa-copyright"></i> <span class="font-bold">Bản quyền nội dung:</span>
+                </div>
+                <p class="text-sm text-slate-300 mb-1">Khoa Điện - Điện tử, Trường Kỹ Thuật, Đại học Phenikaa</p>
+                <p class="text-sm text-amber-400 font-medium">Giảng viên biên soạn: ThS. Đinh Văn Nam</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // 1. Checklist Logic
+        function toggleTask(checkbox) {
+            const label = checkbox.nextElementSibling;
+            if (checkbox.checked) {
+                label.classList.add('completed');
+            } else {
+                label.classList.remove('completed');
+            }
+        }
+
+        // 2. Interactive Decision Tool Logic (Advanced Trade-off)
+        document.addEventListener('DOMContentLoaded', () => {
+            const sliderVol = document.getElementById('sliderVol');
+            const sliderPPA = document.getElementById('sliderPPA');
+            const sliderTTM = document.getElementById('sliderTTM');
+            const sliderFlex = document.getElementById('sliderFlex');
+            
+            const fpgaIcon = document.getElementById('fpgaIcon');
+            const asicIcon = document.getElementById('asicIcon');
+            
+            const resultPanel = document.getElementById('resultPanel');
+            const resultGlow = document.getElementById('resultGlow');
+            const reasonText = document.getElementById('reasonText');
+            
+            // Graph Elements
+            const userVolLine = document.getElementById('userVolLine');
+            const userVolMarker = document.getElementById('userVolMarker');
+
+            function updateDecision() {
+                const vol = parseInt(sliderVol.value);
+                const ppa = parseInt(sliderPPA.value);
+                const ttm = parseInt(sliderTTM.value);
+                const flex = parseInt(sliderFlex.value);
+
+                // --- Update Labels ---
+                document.getElementById('volLabel').textContent = vol < 30 ? 'Ít (Prototype)' : (vol < 70 ? 'Vừa (Hàng ngàn)' : 'Nhiều (Hàng triệu)');
+                document.getElementById('ppaLabel').textContent = ppa < 40 ? 'Bình thường' : (ppa < 80 ? 'Cao' : 'Tối đa (Pin/Tốc độ)');
+                document.getElementById('ttmLabel').textContent = ttm < 40 ? 'Rất Gấp (<6 tháng)' : (ttm < 80 ? 'Vừa phải' : 'Thong thả (>2 năm)');
+                document.getElementById('flexLabel').textContent = flex < 40 ? 'Cố định' : (flex < 80 ? 'Đôi khi cập nhật' : 'Sửa lỗi liên tục');
+
+                // --- Update SVG Graph (Break-even Point) ---
+                // Mapped to viewBox="0 0 100 100". Break-even is roughly at X=65
+                userVolLine.setAttribute('x1', vol);
+                userVolLine.setAttribute('x2', vol);
+                // Update marker polygon
+                userVolMarker.setAttribute('points', `${vol-4},100 ${vol+4},100 ${vol},95`);
+
+                // --- Evaluation Logic (Weighted Score) ---
+                let asicScore = 0;
+                let fpgaScore = 0;
+                let asicReasons = [];
+                let fpgaReasons = [];
+
+                // 1. Volume (Economic Break-even)
+                if (vol > 65) {
+                    asicScore += 3;
+                    asicReasons.push("Sản lượng lớn vượt điểm hòa vốn, Unit Cost của ASIC mang lại lợi nhuận cao.");
+                } else {
+                    fpgaScore += 3;
+                    fpgaReasons.push("Sản lượng ít, dùng FPGA để tránh chi phí thiết kế (NRE) khổng lồ ban đầu.");
+                }
+
+                // 2. PPA Requirement
+                if (ppa > 70) {
+                    asicScore += 2;
+                    asicReasons.push("Yêu cầu tối ưu PPA (Pin/Tốc độ) cực kỳ khắt khe, kiến trúc ASIC là bắt buộc.");
+                } else {
+                    fpgaScore += 1;
+                    fpgaReasons.push("Yêu cầu PPA không quá khắt khe, FPGA hoàn toàn đáp ứng được.");
+                }
+
+                // 3. Time-to-Market (TTM)
+                if (ttm < 30) {
+                    fpgaScore += 2;
+                    fpgaReasons.push("Thời gian Time-to-Market quá gấp, FPGA giúp ra sản phẩm ngay lập tức.");
+                } else {
+                    asicScore += 1;
+                    asicReasons.push("Thời gian phát triển đủ dài để thực hiện quy trình đúc chip ASIC.");
+                }
+
+                // 4. Flexibility (Reconfigurability)
+                if (flex > 70) {
+                    fpgaScore += 2;
+                    fpgaReasons.push("Dự án đòi hỏi cập nhật thuật toán liên tục, FPGA cho phép cấu hình lại phần cứng.");
+                } else {
+                    asicScore += 1;
+                    asicReasons.push("Thuật toán đã cố định, có thể đóng gói cứng thành ASIC để tối ưu hóa.");
+                }
+
+                // Xử lý cảnh báo đánh đổi (Trade-off Warnings)
+                if (asicScore >= fpgaScore && vol <= 65) {
+                    asicReasons.unshift("<span class='text-amber-400 font-bold'>⚠️ Đánh đổi:</span> Sản lượng ít làm chi phí NRE/chip rất cao, nhưng phải chọn ASIC vì rào cản kỹ thuật.");
+                } else if (fpgaScore > asicScore && vol > 65) {
+                    fpgaReasons.unshift("<span class='text-amber-400 font-bold'>⚠️ Đánh đổi:</span> Sản xuất số lượng lớn bằng FPGA rất tốn kém (Unit Cost cao), nhưng buộc phải chọn vì rào cản thời gian/linh hoạt.");
+                }
+
+                // Trigger Animation
+                resultPanel.classList.remove('decision-highlight');
+                void resultPanel.offsetWidth;
+                resultPanel.classList.add('decision-highlight');
+
+                // Generate Recommendation
+                if (asicScore >= fpgaScore) {
+                    // ASIC WINS
+                    asicIcon.classList.replace('opacity-40', 'opacity-100');
+                    asicIcon.classList.replace('scale-100', 'scale-110');
+                    asicIcon.classList.remove('grayscale');
+                    asicIcon.firstElementChild.classList.add('shadow-[0_0_15px_rgba(16,185,129,0.5)]');
+
+                    fpgaIcon.classList.replace('opacity-100', 'opacity-40');
+                    fpgaIcon.classList.replace('scale-110', 'scale-100');
+                    fpgaIcon.classList.add('grayscale');
+                    fpgaIcon.firstElementChild.classList.remove('shadow-[0_0_15px_rgba(59,130,246,0.5)]');
+
+                    resultPanel.className = "relative flex-1 flex flex-col items-center justify-center p-4 bg-[#064e3b] rounded-lg border-2 border-emerald-500 transition-all duration-500 decision-highlight";
+                    resultGlow.className = "absolute inset-0 bg-gradient-to-br from-emerald-500/20 to-transparent rounded-lg";
+                    
+                    reasonText.innerHTML = `<strong>🏆 Khuyên dùng: ASIC.</strong> <br/> <ul class="list-disc ml-4 mt-2 opacity-90 space-y-1">` + asicReasons.map(r => `<li>${r}</li>`).join('') + `</ul>`;
+                    
+                } else {
+                    // FPGA WINS
+                    fpgaIcon.classList.replace('opacity-40', 'opacity-100');
+                    fpgaIcon.classList.replace('scale-100', 'scale-110');
+                    fpgaIcon.classList.remove('grayscale');
+                    fpgaIcon.firstElementChild.classList.add('shadow-[0_0_15px_rgba(59,130,246,0.5)]');
+
+                    asicIcon.classList.replace('opacity-100', 'opacity-40');
+                    asicIcon.classList.replace('scale-110', 'scale-100');
+                    asicIcon.classList.add('grayscale');
+                    asicIcon.firstElementChild.classList.remove('shadow-[0_0_15px_rgba(16,185,129,0.5)]');
+
+                    resultPanel.className = "relative flex-1 flex flex-col items-center justify-center p-4 bg-[#1e3a8a] rounded-lg border-2 border-blue-500 transition-all duration-500 decision-highlight";
+                    resultGlow.className = "absolute inset-0 bg-gradient-to-br from-blue-500/20 to-transparent rounded-lg";
+                    
+                    reasonText.innerHTML = `<strong>🏆 Khuyên dùng: FPGA.</strong> <br/> <ul class="list-disc ml-4 mt-2 opacity-90 space-y-1">` + fpgaReasons.map(r => `<li>${r}</li>`).join('') + `</ul>`;
+                }
+            }
+
+            // Listeners
+            sliderVol.addEventListener('input', updateDecision);
+            sliderPPA.addEventListener('input', updateDecision);
+            sliderTTM.addEventListener('input', updateDecision);
+            sliderFlex.addEventListener('input', updateDecision);
+            
+            // Init
+            updateDecision();
+        });
+    </script>
+
+<div id="lichub-nav-bottom" data-lichub="v1" role="navigation" aria-label="Điều hướng Learning Hub (bổ sung, không thuộc trang gốc)" style="background:#0f172a;color:#e2e8f0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:13.5px;line-height:1.6;padding:8px 16px;display:flex;flex-wrap:wrap;gap:4px 16px;align-items:center;border-top:3px solid #f59e0b"><a href="../../index.html" style="color:#7dd3fc;text-decoration:none;font-weight:600">⌂ Learning Hub</a><span style="font-size:11px;font-weight:700;letter-spacing:.04em;color:#f59e0b;border:1px solid #f59e0b;border-radius:6px;padding:1px 7px;white-space:nowrap">V1 · BẢN LƯU TRỮ GỐC</span><a href="index.html" style="color:#cbd5e1;text-decoration:none">Mục lục V1</a><span style="flex:1"></span><a href="Week7.html" style="color:#7dd3fc;text-decoration:none" title="What Is Verilog?">← Tuần 7</a><a href="Week9.html" style="color:#7dd3fc;text-decoration:none" title="Traffic Light Controller">Tuần 9 →</a><span aria-hidden="true" style="color:#475569">|</span><span style="display:inline-flex;gap:8px;align-items:center"><span style="color:#94a3b8">Chuyển bản:</span> <b aria-current="true" style="color:#f59e0b">V1</b> <a href="../v2/index.html" style="color:#cbd5e1;text-decoration:none">V2</a> <a href="../v3/index.html" style="color:#cbd5e1;text-decoration:none">V3</a></span></div>
+</body>
+</html>

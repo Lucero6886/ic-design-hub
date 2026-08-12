@@ -1,0 +1,26 @@
+name: "Lỗi website"
+description: "Link hỏng, hiển thị sai, lỗi mobile, vấn đề accessibility, search không ra kết quả…"
+title: "[Website] "
+labels: ["website-bug"]
+body:
+  - type: input
+    id: url
+    attributes:
+      label: "URL trang bị lỗi"
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: "Điều gì xảy ra? Điều gì lẽ ra phải xảy ra?"
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: "Trình duyệt / thiết bị"
+      placeholder: "vd: Chrome 130 / Android; Safari / iPhone"
+  - type: textarea
+    id: extra
+    attributes:
+      label: "Ảnh chụp màn hình / thông tin thêm"

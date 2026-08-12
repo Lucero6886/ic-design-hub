@@ -1,0 +1,71 @@
+---
+import BaseLayout from "~/layouts/BaseLayout.astro";
+import { LEGACY } from "~/config/site";
+import { href } from "~/utils/url";
+import versionsManifest from "../../../public/legacy/data/versions.json";
+
+const versions = versionsManifest.versions;
+---
+
+<BaseLayout
+  title="Tiến hóa giáo trình V1 → V2 → V3"
+  description="Lịch sử phát triển giáo trình IC Design Foundations qua ba phiên bản — mỗi phiên bản là một ảnh chụp giáo dục bất biến, kèm trang so sánh có dẫn chứng."
+  path="learn/evolution/"
+>
+  <div class="wrap">
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <a href={href("")}>Trang chủ</a> / <a href={href("learn/")}>Học</a> / <span>Tiến hóa giáo trình</span>
+    </nav>
+    <article class="prose" style="margin-top:10px">
+      <h1>Giáo trình đã tiến hóa như thế nào?</h1>
+      <p>
+        Giáo trình IC Design Foundations phát triển qua ba giai đoạn trong năm 2026, và mỗi giai
+        đoạn được giữ lại như một <em>trạng thái lịch sử bất biến</em>. Giữ cả ba phiên bản không
+        phải để hoài niệm: nó cho phép rà soát <b>vì sao từng thay đổi được thực hiện</b>, và cho
+        người làm giáo dục kỹ thuật một ví dụ có tư liệu đầy đủ về việc một giáo trình trưởng
+        thành như thế nào.
+      </p>
+
+      <div class="tblwrap">
+        <table class="tbl">
+          <thead>
+            <tr><th>Phiên bản</th><th>Trạng thái</th><th>Đặc trưng</th><th>Vào xem</th></tr>
+          </thead>
+          <tbody>
+            {versions.map((v) => (
+              <tr>
+                <td><b>{v.title.split("—")[0].trim()}</b><br /><span class="muted small">đóng gói {v.packaged}</span></td>
+                <td>{v.status === "current" ? "Hiện hành (khuyến nghị)" : "Lưu trữ bất biến"}</td>
+                <td>{v.description}</td>
+                <td><a href={href(`legacy/${v.path}index.html`)}>Mở {v.id.toUpperCase()}</a></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <h2>Trang so sánh chi tiết (tư liệu gốc)</h2>
+      <p>
+        Trang "Tiến hóa" nguyên bản của Learning Hub so sánh V1 → V2 → V3 trên <b>11 phương diện</b>
+        (cấu trúc, sư phạm, RTL, kiểm định, mentoring, research bridge…), dựa hoàn toàn trên tư liệu
+        gốc — kèm dẫn chứng cho từng nhận định, trong đó có bảng 8 hiệu chỉnh kỹ thuật quan trọng
+        từ V2 sang V3.
+      </p>
+      <p>
+        <a class="btn primary" href={href(LEGACY.evolution)}>Mở trang so sánh V1 → V2 → V3 (bản gốc)</a>
+      </p>
+
+      <h2>Nguyên tắc phiên bản</h2>
+      <ul>
+        <li>Phiên bản đã lưu trữ là <b>immutable educational snapshot</b> — không sửa nội dung giảng dạy, kể cả khi phát hiện lỗi kỹ thuật (lỗi được ghi chú ở VERSION_NOTES và sửa ở phiên bản sau).</li>
+        <li>Tuần 5 của V1 không có trong bản lưu trữ gốc và <b>không bao giờ được tạo bù</b>.</li>
+        <li>Hiệu chỉnh tương lai tạo <b>phiên bản mới (V4)</b> hoặc bản vá có ghi chép — không viết đè lịch sử.</li>
+        <li>Bản gốc nguyên trạng (zip) nằm trong <code>_source/</code> của kho mã, có hash SHA-256 đối chiếu.</li>
+      </ul>
+      <p class="muted small">
+        Chính sách đầy đủ: <code>docs/VERSIONING_POLICY.md</code> trong repository ·
+        Nhật ký mọi thay đổi trên nội dung: <code>docs/CONTENT_CHANGELOG.md</code>.
+      </p>
+    </article>
+  </div>
+</BaseLayout>

@@ -1,0 +1,91 @@
+---
+/** Layout trang chi tiết cho mọi entry markdown (bài viết / nghiên cứu / project…) */
+import BaseLayout from "~/layouts/BaseLayout.astro";
+import References from "~/components/References.astro";
+import RelatedLinks from "~/components/RelatedLinks.astro";
+import { AUTHOR } from "~/config/site";
+import { href, fmtDate, isoDate } from "~/utils/url";
+import { trackById } from "~/data/tracks";
+
+interface Props {
+  title: string;
+  summary: string;
+  path: string;
+  crumbs: { label: string; url?: string }[];
+  date?: Date;
+  updated?: Date;
+  author?: string;
+  lang?: string;
+  minutes?: number;
+  badges?: { text: string; tone?: "acc" | "green" | "warn" | "gray" | "danger" }[];
+  track?: string;
+  tags?: string[];
+  attribution?: string;
+  references?: { label: string; url?: string; note?: string; needsVerification?: boolean }[];
+  relatedArticles?: string[];
+  relatedProjects?: string[];
+  relatedResearch?: string[];
+}
+
+const {
+  title, summary, path, crumbs, date, updated, author, lang, minutes,
+  badges = [], track, tags = [], attribution, references = [],
+  relatedArticles = [], relatedProjects = [], relatedResearch = [],
+} = Astro.props;
+
+const displayAuthor = author || AUTHOR.name;
+const t = trackById(track);
+---
+
+<BaseLayout
+  title={title}
+  description={summary}
+  path={path}
+  ogType="article"
+  published={date ? isoDate(date) : undefined}
+  modified={updated ? isoDate(updated) : undefined}
+  lang={lang}
+>
+  <div class="wrap">
+    <nav class="crumbs" aria-label="Breadcrumb">
+      {crumbs.map((c, i) => (
+        <>
+          {i > 0 && <span aria-hidden="true"> / </span>}
+          {c.url ? <a href={c.url}>{c.label}</a> : <span>{c.label}</span>}
+        </>
+      ))}
+    </nav>
+
+    <article class="prose" style="margin-top:10px">
+      <header class="entry-head">
+        <h1>{title}</h1>
+        <p class="muted" style="font-size:16px;margin:4px 0 0">{summary}</p>
+        <div class="meta-row">
+          {badges.map((b) => <span class={`badge ${b.tone ?? "gray"}`}>{b.text}</span>)}
+          {t && <span class="badge acc">{t.label}</span>}
+          <span>Tác giả: <b>{displayAuthor}</b></span>
+          {date && <time datetime={isoDate(date)}>{fmtDate(date)}</time>}
+          {updated && <span>· cập nhật <time datetime={isoDate(updated)}>{fmtDate(updated)}</time></span>}
+          {minutes && <span>· ~{minutes} phút đọc</span>}
+        </div>
+        {tags.length > 0 && (
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">
+            {tags.map((tag) => <a class="tag" href={href(`tags/${tag}/`)}>#{tag}</a>)}
+          </div>
+        )}
+      </header>
+
+      <slot name="before-body" />
+      <slot />
+
+      {attribution && (
+        <p class="co warn small">
+          <b>Attribution / tư liệu bên thứ ba:</b> {attribution}
+        </p>
+      )}
+
+      <References references={references} />
+      <RelatedLinks articles={relatedArticles} projects={relatedProjects} research={relatedResearch} />
+    </article>
+  </div>
+</BaseLayout>

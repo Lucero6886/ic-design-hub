@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="Giảng Viên Đinh Văn Nam">
+<meta name="copyright" content="© 2026 · Bản quyền thuộc về Giảng Viên Đinh Văn Nam, Khoa Điện-Điện Tử, Trường Kỹ Thuật, Đại học Phenikaa">
+<meta name="description" content="IC Design Mentoring — Version 3, Phase 1 (12 tuần). Khoa Điện – Điện tử · Trường Kỹ thuật · Đại học Phenikaa. Biên soạn: Giảng Viên Đinh Văn Nam.">
+<title>Implementation Notes — IC Design Mentoring v3</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body data-week="00">
+
+<header class="topbar">
+  <div class="topbar-in">
+    <a class="brand" href="index.html"><span class="logo">IC</span>
+      <span>IC Design Mentoring<small>Implementation Notes · Version 3</small></span></a>
+    <nav class="layer-chips">
+      <a class="chip" href="../../index.html" title="Learning Hub — cổng ba phiên bản giáo trình; đây là V3, bản hiện hành được khuyến nghị">⌂ Hub · V3</a>
+      <a class="chip" href="#overview">Toàn cảnh</a>
+      <a class="chip" href="#deviations">Khác đặc tả</a>
+      <a class="chip" href="#dod">Definition of Done</a>
+      <a class="chip" href="#system">Bản chất hệ thống</a>
+      <a class="chip" href="#maintain">Bảo trì</a>
+      <a class="chip" href="index.html">← Mục lục</a>
+    </nav>
+  </div>
+  <div class="scrollbar"><div></div></div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <div class="pill-row"><span class="pill">Tài liệu vận hành</span><span class="pill acc">Dành cho chủ chương trình</span><span class="pill">Khoa Điện – Điện tử · ĐH Phenikaa</span></div>
+    <h1>Ghi chú triển khai Version 3</h1>
+    <p class="sub">Toàn cảnh hệ thống · mọi điểm khác so với đặc tả (kèm lý do) · cách bảo trì</p>
+    <p>Bản văn bản đầy đủ tương đương: <code>implementation-notes.md</code>. Các tài liệu liên quan: <a href="TECHNICAL_AUDIT.html" title="Mở TECHNICAL_AUDIT.html"><code>TECHNICAL_AUDIT.md</code></a> (hiệu chỉnh kỹ thuật), <a href="CHANGELOG_V2_TO_V3.html" title="Mở CHANGELOG_V2_TO_V3.html"><code>CHANGELOG_V2_TO_V3.md</code></a>, <a href="VALIDATION_REPORT.html" title="Mở VALIDATION_REPORT.html"><code>VALIDATION_REPORT.md</code></a> (kết quả kiểm định), <a href="CURRICULUM_MAP.html" title="Mở CURRICULUM_MAP.html"><code>CURRICULUM_MAP.md</code></a>, <a href="MENTOR_GUIDE.html" title="Mở MENTOR_GUIDE.html"><code>MENTOR_GUIDE.md</code></a>, <a href="PROJECT_GUIDE.html" title="Mở PROJECT_GUIDE.html"><code>PROJECT_GUIDE.md</code></a>.</p>
+  </div>
+</section>
+
+<section id="overview" class="layer layer-a">
+  <div class="wrap layer-head"><div class="band"><span class="layer-badge">1</span><h2>Toàn cảnh những gì đã xây</h2></div></div>
+  <div class="wrap layer-body">
+    <div class="card">
+      <p><b>Sản phẩm:</b> thư mục <code>version3/</code> độc lập, <b>offline hoàn toàn</b> (không CDN, font hệ thống, icon emoji/SVG): 13 trang HTML (index + 12 tuần) · <code>css/style.css</code> + <code>js/app.js</code> dùng chung · 8 tài liệu vận hành. <b>Version 2 giữ nguyên vẹn</b> để đối chiếu.</p>
+      <p><b>Quy trình 8 phase theo đặc tả:</b> ① audit v2 (trích nguyên văn mọi phát biểu lỗi 5.1–5.8) → ② curriculum map + chốt kiến trúc project TRƯỚC khi viết trang → ③ design system + hợp đồng template + tuần mẫu Week05 (kiểm thử trước khi nhân rộng) → ④–⑦ dựng 12 tuần + tài liệu → ⑧ validation ba lớp: cấu trúc (16 tiêu chí × 12 tuần) · trình duyệt thật (0 lỗi JS, quiz 5/5, tiến độ khôi phục sau reload) · <b>biên dịch + mô phỏng RTL bằng Icarus Verilog</b> — bao gồm chạy end-to-end cả hệ 3 tuần và giải mã đúng byte UART <code>'G'</code> trên dây tx.</p>
+    </div>
+    <div class="card">
+      <h3>Kiến trúc một trang tuần (bất biến cả 12 tuần)</h3>
+      <pre class="code standalone" data-nohl><code>topbar  · điều hướng A/B/C/D + công tắc Mentor + thanh tiến độ
+hero    · mục tiêu 3–5 + vị trí tuần trước/này/sau
+A  Trước buổi (15–25′)   vì sao · tiên quyết · 5 khái niệm · 1 hoạt động · 2 câu tự chẩn đoán
+B  Buổi học 60′          timeline 6 khung cố định + khối mentor-only (6 phần)
+C  Technical Lab         5–9 deep-dive gập/mở: RTL đầy đủ · waveform · bẫy · từ vựng
+D  Sau buổi              quiz 5 câu · bài tập (deliverable tường minh) · nâng cao · EQ→RQ (T6+)
+                         · rubric 25/20/20/20/15 · tổng kết 6 ô chuẩn
+weeknav · tuần trước/sau</code></pre>
+    </div>
+  </div>
+</section>
+
+<section id="deviations" class="layer layer-b">
+  <div class="wrap layer-head"><div class="band"><span class="layer-badge">2</span><h2>Các điểm KHÁC so với đặc tả — và lý do</h2></div>
+    <p class="lead">Đặc tả được tuân thủ gần trọn vẹn. Dưới đây là mọi chỗ tôi chủ động làm khác/làm thêm — mỗi dòng đều có "bản chất vấn đề".</p>
+  </div>
+  <div class="wrap layer-body">
+    <div class="tblwrap">
+    <table class="tbl">
+      <tr><th style="width:30%">Khác biệt</th><th>Lý do &amp; bản chất</th></tr>
+      <tr><td><b>Thêm <code>index.html</code></b> (mục 21 đặc tả không liệt kê)</td><td>12 file cần một hub — điểm yếu đã ghi nhận của v1/v2. Index còn đọc localStorage để hiện tiến độ quiz từng tuần. Bổ sung, không phá cấu trúc.</td></tr>
+      <tr><td><b>Lưu tiến độ localStorage</b> (đặc tả không yêu cầu)</td><td>v2 mất trắng trạng thái khi tải lại. Khóa <code>licv3:wNN:*</code>; fallback in-memory nếu bị chặn. Bản chất: dữ liệu theo máy + trình duyệt, xóa dữ liệu duyệt web là mất, không đồng bộ giữa các máy.</td></tr>
+      <tr><td><b>Quiz 5 câu/tuần</b> (v2 là 10)</td><td>Làm đúng đặc tả mục 3 ("5-question formative quiz"). Phần luyện sâu chuyển vào drill/predict/bug-hunt ở Layer C.</td></tr>
+      <tr><td><b>Rubric T1–T3 đổi nhãn 2 hàng</b></td><td>Giữ nguyên 5 hạng mục + trọng số 25/20/20/20/15 của mục 12; chỉ đổi nhãn ("RTL đúng"→"Thiết kế đúng"…) vì tuần 1–3 artifact chưa có code.</td></tr>
+      <tr><td><b>Layer A tuần 12 = 60–90′</b> (chuẩn là 15–25′)</td><td>T12 là buổi bảo vệ, phần chuẩn bị là chạy lại hệ + chụp 3 waveform + điền phiếu bảo vệ. Deviation có chủ đích, ghi rõ trên trang.</td></tr>
+      <tr><td><b>EQ→RQ có bản "làm quen" ở T5</b></td><td>Đặc tả nói "từ khoảng tuần 6" — bản T5 dán nhãn làm quen, không bắt buộc, để T6 vào chính thức không đột ngột.</td></tr>
+      <tr><td><b>Retrieval T1 = icebreaker</b></td><td>Tuần 1 không có "tuần trước" để hỏi lại.</td></tr>
+      <tr><td><b>Thông điệp UART <code>GN 09\n</code> (6 byte)</b> thay vì <code>STATE=GREEN_NS TIME=08</code></td><td>Đặc tả mục 7 cho phép "another simple machine-readable format". 6 byte cố định giữ status_tx đủ đơn giản cho người mới; định dạng dài hơn là thử thách nâng cao T11 (kiến trúc không đổi, chỉ đổi nội dung).</td></tr>
+      <tr><td><b>uart_tx gộp controller+datapath một khối always_ff</b></td><td>FSM tuyến tính (IDLE→START→DATA→STOP): tách 3 khối làm code dài gần gấp đôi mà không thêm insight cho người mới; dạng 3 khối chuẩn đã bắt buộc ở W6/W9. Có ghi chú ngay trong trang W11.</td></tr>
+      <tr><td><b>Icon emoji, font hệ thống</b></td><td>Điều kiện offline tuyệt đối (v2 vỡ layout khi mất mạng — đã tái hiện được). Đánh đổi: icon kém "đồng phục" hơn font-icon.</td></tr>
+      <tr><td><b>Cấm <code>&lt;script&gt;</code> inline ở 12 trang tuần</b>; index có 1 script nhỏ</td><td>Kỷ luật này xóa tình trạng "≥5 engine quiz khác nhau" của v2. Ngoại lệ duy nhất: <code>type="application/json"</code> chứa cấu hình widget FSM (dữ liệu, không phải code).</td></tr>
+      <tr><td><b>Tên file <code>Week01.html</code>…</b> (zero-padded)</td><td>Theo cấu trúc đề xuất mục 21; sort đúng trong mọi trình quản lý file.</td></tr>
+      <tr><td><b>TB tuần 10 là skeleton</b> (bảng giải mã "chép đủ 10 hàng…")</td><td>Chủ đích: học viên tự hoàn thiện trọng tài độc lập. Vì vậy khối này không nằm trong biên dịch tự động (đã khai báo trong VALIDATION_REPORT).</td></tr>
+      <tr><td><b>Mentor-only là toggle ẩn/hiện</b>, không phải file riêng</td><td>Giữ trải nghiệm một-file, mentor dùng ngay trong ngữ cảnh bài. Học viên bật công tắc vẫn xem được — chấp nhận như "sách giáo viên bán công khai". Muốn tách hẳn: xem mục Bảo trì.</td></tr>
+      <tr><td><b>3 sửa lỗi phát sinh khi validation</b></td><td>① W6: ternary-enum → if/else (tương thích iverilog — công cụ miễn phí học viên dễ dùng nhất); ② W11: testbench đo start bit dính race lịch trình → chuyển stimulus sang non-blocking + lấy mẫu cạnh xuống (chính TB của giáo trình bắt được lỗi của chính nó — bài học được giữ lại trong comment code); ③ W12: chuẩn hóa nhãn "Next week — Phase 2" theo format mục 26.</td></tr>
+    </table>
+    </div>
+    <div class="co co-info"><b>Cách tổ chức thi công (minh bạch):</b> phần lõi rủi ro cao do tôi trực tiếp viết và kiểm — design system, hợp đồng template, tuần mẫu W5, ba tuần nặng RTL W7/W9/W11, toàn bộ tài liệu, toàn bộ validation. Tám tuần còn lại (W1–4, W6, W8, W10, W12) do các agent con dựng song song theo hợp đồng template + chỉ thị chi tiết từng tuần (code RTL cho sẵn nguyên văn với W6/W10); sau đó cả 12 tuần đi qua CÙNG một bộ kiểm định cấu trúc + trình duyệt + RTL.</div>
+  </div>
+</section>
+
+<section id="dod" class="layer layer-c">
+  <div class="wrap layer-head"><div class="band"><span class="layer-badge">3</span><h2>Đối chiếu Definition of Done (mục 31 đặc tả)</h2></div></div>
+  <div class="wrap layer-body">
+    <div class="grid2">
+      <div class="card"><ul class="small">
+        <li>✔ 1. Đủ 12 tuần</li>
+        <li>✔ 2. Mỗi tuần tách 4 lớp A/B/C/D (kiểm tự động)</li>
+        <li>✔ 3. Mentor chạy được buổi 60′ (timeline + mentor box + MENTOR_GUIDE)</li>
+        <li>✔ 4. Không bắt đọc cả trang trước buổi (Layer A 15–25′)</li>
+        <li>✔ 5. T7 = RTL có hệ thống (đổi tên; T1–6 guided exposure)</li>
+        <li>✔ 6. T9–11 = MỘT project tích hợp (mô phỏng end-to-end pass)</li>
+        <li>✔ 7. T12 = capstone/phản tư/cầu nghiên cứu (trang ngắn nhất khóa)</li>
+        <li>✔ 8. Sửa hết 5.1–5.8 (TECHNICAL_AUDIT + co-fix trong bài)</li>
+        <li>✔ 9. Style RTL nhất quán (grep + compile)</li>
+        <li>✔ 10. Verification xuyên suốt (TB T5 → invariant T9 → self-check T10 → đo số T11)</li>
+      </ul></div>
+      <div class="card"><ul class="small">
+        <li>✔ 11. Controller–datapath lặp có chủ đích (T6→T9→T10→T11→T12)</li>
+        <li>✔ 12. FPGA vs ASIC chính xác (5.5 + nhãn minh họa)</li>
+        <li>✔ 13. Mỗi tuần một artifact tường minh</li>
+        <li>✔ 14. Nghiên cứu đưa vào từ từ (EQ→RQ T6+ · paper anatomy T7 · abstract T8 · RQ project T9–11 · chu trình T12)</li>
+        <li>✔ 15. Mentor notes thực dụng (6 phần/tuần)</li>
+        <li>✔ 16. Version 2 nguyên vẹn</li>
+        <li>✔ 17–19. CHANGELOG · TECHNICAL_AUDIT · VALIDATION_REPORT tồn tại</li>
+        <li>✔ 20. Mạch lạc hơn v2, không chỉ dài hơn (trang giảm ~65% dung lượng; chiều sâu chuyển vào Layer C gập/mở)</li>
+      </ul></div>
+    </div>
+  </div>
+</section>
+
+<section id="system" class="layer layer-d">
+  <div class="wrap layer-head"><div class="band"><span class="layer-badge">4</span><h2>Bản chất hệ thống</h2></div></div>
+  <div class="wrap layer-body">
+    <div class="grid2">
+      <div class="card">
+        <h3>CSS — <code>css/style.css</code></h3>
+        <p class="small">Design tokens ở <code>:root</code> — <b>đổi nhận diện = sửa vài biến đầu file</b> (<code>--blue</code>, <code>--la/--lb/--lc/--ld</code> cho 4 layer). Mỗi component đúng một nơi định nghĩa: callout <code>co-*</code>, khung code <code>rtl-frame</code>, deep-dive <code>details.dd</code>, quiz <code>qz-*</code>, checklist <code>ck</code>, widget, waveform <code>wv-*</code>, EQ→RQ, tổng kết <code>ican</code>, mentor. Responsive dưới 860px; print mở toàn bộ deep-dive.</p>
+      </div>
+      <div class="card">
+        <h3>JS — <code>js/app.js</code> (không thư viện ngoài)</h3>
+        <p class="small">Khóa dữ liệu: <code>licv3:mentor</code> · <code>licv3:wNN:ck:*</code> · <code>licv3:wNN:quiz:*</code> · <code>licv3:wNN:quizscore:*</code> (index đọc) · <code>licv3:wNN:reflect:*</code>. Quiz engine đọc markup thuần (không JS vẫn hiện đủ nội dung). Highlighter SystemVerilog chạy trên textContent (an toàn với HTML escape). 8 widget data-driven: <code>counter · seg7 · fsm(JSON) · traffic · tt · uart</code> + bug-hunt + predict-reveal — thêm bài mới chỉ cần soạn HTML/JSON, không viết JS.</p>
+      </div>
+    </div>
+    <div class="card">
+      <h3>RTL project (đã mô phỏng pass toàn bộ, kể cả end-to-end)</h3>
+      <pre class="code standalone" data-nohl><code>tick_gen (1 Hz enable — cấm derived clock)
+  → traffic_ctrl (FSM 3 khối + timer nạp N−1 · hợp đồng: phase, time_left)
+      → seg7_decoder / display_mux (tổ hợp + quét ~1 kHz)
+      → status_tx (ROM 6 byte + FSM handshake) → uart_tx (baud enable + shift LSB-first)
+          → traffic_system_top (chỉ nối dây)
+Tham số mô phỏng thu nhỏ nhất quán: DIV=10 · GREEN=6/YELLOW=2 · CLK_HZ:BAUD=8:1</code></pre>
+    </div>
+  </div>
+</section>
+
+<section id="maintain" class="layer layer-a">
+  <div class="wrap layer-head"><div class="band"><span class="layer-badge">5</span><h2>Bảo trì · mở rộng · giới hạn</h2></div></div>
+  <div class="wrap layer-body">
+    <div class="grid2">
+      <div class="card">
+        <h3>Việc thường gặp</h3>
+        <ul class="small">
+          <li><b>Sửa nội dung tuần:</b> mở WeekNN.html — HTML thuần, có chú thích <code>&lt;!-- LAYER A --&gt;</code>… Không cần build tool.</li>
+          <li><b>Sửa tài liệu vận hành:</b> sửa bản <code>.md</code> (nguồn sự thật) rồi dựng lại <code>.html</code> bằng script <code>mkdocs.mjs</code> (thư viện <code>marked</code>): tự sinh mục lục từ đề mục <code>##</code>, bọc bảng trong khung cuộn ngang, gắn class code, biến nhắc tới <code>TÊN.md</code> thành liên kết sang <code>TÊN.html</code>, rồi ghép vào khung trang chuẩn. Sửa vài chữ thì có thể sửa thẳng cả hai bản; sửa nhiều thì luôn sửa <code>.md</code> rồi dựng lại để hai bản không lệch. Riêng trang này biên soạn tay — sửa thủ công cả hai bản.</li>
+          <li><b>Thêm tuần:</b> copy Week05.html (trang mẫu chuẩn), đổi <code>data-week</code> + nội dung + 2 link weeknav + thẻ trong index.</li>
+          <li><b>Đổi câu quiz:</b> sửa <code>.qz-item</code> (giữ 4 lựa chọn A–D + 1 <code>data-answer</code> + giải thích) — engine tự nhận.</li>
+          <li><b>Tách nội dung mentor khỏi học viên:</b> nhẹ — gate bằng query string trong app.js; triệt để — script tách các khối <code>.mentor-only</code> ra file riêng (cấu trúc class cho phép tự động).</li>
+          <li><b>Kéo dài pha đèn &gt; 15 s:</b> phải nới timer/time_left 4 bit — đúng bài EQ→RQ của W9, dùng được làm bài tập thật.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Giới hạn đã biết</h3>
+        <ul class="small">
+          <li>Chưa chạy synthesis trên tool FPGA thật — số tài nguyên trong bài là ước lượng giảng dạy (RTL thuộc tập synthesizable chuẩn, đã mô phỏng pass).</li>
+          <li>Tiến độ theo máy + trình duyệt; không tài khoản/đồng bộ; xóa dữ liệu duyệt web là mất.</li>
+          <li>Đã kiểm trên Chromium; Firefox/Safari rủi ro thấp nhưng chưa kiểm trực tiếp.</li>
+          <li>Nội dung mentor xem được qua toggle (đánh đổi có chủ đích).</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="review0808" class="layer layer-b">
+  <div class="wrap layer-head"><div class="band"><span class="layer-badge">6</span><h2>Đợt rà soát học thuật 08/08/2026 — bản chất vấn đề</h2></div>
+  <p class="lead">Mục này ghi <b>vì sao</b> các lỗi tồn tại được, không chỉ liệt kê chúng. Danh sách đầy đủ 40 hiệu chỉnh: <a href="VALIDATION_REPORT.html">VALIDATION_REPORT §6b</a>.</p></div>
+  <div class="wrap layer-body">
+    <div class="co co-warn"><b>Số liệu đáng nhớ nhất của đợt này.</b> Vòng rà soát thứ hai — chỉ kiểm lại chính những đoạn vừa viết lại ở vòng một — tìm thêm <b>15 lỗi, trong đó 5 lỗi nằm ngay trong bản sửa của vòng một</b>. Bản sửa không tự động đúng hơn bản gốc.</div>
+
+    <div class="grid2">
+      <div class="card">
+        <h3>1 · Lỗi "nói tắt đúng hướng, sai chi tiết"</h3>
+        <p class="small">Nhóm đông nhất và khó thấy nhất. "<code>initial</code> không tổng hợp được" đúng về <em>ý định dạy</em> nhưng sai về <em>sự thật</em> — tool FPGA có nhận <code>initial</code> để đặt giá trị FF lúc nạp bitstream. "<code>4'd16</code> bị cắt thành 0 nên điều kiện không bao giờ khớp" đúng nửa đầu, sai hẳn nửa sau: cắt thành 0 nghĩa là điều kiện <b>khớp ngay</b>, counter đứng yên tại 0.</p>
+        <p class="small"><b>Chặn bằng cách nào:</b> chạy thử, không đọc lại. Mọi khẳng định về hành vi ngôn ngữ trong khóa nay đều có đoạn mô phỏng đối chứng bằng iverilog.</p>
+      </div>
+      <div class="card">
+        <h3>2 · Lỗi hình vẽ là lỗi hệ thống</h3>
+        <p class="small">Đợt trước người dùng chỉ ra ba sơ đồ thiếu nối kết; sửa ba hình đó là chưa đủ. Quét lại toàn bộ hình thì còn hai chỗ nữa cùng một kiểu thiếu: nhánh rẽ của <code>tick</code>, đường phản hồi <code>tx_busy</code>, <code>clk</code>/<code>rst_n</code> chỉ vẽ tới khối đầu.</p>
+        <p class="small"><b>Nguyên nhân chung:</b> hình ASCII vẽ tốt luồng chính nhưng <b>fan-out và feedback không có chỗ để vẽ</b>, nên chúng lặng lẽ biến mất. Nay: đặc tả chính xác thì dùng <b>bảng</b> (mỗi dòng một dây, có nguồn và mọi đích) hoặc <b>SVG vẽ theo netlist</b>; ASCII chỉ dùng cho hình gợi ý và phải ghi rõ nó là gợi ý.</p>
+      </div>
+      <div class="card">
+        <h3>3 · Lỗi "tỉ số thay vì hiệu số"</h3>
+        <p class="small">Bảng chi phí FPGA/ASIC bỏ phần NRE thiết kế chung khỏi cả hai cột — hợp lệ, vì nó triệt tiêu khi lấy hiệu. Nhưng cột kết luận ghi "rẻ hơn 80 lần", mà <b>tỉ số không bất biến</b> với đại lượng vừa bỏ đi (thêm 500.000$ chung, "80 lần" tụt còn ~5 lần).</p>
+        <p class="small"><b>Bài học tổng quát hơn cả con số:</b> chỉ phát biểu đại lượng nào bất biến với giả định mình vừa đặt ra — nay viết thẳng vào W8 §C3.</p>
+      </div>
+      <div class="card">
+        <h3>4 · Tài liệu tự mâu thuẫn</h3>
+        <p class="small">Khi cùng một sự thật viết ở 3–5 nơi, sửa một nơi tạo mâu thuẫn ở bốn nơi còn lại. Ba ví dụ: khuôn FSM của <code>uart_tx</code> (W6, W11 mở đầu, ghi chú mentor W11); invariant an toàn (W2, W8, W9, PROJECT_GUIDE); phạm vi bảng tín hiệu (§2.4 so với §2.5/§2.6).</p>
+        <p class="small"><b>Chặn bằng cách nào:</b> một nguồn sự thật duy nhất — PROJECT_GUIDE §2.4 cho tín hiệu, tuyên bố thẳng "khi hình và bảng khác nhau, lấy bảng làm gốc"; mọi nơi khác trỏ về đó thay vì chép lại.</p>
+      </div>
+      <div class="card">
+        <h3>5 · Lỗi nằm trong chính bản sửa</h3>
+        <p class="small">Ví dụ điển hình: đoạn sửa về <code>x + 1</code> giải thích đúng luật mở rộng 32 bit rồi lại minh họa bằng <code>x + 1'b1</code> — đúng trường hợp <em>không</em> áp dụng luật đó (mọi toán hạng ≤ 4 bit nên phép cộng tính ngay ở 4 bit).</p>
+        <p class="small"><b>Quy trình bảo trì nay yêu cầu:</b> sửa → kiểm ngược chính bản sửa → chứng minh bằng công cụ, không bằng lập luận.</p>
+      </div>
+      <div class="card">
+        <h3>6 · Mô hình tham chiếu phải hỏng ồn ào</h3>
+        <p class="small">Testbench W10 §C5 để sẵn bảng giải mã thiếu hàng cho học viên chép nốt, với <code>default</code> trả về một mẫu 7 đoạn <em>trông hợp lệ</em>. Hậu quả: học viên chạy thử thấy hàng loạt <code>$error</code> và kết luận <b>RTL</b> sai, trong khi lỗi ở testbench.</p>
+        <p class="small">Đã đổi <code>default</code> thành trả <code>x</code> kèm thông báo riêng, và viết nguyên tắc này thành một mục học ngay trong trang: trọng tài mà đoán thì hết là trọng tài.</p>
+      </div>
+    </div>
+
+    <div class="doc-foot-nav">
+      <a class="home" href="index.html">← Mục lục chương trình</a>
+      <a href="README.html">README</a>
+      <a href="CURRICULUM_MAP.html">Curriculum Map</a>
+      <a href="MENTOR_GUIDE.html">Mentor Guide</a>
+      <a href="PROJECT_GUIDE.html">Project Guide</a>
+      <a href="TECHNICAL_AUDIT.html">Technical Audit</a>
+      <a href="CHANGELOG_V2_TO_V3.html">Changelog</a>
+      <a href="VALIDATION_REPORT.html">Validation</a>
+    </div>
+    <div class="footer">
+      <b>IC Design Mentoring — Version 3 · Phase 1</b>
+      <span class="org">Khoa Điện – Điện tử · Trường Kỹ thuật · Đại học Phenikaa</span>
+      <span>Biên soạn: <b style="display:inline">Giảng Viên Đinh Văn Nam</b></span>
+      <span class="cr">© 2026 · Bản quyền thuộc về Giảng Viên Đinh Văn Nam, Khoa Điện-Điện Tử, Trường Kỹ Thuật, Đại học Phenikaa. Tài liệu phục vụ đào tạo — vui lòng giữ nguyên thông tin tác giả khi chia sẻ.</span>
+      <span class="cr">implementation-notes · bản văn bản: implementation-notes.md</span>
+    </div>
+  </div>
+</section>
+
+<script>
+(function(){var bar=document.querySelector('.scrollbar>div');window.addEventListener('scroll',function(){var h=document.documentElement,m=h.scrollHeight-h.clientHeight;if(bar)bar.style.width=(m>0?(h.scrollTop/m)*100:0)+'%';},{passive:true});})();
+</script>
+</body>
+</html>

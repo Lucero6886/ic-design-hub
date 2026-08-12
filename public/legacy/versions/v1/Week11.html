@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tuần 11: UART Communication Basics | IC Design Mentoring</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Consolas', 'Monaco', 'Courier New', 'monospace'],
+                    },
+                    colors: {
+                        primary: '#2563eb', // Blue 600
+                        secondary: '#f59e0b', // Amber 500
+                        accent: '#10b981', // Emerald 500
+                        dark: '#1e293b', // Slate 800
+                        light: '#f8fafc', // Slate 50
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        details > summary { list-style: none; }
+        details > summary::-webkit-details-marker { display: none; }
+        details[open] summary ~ * { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .custom-checkbox {
+            appearance: none;
+            background-color: #fff;
+            margin: 0;
+            font: inherit;
+            color: currentColor;
+            width: 1.25em;
+            height: 1.25em;
+            border: 2px solid #cbd5e1;
+            border-radius: 0.25em;
+            display: grid;
+            place-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+        }
+        .custom-checkbox::before {
+            content: "";
+            width: 0.65em;
+            height: 0.65em;
+            transform: scale(0);
+            transition: 120ms transform ease-in-out;
+            box-shadow: inset 1em 1em white;
+            background-color: white;
+            transform-origin: center;
+            clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+        }
+        .custom-checkbox:checked {
+            background-color: #10b981;
+            border-color: #10b981;
+        }
+        .custom-checkbox:checked::before { transform: scale(1); }
+        .task-item.completed { text-decoration: line-through; color: #94a3b8; }
+        
+        /* UART Animation bits */
+        .data-bit {
+            transition: transform 0.5s linear;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased selection:bg-primary selection:text-white pb-20">
+<div id="lichub-nav-top" data-lichub="v1" role="navigation" aria-label="Điều hướng Learning Hub (bổ sung, không thuộc trang gốc)" style="background:#0f172a;color:#e2e8f0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:13.5px;line-height:1.6;padding:8px 16px;display:flex;flex-wrap:wrap;gap:4px 16px;align-items:center;border-bottom:3px solid #f59e0b"><a href="../../index.html" style="color:#7dd3fc;text-decoration:none;font-weight:600">⌂ Learning Hub</a><span style="font-size:11px;font-weight:700;letter-spacing:.04em;color:#f59e0b;border:1px solid #f59e0b;border-radius:6px;padding:1px 7px;white-space:nowrap">V1 · BẢN LƯU TRỮ GỐC</span><a href="index.html" style="color:#cbd5e1;text-decoration:none">Mục lục V1</a><span style="flex:1"></span><a href="Week10.html" style="color:#7dd3fc;text-decoration:none" title="Counter & 7-Segment Display">← Tuần 10</a><a href="Week12.html" style="color:#7dd3fc;text-decoration:none" title="Course Wrap-up & Next Steps">Tuần 12 →</a><span aria-hidden="true" style="color:#475569">|</span><span style="display:inline-flex;gap:8px;align-items:center"><span style="color:#94a3b8">Chuyển bản:</span> <b aria-current="true" style="color:#f59e0b">V1</b> <a href="../v2/index.html" style="color:#cbd5e1;text-decoration:none">V2</a> <a href="../v3/index.html" style="color:#cbd5e1;text-decoration:none">V3</a></span></div>
+
+
+    <header class="bg-gradient-to-br from-dark to-slate-700 text-white pt-16 pb-20 px-6 shadow-xl relative overflow-hidden">
+        <div class="absolute top-0 right-0 opacity-10 pointer-events-none">
+            <i class="fa-solid fa-satellite-dish text-[20rem] -mt-10 -mr-10"></i>
+        </div>
+        
+        <div class="max-w-4xl mx-auto relative z-10">
+            <div class="flex flex-wrap items-center gap-3 mb-4">
+                <span class="bg-primary text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Tuần 11</span>
+                <span class="bg-secondary text-dark text-xs font-bold px-3 py-1 rounded-full"><i class="fa-solid fa-network-wired mr-1"></i> Truyền Thông Dữ Liệu</span>
+                <span class="bg-white/20 text-white border border-white/30 text-xs font-semibold px-3 py-1 rounded-full"><i class="fa-solid fa-university mr-1"></i> Phenikaa University</span>
+            </div>
+            
+            <h1 class="text-4xl md:text-5xl font-extrabold mb-3 leading-tight text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-300">
+                UART Communication Basics
+            </h1>
+            <h2 class="text-xl md:text-2xl font-medium text-slate-300 mb-6 border-l-4 border-primary pl-4">
+                Làm Thế Nào Để Hai Hệ Thống Số "Nói Chuyện" Với Nhau?
+            </h2>
+            
+            <div class="bg-white/10 backdrop-blur-md rounded-xl p-5 border border-white/20 mb-8 max-w-3xl">
+                <p class="text-lg leading-relaxed">
+                    <i class="fa-solid fa-quote-left text-primary opacity-50 mr-2"></i>
+                    Bộ não (Chip) có thể xử lý dữ liệu cực nhanh, nhưng nó sẽ trở nên vô dụng nếu bị cô lập. Tuần này, chúng ta sẽ tìm hiểu về <strong>Giao thức UART</strong> - ngôn ngữ giao tiếp kinh điển nhất giúp máy tính, cảm biến và các vi mạch truyền tin cho nhau.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="flex items-start gap-3">
+                    <div class="bg-white/20 w-8 h-8 flex items-center justify-center rounded-lg text-secondary shrink-0"><i class="fa-solid fa-tower-broadcast"></i></div>
+                    <p class="text-sm mt-1">Hiểu vì sao các hệ thống số cần phải có chuẩn giao tiếp (Communication Protocol).</p>
+                </div>
+                <div class="flex items-start gap-3">
+                    <div class="bg-white/20 w-8 h-8 flex items-center justify-center rounded-lg text-secondary shrink-0"><i class="fa-solid fa-right-left"></i></div>
+                    <p class="text-sm mt-1">Giải thích được cách hoạt động của 2 chân tín hiệu TX (Truyền) và RX (Nhận).</p>
+                </div>
+                <div class="flex items-start gap-3">
+                    <div class="bg-white/20 w-8 h-8 flex items-center justify-center rounded-lg text-secondary shrink-0"><i class="fa-solid fa-arrow-down-short-wide"></i></div>
+                    <p class="text-sm mt-1">Nắm vững khái niệm Dữ liệu nối tiếp (Serial Data) và Tốc độ baud (Baud rate).</p>
+                </div>
+                <div class="flex items-start gap-3">
+                    <div class="bg-white/20 w-8 h-8 flex items-center justify-center rounded-lg text-secondary shrink-0"><i class="fa-solid fa-laptop-code"></i></div>
+                    <p class="text-sm mt-1">Biết cách sử dụng UART để kết nối board FPGA với máy tính (PC) hoặc vi điều khiển.</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 sm:px-6 -mt-10 relative z-20 space-y-8">
+
+        <section class="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
+            <div class="bg-blue-50 border-b border-blue-100 px-6 py-4 flex items-center justify-between">
+                <h3 class="text-xl font-bold text-dark flex items-center gap-2">
+                    <i class="fa-solid fa-mug-hot text-primary"></i> Chuẩn Bị Trước Buổi Học
+                </h3>
+            </div>
+            <div class="p-6">
+                <p class="text-slate-600 mb-6">
+                    Hãy tưởng tượng bạn (FPGA) cần báo cho bạn của mình (Máy tính) một con số nhưng hai người ở hai phòng khác nhau, và chỉ có một sợi dây thừng nối giữa hai phòng. Bạn sẽ "giật dây" như thế nào để truyền đi mã nhị phân 8-bit? Đó chính là bản chất của truyền nối tiếp (Serial Communication).
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 hover:border-primary/30 transition-colors">
+                        <h4 class="font-bold text-dark mb-4 border-b pb-2 flex items-center gap-2">
+                            <i class="fa-solid fa-list-check text-primary"></i> Checklist Tự Học
+                        </h4>
+                        <ul class="space-y-3" id="prep-checklist">
+                            <li class="flex items-start gap-3 group">
+                                <input type="checkbox" class="custom-checkbox mt-0.5" id="task1" onclick="toggleTask(this)">
+                                <label for="task1" class="cursor-pointer text-sm text-slate-700 task-item group-hover:text-primary transition-colors">Tra cứu: UART là viết tắt của từ gì?</label>
+                            </li>
+                            <li class="flex items-start gap-3 group">
+                                <input type="checkbox" class="custom-checkbox mt-0.5" id="task2" onclick="toggleTask(this)">
+                                <label for="task2" class="cursor-pointer text-sm text-slate-700 task-item group-hover:text-primary transition-colors">Tìm hiểu ý nghĩa của chân TX và RX</label>
+                            </li>
+                            <li class="flex items-start gap-3 group">
+                                <input type="checkbox" class="custom-checkbox mt-0.5" id="task3" onclick="toggleTask(this)">
+                                <label for="task3" class="cursor-pointer text-sm text-slate-700 task-item group-hover:text-primary transition-colors">Chơi với Demo Dữ Liệu Nối Tiếp (Serial Data) bên dưới</label>
+                            </li>
+                            <li class="flex items-start gap-3 group">
+                                <input type="checkbox" class="custom-checkbox mt-0.5" id="task4" onclick="toggleTask(this)">
+                                <label for="task4" class="cursor-pointer text-sm text-slate-700 task-item group-hover:text-primary transition-colors">Tại sao chúng ta không nối 8 sợi dây để truyền 8 bit cùng một lúc?</label>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-blue-50 p-5 rounded-xl border border-blue-200 relative overflow-hidden">
+                        <i class="fa-regular fa-lightbulb absolute -right-4 -bottom-4 text-6xl text-blue-200 opacity-50"></i>
+                        <h4 class="font-bold text-primary mb-4 border-b border-blue-200 pb-2 relative z-10">Tư Duy Khởi Động</h4>
+                        <ul class="space-y-3 list-disc list-inside text-sm text-slate-700 relative z-10">
+                            <li>Làm sao máy tính biết được đâu là điểm Bắt đầu (Start) và Kết thúc (Stop) của một gói dữ liệu khi tín hiệu chỉ là các mức điện áp 0 và 1 trên dây?</li>
+                            <li>Baud rate (ví dụ: 9600 bps hoặc 115200 bps) có ý nghĩa gì đối với tốc độ truyền tin? Nếu hai máy tính cài đặt 2 tốc độ khác nhau thì chuyện gì xảy ra?</li>
+                            <li>Kể tên một ứng dụng cần thiết bị truyền dữ liệu về máy tính?</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
+                <h3 class="text-xl font-bold text-dark flex items-center gap-2">
+                    <i class="fa-solid fa-microchip text-primary"></i> Khái Niệm & Demo Hệ Thống UART
+                </h3>
+            </div>
+            
+            <div class="p-6 divide-y divide-slate-100">
+                <div class="py-5 first:pt-0">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="text-lg font-bold text-primary mb-2 flex items-center gap-2">
+                                <span class="bg-primary/10 text-primary w-6 h-6 rounded-full flex items-center justify-center text-sm">1</span> Dữ Liệu Nối Tiếp (Serial)
+                            </h4>
+                            <p class="text-slate-600 text-sm leading-relaxed mb-4">
+                                Thay vì dùng 8 sợi dây để truyền 8 bit cùng một lúc (Tốn phần cứng, nhiễu tín hiệu), UART dùng <strong>1 sợi dây duy nhất</strong> để truyền lần lượt từng bit qua thời gian. Khối Shift Register (Thanh ghi dịch) làm nhiệm vụ ép dữ liệu thành hàng dọc.
+                            </p>
+                        </div>
+                        <div>
+                            <h4 class="text-lg font-bold text-primary mb-2 flex items-center gap-2">
+                                <span class="bg-primary/10 text-primary w-6 h-6 rounded-full flex items-center justify-center text-sm">2</span> Giao Thức (Protocol)
+                            </h4>
+                            <p class="text-slate-600 text-sm leading-relaxed mb-4">
+                                Để bên nhận (RX) hiểu được dữ liệu, bên truyền (TX) sẽ bọc 8 bit dữ liệu lại bằng 1 bit Khởi đầu <strong>(Start Bit = 0)</strong> và 1 bit Kết thúc <strong>(Stop Bit = 1)</strong>. Tạo thành một Frame (khung) dữ liệu 10-bit chuẩn mực.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Interactive UART Demo -->
+                <div class="py-5">
+                    <div class="bg-slate-900 p-6 rounded-2xl border border-slate-700 shadow-inner overflow-hidden relative">
+                        <div class="mb-6 flex justify-between items-center relative z-10">
+                            <div>
+                                <h4 class="text-lg font-bold text-white flex items-center gap-2"><i class="fa-solid fa-gamepad text-secondary"></i> Demo: Truyền 1 Byte qua UART</h4>
+                                <p class="text-xs text-slate-400 mt-1">Truyền ký tự <strong>'A' (0x41)</strong> = nhị phân <code class="bg-slate-800 text-emerald-400 px-1 rounded">01000001</code> từ Mạch phát (TX) sang Mạch thu (RX).</p>
+                            </div>
+                            <button id="btnSendUart" class="bg-primary hover:bg-blue-500 text-white font-bold py-2 px-6 rounded-xl shadow-[0_4px_0_#1e3a8a] active:translate-y-1 active:shadow-none transition-all flex items-center gap-2">
+                                <i class="fa-solid fa-paper-plane"></i> Send Data
+                            </button>
+                        </div>
+                        
+                        <!-- SVG Canvas for UART -->
+                        <div class="w-full relative flex justify-center py-6 overflow-x-auto min-h-[300px]">
+                            <svg viewBox="0 0 800 250" class="min-w-[750px] h-full font-mono drop-shadow-md">
+                                <defs>
+                                    <marker id="arrow-tx" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                        <polygon points="0 0, 10 3.5, 0 7" fill="#10b981" />
+                                    </marker>
+                                    <marker id="arrow-rx" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                        <polygon points="0 0, 10 3.5, 0 7" fill="#3b82f6" />
+                                    </marker>
+                                </defs>
+
+                                <!-- DEVICE A: Transmitter (Left) -->
+                                <g transform="translate(20, 20)">
+                                    <rect x="0" y="0" width="180" height="200" rx="10" fill="#1e293b" stroke="#64748b" stroke-width="2"/>
+                                    <text x="90" y="30" fill="white" font-weight="bold" font-size="16" text-anchor="middle">Transmitter (TX)</text>
+                                    <text x="90" y="50" fill="#94a3b8" font-size="12" text-anchor="middle">Device A (FPGA)</text>
+                                    
+                                    <!-- Parallel Data In -->
+                                    <text x="90" y="80" fill="#cbd5e1" font-size="12" text-anchor="middle">Parallel Data 'A'</text>
+                                    <rect x="25" y="90" width="130" height="25" rx="4" fill="#0f172a" stroke="#475569"/>
+                                    <text x="90" y="108" fill="#10b981" font-size="16" font-weight="bold" text-anchor="middle" letter-spacing="2">01000001</text>
+                                    
+                                    <!-- Shift Register Block -->
+                                    <rect x="40" y="140" width="100" height="30" rx="4" fill="#334155" stroke="#10b981"/>
+                                    <text x="90" y="160" fill="#fff" font-size="12" text-anchor="middle">P to S Shift</text>
+
+                                    <!-- TX Pin -->
+                                    <circle cx="180" cy="155" r="5" fill="#10b981"/>
+                                    <text x="165" y="145" fill="#10b981" font-size="12" font-weight="bold">TX</text>
+                                </g>
+
+                                <!-- DEVICE B: Receiver (Right) -->
+                                <g transform="translate(600, 20)">
+                                    <rect x="0" y="0" width="180" height="200" rx="10" fill="#1e293b" stroke="#64748b" stroke-width="2"/>
+                                    <text x="90" y="30" fill="white" font-weight="bold" font-size="16" text-anchor="middle">Receiver (RX)</text>
+                                    <text x="90" y="50" fill="#94a3b8" font-size="12" text-anchor="middle">Device B (PC)</text>
+                                    
+                                    <!-- RX Pin -->
+                                    <circle cx="0" cy="155" r="5" fill="#3b82f6"/>
+                                    <text x="15" y="145" fill="#3b82f6" font-size="12" font-weight="bold">RX</text>
+
+                                    <!-- Shift Register Block -->
+                                    <rect x="40" y="140" width="100" height="30" rx="4" fill="#334155" stroke="#3b82f6"/>
+                                    <text x="90" y="160" fill="#fff" font-size="12" text-anchor="middle">S to P Shift</text>
+
+                                    <!-- Received Parallel Data -->
+                                    <text x="90" y="80" fill="#cbd5e1" font-size="12" text-anchor="middle">Received Data</text>
+                                    <rect x="25" y="90" width="130" height="25" rx="4" fill="#0f172a" stroke="#475569"/>
+                                    <text id="rxDataDisplay" x="90" y="108" fill="#475569" font-size="16" font-weight="bold" text-anchor="middle" letter-spacing="2">--------</text>
+                                </g>
+
+                                <!-- WIRES -->
+                                <!-- TX Line -->
+                                <path d="M 200 175 L 600 175" stroke="#10b981" stroke-width="3" fill="none" marker-end="url(#arrow-tx)"/>
+                                <text x="400" y="165" fill="#10b981" font-size="12" font-weight="bold" text-anchor="middle">Serial Data Line (TX -> RX)</text>
+                                
+                                <!-- Frame Container (Idle state logic level is HIGH) -->
+                                <path d="M 220 175 L 580 175" stroke="#475569" stroke-width="1" stroke-dasharray="4,4" fill="none"/>
+
+                                <!-- DATA BITS ANIMATION CONTAINER -->
+                                <!-- 10 bits: Start(0), D0(1), D1(0), D2(0), D3(0), D4(0), D5(0), D6(1), D7(0), Stop(1) -->
+                                <!-- Bits are sent LSB first: D0 -> D7 -->
+                                <g id="bitsContainer" transform="translate(180, 175)"></g>
+                                
+                            </svg>
+                        </div>
+                        <div class="text-center mt-2">
+                            <span class="inline-block px-3 py-1 bg-black/50 border border-slate-600 rounded text-xs text-slate-300 font-mono">
+                                LSB First: [Start: 0] - 1 - 0 - 0 - 0 - 0 - 0 - 1 - 0 - [Stop: 1]
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
+            <div class="bg-amber-50 border-b border-amber-200 px-6 py-4 flex items-center justify-between">
+                <h3 class="text-xl font-bold text-dark flex items-center gap-2">
+                    <i class="fa-solid fa-users-gear text-secondary"></i> Nhiệm Vụ Của Nhóm
+                </h3>
+                <span class="text-xs bg-amber-200 text-amber-800 px-3 py-1 rounded-full font-bold shadow-sm">Thuyết trình 10 phút</span>
+            </div>
+            <div class="p-6">
+                <div class="flex items-start gap-4 mb-6 bg-yellow-50 p-4 rounded-xl border-l-4 border-secondary shadow-sm">
+                    <i class="fa-solid fa-lightbulb text-secondary text-xl mt-1"></i>
+                    <div>
+                        <p class="text-sm font-bold text-slate-800 mb-1">Quy tắc Mentor:</p>
+                        <p class="text-sm text-slate-600 italic">"Đừng trình bày các phương trình tần số Baud rate phức tạp. Hãy dùng hình ảnh: Làm sao đóng gói một chữ cái vào 1 phong thư (Frame 10-bit) và gửi nó qua đường bưu điện (đường truyền 1 dây TX)."</p>
+                    </div>
+                </div>
+
+                <h4 class="font-bold text-dark mb-3 text-sm uppercase tracking-wider">Gợi ý nội dung Slide nhóm (5-7 trang):</h4>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-slate-700 mb-2">
+                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 flex gap-3 items-center hover:border-amber-300 transition-colors">
+                        <span class="bg-dark text-white rounded w-6 h-6 flex items-center justify-center shrink-0 font-bold text-xs">1</span>
+                        <p class="font-medium">Tại sao vi mạch xử lý song song nhưng lại hay dùng giao tiếp nối tiếp (Serial) ra bên ngoài?</p>
+                    </div>
+                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 flex gap-3 items-center hover:border-amber-300 transition-colors">
+                        <span class="bg-dark text-white rounded w-6 h-6 flex items-center justify-center shrink-0 font-bold text-xs">2</span>
+                        <p class="font-medium">Giải thích vai trò của chân TX (Transmitter) và RX (Receiver).</p>
+                    </div>
+                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 flex gap-3 items-center hover:border-amber-300 transition-colors">
+                        <span class="bg-dark text-white rounded w-6 h-6 flex items-center justify-center shrink-0 font-bold text-xs">3</span>
+                        <p class="font-medium">Cấu trúc của 1 Khung dữ liệu (UART Frame): Start bit, Data, Stop bit.</p>
+                    </div>
+                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 flex gap-3 items-center hover:border-amber-300 transition-colors">
+                        <span class="bg-dark text-white rounded w-6 h-6 flex items-center justify-center shrink-0 font-bold text-xs">4</span>
+                        <p class="font-medium">Baud rate là gì? Hai thiết bị khác baud rate nói chuyện được không?</p>
+                    </div>
+                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 flex gap-3 items-center sm:col-span-2 hover:border-amber-300 transition-colors bg-gradient-to-r from-amber-50 to-white">
+                        <span class="bg-secondary text-white rounded w-6 h-6 flex items-center justify-center shrink-0 font-bold text-xs"><i class="fa-solid fa-code"></i></span>
+                        <p class="font-medium">Ứng dụng thực tế: Thiết kế phần cứng nào cần khối giao tiếp này (VD: IoT, Radar, Board máy tính)?</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
+            <h3 class="text-xl font-bold text-dark mb-6 flex items-center gap-2 border-b pb-4">
+                <i class="fa-solid fa-stopwatch text-accent"></i> Tiến Trình Buổi Học (60 Phút)
+            </h3>
+            
+            <div class="relative border-l-2 border-slate-200 ml-3 md:ml-6 space-y-6">
+                <!-- Timeline Items -->
+                <div class="relative pl-6 md:pl-8 group">
+                    <div class="absolute w-4 h-4 bg-accent rounded-full -left-[9px] top-1 border-4 border-white shadow group-hover:scale-125 transition-transform"></div>
+                    <div class="flex flex-col md:flex-row md:items-center gap-1 md:gap-4 mb-1">
+                        <span class="text-accent font-bold text-sm w-16 bg-accent/10 px-2 py-0.5 rounded text-center">0' - 5'</span>
+                        <h4 class="font-bold text-dark text-lg">Quick Check-in</h4>
+                    </div>
+                    <p class="text-sm text-slate-600 bg-slate-50 p-2 rounded border border-slate-100">Khởi động: Tại sao máy tính của bạn phải cắm cáp USB để nạp code xuống board FPGA?</p>
+                </div>
+                
+                <div class="relative pl-6 md:pl-8 group">
+                    <div class="absolute w-4 h-4 bg-primary rounded-full -left-[9px] top-1 border-4 border-white shadow group-hover:scale-125 transition-transform"></div>
+                    <div class="flex flex-col md:flex-row md:items-center gap-1 md:gap-4 mb-1">
+                        <span class="text-primary font-bold text-sm w-16 bg-primary/10 px-2 py-0.5 rounded text-center">5' - 15'</span>
+                        <h4 class="font-bold text-dark text-lg">Student Presentation</h4>
+                    </div>
+                    <p class="text-sm text-slate-600 bg-slate-50 p-2 rounded border border-slate-100">Đại diện nhóm thuyết trình về các thành phần cốt lõi của giao thức UART.</p>
+                </div>
+
+                <div class="relative pl-6 md:pl-8 group">
+                    <div class="absolute w-4 h-4 bg-dark rounded-full -left-[9px] top-1 border-4 border-white shadow group-hover:scale-125 transition-transform"></div>
+                    <div class="flex flex-col md:flex-row md:items-center gap-1 md:gap-4 mb-1">
+                        <span class="text-dark font-bold text-sm w-16 bg-slate-200 px-2 py-0.5 rounded text-center">15' - 25'</span>
+                        <h4 class="font-bold text-dark text-lg">Mentor Guidance</h4>
+                    </div>
+                    <p class="text-sm text-slate-600 bg-slate-50 p-2 rounded border border-slate-100">Mentor phân tích lại cấu trúc 1 Frame. Nhấn mạnh khái niệm <strong class="text-red-500">Asynchronous (Không đồng bộ)</strong>: Không có dây Clock chung, hai bên phải thống nhất tốc độ Baud.</p>
+                </div>
+
+                <div class="relative pl-6 md:pl-8 group">
+                    <div class="absolute w-4 h-4 bg-secondary rounded-full -left-[9px] top-1 border-4 border-white shadow group-hover:scale-125 transition-transform"></div>
+                    <div class="flex flex-col md:flex-row md:items-center gap-1 md:gap-4 mb-1">
+                        <span class="text-secondary font-bold text-sm w-16 bg-secondary/10 px-2 py-0.5 rounded text-center">25' - 45'</span>
+                        <h4 class="font-bold text-dark text-lg">Breakout Room</h4>
+                    </div>
+                    <p class="text-sm text-slate-600 bg-slate-50 p-2 rounded border border-slate-100">Các nhóm thảo luận về vai trò của UART trong kiến trúc một hệ thống có Vi mạch, Cảm biến, và Máy tính.</p>
+                </div>
+
+                <div class="relative pl-6 md:pl-8 group">
+                    <div class="absolute w-4 h-4 bg-purple-500 rounded-full -left-[9px] top-1 border-4 border-white shadow group-hover:scale-125 transition-transform"></div>
+                    <div class="flex flex-col md:flex-row md:items-center gap-1 md:gap-4 mb-1">
+                        <span class="text-purple-500 font-bold text-sm w-16 bg-purple-100 px-2 py-0.5 rounded text-center">45' - 55'</span>
+                        <h4 class="font-bold text-dark text-lg">Group Sharing</h4>
+                    </div>
+                    <p class="text-sm text-slate-600 bg-slate-50 p-2 rounded border border-slate-100">Đại diện trình bày sơ đồ khối giao tiếp giữa Device A và Device B.</p>
+                </div>
+
+                <div class="relative pl-6 md:pl-8 group">
+                    <div class="absolute w-4 h-4 bg-emerald-600 rounded-full -left-[9px] top-1 border-4 border-white shadow group-hover:scale-125 transition-transform"></div>
+                    <div class="flex flex-col md:flex-row md:items-center gap-1 md:gap-4 mb-1">
+                        <span class="text-emerald-600 font-bold text-sm w-16 bg-emerald-100 px-2 py-0.5 rounded text-center">55' - 60'</span>
+                        <h4 class="font-bold text-dark text-lg">Wrap-up & Task</h4>
+                    </div>
+                    <p class="text-sm text-slate-600 bg-slate-50 p-2 rounded border border-slate-100">Hướng dẫn tải công cụ Terminal (TeraTerm/Putty) để chuẩn bị thực hành. Điền form điểm danh.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="bg-gradient-to-br from-slate-800 to-dark text-white rounded-2xl shadow-lg overflow-hidden border border-slate-700">
+            <div class="px-6 py-4 border-b border-white/10 flex flex-wrap items-center justify-between gap-2">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-comments text-secondary text-xl"></i>
+                    <h3 class="text-xl font-bold">Hướng Dẫn Breakout Room</h3>
+                </div>
+                <span class="text-[10px] uppercase font-bold bg-white/10 px-2 py-1 rounded text-slate-300">System Integration</span>
+            </div>
+
+            <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    <h4 class="font-semibold text-secondary mb-3 uppercase tracking-wider text-sm flex items-center gap-2">
+                        <i class="fa-regular fa-message"></i> Yêu cầu Thảo Luận
+                    </h4>
+                    <p class="text-sm text-slate-300 mb-4 italic bg-black/20 p-3 rounded">Giao tiếp không chỉ có ở máy tính. Hãy xem xét một ứng dụng nhúng: <strong>Trạm thu thập dữ liệu thời tiết gửi số liệu nhiệt độ về Máy tính trung tâm.</strong></p>
+                    <ul class="space-y-3">
+                        <li class="bg-white/5 p-3 rounded-lg text-sm border-l-2 border-secondary hover:bg-white/10 transition-colors">
+                            <span class="font-bold text-secondary mr-2">Q1.</span> Nếu không có giao thức kết nối dữ liệu (như UART/SPI/I2C), hệ thống Trạm thời tiết (Device A) sẽ gặp vấn đề gì?
+                        </li>
+                        <li class="bg-white/5 p-3 rounded-lg text-sm border-l-2 border-secondary hover:bg-white/10 transition-colors">
+                            <span class="font-bold text-secondary mr-2">Q2.</span> Bạn dự định truyền dữ liệu gì qua đường truyền TX? (Mã ASCII của chữ số nhiệt độ hay giá trị nhị phân thô?)
+                        </li>
+                        <li class="bg-white/5 p-3 rounded-lg text-sm border-l-2 border-secondary hover:bg-white/10 transition-colors">
+                            <span class="font-bold text-secondary mr-2">Q3.</span> Kể tên 1 ứng dụng khác (vd: xe tự hành, smart home) mà UART (hoặc các chuẩn nối tiếp khác) đóng vai trò sống còn?
+                        </li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold text-accent mb-3 uppercase tracking-wider text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-users"></i> Vai Trò Tổ Chức Nhóm
+                    </h4>
+                    <div class="space-y-2 mb-4 bg-black/20 p-3 rounded-xl border border-white/5">
+                        <div class="flex items-center gap-3">
+                            <div class="bg-white/10 w-8 h-8 rounded-full flex items-center justify-center shrink-0"><i class="fa-solid fa-user-tie text-accent text-sm"></i></div>
+                            <p class="text-sm"><strong class="text-white">Facilitator:</strong> Thống nhất chọn 1 ứng dụng thiết bị ngoài đời thực để cả nhóm phân tích.</p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="bg-white/10 w-8 h-8 rounded-full flex items-center justify-center shrink-0"><i class="fa-solid fa-pen-clip text-accent text-sm"></i></div>
+                            <p class="text-sm"><strong class="text-white">Note Keeper:</strong> Ghi lại Device A là gì, Device B là gì, và nội dung gói Data truyền đi.</p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="bg-white/10 w-8 h-8 rounded-full flex items-center justify-center shrink-0"><i class="fa-solid fa-bullhorn text-accent text-sm"></i></div>
+                            <p class="text-sm"><strong class="text-white">Reporter:</strong> Mô tả ngắn gọn sự cần thiết của UART trong ứng dụng nhóm đã chọn.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="bg-slate-50 rounded-2xl shadow-sm border border-slate-200 p-6">
+            <h3 class="text-xl font-bold text-dark flex items-center gap-2 mb-6">
+                <i class="fa-solid fa-language text-accent"></i> Từ Vựng Tiếng Anh Chuyên Ngành
+            </h3>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 hover:border-primary transition-all duration-300">
+                    <h4 class="font-bold text-primary text-lg mb-1">UART</h4>
+                    <p class="text-sm font-bold text-dark mb-1">Universal Asynchronous Receiver/Transmitter</p>
+                    <p class="text-[11px] text-slate-500">Khối phần cứng (mạch) dịch dữ liệu song song thành nối tiếp, không đồng bộ (không có dây Clock chung).</p>
+                </div>
+                
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 hover:border-primary transition-all duration-300">
+                    <h4 class="font-bold text-primary text-lg mb-1">TX / RX</h4>
+                    <p class="text-sm font-bold text-dark mb-1">Transmit / Receive</p>
+                    <p class="text-[11px] text-slate-500">Chân phát (Truyền - TX) và Chân thu (Nhận - RX) tín hiệu điện.</p>
+                </div>
+                
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 hover:border-primary transition-all duration-300">
+                    <h4 class="font-bold text-primary text-lg mb-1">Serial Data</h4>
+                    <p class="text-sm font-bold text-dark mb-1">Dữ liệu nối tiếp</p>
+                    <p class="text-[11px] text-slate-500">Việc gửi các bit lần lượt nối đuôi nhau trên cùng một sợi dây điện.</p>
+                </div>
+                
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 hover:border-primary transition-all duration-300">
+                    <h4 class="font-bold text-primary text-lg mb-1">Baud Rate</h4>
+                    <p class="text-sm font-bold text-dark mb-1">Tốc độ Baud</p>
+                    <p class="text-[11px] text-slate-500">Số lượng bit truyền đi trong 1 giây (bps). Phổ biến: 9600, 115200.</p>
+                </div>
+            </div>
+        </section>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- MENTOR QUICK NOTE -->
+            <section class="bg-blue-600 text-white rounded-2xl shadow-lg p-6 relative overflow-hidden flex flex-col">
+                <i class="fa-solid fa-satellite-dish absolute -right-6 -bottom-6 text-9xl text-blue-500 opacity-30"></i>
+                <div class="relative z-10 flex-1">
+                    <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-lightbulb text-yellow-300"></i> Lời Khuyên Từ Mentor
+                    </h3>
+                    
+                    <div class="space-y-4">
+                        <div class="bg-yellow-500/20 p-3 rounded-lg border border-yellow-400/50 backdrop-blur-sm">
+                            <span class="text-yellow-300 text-xs font-bold uppercase tracking-wider block mb-1"><i class="fa-solid fa-triangle-exclamation"></i> Sửa Lỗi Tư Duy (Misconception)</span>
+                            <p class="text-sm text-white leading-relaxed">Đừng nhầm lẫn UART là một con chip riêng biệt mà bạn phải mua hàn vào mạch. <strong>Sự thật:</strong> UART thực chất chỉ là một <strong>Giao thức (Protocol) / Khối Logic</strong>. Bên trong FPGA, vi điều khiển (như Arduino, STM32) đều đã được các kỹ sư thiết kế sẵn module phần cứng UART này.</p>
+                        </div>
+
+                        <div class="border-t border-blue-400/50 pt-3">
+                            <p class="text-base font-bold text-yellow-300 italic mb-2">"Logic to process, Protocol to connect."</p>
+                            <p class="text-sm text-blue-50 leading-relaxed">Thiết kế một con chip xử lý dữ liệu mạnh đến đâu mà không thể "xuất" kết quả ra ngoài cho con người hay hệ thống khác đọc thì nó giống như một người thiên tài nhưng bị câm. Kỹ năng giao tiếp phần cứng là bắt buộc.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- MINI PROJECT CONNECTION -->
+            <section class="bg-white rounded-2xl shadow-lg border border-slate-200 p-6 flex flex-col">
+                <h3 class="text-xl font-bold text-dark mb-4 flex items-center gap-2 border-b pb-3">
+                    <i class="fa-solid fa-plug-circle-bolt text-secondary"></i> Kết Nối Dự Án (Mini-Projects)
+                </h3>
+                <p class="text-sm text-slate-600 mb-4">
+                    Giao tiếp UART mở ra cánh cửa kết nối FPGA của bạn với thế giới bên ngoài (IoT, Robotics, PC):
+                </p>
+                <div class="grid grid-cols-2 gap-3 flex-grow">
+                    <div class="bg-slate-50 border border-slate-100 rounded-lg p-3 flex flex-col items-center justify-center text-center hover:border-emerald-300 transition-colors shadow-sm">
+                        <i class="fa-solid fa-desktop text-2xl text-emerald-600 mb-2"></i>
+                        <h4 class="font-bold text-xs text-dark">FPGA to PC</h4>
+                        <p class="text-[10px] text-slate-500 mt-1">Gửi giá trị Counter (Bộ đếm) lên màn hình máy tính</p>
+                    </div>
+                    <div class="bg-slate-50 border border-slate-100 rounded-lg p-3 flex flex-col items-center justify-center text-center hover:border-blue-400 transition-colors shadow-sm">
+                        <i class="fa-solid fa-microchip text-2xl text-blue-500 mb-2"></i>
+                        <h4 class="font-bold text-xs text-dark">Sensor to MCU</h4>
+                        <p class="text-[10px] text-slate-500 mt-1">Đọc dữ liệu GPS/Bluetooth vào chip xử lý</p>
+                    </div>
+                    <div class="bg-slate-50 border border-slate-100 rounded-lg p-3 flex flex-col items-center justify-center text-center hover:border-amber-400 transition-colors shadow-sm">
+                        <i class="fa-solid fa-terminal text-2xl text-amber-500 mb-2"></i>
+                        <h4 class="font-bold text-xs text-dark">Terminal Display</h4>
+                        <p class="text-[10px] text-slate-500 mt-1">Nhập lệnh bàn phím máy tính để bật/tắt LED trên board</p>
+                    </div>
+                    <div class="bg-slate-50 border border-slate-100 rounded-lg p-3 flex flex-col items-center justify-center text-center hover:border-purple-400 transition-colors shadow-sm">
+                        <i class="fa-solid fa-bug text-2xl text-purple-500 mb-2"></i>
+                        <h4 class="font-bold text-xs text-dark">System Debugging</h4>
+                        <p class="text-[10px] text-slate-500 mt-1">Dùng luồng dữ liệu in ra để tìm lỗi (Debug) mạch phần cứng</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <section class="bg-emerald-50 rounded-2xl shadow-sm border border-emerald-200 overflow-hidden">
+            <div class="bg-emerald-100/50 px-6 py-4 border-b border-emerald-200">
+                <h3 class="text-xl font-bold text-emerald-800 flex items-center gap-2">
+                    <i class="fa-solid fa-forward-step"></i> Hành Động Sau Buổi Học
+                </h3>
+            </div>
+            <div class="p-6">
+                <!-- Mini Task -->
+                <div class="bg-white p-5 rounded-xl border border-emerald-100 shadow-sm mb-6 relative overflow-hidden">
+                    <div class="absolute right-0 top-0 w-1 h-full bg-emerald-400"></div>
+                    <h4 class="font-bold text-emerald-700 mb-2 flex items-center gap-2"><i class="fa-solid fa-fire text-secondary"></i> Task Tuần Này (System Connection)</h4>
+                    <p class="text-sm text-slate-700 mb-3">Mỗi bạn hãy chọn một <strong>thiết bị thông minh / hệ thống nhúng</strong> và mô tả cách chúng cần gửi dữ liệu cho nhau, sau đó post lên Group lớp:</p>
+                    <ul class="list-disc list-inside text-sm text-slate-600 space-y-1 ml-2 font-mono bg-slate-50 p-3 rounded border border-slate-200">
+                        <li><strong>Device A (Transmitter):</strong> (VD: Cảm biến đo nhịp tim)</li>
+                        <li><strong>Device B (Receiver):</strong> (VD: Vi xử lý trên đồng hồ Smartwatch)</li>
+                        <li><strong>Data to Transmit:</strong> (VD: Gửi con số nhịp tim mỗi giây)</li>
+                        <li><strong>Can UART be used?</strong> (Có / Không. Tại sao?)</li>
+                    </ul>
+                </div>
+
+                <!-- Accordions for Outcomes and Reflection -->
+                <div class="space-y-3">
+                    <details class="group bg-white rounded-lg border border-slate-200 transition-all">
+                        <summary class="flex items-center justify-between p-4 cursor-pointer font-semibold text-slate-800 group-open:text-emerald-700 hover:bg-slate-50 transition-colors rounded-lg">
+                            <span class="flex items-center gap-2"><i class="fa-solid fa-clipboard-check text-emerald-500"></i> Mục tiêu sinh viên đạt được</span>
+                            <span class="transition-transform duration-300 group-open:rotate-180">
+                                <i class="fa-solid fa-chevron-down text-slate-400"></i>
+                            </span>
+                        </summary>
+                        <div class="p-4 border-t border-slate-100 text-sm text-slate-600 bg-slate-50/50">
+                            <ul class="space-y-2">
+                                <li class="flex items-start gap-2"><i class="fa-solid fa-check text-emerald-500 mt-1"></i> Hiểu lý do bắt buộc tại sao các hệ thống rời rạc cần giao tiếp dữ liệu.</li>
+                                <li class="flex items-start gap-2"><i class="fa-solid fa-check text-emerald-500 mt-1"></i> Giải thích được sự khác biệt giữa truyền song song (Parallel) và nối tiếp (Serial).</li>
+                                <li class="flex items-start gap-2"><i class="fa-solid fa-check text-emerald-500 mt-1"></i> Trình bày được cấu trúc khung truyền (Frame) của giao thức UART cơ bản.</li>
+                                <li class="flex items-start gap-2"><i class="fa-solid fa-check text-emerald-500 mt-1"></i> Biết được nhiệm vụ của các chân tín hiệu TX và RX.</li>
+                                <li class="flex items-start gap-2"><i class="fa-solid fa-check text-emerald-500 mt-1"></i> Có cái nhìn hệ thống: Kết hợp mạch xử lý (Logic) và mạch truyền tải (Communication).</li>
+                            </ul>
+                        </div>
+                    </details>
+
+                    <details class="group bg-white rounded-lg border border-slate-200 transition-all">
+                        <summary class="flex items-center justify-between p-4 cursor-pointer font-semibold text-slate-800 group-open:text-blue-700 hover:bg-slate-50 transition-colors rounded-lg">
+                            <span class="flex items-center gap-2"><i class="fa-solid fa-link text-blue-500"></i> Điền Google Form (Bắt buộc sau buổi học)</span>
+                            <span class="transition-transform duration-300 group-open:rotate-180">
+                                <i class="fa-solid fa-chevron-down text-slate-400"></i>
+                            </span>
+                        </summary>
+                        <div class="p-4 border-t border-slate-100 bg-blue-50/30">
+                            <p class="text-sm text-slate-600 mb-4">Vui lòng hoàn thành Form để Mentor đánh giá chất lượng buổi học và chuẩn bị cho Demo Project.</p>
+                            <div class="bg-white border border-slate-200 p-4 rounded-lg shadow-sm">
+                                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Mentor sẽ hỏi 5 nội dung sau:</p>
+                                <ol class="list-decimal list-inside text-sm text-slate-700 space-y-1.5 font-medium">
+                                    <li>Xác nhận tham gia buổi học Week 11?</li>
+                                    <li>Em hiểu nguyên lý truyền dữ liệu Serial/UART ở mức nào (1-5)?</li>
+                                    <li>Em đã nắm rõ hướng đi của chân TX và RX chưa?</li>
+                                    <li>Điều gì làm em thấy khó hiểu nhất về truyền dữ liệu?</li>
+                                    <li>Em có hứng thú tích hợp module UART vào project cuối khóa không?</li>
+                                </ol>
+                            </div>
+                            <a href="https://forms.gle/4ZFMSAyY3GHe2soZA" target="_blank" class="mt-4 bg-primary hover:bg-blue-700 text-white font-semibold py-2.5 px-6 rounded-lg transition-colors inline-flex items-center gap-2 shadow-md hover:shadow-lg">
+                                <i class="fa-brands fa-google"></i> Mở Google Form Tuần 11
+                            </a>
+                        </div>
+                    </details>
+                </div>
+            </div>
+        </section>
+        
+    </main>
+
+    <footer class="mt-16 bg-slate-900 text-slate-300 py-12 text-center border-t-4 border-primary">
+        <div class="max-w-4xl mx-auto px-4">
+            <div class="flex justify-center items-center gap-3 mb-6">
+                <i class="fa-solid fa-microchip text-2xl text-slate-600"></i>
+                <div class="h-px bg-slate-700 w-16"></div>
+                <i class="fa-solid fa-laptop-code text-2xl text-primary drop-shadow-[0_0_8px_rgba(37,99,235,0.8)]"></i>
+                <div class="h-px bg-slate-700 w-16"></div>
+                <i class="fa-solid fa-users-rays text-2xl text-secondary"></i>
+            </div>
+            
+            <h4 class="text-xl font-bold text-white mb-2">IC Design Mentoring Community</h4>
+            <p class="text-lg italic text-slate-400 font-light mb-8">"Learn a little, build a little, share a little, grow a little."</p>
+            
+            <div class="bg-slate-800/80 inline-block p-4 rounded-xl border border-slate-700 mx-auto text-center max-w-2xl">
+                <div class="flex items-center justify-center gap-2 mb-2 text-white">
+                    <i class="fa-solid fa-copyright"></i> <span class="font-bold">Bản quyền nội dung:</span>
+                </div>
+                <p class="text-sm text-slate-300 mb-1">Khoa Điện - Điện tử, Trường Kỹ Thuật, Đại học Phenikaa</p>
+                <p class="text-sm text-amber-400 font-medium">Giảng viên biên soạn: ThS. Đinh Văn Nam</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- INTERACTIVE JAVASCRIPT -->
+    <script>
+        // 1. Checklist Logic
+        function toggleTask(checkbox) {
+            const label = checkbox.nextElementSibling;
+            if (checkbox.checked) {
+                label.classList.add('completed');
+            } else {
+                label.classList.remove('completed');
+            }
+        }
+
+        // 2. Interactive SVG UART Serial Transmission Demo
+        document.addEventListener('DOMContentLoaded', () => {
+            const btnSend = document.getElementById('btnSendUart');
+            const bitsContainer = document.getElementById('bitsContainer');
+            const rxDataDisplay = document.getElementById('rxDataDisplay');
+            
+            // Frame configuration: [Start: 0], [Data: LSB to MSB of 'A'(01000001) -> 1,0,0,0,0,0,1,0], [Stop: 1]
+            const frameBits = [
+                { val: 0, type: 'start', label: 'Start' },
+                { val: 1, type: 'data', label: 'D0' },
+                { val: 0, type: 'data', label: 'D1' },
+                { val: 0, type: 'data', label: 'D2' },
+                { val: 0, type: 'data', label: 'D3' },
+                { val: 0, type: 'data', label: 'D4' },
+                { val: 0, type: 'data', label: 'D5' },
+                { val: 1, type: 'data', label: 'D6' },
+                { val: 0, type: 'data', label: 'D7' },
+                { val: 1, type: 'stop', label: 'Stop' }
+            ];
+
+            let isSending = false;
+
+            function triggerTransmission() {
+                if (isSending) return;
+                isSending = true;
+                
+                // Disable button
+                btnSend.disabled = true;
+                btnSend.classList.add('opacity-70', 'scale-95');
+                btnSend.querySelector('i').classList.replace('fa-paper-plane', 'fa-spinner');
+                btnSend.querySelector('i').classList.add('fa-spin');
+                
+                // Reset Receiver display
+                rxDataDisplay.textContent = '--------';
+                rxDataDisplay.setAttribute('fill', '#475569');
+                bitsContainer.innerHTML = ''; // Clear old bits
+                
+                let bitDelay = 300; // ms between sending each bit
+                let animationDuration = 2000; // ms for bit to travel from TX to RX
+                let totalTime = bitDelay * frameBits.length + animationDuration;
+
+                // Send each bit with a delay
+                frameBits.forEach((bitObj, index) => {
+                    setTimeout(() => {
+                        createAndAnimateBit(bitObj.val, bitObj.type, bitObj.label);
+                    }, index * bitDelay);
+                });
+
+                // When transmission finishes
+                setTimeout(() => {
+                    rxDataDisplay.textContent = '01000001';
+                    rxDataDisplay.setAttribute('fill', '#3b82f6');
+                    
+                    // Reset Button
+                    btnSend.disabled = false;
+                    btnSend.classList.remove('opacity-70', 'scale-95');
+                    btnSend.querySelector('i').classList.replace('fa-spinner', 'fa-paper-plane');
+                    btnSend.querySelector('i').classList.remove('fa-spin');
+                    isSending = false;
+                }, totalTime + 200);
+            }
+
+            function createAndAnimateBit(val, type, labelTxt) {
+                // Determine color based on bit type
+                let bgColor = '#1e293b'; // default dark
+                let strokeColor = '#64748b'; // default slate
+                let textColor = '#fff';
+
+                if (type === 'start') {
+                    strokeColor = '#f59e0b'; // Amber
+                    textColor = '#f59e0b';
+                } else if (type === 'stop') {
+                    strokeColor = '#ef4444'; // Red
+                    textColor = '#ef4444';
+                } else {
+                    strokeColor = val === 1 ? '#10b981' : '#475569'; // Emerald or Slate
+                    textColor = val === 1 ? '#10b981' : '#cbd5e1';
+                }
+
+                // Create SVG Group for the Bit
+                const bitGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                bitGroup.classList.add('data-bit');
+                
+                // Position start at TX pin (x=0 relative to container)
+                bitGroup.setAttribute('transform', `translate(0, 0)`);
+
+                // Create Rectangle
+                const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                rect.setAttribute('x', '-15');
+                rect.setAttribute('y', '-15');
+                rect.setAttribute('width', '30');
+                rect.setAttribute('height', '30');
+                rect.setAttribute('rx', '6');
+                rect.setAttribute('fill', bgColor);
+                rect.setAttribute('stroke', strokeColor);
+                rect.setAttribute('stroke-width', '2');
+
+                // Create Value Text
+                const textVal = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                textVal.setAttribute('x', '0');
+                textVal.setAttribute('y', '5');
+                textVal.setAttribute('fill', textColor);
+                textVal.setAttribute('font-size', '16');
+                textVal.setAttribute('font-weight', 'bold');
+                textVal.setAttribute('text-anchor', 'middle');
+                textVal.textContent = val;
+
+                // Create Label Text (D0, Start, etc)
+                const labelElement = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                labelElement.setAttribute('x', '0');
+                labelElement.setAttribute('y', '-20');
+                labelElement.setAttribute('fill', '#94a3b8');
+                labelElement.setAttribute('font-size', '10');
+                labelElement.setAttribute('font-family', 'sans-serif');
+                labelElement.setAttribute('text-anchor', 'middle');
+                labelElement.textContent = labelTxt;
+
+                bitGroup.appendChild(rect);
+                bitGroup.appendChild(textVal);
+                bitGroup.appendChild(labelElement);
+                bitsContainer.appendChild(bitGroup);
+
+                // Force reflow for CSS transition to work
+                void bitGroup.getBoundingClientRect();
+
+                // Start Animation (Move to RX pin which is roughly +420px away)
+                bitGroup.style.transform = `translate(420px, 0)`;
+
+                // Remove element after it reaches the end
+                setTimeout(() => {
+                    if (bitsContainer.contains(bitGroup)) {
+                        bitsContainer.removeChild(bitGroup);
+                    }
+                }, 2000); // Wait for transition duration to complete
+            }
+
+            btnSend.addEventListener('click', triggerTransmission);
+        });
+    </script>
+
+<div id="lichub-nav-bottom" data-lichub="v1" role="navigation" aria-label="Điều hướng Learning Hub (bổ sung, không thuộc trang gốc)" style="background:#0f172a;color:#e2e8f0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:13.5px;line-height:1.6;padding:8px 16px;display:flex;flex-wrap:wrap;gap:4px 16px;align-items:center;border-top:3px solid #f59e0b"><a href="../../index.html" style="color:#7dd3fc;text-decoration:none;font-weight:600">⌂ Learning Hub</a><span style="font-size:11px;font-weight:700;letter-spacing:.04em;color:#f59e0b;border:1px solid #f59e0b;border-radius:6px;padding:1px 7px;white-space:nowrap">V1 · BẢN LƯU TRỮ GỐC</span><a href="index.html" style="color:#cbd5e1;text-decoration:none">Mục lục V1</a><span style="flex:1"></span><a href="Week10.html" style="color:#7dd3fc;text-decoration:none" title="Counter & 7-Segment Display">← Tuần 10</a><a href="Week12.html" style="color:#7dd3fc;text-decoration:none" title="Course Wrap-up & Next Steps">Tuần 12 →</a><span aria-hidden="true" style="color:#475569">|</span><span style="display:inline-flex;gap:8px;align-items:center"><span style="color:#94a3b8">Chuyển bản:</span> <b aria-current="true" style="color:#f59e0b">V1</b> <a href="../v2/index.html" style="color:#cbd5e1;text-decoration:none">V2</a> <a href="../v3/index.html" style="color:#cbd5e1;text-decoration:none">V3</a></span></div>
+</body>
+</html>

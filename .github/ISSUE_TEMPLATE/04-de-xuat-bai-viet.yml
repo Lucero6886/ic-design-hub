@@ -1,0 +1,32 @@
+name: "Đề xuất bài viết / chủ đề"
+description: "Đề xuất chủ đề cần có bài viết, hoặc đăng ký tự viết"
+title: "[Bài viết] "
+labels: ["article-proposal"]
+body:
+  - type: input
+    id: topic
+    attributes:
+      label: "Chủ đề"
+      placeholder: "vd: Blocking vs non-blocking assignment — vì sao và khi nào"
+    validations:
+      required: true
+  - type: dropdown
+    id: audience
+    attributes:
+      label: "Đối tượng đọc"
+      options: ["Người mới bắt đầu (Phase 1)", "Đã xong Phase 1", "Mentor/giảng viên", "Khác (ghi rõ bên dưới)"]
+    validations:
+      required: true
+  - type: textarea
+    id: outline
+    attributes:
+      label: "Dàn ý sơ bộ / câu hỏi bài viết cần trả lời"
+    validations:
+      required: true
+  - type: dropdown
+    id: who
+    attributes:
+      label: "Ai viết?"
+      options: ["Tôi đăng ký viết (sẽ mở PR)", "Đề xuất để mentor/người khác viết"]
+    validations:
+      required: true

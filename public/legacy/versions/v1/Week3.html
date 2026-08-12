@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tuần 3: Logic Gates in Real Systems | IC Design Mentoring</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: '#2563eb', // Blue 600
+                        secondary: '#f59e0b', // Amber 500
+                        accent: '#10b981', // Emerald 500
+                        dark: '#1e293b', // Slate 800
+                        light: '#f8fafc', // Slate 50
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Tùy chỉnh CSS (Animations & Elements) */
+        details > summary { list-style: none; }
+        details > summary::-webkit-details-marker { display: none; }
+        details[open] summary ~ * { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .custom-checkbox {
+            appearance: none;
+            background-color: #fff;
+            margin: 0;
+            font: inherit;
+            color: currentColor;
+            width: 1.25em;
+            height: 1.25em;
+            border: 2px solid #cbd5e1;
+            border-radius: 0.25em;
+            display: grid;
+            place-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+        }
+        .custom-checkbox::before {
+            content: "";
+            width: 0.65em;
+            height: 0.65em;
+            transform: scale(0);
+            transition: 120ms transform ease-in-out;
+            box-shadow: inset 1em 1em white;
+            background-color: white;
+            transform-origin: center;
+            clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+        }
+        .custom-checkbox:checked {
+            background-color: #10b981;
+            border-color: #10b981;
+        }
+        .custom-checkbox:checked::before { transform: scale(1); }
+        .task-item.completed { text-decoration: line-through; color: #94a3b8; }
+
+        /* Animation cho Logic Gate Demo */
+        .glow-active {
+            filter: drop-shadow(0 0 15px rgba(250, 204, 21, 0.8));
+            color: #facc15 !important;
+            transition: all 0.3s ease;
+        }
+        .wire-active {
+            background-color: #facc15 !important;
+            box-shadow: 0 0 8px rgba(250, 204, 21, 0.6);
+            transition: all 0.3s ease;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased selection:bg-primary selection:text-white pb-20">
+<div id="lichub-nav-top" data-lichub="v1" role="navigation" aria-label="Điều hướng Learning Hub (bổ sung, không thuộc trang gốc)" style="background:#0f172a;color:#e2e8f0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:13.5px;line-height:1.6;padding:8px 16px;display:flex;flex-wrap:wrap;gap:4px 16px;align-items:center;border-bottom:3px solid #f59e0b"><a href="../../index.html" style="color:#7dd3fc;text-decoration:none;font-weight:600">⌂ Learning Hub</a><span style="font-size:11px;font-weight:700;letter-spacing:.04em;color:#f59e0b;border:1px solid #f59e0b;border-radius:6px;padding:1px 7px;white-space:nowrap">V1 · BẢN LƯU TRỮ GỐC</span><a href="index.html" style="color:#cbd5e1;text-decoration:none">Mục lục V1</a><span style="flex:1"></span><a href="Week2.html" style="color:#7dd3fc;text-decoration:none" title="From Idea to Chip">← Tuần 2</a><a href="Week4.html" style="color:#7dd3fc;text-decoration:none" title="Combinational Logic Circuits">Tuần 4 →</a><span aria-hidden="true" style="color:#475569">|</span><span style="display:inline-flex;gap:8px;align-items:center"><span style="color:#94a3b8">Chuyển bản:</span> <b aria-current="true" style="color:#f59e0b">V1</b> <a href="../v2/index.html" style="color:#cbd5e1;text-decoration:none">V2</a> <a href="../v3/index.html" style="color:#cbd5e1;text-decoration:none">V3</a></span></div>
+
+
+    <header class="bg-gradient-to-br from-dark to-slate-700 text-white pt-16 pb-20 px-6 shadow-xl relative overflow-hidden">
+        <div class="absolute top-0 right-0 opacity-10 pointer-events-none">
+            <i class="fa-solid fa-code-merge text-[20rem] -mt-10 -mr-10"></i>
+        </div>
+        
+        <div class="max-w-4xl mx-auto relative z-10">
+            <div class="flex flex-wrap items-center gap-3 mb-4">
+                <span class="bg-primary text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Tuần 3</span>
+                <span class="bg-secondary text-dark text-xs font-bold px-3 py-1 rounded-full"><i class="fa-solid fa-bolt mr-1"></i> Tư Duy Logic</span>
+                <span class="bg-white/20 text-white border border-white/30 text-xs font-semibold px-3 py-1 rounded-full"><i class="fa-solid fa-university mr-1"></i> Phenikaa University</span>
+            </div>
+            
+            <h1 class="text-4xl md:text-5xl font-extrabold mb-3 leading-tight text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-300">
+                Logic Gates in Real Systems
+            </h1>
+            <h2 class="text-xl md:text-2xl font-medium text-slate-300 mb-6 border-l-4 border-primary pl-4">
+                Cổng Logic Trong Các Hệ Thống Thực Tế
+            </h2>
+            
+            <div class="bg-white/10 backdrop-blur-md rounded-xl p-5 border border-white/20 mb-8 max-w-3xl">
+                <p class="text-lg leading-relaxed">
+                    <i class="fa-solid fa-quote-left text-primary opacity-50 mr-2"></i>
+                    Cổng logic (Logic gates) <strong>không phải là những lý thuyết vật lý khô khan trên giấy</strong>. Tuần này, chúng ta sẽ học cách kỹ sư dùng Logic để dạy cho máy móc cách "Ra Quyết Định" (Decision Making) dựa trên các điều kiện thực tế.
+                </p>
+            </div>
+
+            <!-- Mục tiêu buổi học -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="flex items-start gap-3">
+                    <div class="bg-white/20 w-8 h-8 flex items-center justify-center rounded-lg text-secondary shrink-0"><i class="fa-solid fa-bullseye"></i></div>
+                    <p class="text-sm mt-1">Nắm vững nguyên lý của AND, OR, NOT và các biến thể.</p>
+                </div>
+                <div class="flex items-start gap-3">
+                    <div class="bg-white/20 w-8 h-8 flex items-center justify-center rounded-lg text-secondary shrink-0"><i class="fa-solid fa-plug-circle-check"></i></div>
+                    <p class="text-sm mt-1">Kết nối được tình huống thực tế với Input, Output và Cổng Logic.</p>
+                </div>
+                <div class="flex items-start gap-3">
+                    <div class="bg-white/20 w-8 h-8 flex items-center justify-center rounded-lg text-secondary shrink-0"><i class="fa-solid fa-table-cells"></i></div>
+                    <p class="text-sm mt-1">Lập được Bảng chân lý (Truth Table) và Biểu thức logic cơ bản.</p>
+                </div>
+                <div class="flex items-start gap-3">
+                    <div class="bg-white/20 w-8 h-8 flex items-center justify-center rounded-lg text-secondary shrink-0"><i class="fa-solid fa-microchip"></i></div>
+                    <p class="text-sm mt-1">Nhìn thấy sự liên kết giữa biểu thức Logic và code Verilog/FPGA.</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 sm:px-6 -mt-10 relative z-20 space-y-8">
+
+        <!-- BEFORE SESSION SECTION -->
+        <section class="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
+            <div class="bg-blue-50 border-b border-blue-100 px-6 py-4 flex items-center justify-between">
+                <h3 class="text-xl font-bold text-dark flex items-center gap-2">
+                    <i class="fa-solid fa-mug-hot text-primary"></i> Chuẩn Bị Trước Buổi Học
+                </h3>
+            </div>
+            <div class="p-6">
+                <p class="text-slate-600 mb-6">
+                    Hãy liên hệ kiến thức với đời sống trước khi lên lớp. Máy móc thực chất rất "ngốc", chúng chỉ hiểu 0 (Tắt) và 1 (Bật). Chúng ta dùng cổng logic để chỉ cho chúng biết khi nào thì nên kích hoạt hệ thống.
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Checklist -->
+                    <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 hover:border-primary/30 transition-colors">
+                        <h4 class="font-bold text-dark mb-4 border-b pb-2 flex items-center gap-2">
+                            <i class="fa-solid fa-list-check text-primary"></i> Checklist Tự Học
+                        </h4>
+                        <ul class="space-y-3" id="prep-checklist">
+                            <li class="flex items-start gap-3 group">
+                                <input type="checkbox" class="custom-checkbox mt-0.5" id="task1" onclick="toggleTask(this)">
+                                <label for="task1" class="cursor-pointer text-sm text-slate-700 task-item group-hover:text-primary transition-colors">Ôn lại cách hoạt động của cổng AND, OR, NOT</label>
+                            </li>
+                            <li class="flex items-start gap-3 group">
+                                <input type="checkbox" class="custom-checkbox mt-0.5" id="task2" onclick="toggleTask(this)">
+                                <label for="task2" class="cursor-pointer text-sm text-slate-700 task-item group-hover:text-primary transition-colors">Đọc phần "Khái niệm cốt lõi" và test thử Demo bên dưới</label>
+                            </li>
+                            <li class="flex items-start gap-3 group">
+                                <input type="checkbox" class="custom-checkbox mt-0.5" id="task3" onclick="toggleTask(this)">
+                                <label for="task3" class="cursor-pointer text-sm text-slate-700 task-item group-hover:text-primary transition-colors">Chuẩn bị sẵn 1 ví dụ thực tế trong đời sống mô tả bằng Logic</label>
+                            </li>
+                            <li class="flex items-start gap-3 group">
+                                <input type="checkbox" class="custom-checkbox mt-0.5" id="task4" onclick="toggleTask(this)">
+                                <label for="task4" class="cursor-pointer text-sm text-slate-700 task-item group-hover:text-primary transition-colors">Liệt kê các câu hỏi còn thắc mắc để hỏi Mentor</label>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Câu hỏi gợi mở -->
+                    <div class="bg-blue-50 p-5 rounded-xl border border-blue-200 relative overflow-hidden">
+                        <i class="fa-regular fa-lightbulb absolute -right-4 -bottom-4 text-6xl text-blue-200 opacity-50"></i>
+                        <h4 class="font-bold text-primary mb-4 border-b border-blue-200 pb-2 relative z-10">Tư Duy Khởi Động</h4>
+                        <ul class="space-y-3 list-disc list-inside text-sm text-slate-700 relative z-10">
+                            <li>Làm sao máy giặt biết chỉ được quay lồng giặt khi: <strong>(1) Đã ấn nút Start</strong> VÀ <strong>(2) Cửa đã đóng chặt?</strong></li>
+                            <li>Hệ thống chuông báo cháy sẽ kêu khi: <strong>(1) Nhận tín hiệu khói</strong> HOẶC <strong>(2) Có người đập hộp khẩn cấp.</strong></li>
+                            <li>Bạn có nhận ra chữ <strong>VÀ (AND)</strong>, <strong>HOẶC (OR)</strong> chính là trái tim của mọi mạch điện tử?</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- KEY CONCEPTS & INTERACTIVE DEMOS -->
+        <section class="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
+                <h3 class="text-xl font-bold text-dark flex items-center gap-2">
+                    <i class="fa-solid fa-microchip text-primary"></i> Khái Niệm & Demo Trực Quan
+                </h3>
+            </div>
+            
+            <div class="p-6 divide-y divide-slate-100">
+                <!-- Concept definitions -->
+                <div class="py-5 first:pt-0">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="text-lg font-bold text-primary mb-2 flex items-center gap-2">
+                                <span class="bg-primary/10 text-primary w-6 h-6 rounded-full flex items-center justify-center text-sm">1</span> Condition (Điều kiện)
+                            </h4>
+                            <p class="text-slate-600 text-sm leading-relaxed mb-4">
+                                Trong kỹ thuật số, điều kiện chỉ có 2 trạng thái: Đúng (1 / High / Có điện) hoặc Sai (0 / Low / Mất điện). Ví dụ: Cảm biến chuyển động trả về 1 khi có người, trả về 0 khi không có ai.
+                            </p>
+                        </div>
+                        <div>
+                            <h4 class="text-lg font-bold text-primary mb-2 flex items-center gap-2">
+                                <span class="bg-primary/10 text-primary w-6 h-6 rounded-full flex items-center justify-center text-sm">2</span> Truth Table (Bảng chân lý)
+                            </h4>
+                            <p class="text-slate-600 text-sm leading-relaxed mb-4">
+                                Là bảng liệt kê <strong>tất cả các trường hợp có thể xảy ra</strong> của Input, và kết quả Output tương ứng. Giúp kỹ sư không bỏ sót bất kỳ tình huống (corner case) nào khi thiết kế.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Interactive Logic Gate Demo -->
+                <div class="py-5">
+                    <div class="bg-slate-800 p-5 rounded-xl border border-slate-700">
+                        <p class="text-sm font-semibold text-white mb-4"><i class="fa-solid fa-gamepad text-secondary"></i> Demo Tương Tác: Thiết kế hệ thống Đèn / Còi báo động</p>
+                        
+                        <div class="flex flex-col lg:flex-row gap-6">
+                            <!-- Left: Interactive Controls -->
+                            <div class="flex-1 bg-slate-900 p-4 rounded-lg border border-slate-600">
+                                <div class="mb-4">
+                                    <label class="text-xs text-slate-400 uppercase font-bold block mb-2">Chọn chế độ Logic (Cổng):</label>
+                                    <div class="flex gap-2">
+                                        <button id="btnAnd" class="flex-1 bg-primary text-white py-2 rounded text-sm font-bold border-2 border-primary transition-all shadow-[0_0_10px_rgba(37,99,235,0.4)]">AND (VÀ)</button>
+                                        <button id="btnOr" class="flex-1 bg-slate-700 text-slate-300 py-2 rounded text-sm font-bold border-2 border-slate-600 hover:bg-slate-600 transition-all">OR (HOẶC)</button>
+                                    </div>
+                                </div>
+
+                                <div class="space-y-4">
+                                    <!-- Input A -->
+                                    <div class="flex items-center justify-between bg-slate-800 p-3 rounded border border-slate-700">
+                                        <div>
+                                            <p id="labelInputA" class="text-sm font-bold text-white">Trời Tối (Light Sensor)</p>
+                                            <p class="text-xs text-slate-400">Tín hiệu A</p>
+                                        </div>
+                                        <label class="relative inline-flex items-center cursor-pointer">
+                                            <input type="checkbox" id="inputA" class="sr-only peer">
+                                            <div class="w-11 h-6 bg-slate-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                                            <span id="valA" class="ml-3 text-lg font-black text-slate-500 font-mono w-4">0</span>
+                                        </label>
+                                    </div>
+
+                                    <!-- Input B -->
+                                    <div class="flex items-center justify-between bg-slate-800 p-3 rounded border border-slate-700">
+                                        <div>
+                                            <p id="labelInputB" class="text-sm font-bold text-white">Có Người (Motion Sensor)</p>
+                                            <p class="text-xs text-slate-400">Tín hiệu B</p>
+                                        </div>
+                                        <label class="relative inline-flex items-center cursor-pointer">
+                                            <input type="checkbox" id="inputB" class="sr-only peer">
+                                            <div class="w-11 h-6 bg-slate-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                                            <span id="valB" class="ml-3 text-lg font-black text-slate-500 font-mono w-4">0</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Right: Visualization & Output -->
+                            <div class="flex-1 flex flex-col justify-center items-center relative">
+                                <!-- Logic Circuit Drawing -->
+                                <div class="flex items-center w-full justify-center opacity-90 mb-6 relative">
+                                    
+                                    <!-- Input Wires -->
+                                    <div class="flex flex-col gap-8 mr-[-12px] z-0">
+                                        <div class="flex items-center"><span class="text-white font-mono mr-2 text-xs">A</span><div id="wireA" class="w-10 h-1 bg-slate-600 transition-colors"></div></div>
+                                        <div class="flex items-center"><span class="text-white font-mono mr-2 text-xs">B</span><div id="wireB" class="w-10 h-1 bg-slate-600 transition-colors"></div></div>
+                                    </div>
+                                    
+                                    <!-- Logic Gate SVG Container -->
+                                    <div id="gateShape" class="relative w-24 h-24 flex justify-center items-center z-10">
+                                        <div id="gateSvgContainer" class="absolute inset-0 drop-shadow-[0_0_5px_rgba(37,99,235,0.4)] transition-all">
+                                            <!-- SVG sẽ được inject qua JS -->
+                                            <svg width="100%" height="100%" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M 20 15 L 50 15 A 35 35 0 0 1 50 85 L 20 85 Z" fill="#334155" stroke="#2563eb" stroke-width="4"/>
+                                            </svg>
+                                        </div>
+                                        <span id="gateLabel" class="text-white font-bold tracking-widest text-lg z-10 pr-2 pointer-events-none">AND</span>
+                                    </div>
+                                    
+                                    <!-- Output Wire -->
+                                    <div id="wireOut" class="w-12 h-1 bg-slate-600 transition-colors ml-[-12px] z-0 mr-2"></div>
+                                    
+                                    <!-- Output Component -->
+                                    <div class="flex flex-col items-center">
+                                        <i id="outputIcon" class="fa-regular fa-lightbulb text-4xl text-slate-500 transition-all duration-300"></i>
+                                        <span id="valOut" class="mt-2 text-xl font-black text-slate-500 font-mono">0</span>
+                                    </div>
+                                </div>
+
+                                <!-- Explanation Text -->
+                                <div id="logicExplanation" class="text-center text-sm text-slate-300 bg-black/30 p-3 rounded w-full border border-white/10">
+                                    Đèn chỉ sáng (1) khi <strong>TRỜI TỐI (1)</strong> VÀ <strong>CÓ NGƯỜI (1)</strong>.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- STUDENT-GENERATED CONTENT SECTION -->
+        <section class="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
+            <div class="bg-amber-50 border-b border-amber-200 px-6 py-4 flex items-center justify-between">
+                <h3 class="text-xl font-bold text-dark flex items-center gap-2">
+                    <i class="fa-solid fa-users-gear text-secondary"></i> Nhiệm Vụ Của Nhóm
+                </h3>
+                <span class="text-xs bg-amber-200 text-amber-800 px-3 py-1 rounded-full font-bold shadow-sm">Thuyết trình 10 phút</span>
+            </div>
+            <div class="p-6">
+                <div class="flex items-start gap-4 mb-6 bg-yellow-50 p-4 rounded-xl border-l-4 border-secondary shadow-sm">
+                    <i class="fa-solid fa-lightbulb text-secondary text-xl mt-1"></i>
+                    <div>
+                        <p class="text-sm font-bold text-slate-800 mb-1">Quy tắc Mentor:</p>
+                        <p class="text-sm text-slate-600 italic">"Hãy mang các kiến thức Toán Logic khô khan áp dụng vào thực tế. Hãy chứng minh cho các bạn trong lớp thấy AND/OR/NOT hiện diện ở mọi nơi trong nhà bạn."</p>
+                    </div>
+                </div>
+
+                <h4 class="font-bold text-dark mb-3 text-sm uppercase tracking-wider">Gợi ý nội dung Slide nhóm (5-7 trang):</h4>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-slate-700 mb-2">
+                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 flex gap-3 items-center hover:border-amber-300 transition-colors">
+                        <span class="bg-dark text-white rounded w-6 h-6 flex items-center justify-center shrink-0 font-bold text-xs">1</span>
+                        <p class="font-medium">Logic Gate là gì? Nêu nguyên lý cơ bản của AND, OR, NOT.</p>
+                    </div>
+                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 flex gap-3 items-center hover:border-amber-300 transition-colors">
+                        <span class="bg-dark text-white rounded w-6 h-6 flex items-center justify-center shrink-0 font-bold text-xs">2</span>
+                        <p class="font-medium">Giải thích các biến thể NAND, NOR, XOR có ý nghĩa gì?</p>
+                    </div>
+                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 flex gap-3 items-center hover:border-amber-300 transition-colors">
+                        <span class="bg-dark text-white rounded w-6 h-6 flex items-center justify-center shrink-0 font-bold text-xs">3</span>
+                        <p class="font-medium">Trình bày 1 ví dụ thực tế: Xác định rõ Input, Output.</p>
+                    </div>
+                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 flex gap-3 items-center hover:border-amber-300 transition-colors">
+                        <span class="bg-dark text-white rounded w-6 h-6 flex items-center justify-center shrink-0 font-bold text-xs">4</span>
+                        <p class="font-medium">Từ ví dụ đó, lập Bảng chân lý và viết biểu thức logic.</p>
+                    </div>
+                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 flex gap-3 items-center sm:col-span-2 hover:border-amber-300 transition-colors bg-gradient-to-r from-amber-50 to-white">
+                        <span class="bg-secondary text-white rounded w-6 h-6 flex items-center justify-center shrink-0 font-bold text-xs"><i class="fa-solid fa-link"></i></span>
+                        <p class="font-medium">Giải thích nhanh: Cổng logic liên hệ thế nào với ngôn ngữ Verilog và FPGA?</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- DURING SESSION (TIMELINE) -->
+        <section class="bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
+            <h3 class="text-xl font-bold text-dark mb-6 flex items-center gap-2 border-b pb-4">
+                <i class="fa-solid fa-stopwatch text-accent"></i> Tiến Trình Buổi Học (60 Phút)
+            </h3>
+            
+            <div class="relative border-l-2 border-slate-200 ml-3 md:ml-6 space-y-6">
+                <!-- Timeline Items -->
+                <div class="relative pl-6 md:pl-8 group">
+                    <div class="absolute w-4 h-4 bg-accent rounded-full -left-[9px] top-1 border-4 border-white shadow group-hover:scale-125 transition-transform"></div>
+                    <div class="flex flex-col md:flex-row md:items-center gap-1 md:gap-4 mb-1">
+                        <span class="text-accent font-bold text-sm w-16 bg-accent/10 px-2 py-0.5 rounded text-center">0' - 5'</span>
+                        <h4 class="font-bold text-dark text-lg">Quick Check-in</h4>
+                    </div>
+                    <p class="text-sm text-slate-600 bg-slate-50 p-2 rounded border border-slate-100">Khởi động: Mentor hỏi nhanh lớp một tình huống logic để test phản xạ.</p>
+                </div>
+                
+                <div class="relative pl-6 md:pl-8 group">
+                    <div class="absolute w-4 h-4 bg-primary rounded-full -left-[9px] top-1 border-4 border-white shadow group-hover:scale-125 transition-transform"></div>
+                    <div class="flex flex-col md:flex-row md:items-center gap-1 md:gap-4 mb-1">
+                        <span class="text-primary font-bold text-sm w-16 bg-primary/10 px-2 py-0.5 rounded text-center">5' - 15'</span>
+                        <h4 class="font-bold text-dark text-lg">Student Presentation</h4>
+                    </div>
+                    <p class="text-sm text-slate-600 bg-slate-50 p-2 rounded border border-slate-100">Cá nhân/Nhóm đại diện lên thuyết trình về "Logic Gates in Real Systems".</p>
+                </div>
+
+                <div class="relative pl-6 md:pl-8 group">
+                    <div class="absolute w-4 h-4 bg-dark rounded-full -left-[9px] top-1 border-4 border-white shadow group-hover:scale-125 transition-transform"></div>
+                    <div class="flex flex-col md:flex-row md:items-center gap-1 md:gap-4 mb-1">
+                        <span class="text-dark font-bold text-sm w-16 bg-slate-200 px-2 py-0.5 rounded text-center">15' - 25'</span>
+                        <h4 class="font-bold text-dark text-lg">Mentor Guidance</h4>
+                    </div>
+                    <p class="text-sm text-slate-600 bg-slate-50 p-2 rounded border border-slate-100">Mentor sửa lỗi tư duy: <strong class="text-red-500">Logic gates không chỉ là lý thuyết</strong>, nó là cách kỹ sư "viết luật" cho phần cứng.</p>
+                </div>
+
+                <div class="relative pl-6 md:pl-8 group">
+                    <div class="absolute w-4 h-4 bg-secondary rounded-full -left-[9px] top-1 border-4 border-white shadow group-hover:scale-125 transition-transform"></div>
+                    <div class="flex flex-col md:flex-row md:items-center gap-1 md:gap-4 mb-1">
+                        <span class="text-secondary font-bold text-sm w-16 bg-secondary/10 px-2 py-0.5 rounded text-center">25' - 45'</span>
+                        <h4 class="font-bold text-dark text-lg">Breakout Room</h4>
+                    </div>
+                    <p class="text-sm text-slate-600 bg-slate-50 p-2 rounded border border-slate-100">Vào phòng nhỏ. Cùng nhau design một mạch thực tế dựa trên câu hỏi gợi ý.</p>
+                </div>
+
+                <div class="relative pl-6 md:pl-8 group">
+                    <div class="absolute w-4 h-4 bg-purple-500 rounded-full -left-[9px] top-1 border-4 border-white shadow group-hover:scale-125 transition-transform"></div>
+                    <div class="flex flex-col md:flex-row md:items-center gap-1 md:gap-4 mb-1">
+                        <span class="text-purple-500 font-bold text-sm w-16 bg-purple-100 px-2 py-0.5 rounded text-center">45' - 55'</span>
+                        <h4 class="font-bold text-dark text-lg">Group Sharing</h4>
+                    </div>
+                    <p class="text-sm text-slate-600 bg-slate-50 p-2 rounded border border-slate-100">Reporter trình bày nhanh biểu thức logic mà nhóm mình vừa xây dựng.</p>
+                </div>
+
+                <div class="relative pl-6 md:pl-8 group">
+                    <div class="absolute w-4 h-4 bg-emerald-600 rounded-full -left-[9px] top-1 border-4 border-white shadow group-hover:scale-125 transition-transform"></div>
+                    <div class="flex flex-col md:flex-row md:items-center gap-1 md:gap-4 mb-1">
+                        <span class="text-emerald-600 font-bold text-sm w-16 bg-emerald-100 px-2 py-0.5 rounded text-center">55' - 60'</span>
+                        <h4 class="font-bold text-dark text-lg">Wrap-up & Task</h4>
+                    </div>
+                    <p class="text-sm text-slate-600 bg-slate-50 p-2 rounded border border-slate-100">Giao task viết biểu thức logic và điền form điểm danh.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- BREAKOUT ROOM GUIDE -->
+        <section class="bg-gradient-to-br from-slate-800 to-dark text-white rounded-2xl shadow-lg overflow-hidden border border-slate-700">
+            <div class="px-6 py-4 border-b border-white/10 flex flex-wrap items-center justify-between gap-2">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-comments text-secondary text-xl"></i>
+                    <h3 class="text-xl font-bold">Hướng Dẫn Breakout Room</h3>
+                </div>
+                <span class="text-[10px] uppercase font-bold bg-white/10 px-2 py-1 rounded text-slate-300">Engineering Thinking</span>
+            </div>
+
+            <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    <h4 class="font-semibold text-secondary mb-3 uppercase tracking-wider text-sm flex items-center gap-2">
+                        <i class="fa-regular fa-message"></i> 3 Câu Hỏi Thảo Luận
+                    </h4>
+                    <ul class="space-y-3">
+                        <li class="bg-white/5 p-3 rounded-lg text-sm border-l-2 border-secondary hover:bg-white/10 transition-colors">
+                            <span class="font-bold text-secondary mr-2">Q1.</span> Cả nhóm hãy chọn MỘT thiết bị thực tế (Khóa cửa mật khẩu 2 lớp, Hệ thống báo cháy, v.v.). Hãy xác định rõ ít nhất <strong>2 Input</strong> và <strong>1 Output</strong>.
+                        </li>
+                        <li class="bg-white/5 p-3 rounded-lg text-sm border-l-2 border-secondary hover:bg-white/10 transition-colors">
+                            <span class="font-bold text-secondary mr-2">Q2.</span> Output sẽ phụ thuộc vào các Input theo logic nào? Lập một Truth Table (Bảng chân lý) nháp.
+                        </li>
+                        <li class="bg-white/5 p-3 rounded-lg text-sm border-l-2 border-secondary hover:bg-white/10 transition-colors">
+                            <span class="font-bold text-secondary mr-2">Q3.</span> Từ yêu cầu trên, hãy viết <strong>Biểu thức logic đơn giản</strong> (Dùng chữ AND, OR, NOT).
+                        </li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold text-accent mb-3 uppercase tracking-wider text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-users"></i> Vai Trò Tổ Chức Nhóm
+                    </h4>
+                    <div class="space-y-2 mb-4 bg-black/20 p-3 rounded-xl border border-white/5">
+                        <div class="flex items-center gap-3">
+                            <div class="bg-white/10 w-8 h-8 rounded-full flex items-center justify-center shrink-0"><i class="fa-solid fa-user-tie text-accent text-sm"></i></div>
+                            <p class="text-sm"><strong class="text-white">Facilitator:</strong> Thúc đẩy nhóm chốt 1 case study nhanh chóng ở phút thứ 2.</p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="bg-white/10 w-8 h-8 rounded-full flex items-center justify-center shrink-0"><i class="fa-solid fa-pen-clip text-accent text-sm"></i></div>
+                            <p class="text-sm"><strong class="text-white">Note Keeper:</strong> Kẻ nhanh Bảng chân lý ra giấy hoặc text chat.</p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="bg-white/10 w-8 h-8 rounded-full flex items-center justify-center shrink-0"><i class="fa-solid fa-bullhorn text-accent text-sm"></i></div>
+                            <p class="text-sm"><strong class="text-white">Reporter:</strong> Trình bày: "Hệ thống nhóm em là X. Biểu thức logic là Y = A AND B".</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- KEY VOCABULARY BILINGUAL -->
+        <section class="bg-slate-50 rounded-2xl shadow-sm border border-slate-200 p-6">
+            <h3 class="text-xl font-bold text-dark flex items-center gap-2 mb-6">
+                <i class="fa-solid fa-language text-accent"></i> Từ Vựng Tiếng Anh Chuyên Ngành
+            </h3>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 hover:border-primary transition-all duration-300">
+                    <h4 class="font-bold text-primary text-lg mb-1">Logic Gate</h4>
+                    <p class="text-sm font-bold text-dark mb-1">Cổng logic</p>
+                    <p class="text-[11px] text-slate-500">Khối phần cứng cơ bản thực hiện một phép toán logic.</p>
+                </div>
+                
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 hover:border-primary transition-all duration-300">
+                    <h4 class="font-bold text-primary text-lg mb-1">Truth Table</h4>
+                    <p class="text-sm font-bold text-dark mb-1">Bảng chân lý</p>
+                    <p class="text-[11px] text-slate-500">Bảng liệt kê tất cả các tổ hợp Input và Output tương ứng.</p>
+                </div>
+                
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 hover:border-primary transition-all duration-300">
+                    <h4 class="font-bold text-primary text-lg mb-1">Condition</h4>
+                    <p class="text-sm font-bold text-dark mb-1">Điều kiện</p>
+                    <p class="text-[11px] text-slate-500">Tình huống đúng (1) hoặc sai (0) để kích hoạt hệ thống.</p>
+                </div>
+                
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 hover:border-primary transition-all duration-300">
+                    <h4 class="font-bold text-primary text-lg mb-1">XOR / NAND</h4>
+                    <p class="text-sm font-bold text-dark mb-1">Các cổng phái sinh</p>
+                    <p class="text-[11px] text-slate-500">XOR (Khác nhau thì 1), NAND (Đảo của AND).</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- TWO COLUMNS SECTION: MENTOR NOTE & PROJECTS -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- MENTOR QUICK NOTE -->
+            <section class="bg-blue-600 text-white rounded-2xl shadow-lg p-6 relative overflow-hidden flex flex-col">
+                <i class="fa-solid fa-brain absolute -right-6 -bottom-6 text-9xl text-blue-500 opacity-30"></i>
+                <div class="relative z-10 flex-1">
+                    <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-lightbulb text-yellow-300"></i> Lời Khuyên Từ Mentor
+                    </h3>
+                    
+                    <div class="space-y-4">
+                        <div class="bg-yellow-500/20 p-3 rounded-lg border border-yellow-400/50 backdrop-blur-sm">
+                            <span class="text-yellow-300 text-xs font-bold uppercase tracking-wider block mb-1"><i class="fa-solid fa-triangle-exclamation"></i> Sửa Lỗi Tư Duy (Misconception)</span>
+                            <p class="text-sm text-white leading-relaxed">Sinh viên thường nghĩ: "Logic gates chỉ là môn lý thuyết học để thi". <strong>Sự thật:</strong> Cổng logic chính là cách duy nhất kỹ sư có thể "diễn đạt" ý định, quy tắc và quyết định của mình cho mạch điện tử (máy móc) hiểu.</p>
+                        </div>
+
+                        <div class="border-t border-blue-400/50 pt-3">
+                            <p class="text-base font-bold text-yellow-300 italic mb-2">"Digital design starts from simple decisions."</p>
+                            <p class="text-sm text-blue-50 leading-relaxed">Hãy tập thói quen nhìn mọi hệ thống thông minh ngoài đời dưới lăng kính của Input (Cảm biến/Nút bấm), Logic (AND/OR/NOT) và Output (Động cơ/Đèn).</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- MINI PROJECT CONNECTION -->
+            <section class="bg-white rounded-2xl shadow-lg border border-slate-200 p-6 flex flex-col">
+                <h3 class="text-xl font-bold text-dark mb-4 flex items-center gap-2 border-b pb-3">
+                    <i class="fa-solid fa-plug-circle-bolt text-secondary"></i> Kết Nối Dự Án (Mini-Projects)
+                </h3>
+                <p class="text-sm text-slate-600 mb-4">
+                    Kiến thức tuần này chính là nền tảng để viết code Verilog (assign) cho các dự án Combinational Logic sắp tới:
+                </p>
+                <div class="grid grid-cols-2 gap-3 flex-grow">
+                    <div class="bg-slate-50 border border-slate-100 rounded-lg p-3 flex flex-col items-center justify-center text-center hover:border-emerald-300 transition-colors shadow-sm">
+                        <i class="fa-regular fa-lightbulb text-2xl text-emerald-600 mb-2"></i>
+                        <h4 class="font-bold text-xs text-dark">Auto Light</h4>
+                        <p class="text-[10px] text-slate-500 mt-1">Đèn tự sáng khi tối & có người (AND)</p>
+                    </div>
+                    <div class="bg-slate-50 border border-slate-100 rounded-lg p-3 flex flex-col items-center justify-center text-center hover:border-red-500 transition-colors shadow-sm">
+                        <i class="fa-solid fa-bell text-2xl text-red-500 mb-2"></i>
+                        <h4 class="font-bold text-xs text-dark">Alarm System</h4>
+                        <p class="text-[10px] text-slate-500 mt-1">Báo động khi cửa Kênh 1 HOẶC Kênh 2 mở (OR)</p>
+                    </div>
+                    <div class="bg-slate-50 border border-slate-100 rounded-lg p-3 flex flex-col items-center justify-center text-center hover:border-purple-500 transition-colors shadow-sm">
+                        <i class="fa-solid fa-lock text-2xl text-purple-500 mb-2"></i>
+                        <h4 class="font-bold text-xs text-dark">Password Lock</h4>
+                        <p class="text-[10px] text-slate-500 mt-1">Mạch so sánh bit nhập với mật khẩu (XOR/XNOR)</p>
+                    </div>
+                    <div class="bg-slate-50 border border-slate-100 rounded-lg p-3 flex flex-col items-center justify-center text-center hover:border-blue-500 transition-colors shadow-sm">
+                        <i class="fa-solid fa-temperature-arrow-up text-2xl text-primary mb-2"></i>
+                        <h4 class="font-bold text-xs text-dark">Temp Warning</h4>
+                        <p class="text-[10px] text-slate-500 mt-1">Quạt quay khi nhiệt độ vượt ngưỡng</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- AFTER SESSION -->
+        <section class="bg-emerald-50 rounded-2xl shadow-sm border border-emerald-200 overflow-hidden">
+            <div class="bg-emerald-100/50 px-6 py-4 border-b border-emerald-200">
+                <h3 class="text-xl font-bold text-emerald-800 flex items-center gap-2">
+                    <i class="fa-solid fa-forward-step"></i> Hành Động Sau Buổi Học
+                </h3>
+            </div>
+            <div class="p-6">
+                <!-- Mini Task -->
+                <div class="bg-white p-5 rounded-xl border border-emerald-100 shadow-sm mb-6 relative overflow-hidden">
+                    <div class="absolute right-0 top-0 w-1 h-full bg-emerald-400"></div>
+                    <h4 class="font-bold text-emerald-700 mb-2 flex items-center gap-2"><i class="fa-solid fa-fire text-secondary"></i> Task Tuần Này (Real-world Logic)</h4>
+                    <p class="text-sm text-slate-700 mb-3">Mỗi bạn hãy chọn <strong>1 tình huống thực tế</strong> chưa ai kể trong nhóm, và post định nghĩa logic lên Group lớp:</p>
+                    <ul class="list-disc list-inside text-sm text-slate-600 space-y-1 ml-2 font-mono bg-slate-50 p-3 rounded border border-slate-200">
+                        <li><strong>Situation:</strong> Hệ thống...</li>
+                        <li><strong>Input 1:</strong> ...</li>
+                        <li><strong>Input 2:</strong> ...</li>
+                        <li><strong>Output:</strong> ...</li>
+                        <li><strong>Logic Expression:</strong> Y = (Input 1) [AND/OR] (Input 2)</li>
+                    </ul>
+                </div>
+
+                <!-- Accordions for Outcomes and Reflection -->
+                <div class="space-y-3">
+                    <details class="group bg-white rounded-lg border border-slate-200 transition-all">
+                        <summary class="flex items-center justify-between p-4 cursor-pointer font-semibold text-slate-800 group-open:text-emerald-700 hover:bg-slate-50 transition-colors rounded-lg">
+                            <span class="flex items-center gap-2"><i class="fa-solid fa-clipboard-check text-emerald-500"></i> Mục tiêu sinh viên đạt được</span>
+                            <span class="transition-transform duration-300 group-open:rotate-180">
+                                <i class="fa-solid fa-chevron-down text-slate-400"></i>
+                            </span>
+                        </summary>
+                        <div class="p-4 border-t border-slate-100 text-sm text-slate-600 bg-slate-50/50">
+                            <ul class="space-y-2">
+                                <li class="flex items-start gap-2"><i class="fa-solid fa-check text-emerald-500 mt-1"></i> Hiểu cổng logic là công cụ ra quyết định của máy móc.</li>
+                                <li class="flex items-start gap-2"><i class="fa-solid fa-check text-emerald-500 mt-1"></i> Xác định được Input/Output trong các tình huống thực tế.</li>
+                                <li class="flex items-start gap-2"><i class="fa-solid fa-check text-emerald-500 mt-1"></i> Lập được Bảng chân lý (Truth Table) một cách có hệ thống.</li>
+                                <li class="flex items-start gap-2"><i class="fa-solid fa-check text-emerald-500 mt-1"></i> Viết được biểu thức logic từ yêu cầu bài toán.</li>
+                                <li class="flex items-start gap-2"><i class="fa-solid fa-check text-emerald-500 mt-1"></i> Liên kết được tư duy Logic với ngôn ngữ phần cứng (Verilog).</li>
+                            </ul>
+                        </div>
+                    </details>
+
+                    <details class="group bg-white rounded-lg border border-slate-200 transition-all">
+                        <summary class="flex items-center justify-between p-4 cursor-pointer font-semibold text-slate-800 group-open:text-blue-700 hover:bg-slate-50 transition-colors rounded-lg">
+                            <span class="flex items-center gap-2"><i class="fa-solid fa-link text-blue-500"></i> Điền Google Form (Bắt buộc sau buổi học)</span>
+                            <span class="transition-transform duration-300 group-open:rotate-180">
+                                <i class="fa-solid fa-chevron-down text-slate-400"></i>
+                            </span>
+                        </summary>
+                        <div class="p-4 border-t border-slate-100 bg-blue-50/30">
+                            <p class="text-sm text-slate-600 mb-4">Vui lòng hoàn thành Form để Mentor nắm được tiến độ hiểu bài của bạn.</p>
+                            <div class="bg-white border border-slate-200 p-4 rounded-lg shadow-sm">
+                                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Mentor sẽ hỏi 5 nội dung sau:</p>
+                                <ol class="list-decimal list-inside text-sm text-slate-700 space-y-1.5 font-medium">
+                                    <li>Xác nhận tham gia buổi học Week 3?</li>
+                                    <li>Em hiểu sự liên kết giữa thực tế và cổng logic ở mức độ nào (1-5)?</li>
+                                    <li>Ví dụ nào trong buổi học khiến em thấy dễ hiểu nhất?</li>
+                                    <li>Cổng logic hay khái niệm nào em vẫn chưa nắm vững?</li>
+                                    <li>Em có thể tự tạo một ví dụ logic đơn giản không?</li>
+                                </ol>
+                            </div>
+                            <a href="https://forms.gle/4ZFMSAyY3GHe2soZA" target="_blank" class="mt-4 bg-primary hover:bg-blue-700 text-white font-semibold py-2.5 px-6 rounded-lg transition-colors inline-flex items-center gap-2 shadow-md hover:shadow-lg">
+                                <i class="fa-brands fa-google"></i> Mở Google Form Tuần 3
+                            </a>
+                        </div>
+                    </details>
+                </div>
+            </div>
+        </section>
+        
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="mt-16 bg-slate-900 text-slate-300 py-12 text-center border-t-4 border-primary">
+        <div class="max-w-4xl mx-auto px-4">
+            <div class="flex justify-center items-center gap-3 mb-6">
+                <i class="fa-solid fa-microchip text-2xl text-slate-600"></i>
+                <div class="h-px bg-slate-700 w-16"></div>
+                <i class="fa-solid fa-laptop-code text-2xl text-primary drop-shadow-[0_0_8px_rgba(37,99,235,0.8)]"></i>
+                <div class="h-px bg-slate-700 w-16"></div>
+                <i class="fa-solid fa-users-rays text-2xl text-secondary"></i>
+            </div>
+            
+            <h4 class="text-xl font-bold text-white mb-2">IC Design Mentoring Community</h4>
+            <p class="text-lg italic text-slate-400 font-light mb-8">"Learn a little, build a little, share a little, grow a little."</p>
+            
+            <div class="bg-slate-800/80 inline-block p-4 rounded-xl border border-slate-700 mx-auto text-center max-w-2xl">
+                <div class="flex items-center justify-center gap-2 mb-2 text-white">
+                    <i class="fa-solid fa-copyright"></i> <span class="font-bold">Bản quyền nội dung:</span>
+                </div>
+                <p class="text-sm text-slate-300 mb-1">Khoa Điện - Điện tử, Trường Kỹ Thuật, Đại học Phenikaa</p>
+                <p class="text-sm text-amber-400 font-medium">Giảng viên biên soạn: ThS. Đinh Văn Nam</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- INTERACTIVE JAVASCRIPT -->
+    <script>
+        // 1. Checklist Logic
+        function toggleTask(checkbox) {
+            const label = checkbox.nextElementSibling;
+            if (checkbox.checked) {
+                label.classList.add('completed');
+            } else {
+                label.classList.remove('completed');
+            }
+        }
+
+        // 2. Logic Gate Interactive Simulator
+        document.addEventListener('DOMContentLoaded', () => {
+            const btnAnd = document.getElementById('btnAnd');
+            const btnOr = document.getElementById('btnOr');
+            const inputA = document.getElementById('inputA');
+            const inputB = document.getElementById('inputB');
+            const valA = document.getElementById('valA');
+            const valB = document.getElementById('valB');
+            const valOut = document.getElementById('valOut');
+            
+            const gateLabel = document.getElementById('gateLabel');
+            const gateSvgContainer = document.getElementById('gateSvgContainer');
+            const logicExplanation = document.getElementById('logicExplanation');
+            const outputIcon = document.getElementById('outputIcon');
+            
+            const wireA = document.getElementById('wireA');
+            const wireB = document.getElementById('wireB');
+            const wireOut = document.getElementById('wireOut');
+
+            // SVG Paths for True Academic Logic Gate Symbols
+            const svgAnd = `<svg width="100%" height="100%" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M 20 15 L 50 15 A 35 35 0 0 1 50 85 L 20 85 Z" fill="#334155" stroke="#2563eb" stroke-width="4"/></svg>`;
+            const svgOr = `<svg width="100%" height="100%" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M 10 10 C 45 10, 75 25, 90 50 C 75 75, 45 90, 10 90 Q 35 50 10 10 Z" fill="#334155" stroke="#2563eb" stroke-width="4"/></svg>`;
+
+            // Default mode
+            let mode = 'AND';
+
+            function updateLogic() {
+                const a = inputA.checked ? 1 : 0;
+                const b = inputB.checked ? 1 : 0;
+                let out = 0;
+
+                // Update text values
+                valA.textContent = a;
+                valB.textContent = b;
+
+                // Apply logic
+                if (mode === 'AND') {
+                    out = (a === 1 && b === 1) ? 1 : 0;
+                    logicExplanation.innerHTML = `Đèn chỉ sáng (1) khi <strong>TRỜI TỐI (1)</strong> VÀ <strong>CÓ NGƯỜI (1)</strong>.`;
+                } else {
+                    out = (a === 1 || b === 1) ? 1 : 0;
+                    logicExplanation.innerHTML = `Còi hú (1) khi <strong>CỬA MỞ (1)</strong> HOẶC <strong>CỬA SỔ MỞ (1)</strong>.`;
+                }
+
+                // Update Output Text
+                valOut.textContent = out;
+
+                // Update Wires Visuals
+                a === 1 ? wireA.classList.add('wire-active') : wireA.classList.remove('wire-active');
+                b === 1 ? wireB.classList.add('wire-active') : wireB.classList.remove('wire-active');
+                out === 1 ? wireOut.classList.add('wire-active') : wireOut.classList.remove('wire-active');
+
+                // Update Icon & Colors
+                if (out === 1) {
+                    valOut.classList.add('text-yellow-400');
+                    valOut.classList.remove('text-slate-500');
+                    outputIcon.classList.add('glow-active');
+                    outputIcon.classList.remove('text-slate-500');
+                    
+                    if(mode === 'OR') {
+                       outputIcon.classList.remove('fa-lightbulb');
+                       outputIcon.classList.add('fa-bell');
+                       outputIcon.style.color = "#ef4444"; // Red for alarm
+                       outputIcon.style.filter = "drop-shadow(0 0 15px rgba(239, 68, 68, 0.8))";
+                       valOut.classList.replace('text-yellow-400', 'text-red-500');
+                       wireOut.style.backgroundColor = "#ef4444";
+                       wireOut.style.boxShadow = "0 0 8px rgba(239, 68, 68, 0.6)";
+                    } else {
+                       outputIcon.classList.remove('fa-bell');
+                       outputIcon.classList.add('fa-lightbulb');
+                       outputIcon.style.color = ""; 
+                       outputIcon.style.filter = "";
+                       wireOut.style.backgroundColor = "";
+                       wireOut.style.boxShadow = "";
+                    }
+                } else {
+                    valOut.classList.remove('text-yellow-400', 'text-red-500');
+                    valOut.classList.add('text-slate-500');
+                    outputIcon.classList.remove('glow-active');
+                    outputIcon.classList.add('text-slate-500');
+                    outputIcon.style.color = "";
+                    outputIcon.style.filter = "";
+                    wireOut.style.backgroundColor = "";
+                    wireOut.style.boxShadow = "";
+                }
+            }
+
+            // Mode Switching
+            btnAnd.addEventListener('click', () => {
+                mode = 'AND';
+                btnAnd.classList.replace('bg-slate-700', 'bg-primary');
+                btnAnd.classList.replace('text-slate-300', 'text-white');
+                btnAnd.classList.add('shadow-[0_0_10px_rgba(37,99,235,0.4)]');
+                
+                btnOr.classList.replace('bg-primary', 'bg-slate-700');
+                btnOr.classList.replace('text-white', 'text-slate-300');
+                btnOr.classList.remove('shadow-[0_0_10px_rgba(37,99,235,0.4)]');
+
+                gateLabel.textContent = 'AND';
+                gateLabel.className = 'text-white font-bold tracking-widest text-lg z-10 pr-2 pointer-events-none';
+                gateSvgContainer.innerHTML = svgAnd;
+                
+                document.getElementById('labelInputA').textContent = "Trời Tối (Light Sensor)";
+                document.getElementById('labelInputB').textContent = "Có Người (Motion Sensor)";
+                outputIcon.className = "fa-regular fa-lightbulb text-4xl text-slate-500 transition-all duration-300";
+
+                updateLogic();
+            });
+
+            btnOr.addEventListener('click', () => {
+                mode = 'OR';
+                btnOr.classList.replace('bg-slate-700', 'bg-primary');
+                btnOr.classList.replace('text-slate-300', 'text-white');
+                btnOr.classList.add('shadow-[0_0_10px_rgba(37,99,235,0.4)]');
+                
+                btnAnd.classList.replace('bg-primary', 'bg-slate-700');
+                btnAnd.classList.replace('text-white', 'text-slate-300');
+                btnAnd.classList.remove('shadow-[0_0_10px_rgba(37,99,235,0.4)]');
+
+                gateLabel.textContent = 'OR';
+                gateLabel.className = 'text-white font-bold tracking-widest text-lg z-10 pr-4 pointer-events-none'; // Shift text left to account for OR curve
+                gateSvgContainer.innerHTML = svgOr;
+
+                document.getElementById('labelInputA').textContent = "Cửa Chính Mở (Sensor 1)";
+                document.getElementById('labelInputB').textContent = "Cửa Sổ Mở (Sensor 2)";
+                outputIcon.className = "fa-solid fa-bell text-4xl text-slate-500 transition-all duration-300";
+
+                updateLogic();
+            });
+
+            // Input Event Listeners
+            inputA.addEventListener('change', updateLogic);
+            inputB.addEventListener('change', updateLogic);
+            
+            // Initial render
+            gateSvgContainer.innerHTML = svgAnd;
+            updateLogic();
+        });
+    </script>
+
+<div id="lichub-nav-bottom" data-lichub="v1" role="navigation" aria-label="Điều hướng Learning Hub (bổ sung, không thuộc trang gốc)" style="background:#0f172a;color:#e2e8f0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:13.5px;line-height:1.6;padding:8px 16px;display:flex;flex-wrap:wrap;gap:4px 16px;align-items:center;border-top:3px solid #f59e0b"><a href="../../index.html" style="color:#7dd3fc;text-decoration:none;font-weight:600">⌂ Learning Hub</a><span style="font-size:11px;font-weight:700;letter-spacing:.04em;color:#f59e0b;border:1px solid #f59e0b;border-radius:6px;padding:1px 7px;white-space:nowrap">V1 · BẢN LƯU TRỮ GỐC</span><a href="index.html" style="color:#cbd5e1;text-decoration:none">Mục lục V1</a><span style="flex:1"></span><a href="Week2.html" style="color:#7dd3fc;text-decoration:none" title="From Idea to Chip">← Tuần 2</a><a href="Week4.html" style="color:#7dd3fc;text-decoration:none" title="Combinational Logic Circuits">Tuần 4 →</a><span aria-hidden="true" style="color:#475569">|</span><span style="display:inline-flex;gap:8px;align-items:center"><span style="color:#94a3b8">Chuyển bản:</span> <b aria-current="true" style="color:#f59e0b">V1</b> <a href="../v2/index.html" style="color:#cbd5e1;text-decoration:none">V2</a> <a href="../v3/index.html" style="color:#cbd5e1;text-decoration:none">V3</a></span></div>
+</body>
+</html>

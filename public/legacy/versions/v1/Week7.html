@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tuần 7: What Is Verilog? | IC Design Mentoring</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Consolas', 'Monaco', 'Courier New', 'monospace'],
+                    },
+                    colors: {
+                        primary: '#2563eb', // Blue 600
+                        secondary: '#f59e0b', // Amber 500
+                        accent: '#10b981', // Emerald 500
+                        dark: '#1e293b', // Slate 800
+                        light: '#f8fafc', // Slate 50
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        details > summary { list-style: none; }
+        details > summary::-webkit-details-marker { display: none; }
+        details[open] summary ~ * { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .custom-checkbox {
+            appearance: none;
+            background-color: #fff;
+            margin: 0;
+            font: inherit;
+            color: currentColor;
+            width: 1.25em;
+            height: 1.25em;
+            border: 2px solid #cbd5e1;
+            border-radius: 0.25em;
+            display: grid;
+            place-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+        }
+        .custom-checkbox::before {
+            content: "";
+            width: 0.65em;
+            height: 0.65em;
+            transform: scale(0);
+            transition: 120ms transform ease-in-out;
+            box-shadow: inset 1em 1em white;
+            background-color: white;
+            transform-origin: center;
+            clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+        }
+        .custom-checkbox:checked {
+            background-color: #10b981;
+            border-color: #10b981;
+        }
+        .custom-checkbox:checked::before { transform: scale(1); }
+        .task-item.completed { text-decoration: line-through; color: #94a3b8; }
+
+        /* Code Syntax Highlighting Styles */
+        .v-kw { color: #c678dd; font-weight: bold; } /* Keywords: module, input, assign... */
+        .v-type { color: #56b6c2; } /* Types: wire, reg */
+        .v-var { color: #e06c75; } /* Variables */
+        .v-op { color: #56b6c2; } /* Operators */
+        .v-comment { color: #7f848e; font-style: italic; } /* Comments */
+
+        .wire-active { stroke: #10b981 !important; stroke-width: 4 !important; filter: drop-shadow(0 0 3px rgba(16,185,129,0.8)); transition: all 0.2s ease; }
+        .wire-inactive { stroke: #475569 !important; stroke-width: 2 !important; transition: all 0.2s ease; }
+        .code-highlight { background-color: rgba(16, 185, 129, 0.2); border-radius: 4px; transition: background-color 0.2s ease; }
+        .svg-interactive:hover { filter: brightness(1.2); }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased selection:bg-primary selection:text-white pb-20">
+<div id="lichub-nav-top" data-lichub="v1" role="navigation" aria-label="Điều hướng Learning Hub (bổ sung, không thuộc trang gốc)" style="background:#0f172a;color:#e2e8f0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:13.5px;line-height:1.6;padding:8px 16px;display:flex;flex-wrap:wrap;gap:4px 16px;align-items:center;border-bottom:3px solid #f59e0b"><a href="../../index.html" style="color:#7dd3fc;text-decoration:none;font-weight:600">⌂ Learning Hub</a><span style="font-size:11px;font-weight:700;letter-spacing:.04em;color:#f59e0b;border:1px solid #f59e0b;border-radius:6px;padding:1px 7px;white-space:nowrap">V1 · BẢN LƯU TRỮ GỐC</span><a href="index.html" style="color:#cbd5e1;text-decoration:none">Mục lục V1</a><span style="flex:1"></span><a href="Week6.html" style="color:#7dd3fc;text-decoration:none" title="Finite State Machines">← Tuần 6</a><a href="Week8.html" style="color:#7dd3fc;text-decoration:none" title="FPGA vs ASIC">Tuần 8 →</a><span aria-hidden="true" style="color:#475569">|</span><span style="display:inline-flex;gap:8px;align-items:center"><span style="color:#94a3b8">Chuyển bản:</span> <b aria-current="true" style="color:#f59e0b">V1</b> <a href="../v2/index.html" style="color:#cbd5e1;text-decoration:none">V2</a> <a href="../v3/index.html" style="color:#cbd5e1;text-decoration:none">V3</a></span></div>
+
+
+    <header class="bg-gradient-to-br from-dark to-slate-700 text-white pt-16 pb-20 px-6 shadow-xl relative overflow-hidden">
+        <div class="absolute top-0 right-0 opacity-10 pointer-events-none">
+            <i class="fa-solid fa-file-code text-[20rem] -mt-10 -mr-10"></i>
+        </div>
+        
+        <div class="max-w-4xl mx-auto relative z-10">
+            <div class="flex flex-wrap items-center gap-3 mb-4">
+                <span class="bg-primary text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Tuần 7</span>
+                <span class="bg-secondary text-dark text-xs font-bold px-3 py-1 rounded-full"><i class="fa-solid fa-laptop-code mr-1"></i> Ngôn Ngữ Thiết Kế</span>
+                <span class="bg-white/20 text-white border border-white/30 text-xs font-semibold px-3 py-1 rounded-full"><i class="fa-solid fa-university mr-1"></i> Phenikaa University</span>
+            </div>
+            
+            <h1 class="text-4xl md:text-5xl font-extrabold mb-3 leading-tight text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-300">
+                What Is Verilog?
+            </h1>
+            <h2 class="text-xl md:text-2xl font-medium text-slate-300 mb-6 border-l-4 border-primary pl-4">
+                Verilog Là Gì Và Vì Sao Kỹ Sư Thiết Kế Số Cần Nó?
+            </h2>
+            
+            <div class="bg-white/10 backdrop-blur-md rounded-xl p-5 border border-white/20 mb-8 max-w-3xl">
+                <p class="text-lg leading-relaxed">
+                    <i class="fa-solid fa-quote-left text-primary opacity-50 mr-2"></i>
+                    Đã đến lúc chúng ta dịch các sơ đồ khối (Block Diagrams) và máy trạng thái (FSM) thành mã code. Nhưng hãy nhớ: <strong>Verilog KHÔNG PHẢI là C hay Python</strong>. Tuần này, chúng ta sẽ đập bỏ "Tư duy Lập trình phần mềm" để làm quen với "Tư duy Mô tả phần cứng" (Hardware Description).
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="flex items-start gap-3">
+                    <div class="bg-white/20 w-8 h-8 flex items-center justify-center rounded-lg text-secondary shrink-0"><i class="fa-solid fa-code-compare"></i></div>
+                    <p class="text-sm mt-1">Phân biệt được rõ ràng HDL (Verilog/VHDL) với ngôn ngữ phần mềm.</p>
+                </div>
+                <div class="flex items-start gap-3">
+                    <div class="bg-white/20 w-8 h-8 flex items-center justify-center rounded-lg text-secondary shrink-0"><i class="fa-solid fa-cubes"></i></div>
+                    <p class="text-sm mt-1">Hiểu cấu trúc của một <code>module</code> cơ bản: input, output, wire, reg.</p>
+                </div>
+                <div class="flex items-start gap-3">
+                    <div class="bg-white/20 w-8 h-8 flex items-center justify-center rounded-lg text-secondary shrink-0"><i class="fa-solid fa-layer-group"></i></div>
+                    <p class="text-sm mt-1">Nắm vững khái niệm thực thi "Song song" (Parallelism) trong thiết kế số.</p>
+                </div>
+                <div class="flex items-start gap-3">
+                    <div class="bg-white/20 w-8 h-8 flex items-center justify-center rounded-lg text-secondary shrink-0"><i class="fa-solid fa-bolt"></i></div>
+                    <p class="text-sm mt-1">Biết cách dùng lệnh <code>assign</code> để mô tả các cổng logic tổ hợp.</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 sm:px-6 -mt-10 relative z-20 space-y-8">
+
+        <section class="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
+            <div class="bg-blue-50 border-b border-blue-100 px-6 py-4 flex items-center justify-between">
+                <h3 class="text-xl font-bold text-dark flex items-center gap-2">
+                    <i class="fa-solid fa-mug-hot text-primary"></i> Chuẩn Bị Trước Buổi Học
+                </h3>
+            </div>
+            <div class="p-6">
+                <p class="text-slate-600 mb-6">
+                    Sai lầm phổ biến nhất của sinh viên mới là cố gắng "ép" Verilog chạy như một phần mềm với hàng tá lệnh <code>for-loop</code>. Trong Verilog, mọi dòng lệnh <code>assign</code> đều tạo ra một sợi dây điện và một cổng logic vật lý, và chúng chạy <strong>đồng thời cùng một lúc</strong>.
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Checklist -->
+                    <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 hover:border-primary/30 transition-colors">
+                        <h4 class="font-bold text-dark mb-4 border-b pb-2 flex items-center gap-2">
+                            <i class="fa-solid fa-list-check text-primary"></i> Checklist Tự Học
+                        </h4>
+                        <ul class="space-y-3" id="prep-checklist">
+                            <li class="flex items-start gap-3 group">
+                                <input type="checkbox" class="custom-checkbox mt-0.5" id="task1" onclick="toggleTask(this)">
+                                <label for="task1" class="cursor-pointer text-sm text-slate-700 task-item group-hover:text-primary transition-colors">Đọc định nghĩa HDL và sự khác biệt với ngôn ngữ phần mềm</label>
+                            </li>
+                            <li class="flex items-start gap-3 group">
+                                <input type="checkbox" class="custom-checkbox mt-0.5" id="task2" onclick="toggleTask(this)">
+                                <label for="task2" class="cursor-pointer text-sm text-slate-700 task-item group-hover:text-primary transition-colors">Tìm hiểu cấu trúc 1 module: <code>input</code>, <code>output</code>, <code>wire</code></label>
+                            </li>
+                            <li class="flex items-start gap-3 group">
+                                <input type="checkbox" class="custom-checkbox mt-0.5" id="task3" onclick="toggleTask(this)">
+                                <label for="task3" class="cursor-pointer text-sm text-slate-700 task-item group-hover:text-primary transition-colors">Tương tác thử với Demo Verilog-To-Hardware bên dưới</label>
+                            </li>
+                            <li class="flex items-start gap-3 group">
+                                <input type="checkbox" class="custom-checkbox mt-0.5" id="task4" onclick="toggleTask(this)">
+                                <label for="task4" class="cursor-pointer text-sm text-slate-700 task-item group-hover:text-primary transition-colors">Chuẩn bị sẵn các câu hỏi để thảo luận với Mentor</label>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Câu hỏi gợi mở -->
+                    <div class="bg-blue-50 p-5 rounded-xl border border-blue-200 relative overflow-hidden">
+                        <i class="fa-regular fa-lightbulb absolute -right-4 -bottom-4 text-6xl text-blue-200 opacity-50"></i>
+                        <h4 class="font-bold text-primary mb-4 border-b border-blue-200 pb-2 relative z-10">Tư Duy Khởi Động</h4>
+                        <ul class="space-y-3 list-disc list-inside text-sm text-slate-700 relative z-10">
+                            <li>Khi bạn viết <code>c = a + b</code> trong C++, CPU phải tính toán qua vài chu kỳ xung nhịp. Còn trong Verilog, câu lệnh đó tạo ra bộ linh kiện gì?</li>
+                            <li>Tại sao người ta gọi Verilog là mô tả "song song" (parallel) thay vì "tuần tự" (sequential)?</li>
+                            <li>"Module" trong Verilog giống với khái niệm nào bạn từng thấy khi học về Mạch tổ hợp (Tuần 4)?</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
+                <h3 class="text-xl font-bold text-dark flex items-center gap-2">
+                    <i class="fa-solid fa-microchip text-primary"></i> Khái Niệm Cốt Lõi & Demo Trực Quan
+                </h3>
+            </div>
+            
+            <div class="p-6 divide-y divide-slate-100">
+                <div class="py-5 first:pt-0">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="text-lg font-bold text-primary mb-2 flex items-center gap-2">
+                                <span class="bg-primary/10 text-primary w-6 h-6 rounded-full flex items-center justify-center text-sm">1</span> Ngôn ngữ mô tả phần cứng (HDL)
+                            </h4>
+                            <p class="text-slate-600 text-sm leading-relaxed mb-4">
+                                Verilog (hay VHDL) không sinh ra các tệp <code>.exe</code> để chạy trên hệ điều hành. Nó là "bản vẽ kỹ thuật" dùng text. Phần mềm biên dịch (Synthesizer) sẽ đọc Verilog và "nối dây" các Transistor/Cổng logic lại với nhau bên trong chip (FPGA/ASIC).
+                            </p>
+                        </div>
+                        <div>
+                            <h4 class="text-lg font-bold text-primary mb-2 flex items-center gap-2">
+                                <span class="bg-primary/10 text-primary w-6 h-6 rounded-full flex items-center justify-center text-sm">2</span> Tính song song (Parallelism)
+                            </h4>
+                            <p class="text-slate-600 text-sm leading-relaxed mb-4">
+                                Trong phần cứng vật lý, dòng điện chạy qua mọi cổng logic cùng một lúc. Do đó, các khối <code>assign</code> hay các <code>module</code> trong Verilog hoạt động <strong>song song và độc lập</strong>, không quan tâm dòng nào viết trước, dòng nào viết sau.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Interactive Verilog to Hardware Demo -->
+                <div class="py-5">
+                    <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 shadow-inner">
+                        <div class="mb-4">
+                            <p class="text-sm font-semibold text-white"><i class="fa-solid fa-gamepad text-secondary"></i> Demo: Verilog To Hardware Visualizer (Mạch Half Adder)</p>
+                            <p class="text-xs text-slate-400 italic mt-1">Bài toán: Mô tả mạch cộng Bán tổng (Half Adder). Hãy thử click trực tiếp vào khối <strong>Input A</strong> và <strong>Input B</strong> trong bản vẽ SVG. Bạn sẽ thấy 2 dòng lệnh <code>assign</code> bên code Verilog sẽ <strong>thực thi đồng thời</strong>, tương ứng với dòng dữ liệu chạy qua phần cứng vật lý.</p>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                            
+                            <!-- Left: Verilog Code Editor View -->
+                            <div class="bg-[#1e1e1e] rounded-lg border border-slate-600 overflow-hidden flex flex-col font-mono text-sm shadow-md">
+                                <div class="bg-[#2d2d2d] px-4 py-2 border-b border-slate-700 flex justify-between items-center">
+                                    <span class="text-slate-300 text-xs">half_adder.v</span>
+                                    <div class="flex gap-1.5">
+                                        <div class="w-2.5 h-2.5 rounded-full bg-red-500"></div>
+                                        <div class="w-2.5 h-2.5 rounded-full bg-yellow-500"></div>
+                                        <div class="w-2.5 h-2.5 rounded-full bg-green-500"></div>
+                                    </div>
+                                </div>
+                                <div class="p-4 leading-relaxed text-slate-300 overflow-x-auto h-full flex items-center">
+<pre class="w-full"><code><span class="v-kw">module</span> <span class="text-white font-bold">half_adder</span> (
+    <span class="v-kw">input</span>  <span class="v-type">wire</span> <span class="v-var">a</span>,
+    <span class="v-kw">input</span>  <span class="v-type">wire</span> <span class="v-var">b</span>,
+    <span class="v-kw">output</span> <span class="v-type">wire</span> <span class="v-var">sum</span>,
+    <span class="v-kw">output</span> <span class="v-type">wire</span> <span class="v-var">cout</span>
+);
+
+    <span class="v-comment">// Tính tổng (Sum) dùng cổng XOR</span>
+<span id="codeAssignSum" class="block px-1 rounded transition-colors duration-300">    <span class="v-kw">assign</span> <span class="v-var">sum</span>  <span class="v-op">=</span> <span class="v-var">a</span> <span class="v-op">^</span> <span class="v-var">b</span>;</span>
+
+    <span class="v-comment">// Tính cờ nhớ (Carry Out) dùng cổng AND</span>
+<span id="codeAssignCout" class="block px-1 rounded transition-colors duration-300">    <span class="v-kw">assign</span> <span class="v-var">cout</span> <span class="v-op">=</span> <span class="v-var">a</span> <span class="v-op">&</span> <span class="v-var">b</span>;</span>
+
+<span class="v-kw">endmodule</span></code></pre>
+                                </div>
+                            </div>
+
+                            <!-- Right: Hardware Schematic Visualization (100% SVG) -->
+                            <div class="bg-slate-900 rounded-lg border border-slate-600 p-2 flex flex-col justify-center relative overflow-hidden shadow-md">
+                                <div class="w-full relative">
+                                    <svg viewBox="0 0 450 220" class="w-full h-auto font-mono drop-shadow-md select-none">
+                                        
+                                        <!-- WIRES (A & B Branching to both gates) -->
+                                        <!-- Wire A to XOR -->
+                                        <path id="wireA_XOR" d="M 60 40 L 90 40 L 90 60 L 170 60" fill="none" class="svg-wire wire-inactive" stroke-linejoin="round" stroke-linecap="round"/>
+                                        <!-- Wire A to AND -->
+                                        <path id="wireA_AND" d="M 90 40 L 90 140 L 170 140" fill="none" class="svg-wire wire-inactive" stroke-linejoin="round" stroke-linecap="round"/>
+                                        <!-- Junction dot for A -->
+                                        <circle id="dotA" cx="90" cy="40" r="4" fill="#475569" class="transition-colors duration-200"/>
+
+                                        <!-- Wire B to XOR -->
+                                        <path id="wireB_XOR" d="M 60 120 L 110 120 L 110 80 L 170 80" fill="none" class="svg-wire wire-inactive" stroke-linejoin="round" stroke-linecap="round"/>
+                                        <!-- Wire B to AND -->
+                                        <path id="wireB_AND" d="M 110 120 L 110 160 L 170 160" fill="none" class="svg-wire wire-inactive" stroke-linejoin="round" stroke-linecap="round"/>
+                                        <!-- Junction dot for B -->
+                                        <circle id="dotB" cx="110" cy="120" r="4" fill="#475569" class="transition-colors duration-200"/>
+
+                                        <!-- GATES -->
+                                        <!-- XOR Gate (for SUM) -->
+                                        <g transform="translate(160, 30)">
+                                            <!-- The curved back line of XOR -->
+                                            <path d="M 0 10 Q 15 40 0 70" fill="none" stroke="#2563eb" stroke-width="3"/>
+                                            <!-- The main body of XOR -->
+                                            <path d="M 10 10 C 35 10, 55 25, 70 40 C 55 55, 35 70, 10 70 Q 25 40 10 10 Z" fill="#1e293b" stroke="#2563eb" stroke-width="3"/>
+                                            <text x="35" y="44" fill="white" font-weight="bold" font-size="12" text-anchor="middle">XOR</text>
+                                        </g>
+
+                                        <!-- AND Gate (for COUT) -->
+                                        <g transform="translate(160, 120)">
+                                            <!-- Main body of AND -->
+                                            <path d="M 10 0 L 40 0 A 30 30 0 0 1 40 60 L 10 60 Z" fill="#1e293b" stroke="#2563eb" stroke-width="3"/>
+                                            <text x="35" y="34" fill="white" font-weight="bold" font-size="12" text-anchor="middle">AND</text>
+                                        </g>
+
+                                        <!-- OUTPUT WIRES -->
+                                        <!-- Sum Wire -->
+                                        <path id="wireSum" d="M 230 70 L 310 70" fill="none" class="svg-wire wire-inactive" stroke-linecap="round"/>
+                                        <!-- Cout Wire -->
+                                        <path id="wireCout" d="M 230 150 L 310 150" fill="none" class="svg-wire wire-inactive" stroke-linecap="round"/>
+
+                                        <!-- INTERACTIVE INPUT BUTTONS (Natively in SVG) -->
+                                        <!-- Input A -->
+                                        <g id="btnInputA" class="cursor-pointer svg-interactive transition-transform hover:scale-[1.02]" transform-origin="40 40">
+                                            <rect id="rectA" x="20" y="20" width="40" height="40" rx="8" fill="#334155" stroke="#475569" stroke-width="2" class="transition-colors duration-300"/>
+                                            <text id="textA" x="40" y="46" fill="#cbd5e1" font-size="20" font-weight="bold" text-anchor="middle" class="transition-colors duration-300">0</text>
+                                            <text x="40" y="12" fill="#94a3b8" font-size="10" font-family="sans-serif" font-weight="bold" text-anchor="middle">Input A</text>
+                                        </g>
+
+                                        <!-- Input B -->
+                                        <g id="btnInputB" class="cursor-pointer svg-interactive transition-transform hover:scale-[1.02]" transform-origin="40 120">
+                                            <rect id="rectB" x="20" y="100" width="40" height="40" rx="8" fill="#334155" stroke="#475569" stroke-width="2" class="transition-colors duration-300"/>
+                                            <text id="textB" x="40" y="126" fill="#cbd5e1" font-size="20" font-weight="bold" text-anchor="middle" class="transition-colors duration-300">0</text>
+                                            <text x="40" y="92" fill="#94a3b8" font-size="10" font-family="sans-serif" font-weight="bold" text-anchor="middle">Input B</text>
+                                        </g>
+
+                                        <!-- OUTPUT LEDS & LABELS -->
+                                        <!-- Sum Output -->
+                                        <g transform="translate(330, 70)">
+                                            <circle id="ledSum" cx="0" cy="0" r="18" fill="#1e293b" stroke="#475569" stroke-width="3" class="transition-all duration-300"/>
+                                            <text id="valSum" x="0" y="6" fill="#64748b" font-size="18" font-weight="bold" text-anchor="middle" class="transition-colors duration-300">0</text>
+                                        </g>
+                                        <text x="360" y="65" fill="#10b981" font-size="12" font-family="sans-serif" font-weight="bold">sum</text>
+                                        <text x="360" y="80" fill="#64748b" font-size="10" font-family="sans-serif">(A XOR B)</text>
+
+                                        <!-- Cout Output -->
+                                        <g transform="translate(330, 150)">
+                                            <circle id="ledCout" cx="0" cy="0" r="18" fill="#1e293b" stroke="#475569" stroke-width="3" class="transition-all duration-300"/>
+                                            <text id="valCout" x="0" y="6" fill="#64748b" font-size="18" font-weight="bold" text-anchor="middle" class="transition-colors duration-300">0</text>
+                                        </g>
+                                        <text x="360" y="145" fill="#3b82f6" font-size="12" font-family="sans-serif" font-weight="bold">cout</text>
+                                        <text x="360" y="160" fill="#64748b" font-size="10" font-family="sans-serif">(A AND B)</text>
+
+                                    </svg>
+                                </div>
+                                <div class="bg-black/30 p-2 rounded text-center border border-white/5 mt-2 z-20 mx-4">
+                                    <span class="text-xs text-slate-400"><i class="fa-solid fa-bolt text-yellow-500 mr-1"></i> Hai lệnh <code>assign</code> chạy hoàn toàn độc lập và song song với nhau.</span>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
+            <div class="bg-amber-50 border-b border-amber-200 px-6 py-4 flex items-center justify-between">
+                <h3 class="text-xl font-bold text-dark flex items-center gap-2">
+                    <i class="fa-solid fa-users-gear text-secondary"></i> Nhiệm Vụ Của Nhóm
+                </h3>
+                <span class="text-xs bg-amber-200 text-amber-800 px-3 py-1 rounded-full font-bold shadow-sm">Thuyết trình 10 phút</span>
+            </div>
+            <div class="p-6">
+                <div class="flex items-start gap-4 mb-6 bg-yellow-50 p-4 rounded-xl border-l-4 border-secondary shadow-sm">
+                    <i class="fa-solid fa-lightbulb text-secondary text-xl mt-1"></i>
+                    <div>
+                        <p class="text-sm font-bold text-slate-800 mb-1">Quy tắc Mentor:</p>
+                        <p class="text-sm text-slate-600 italic">"Đừng cố dạy cú pháp Verilog như một tiết học lập trình khô khan. Hãy nhấn mạnh vào tư duy: Khi bạn gõ <code>assign y = a & b;</code> là bạn đang yêu cầu phần mềm đúc ra 1 cái cổng AND vật lý."</p>
+                    </div>
+                </div>
+
+                <h4 class="font-bold text-dark mb-3 text-sm uppercase tracking-wider">Gợi ý nội dung Slide nhóm (5-7 trang):</h4>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-slate-700 mb-2">
+                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 flex gap-3 items-center hover:border-amber-300 transition-colors">
+                        <span class="bg-dark text-white rounded w-6 h-6 flex items-center justify-center shrink-0 font-bold text-xs">1</span>
+                        <p class="font-medium">Verilog là gì? Phân biệt cơ bản giữa HDL và ngôn ngữ lập trình (C/Python).</p>
+                    </div>
+                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 flex gap-3 items-center hover:border-amber-300 transition-colors">
+                        <span class="bg-dark text-white rounded w-6 h-6 flex items-center justify-center shrink-0 font-bold text-xs">2</span>
+                        <p class="font-medium">Cấu trúc của một <code>module</code> cơ bản (Khai báo tên, port list).</p>
+                    </div>
+                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 flex gap-3 items-center hover:border-amber-300 transition-colors">
+                        <span class="bg-dark text-white rounded w-6 h-6 flex items-center justify-center shrink-0 font-bold text-xs">3</span>
+                        <p class="font-medium">Giải thích các từ khóa quan trọng: <code>input</code>, <code>output</code>, <code>wire</code>, <code>reg</code>.</p>
+                    </div>
+                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 flex gap-3 items-center hover:border-amber-300 transition-colors">
+                        <span class="bg-dark text-white rounded w-6 h-6 flex items-center justify-center shrink-0 font-bold text-xs">4</span>
+                        <p class="font-medium">Phân biệt sự khác nhau giữa <code>assign</code> và <code>always</code> block.</p>
+                    </div>
+                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 flex gap-3 items-center sm:col-span-2 hover:border-amber-300 transition-colors bg-gradient-to-r from-amber-50 to-white">
+                        <span class="bg-secondary text-white rounded w-6 h-6 flex items-center justify-center shrink-0 font-bold text-xs"><i class="fa-solid fa-code"></i></span>
+                        <p class="font-medium">Thực hành: Viết 1 module cổng AND đơn giản và giải thích từng dòng code cho lớp.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- DURING SESSION (TIMELINE) -->
+        <section class="bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
+            <h3 class="text-xl font-bold text-dark mb-6 flex items-center gap-2 border-b pb-4">
+                <i class="fa-solid fa-stopwatch text-accent"></i> Tiến Trình Buổi Học (60 Phút)
+            </h3>
+            
+            <div class="relative border-l-2 border-slate-200 ml-3 md:ml-6 space-y-6">
+                <!-- Timeline Items -->
+                <div class="relative pl-6 md:pl-8 group">
+                    <div class="absolute w-4 h-4 bg-accent rounded-full -left-[9px] top-1 border-4 border-white shadow group-hover:scale-125 transition-transform"></div>
+                    <div class="flex flex-col md:flex-row md:items-center gap-1 md:gap-4 mb-1">
+                        <span class="text-accent font-bold text-sm w-16 bg-accent/10 px-2 py-0.5 rounded text-center">0' - 5'</span>
+                        <h4 class="font-bold text-dark text-lg">Quick Check-in</h4>
+                    </div>
+                    <p class="text-sm text-slate-600 bg-slate-50 p-2 rounded border border-slate-100">Khởi động: Mentor hỏi nhanh "Viết code Verilog để tạo ra phần mềm hay phần cứng?".</p>
+                </div>
+                
+                <div class="relative pl-6 md:pl-8 group">
+                    <div class="absolute w-4 h-4 bg-primary rounded-full -left-[9px] top-1 border-4 border-white shadow group-hover:scale-125 transition-transform"></div>
+                    <div class="flex flex-col md:flex-row md:items-center gap-1 md:gap-4 mb-1">
+                        <span class="text-primary font-bold text-sm w-16 bg-primary/10 px-2 py-0.5 rounded text-center">5' - 15'</span>
+                        <h4 class="font-bold text-dark text-lg">Student Presentation</h4>
+                    </div>
+                    <p class="text-sm text-slate-600 bg-slate-50 p-2 rounded border border-slate-100">Cá nhân/Nhóm đại diện lên thuyết trình về "What is Verilog?".</p>
+                </div>
+
+                <div class="relative pl-6 md:pl-8 group">
+                    <div class="absolute w-4 h-4 bg-dark rounded-full -left-[9px] top-1 border-4 border-white shadow group-hover:scale-125 transition-transform"></div>
+                    <div class="flex flex-col md:flex-row md:items-center gap-1 md:gap-4 mb-1">
+                        <span class="text-dark font-bold text-sm w-16 bg-slate-200 px-2 py-0.5 rounded text-center">15' - 25'</span>
+                        <h4 class="font-bold text-dark text-lg">Mentor Guidance</h4>
+                    </div>
+                    <p class="text-sm text-slate-600 bg-slate-50 p-2 rounded border border-slate-100">Mentor phân tích: <strong class="text-red-500">Viết code là đang "đi dây" (Wiring)</strong>. Giải thích sự khác biệt cốt lõi của tính chạy song song.</p>
+                </div>
+
+                <div class="relative pl-6 md:pl-8 group">
+                    <div class="absolute w-4 h-4 bg-secondary rounded-full -left-[9px] top-1 border-4 border-white shadow group-hover:scale-125 transition-transform"></div>
+                    <div class="flex flex-col md:flex-row md:items-center gap-1 md:gap-4 mb-1">
+                        <span class="text-secondary font-bold text-sm w-16 bg-secondary/10 px-2 py-0.5 rounded text-center">25' - 45'</span>
+                        <h4 class="font-bold text-dark text-lg">Breakout Room</h4>
+                    </div>
+                    <p class="text-sm text-slate-600 bg-slate-50 p-2 rounded border border-slate-100">Vào phòng nhỏ. Phân tích chức năng và phác thảo cấu trúc module cho một mạch cơ bản.</p>
+                </div>
+
+                <div class="relative pl-6 md:pl-8 group">
+                    <div class="absolute w-4 h-4 bg-purple-500 rounded-full -left-[9px] top-1 border-4 border-white shadow group-hover:scale-125 transition-transform"></div>
+                    <div class="flex flex-col md:flex-row md:items-center gap-1 md:gap-4 mb-1">
+                        <span class="text-purple-500 font-bold text-sm w-16 bg-purple-100 px-2 py-0.5 rounded text-center">45' - 55'</span>
+                        <h4 class="font-bold text-dark text-lg">Group Sharing</h4>
+                    </div>
+                    <p class="text-sm text-slate-600 bg-slate-50 p-2 rounded border border-slate-100">Đại diện nhóm đọc thử danh sách port (input/output) của mạch nhóm mình đã chọn.</p>
+                </div>
+
+                <div class="relative pl-6 md:pl-8 group">
+                    <div class="absolute w-4 h-4 bg-emerald-600 rounded-full -left-[9px] top-1 border-4 border-white shadow group-hover:scale-125 transition-transform"></div>
+                    <div class="flex flex-col md:flex-row md:items-center gap-1 md:gap-4 mb-1">
+                        <span class="text-emerald-600 font-bold text-sm w-16 bg-emerald-100 px-2 py-0.5 rounded text-center">55' - 60'</span>
+                        <h4 class="font-bold text-dark text-lg">Wrap-up & Task</h4>
+                    </div>
+                    <p class="text-sm text-slate-600 bg-slate-50 p-2 rounded border border-slate-100">Giao task viết code module rỗng và điền form điểm danh.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="bg-gradient-to-br from-slate-800 to-dark text-white rounded-2xl shadow-lg overflow-hidden border border-slate-700">
+            <div class="px-6 py-4 border-b border-white/10 flex flex-wrap items-center justify-between gap-2">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-comments text-secondary text-xl"></i>
+                    <h3 class="text-xl font-bold">Hướng Dẫn Breakout Room</h3>
+                </div>
+                <span class="text-[10px] uppercase font-bold bg-white/10 px-2 py-1 rounded text-slate-300">Hardware Modeling</span>
+            </div>
+
+            <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    <h4 class="font-semibold text-secondary mb-3 uppercase tracking-wider text-sm flex items-center gap-2">
+                        <i class="fa-regular fa-message"></i> 3 Câu Hỏi Thảo Luận
+                    </h4>
+                    <p class="text-sm text-slate-300 mb-4 italic">Hãy chọn mạch MUX 2-1 (Tuần 4) hoặc Mạch Half Adder.</p>
+                    <ul class="space-y-3">
+                        <li class="bg-white/5 p-3 rounded-lg text-sm border-l-2 border-secondary hover:bg-white/10 transition-colors">
+                            <span class="font-bold text-secondary mr-2">Q1.</span> Mạch này có những cổng giao tiếp (Input/Output ports) nào? Đặt tên biến cho chúng.
+                        </li>
+                        <li class="bg-white/5 p-3 rounded-lg text-sm border-l-2 border-secondary hover:bg-white/10 transition-colors">
+                            <span class="font-bold text-secondary mr-2">Q2.</span> Nếu viết bằng lời (logic), mạch này hoạt động như thế nào? (Vd: Nếu A=1 thì Y=...)
+                        </li>
+                        <li class="bg-white/5 p-3 rounded-lg text-sm border-l-2 border-secondary hover:bg-white/10 transition-colors">
+                            <span class="font-bold text-secondary mr-2">Q3.</span> Phác thảo cấu trúc module Verilog cho mạch đó. Chỉ cần viết phần <code>module tên_mach (...);</code> và khai báo input/output, chưa cần viết logic bên trong.
+                        </li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold text-accent mb-3 uppercase tracking-wider text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-users"></i> Vai Trò Tổ Chức Nhóm
+                    </h4>
+                    <div class="space-y-2 mb-4 bg-black/20 p-3 rounded-xl border border-white/5">
+                        <div class="flex items-center gap-3">
+                            <div class="bg-white/10 w-8 h-8 rounded-full flex items-center justify-center shrink-0"><i class="fa-solid fa-user-tie text-accent text-sm"></i></div>
+                            <p class="text-sm"><strong class="text-white">Facilitator:</strong> Chọn nhanh 1 mạch để cả nhóm cùng tập trung phân tích.</p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="bg-white/10 w-8 h-8 rounded-full flex items-center justify-center shrink-0"><i class="fa-solid fa-pen-clip text-accent text-sm"></i></div>
+                            <p class="text-sm"><strong class="text-white">Note Keeper:</strong> Mở Notepad/Chatbox gõ nháp cấu trúc `module... endmodule` theo ý kiến của nhóm.</p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="bg-white/10 w-8 h-8 rounded-full flex items-center justify-center shrink-0"><i class="fa-solid fa-bullhorn text-accent text-sm"></i></div>
+                            <p class="text-sm"><strong class="text-white">Reporter:</strong> Copy đoạn code nháp đó paste vào chatbox chung của lớp khi hết giờ.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="bg-slate-50 rounded-2xl shadow-sm border border-slate-200 p-6">
+            <h3 class="text-xl font-bold text-dark flex items-center gap-2 mb-6">
+                <i class="fa-solid fa-language text-accent"></i> Từ Vựng Tiếng Anh Chuyên Ngành
+            </h3>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 hover:border-primary transition-all duration-300">
+                    <h4 class="font-bold text-primary text-lg mb-1">HDL</h4>
+                    <p class="text-sm font-bold text-dark mb-1">Ngôn ngữ mô tả phần cứng</p>
+                    <p class="text-[11px] text-slate-500">(Hardware Description Language) Ngôn ngữ dùng để thiết kế kiến trúc chip thay vì phần mềm.</p>
+                </div>
+                
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 hover:border-primary transition-all duration-300">
+                    <h4 class="font-bold text-primary text-lg mb-1">Module</h4>
+                    <p class="text-sm font-bold text-dark mb-1">Khối thiết kế</p>
+                    <p class="text-[11px] text-slate-500">Khối xây dựng cơ bản trong Verilog, đại diện cho một mạch điện cụ thể (như Black box).</p>
+                </div>
+                
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 hover:border-primary transition-all duration-300">
+                    <h4 class="font-bold text-primary text-lg mb-1">Wire / Reg</h4>
+                    <p class="text-sm font-bold text-dark mb-1">Dây dẫn / Thanh ghi</p>
+                    <p class="text-[11px] text-slate-500">Các kiểu dữ liệu chính. Wire để nối mạch tổ hợp, Reg thường dùng lưu giá trị trong mạch tuần tự.</p>
+                </div>
+                
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 hover:border-primary transition-all duration-300">
+                    <h4 class="font-bold text-primary text-lg mb-1">Assign</h4>
+                    <p class="text-sm font-bold text-dark mb-1">Lệnh gán liên tục</p>
+                    <p class="text-[11px] text-slate-500">Dùng để tạo ra các mạch logic tổ hợp (Combinational Logic). Các lệnh assign chạy song song.</p>
+                </div>
+            </div>
+        </section>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <section class="bg-blue-600 text-white rounded-2xl shadow-lg p-6 relative overflow-hidden flex flex-col">
+                <i class="fa-solid fa-keyboard absolute -right-6 -bottom-6 text-9xl text-blue-500 opacity-30"></i>
+                <div class="relative z-10 flex-1">
+                    <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-lightbulb text-yellow-300"></i> Lời Khuyên Từ Mentor
+                    </h3>
+                    
+                    <div class="space-y-4">
+                        <div class="bg-yellow-500/20 p-3 rounded-lg border border-yellow-400/50 backdrop-blur-sm">
+                            <span class="text-yellow-300 text-xs font-bold uppercase tracking-wider block mb-1"><i class="fa-solid fa-triangle-exclamation"></i> Sửa Lỗi Tư Duy (Misconception)</span>
+                            <p class="text-sm text-white leading-relaxed">Nhiều sinh viên học Verilog sau C/C++ nên mang thói quen "lập trình tuần tự". Nhớ rằng: Viết Verilog <strong>KHÔNG PHẢI</strong> là viết thuật toán để CPU chạy từng dòng. Viết Verilog là bạn đang <strong>"mô tả cấu trúc dây điện và linh kiện"</strong> để nhà máy đúc ra.</p>
+                        </div>
+
+                        <div class="border-t border-blue-400/50 pt-3">
+                            <p class="text-base font-bold text-yellow-300 italic mb-2">"Think Hardware Before Coding."</p>
+                            <p class="text-sm text-blue-50 leading-relaxed">Quy tắc số 1: Trước khi gõ bất kỳ dòng code Verilog nào, hãy tự hỏi: <em>"Mạch điện mình đang muốn tạo ra (MUX, Adder, hay Flip-Flop) trông như thế nào?"</em> Hãy vẽ nó ra giấy trước!</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="bg-white rounded-2xl shadow-lg border border-slate-200 p-6 flex flex-col">
+                <h3 class="text-xl font-bold text-dark mb-4 flex items-center gap-2 border-b pb-3">
+                    <i class="fa-solid fa-plug-circle-bolt text-secondary"></i> Kết Nối Dự Án (Mini-Projects)
+                </h3>
+                <p class="text-sm text-slate-600 mb-4">
+                    Mọi dự án phức tạp đều bắt đầu từ việc khai báo các Module đơn giản. Dưới đây là các Module nền tảng bạn nên thử tự viết code Verilog:
+                </p>
+                <div class="grid grid-cols-2 gap-3 flex-grow">
+                    <div class="bg-slate-50 border border-slate-100 rounded-lg p-3 flex flex-col items-center justify-center text-center hover:border-emerald-300 transition-colors shadow-sm">
+                        <i class="fa-solid fa-code-merge text-2xl text-emerald-600 mb-2"></i>
+                        <h4 class="font-bold text-xs text-dark">Basic Logic Gates</h4>
+                        <p class="text-[10px] text-slate-500 mt-1">Viết module cho cổng AND, OR, XOR</p>
+                    </div>
+                    <div class="bg-slate-50 border border-slate-100 rounded-lg p-3 flex flex-col items-center justify-center text-center hover:border-blue-400 transition-colors shadow-sm">
+                        <i class="fa-solid fa-code-branch text-2xl text-blue-500 mb-2"></i>
+                        <h4 class="font-bold text-xs text-dark">2-to-1 MUX</h4>
+                        <p class="text-[10px] text-slate-500 mt-1">Sử dụng toán tử điều kiện (?:)</p>
+                    </div>
+                    <div class="bg-slate-50 border border-slate-100 rounded-lg p-3 flex flex-col items-center justify-center text-center hover:border-amber-400 transition-colors shadow-sm">
+                        <i class="fa-solid fa-plus-minus text-2xl text-amber-500 mb-2"></i>
+                        <h4 class="font-bold text-xs text-dark">Half/Full Adder</h4>
+                        <p class="text-[10px] text-slate-500 mt-1">Dùng lệnh assign để tính Sum và Cout</p>
+                    </div>
+                    <div class="bg-slate-50 border border-slate-100 rounded-lg p-3 flex flex-col items-center justify-center text-center hover:border-purple-400 transition-colors shadow-sm">
+                        <i class="fa-solid fa-memory text-2xl text-purple-500 mb-2"></i>
+                        <h4 class="font-bold text-xs text-dark">D Flip-Flop</h4>
+                        <p class="text-[10px] text-slate-500 mt-1">Tập làm quen với khối always @(posedge clk)</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <section class="bg-emerald-50 rounded-2xl shadow-sm border border-emerald-200 overflow-hidden">
+            <div class="bg-emerald-100/50 px-6 py-4 border-b border-emerald-200">
+                <h3 class="text-xl font-bold text-emerald-800 flex items-center gap-2">
+                    <i class="fa-solid fa-forward-step"></i> Hành Động Sau Buổi Học
+                </h3>
+            </div>
+            <div class="p-6">
+                <!-- Mini Task -->
+                <div class="bg-white p-5 rounded-xl border border-emerald-100 shadow-sm mb-6 relative overflow-hidden">
+                    <div class="absolute right-0 top-0 w-1 h-full bg-emerald-400"></div>
+                    <h4 class="font-bold text-emerald-700 mb-2 flex items-center gap-2"><i class="fa-solid fa-fire text-secondary"></i> Task Tuần Này (Module Declaration)</h4>
+                    <p class="text-sm text-slate-700 mb-3">Mỗi bạn hãy chọn 1 mạch cơ bản (VD: MUX 2-1 hoặc Half Adder), xác định danh sách cổng, và thử viết một cấu trúc module rỗng đăng lên Group lớp:</p>
+                    <div class="bg-slate-800 p-3 rounded text-slate-300 font-mono text-sm mb-2 border border-slate-700">
+<pre><code>module [ten_mach] (
+    input wire [ten_input1],
+    input wire [ten_input2],
+    output wire [ten_output]
+);
+    // Bạn chưa cần viết logic ở đây!
+endmodule</code></pre>
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <details class="group bg-white rounded-lg border border-slate-200 transition-all">
+                        <summary class="flex items-center justify-between p-4 cursor-pointer font-semibold text-slate-800 group-open:text-emerald-700 hover:bg-slate-50 transition-colors rounded-lg">
+                            <span class="flex items-center gap-2"><i class="fa-solid fa-clipboard-check text-emerald-500"></i> Mục tiêu sinh viên đạt được</span>
+                            <span class="transition-transform duration-300 group-open:rotate-180">
+                                <i class="fa-solid fa-chevron-down text-slate-400"></i>
+                            </span>
+                        </summary>
+                        <div class="p-4 border-t border-slate-100 text-sm text-slate-600 bg-slate-50/50">
+                            <ul class="space-y-2">
+                                <li class="flex items-start gap-2"><i class="fa-solid fa-check text-emerald-500 mt-1"></i> Hiểu Verilog là ngôn ngữ mô tả kiến trúc phần cứng (HDL).</li>
+                                <li class="flex items-start gap-2"><i class="fa-solid fa-check text-emerald-500 mt-1"></i> Phân biệt rõ sự khác biệt với ngôn ngữ phần mềm (C/C++).</li>
+                                <li class="flex items-start gap-2"><i class="fa-solid fa-check text-emerald-500 mt-1"></i> Giải thích được cấu trúc của một <code>module</code> và các ports (input/output).</li>
+                                <li class="flex items-start gap-2"><i class="fa-solid fa-check text-emerald-500 mt-1"></i> Hiểu tính thực thi song song (Parallelism) của lệnh <code>assign</code>.</li>
+                                <li class="flex items-start gap-2"><i class="fa-solid fa-check text-emerald-500 mt-1"></i> Kết nối được kiến thức mạch tổ hợp với mã nguồn Verilog.</li>
+                            </ul>
+                        </div>
+                    </details>
+
+                    <details class="group bg-white rounded-lg border border-slate-200 transition-all">
+                        <summary class="flex items-center justify-between p-4 cursor-pointer font-semibold text-slate-800 group-open:text-blue-700 hover:bg-slate-50 transition-colors rounded-lg">
+                            <span class="flex items-center gap-2"><i class="fa-solid fa-link text-blue-500"></i> Điền Google Form (Bắt buộc sau buổi học)</span>
+                            <span class="transition-transform duration-300 group-open:rotate-180">
+                                <i class="fa-solid fa-chevron-down text-slate-400"></i>
+                            </span>
+                        </summary>
+                        <div class="p-4 border-t border-slate-100 bg-blue-50/30">
+                            <p class="text-sm text-slate-600 mb-4">Vui lòng hoàn thành Form để Mentor nắm được mức độ tiếp thu của bạn về Verilog.</p>
+                            <div class="bg-white border border-slate-200 p-4 rounded-lg shadow-sm">
+                                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Mentor sẽ hỏi 5 nội dung sau:</p>
+                                <ol class="list-decimal list-inside text-sm text-slate-700 space-y-1.5 font-medium">
+                                    <li>Xác nhận tham gia buổi học Week 7?</li>
+                                    <li>Em hiểu Verilog là ngôn ngữ mô tả phần cứng ở mức nào (1-5)?</li>
+                                    <li>Em thấy Verilog khác C/Python ở điểm nào lớn nhất?</li>
+                                    <li>Khái niệm nào khó nhất: module, wire, reg, assign, always?</li>
+                                    <li>Em muốn thử viết Verilog cho mạch cơ bản nào?</li>
+                                </ol>
+                            </div>
+                            <a href="https://forms.gle/4ZFMSAyY3GHe2soZA" target="_blank" class="mt-4 bg-primary hover:bg-blue-700 text-white font-semibold py-2.5 px-6 rounded-lg transition-colors inline-flex items-center gap-2 shadow-md hover:shadow-lg">
+                                <i class="fa-brands fa-google"></i> Mở Google Form Tuần 7
+                            </a>
+                        </div>
+                    </details>
+                </div>
+            </div>
+        </section>
+        
+    </main>
+
+    <footer class="mt-16 bg-slate-900 text-slate-300 py-12 text-center border-t-4 border-primary">
+        <div class="max-w-4xl mx-auto px-4">
+            <div class="flex justify-center items-center gap-3 mb-6">
+                <i class="fa-solid fa-microchip text-2xl text-slate-600"></i>
+                <div class="h-px bg-slate-700 w-16"></div>
+                <i class="fa-solid fa-laptop-code text-2xl text-primary drop-shadow-[0_0_8px_rgba(37,99,235,0.8)]"></i>
+                <div class="h-px bg-slate-700 w-16"></div>
+                <i class="fa-solid fa-users-rays text-2xl text-secondary"></i>
+            </div>
+            
+            <h4 class="text-xl font-bold text-white mb-2">IC Design Mentoring Community</h4>
+            <p class="text-lg italic text-slate-400 font-light mb-8">"Learn a little, build a little, share a little, grow a little."</p>
+            
+            <div class="bg-slate-800/80 inline-block p-4 rounded-xl border border-slate-700 mx-auto text-center max-w-2xl">
+                <div class="flex items-center justify-center gap-2 mb-2 text-white">
+                    <i class="fa-solid fa-copyright"></i> <span class="font-bold">Bản quyền nội dung:</span>
+                </div>
+                <p class="text-sm text-slate-300 mb-1">Khoa Điện - Điện tử, Trường Kỹ Thuật, Đại học Phenikaa</p>
+                <p class="text-sm text-amber-400 font-medium">Giảng viên biên soạn: ThS. Đinh Văn Nam</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // 1. Checklist Logic
+        function toggleTask(checkbox) {
+            const label = checkbox.nextElementSibling;
+            if (checkbox.checked) {
+                label.classList.add('completed');
+            } else {
+                label.classList.remove('completed');
+            }
+        }
+
+        // 2. Interactive Verilog To Hardware Visualizer (Half Adder) - SVG Driven
+        document.addEventListener('DOMContentLoaded', () => {
+            // SVG Interactive Input Groups
+            const btnInputA = document.getElementById('btnInputA');
+            const btnInputB = document.getElementById('btnInputB');
+            
+            // SVG Rects & Texts for Inputs
+            const rectA = document.getElementById('rectA');
+            const textA = document.getElementById('textA');
+            const rectB = document.getElementById('rectB');
+            const textB = document.getElementById('textB');
+            
+            // Output Values & LEDs in SVG
+            const valSum = document.getElementById('valSum');
+            const valCout = document.getElementById('valCout');
+            const ledSum = document.getElementById('ledSum');
+            const ledCout = document.getElementById('ledCout');
+
+            // Wires
+            const wireA_XOR = document.getElementById('wireA_XOR');
+            const wireA_AND = document.getElementById('wireA_AND');
+            const dotA = document.getElementById('dotA');
+
+            const wireB_XOR = document.getElementById('wireB_XOR');
+            const wireB_AND = document.getElementById('wireB_AND');
+            const dotB = document.getElementById('dotB');
+
+            const wireSum = document.getElementById('wireSum');
+            const wireCout = document.getElementById('wireCout');
+
+            // Code Highlights
+            const codeAssignSum = document.getElementById('codeAssignSum');
+            const codeAssignCout = document.getElementById('codeAssignCout');
+
+            let stateA = 0;
+            let stateB = 0;
+
+            function updateSimulation() {
+                // --- Input A Updates ---
+                textA.textContent = stateA;
+                if (stateA) {
+                    rectA.setAttribute('fill', '#10b981'); // Emerald
+                    textA.setAttribute('fill', '#ffffff');
+                    wireA_XOR.classList.replace('wire-inactive', 'wire-active');
+                    wireA_AND.classList.replace('wire-inactive', 'wire-active');
+                    dotA.setAttribute('fill', '#10b981');
+                } else {
+                    rectA.setAttribute('fill', '#334155'); // Slate
+                    textA.setAttribute('fill', '#cbd5e1');
+                    wireA_XOR.classList.replace('wire-active', 'wire-inactive');
+                    wireA_AND.classList.replace('wire-active', 'wire-inactive');
+                    dotA.setAttribute('fill', '#475569');
+                }
+
+                // --- Input B Updates ---
+                textB.textContent = stateB;
+                if (stateB) {
+                    rectB.setAttribute('fill', '#3b82f6'); // Blue
+                    textB.setAttribute('fill', '#ffffff');
+                    
+                    wireB_XOR.classList.replace('wire-inactive', 'wire-active');
+                    wireB_XOR.style.stroke = '#3b82f6';
+                    wireB_AND.classList.replace('wire-inactive', 'wire-active');
+                    wireB_AND.style.stroke = '#3b82f6';
+                    dotB.setAttribute('fill', '#3b82f6');
+                } else {
+                    rectB.setAttribute('fill', '#334155');
+                    textB.setAttribute('fill', '#cbd5e1');
+                    
+                    wireB_XOR.classList.replace('wire-active', 'wire-inactive');
+                    wireB_XOR.style.stroke = '';
+                    wireB_AND.classList.replace('wire-active', 'wire-inactive');
+                    wireB_AND.style.stroke = '';
+                    dotB.setAttribute('fill', '#475569');
+                }
+
+                // --- Logic Calculation (PARALLEL) ---
+                const sum = stateA ^ stateB; // XOR
+                const cout = stateA & stateB; // AND
+
+                // --- Code Execution Highlight ---
+                codeAssignSum.classList.add('code-highlight');
+                codeAssignCout.classList.add('code-highlight');
+                setTimeout(() => {
+                    codeAssignSum.classList.remove('code-highlight');
+                    codeAssignCout.classList.remove('code-highlight');
+                }, 300);
+
+                // --- Output Sum Visuals ---
+                valSum.textContent = sum;
+                if (sum) {
+                    wireSum.classList.replace('wire-inactive', 'wire-active');
+                    ledSum.setAttribute('stroke', '#10b981');
+                    ledSum.style.filter = 'drop-shadow(0 0 8px rgba(16,185,129,0.8))';
+                    valSum.setAttribute('fill', '#10b981');
+                } else {
+                    wireSum.classList.replace('wire-active', 'wire-inactive');
+                    ledSum.setAttribute('stroke', '#475569');
+                    ledSum.style.filter = 'none';
+                    valSum.setAttribute('fill', '#64748b');
+                }
+
+                // --- Output Cout Visuals ---
+                valCout.textContent = cout;
+                if (cout) {
+                    wireCout.classList.replace('wire-inactive', 'wire-active');
+                    wireCout.style.stroke = '#3b82f6';
+                    ledCout.setAttribute('stroke', '#3b82f6');
+                    ledCout.style.filter = 'drop-shadow(0 0 8px rgba(59,130,246,0.8))';
+                    valCout.setAttribute('fill', '#3b82f6');
+                } else {
+                    wireCout.classList.replace('wire-active', 'wire-inactive');
+                    wireCout.style.stroke = '';
+                    ledCout.setAttribute('stroke', '#475569');
+                    ledCout.style.filter = 'none';
+                    valCout.setAttribute('fill', '#64748b');
+                }
+            }
+
+            // Click Listeners on SVG Groups
+            btnInputA.addEventListener('click', () => {
+                stateA = stateA ? 0 : 1;
+                updateSimulation();
+            });
+
+            btnInputB.addEventListener('click', () => {
+                stateB = stateB ? 0 : 1;
+                updateSimulation();
+            });
+
+            // Initial state
+            updateSimulation();
+        });
+    </script>
+
+<div id="lichub-nav-bottom" data-lichub="v1" role="navigation" aria-label="Điều hướng Learning Hub (bổ sung, không thuộc trang gốc)" style="background:#0f172a;color:#e2e8f0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:13.5px;line-height:1.6;padding:8px 16px;display:flex;flex-wrap:wrap;gap:4px 16px;align-items:center;border-top:3px solid #f59e0b"><a href="../../index.html" style="color:#7dd3fc;text-decoration:none;font-weight:600">⌂ Learning Hub</a><span style="font-size:11px;font-weight:700;letter-spacing:.04em;color:#f59e0b;border:1px solid #f59e0b;border-radius:6px;padding:1px 7px;white-space:nowrap">V1 · BẢN LƯU TRỮ GỐC</span><a href="index.html" style="color:#cbd5e1;text-decoration:none">Mục lục V1</a><span style="flex:1"></span><a href="Week6.html" style="color:#7dd3fc;text-decoration:none" title="Finite State Machines">← Tuần 6</a><a href="Week8.html" style="color:#7dd3fc;text-decoration:none" title="FPGA vs ASIC">Tuần 8 →</a><span aria-hidden="true" style="color:#475569">|</span><span style="display:inline-flex;gap:8px;align-items:center"><span style="color:#94a3b8">Chuyển bản:</span> <b aria-current="true" style="color:#f59e0b">V1</b> <a href="../v2/index.html" style="color:#cbd5e1;text-decoration:none">V2</a> <a href="../v3/index.html" style="color:#cbd5e1;text-decoration:none">V3</a></span></div>
+</body>
+</html>

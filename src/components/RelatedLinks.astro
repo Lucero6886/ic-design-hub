@@ -1,0 +1,34 @@
+---
+/**
+ * Liên kết tri thức: Learning → Project → Research (§10 đặc tả).
+ * Chỉ render khi có quan hệ được khai báo tường minh trong frontmatter.
+ */
+import { href } from "~/utils/url";
+
+interface Props {
+  articles?: string[];
+  projects?: string[];
+  research?: string[];
+}
+const { articles = [], projects = [], research = [] } = Astro.props;
+const has = articles.length + projects.length + research.length > 0;
+---
+
+{
+  has && (
+    <aside class="co info" aria-label="Nội dung liên quan">
+      <b>Kết nối tri thức</b>
+      <ul style="margin:8px 0 0">
+        {articles.map((s) => (
+          <li>Bài viết: <a href={href(`articles/${s}/`)}>{s}</a></li>
+        ))}
+        {projects.map((s) => (
+          <li>Project: <a href={href(`projects/${s}/`)}>{s}</a></li>
+        ))}
+        {research.map((s) => (
+          <li>Nghiên cứu: <a href={href(`research/${s}/`)}>{s}</a></li>
+        ))}
+      </ul>
+    </aside>
+  )
+}

@@ -1,0 +1,1449 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tuần 9 — Traffic Light Controller | IC Design Mentoring</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: { extend: {
+    colors: { primary:'#2563eb', secondary:'#f59e0b', accent:'#10b981', danger:'#ef4444', dark:'#0f172a', light:'#f8fafc' },
+    fontFamily: { sans:['Inter','system-ui','sans-serif'], mono:['"JetBrains Mono"','Consolas','monospace'] }
+  } }
+};
+</script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  html{scroll-behavior:smooth}
+  body{font-family:'Inter',system-ui,sans-serif}
+  .code-body{background:#0f172a;color:#e2e8f0;font-family:'JetBrains Mono',Consolas,monospace;font-size:.8rem;line-height:1.65;padding:1rem 1.25rem;overflow-x:auto;border-radius:0 0 .75rem .75rem;margin:0}
+  .tok-kw{color:#c084fc;font-weight:600}
+  .tok-type{color:#67e8f9}
+  .tok-num{color:#fbbf24}
+  .tok-cmt{color:#7c8fa6;font-style:italic}
+  .tok-fn{color:#7dd3fc;font-weight:600}
+  .tok-sig{color:#93c5fd}
+  .code-head{display:flex;justify-content:space-between;align-items:center;background:#1e293b;color:#cbd5e1;font-size:.75rem;padding:.45rem 1rem;border-radius:.75rem .75rem 0 0;font-family:'JetBrains Mono',monospace}
+  .copy-btn{background:#334155;color:#e2e8f0;border:none;padding:.25rem .7rem;border-radius:.4rem;font-size:.72rem;cursor:pointer}
+  .copy-btn:hover{background:#2563eb}
+  .quiz-opt{display:flex;gap:.6rem;align-items:flex-start;width:100%;text-align:left;padding:.65rem .9rem;border:2px solid #e2e8f0;border-radius:.65rem;background:#fff;cursor:pointer;font-size:.92rem;transition:all .15s;margin-bottom:.5rem}
+  .quiz-opt:hover{border-color:#93c5fd;background:#eff6ff}
+  .quiz-opt.sel{border-color:#2563eb;background:#dbeafe}
+  .quiz-opt.correct{border-color:#10b981;background:#d1fae5}
+  .quiz-opt.wrong{border-color:#ef4444;background:#fee2e2}
+  .quiz-expl{display:none;margin-top:.5rem;padding:.75rem 1rem;border-radius:.6rem;background:#f1f5f9;border-left:4px solid #2563eb;font-size:.88rem}
+  .quiz-expl.show{display:block}
+  .chk-item{display:flex;gap:.7rem;align-items:flex-start;padding:.55rem .8rem;border-radius:.6rem;background:#fff;border:1px solid #e2e8f0;cursor:pointer}
+  .chk-item input{margin-top:.25rem;accent-color:#2563eb;width:1rem;height:1rem;flex-shrink:0}
+  .layer-chip{display:inline-flex;align-items:center;gap:.35rem;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.03em;padding:.15rem .55rem;border-radius:9999px;white-space:nowrap}
+  table.vtable td, table.vtable th{padding:.55rem .75rem;border:1px solid #e2e8f0;font-size:.85rem;vertical-align:top}
+  table.vtable th{background:#eff6ff;color:#1e40af;text-align:left}
+  .demo-btn{display:inline-flex;align-items:center;gap:.5rem;font-weight:700;font-size:.85rem;padding:.6rem 1.1rem;border-radius:.7rem;border:none;cursor:pointer;transition:all .15s}
+  ::-webkit-scrollbar{height:8px;width:8px}
+  ::-webkit-scrollbar-thumb{background:#94a3b8;border-radius:4px}
+</style>
+</head>
+<body class="bg-slate-100 text-slate-800">
+<div id="lichub-nav-top" data-lichub="v2" role="navigation" aria-label="Điều hướng Learning Hub (bổ sung, không thuộc trang gốc)" style="background:#0f172a;color:#e2e8f0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:13.5px;line-height:1.6;padding:8px 16px;display:flex;flex-wrap:wrap;gap:4px 16px;align-items:center;border-bottom:3px solid #38bdf8"><a href="../../index.html" style="color:#7dd3fc;text-decoration:none;font-weight:600">⌂ Learning Hub</a><span style="font-size:11px;font-weight:700;letter-spacing:.04em;color:#38bdf8;border:1px solid #38bdf8;border-radius:6px;padding:1px 7px;white-space:nowrap">V2 · BẢN MỞ RỘNG</span><a href="index.html" style="color:#cbd5e1;text-decoration:none">Mục lục V2</a><span style="flex:1"></span><a href="Week8.html" style="color:#7dd3fc;text-decoration:none" title="FPGA vs ASIC">← Tuần 8</a><a href="Week10.html" style="color:#7dd3fc;text-decoration:none" title="Counter & 7-Segment Display">Tuần 10 →</a><span aria-hidden="true" style="color:#475569">|</span><span style="display:inline-flex;gap:8px;align-items:center"><span style="color:#94a3b8">Chuyển bản:</span> <a href="../v1/index.html" style="color:#cbd5e1;text-decoration:none">V1</a> <b aria-current="true" style="color:#38bdf8">V2</b> <a href="../v3/index.html" style="color:#cbd5e1;text-decoration:none">V3</a></span></div>
+
+
+<!-- ============ STICKY NAV ============ -->
+<nav class="sticky top-0 z-50 bg-dark/95 backdrop-blur text-white shadow-lg">
+  <div class="max-w-6xl mx-auto px-4 py-2.5 flex items-center gap-4">
+    <div class="flex items-center gap-2 shrink-0">
+      <i class="fa-solid fa-microchip text-primary"></i>
+      <span class="font-bold text-sm hidden sm:inline">IC Design Mentoring</span>
+    </div>
+    <div class="shrink-0 flex items-center gap-2">
+      <span class="text-xs font-bold bg-primary px-2 py-1 rounded-md">Tuần 9/12</span>
+      <div class="w-20 h-1.5 bg-slate-700 rounded-full hidden md:block"><div class="h-1.5 bg-primary rounded-full" style="width:75%"></div></div>
+    </div>
+    <div class="flex-1 overflow-x-auto whitespace-nowrap text-xs font-medium text-slate-300 flex gap-4 py-1">
+      <a href="#hero" class="hover:text-white">Mục tiêu</a>
+      <a href="#core-concepts" class="hover:text-white">Khái niệm</a>
+      <a href="#demo" class="hover:text-white">Demo</a>
+      <a href="#workflow" class="hover:text-white">Workflow</a>
+      <a href="#code-rtl" class="hover:text-white">Code</a>
+      <a href="#waveform" class="hover:text-white">Waveform</a>
+      <a href="#mistakes" class="hover:text-white">Lỗi thường gặp</a>
+      <a href="#quiz" class="hover:text-white">Quiz</a>
+      <a href="#summary" class="hover:text-white">Tổng kết</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ============ 1. HERO ============ -->
+<header id="hero" class="bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 text-white">
+  <div class="max-w-6xl mx-auto px-4 py-14 md:py-20">
+    <span class="inline-flex items-center gap-2 bg-accent/20 border border-accent/50 text-emerald-200 text-xs font-bold px-3 py-1.5 rounded-full uppercase tracking-wider mb-5"><i class="fa-solid fa-traffic-light"></i> Tuần 9 / 12 — Mini-project Week</span>
+    <h1 class="text-3xl md:text-5xl font-extrabold leading-tight">Traffic Light Controller</h1>
+    <p class="text-xl md:text-2xl font-semibold text-blue-200 mt-2">Thiết kế bộ điều khiển đèn giao thông bằng FSM + Timer + Verilog</p>
+    <p class="mt-5 max-w-3xl text-slate-300 leading-relaxed">
+      Đây là tuần "gặt hái": mọi thứ bạn đã học — FSM (Finite State Machine — máy trạng thái hữu hạn, tuần 6),
+      Verilog/SystemVerilog (tuần 7), và quyết định nền tảng FPGA (tuần 8) — hợp lại thành
+      <strong class="text-white">một sản phẩm chạy được thật</strong>: bộ điều khiển đèn giao thông cho ngã tư hai hướng.
+      Bạn sẽ đi đúng quy trình kỹ sư: <em class="text-yellow-300">mô hình hóa trước, viết code sau</em> —
+      từ yêu cầu → bảng I/O → sơ đồ trạng thái → bảng chuyển trạng thái → RTL → testbench → waveform → nạp lên FPGA.
+      Và bạn sẽ học một nguyên tắc kiến trúc quan trọng: tách <strong class="text-white">Controller (FSM ra quyết định)</strong>
+      khỏi <strong class="text-white">Datapath (timer đếm thời gian)</strong>.
+    </p>
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
+      <div class="bg-white/10 border border-white/15 rounded-xl p-4">
+        <i class="fa-solid fa-diagram-project text-secondary text-xl"></i>
+        <p class="font-bold mt-2 text-sm">Mục tiêu 1</p>
+        <p class="text-xs text-slate-300 mt-1">Mô hình hóa ngã tư thành FSM 4 trạng thái: xác định state, output, transition từ yêu cầu thực tế.</p>
+      </div>
+      <div class="bg-white/10 border border-white/15 rounded-xl p-4">
+        <i class="fa-solid fa-sitemap text-secondary text-xl"></i>
+        <p class="font-bold mt-2 text-sm">Mục tiêu 2</p>
+        <p class="text-xs text-slate-300 mt-1">Giải thích và áp dụng kiến trúc Controller (FSM) tách khỏi Datapath (down-counter timer).</p>
+      </div>
+      <div class="bg-white/10 border border-white/15 rounded-xl p-4">
+        <i class="fa-solid fa-code text-secondary text-xl"></i>
+        <p class="font-bold mt-2 text-sm">Mục tiêu 3</p>
+        <p class="text-xs text-slate-300 mt-1">Viết SystemVerilog chuẩn 3 khối FSM (always_ff + 2 always_comb có default) và tick enable 1 Hz đúng cách.</p>
+      </div>
+      <div class="bg-white/10 border border-white/15 rounded-xl p-4">
+        <i class="fa-solid fa-vial-circle-check text-secondary text-xl"></i>
+        <p class="font-bold mt-2 text-sm">Mục tiêu 4</p>
+        <p class="text-xs text-slate-300 mt-1">Viết testbench, đọc waveform kiểm chứng bất biến an toàn, và hình dung con đường nạp thiết kế lên FPGA.</p>
+      </div>
+    </div>
+    <div class="flex flex-wrap gap-3 mt-8 text-xs">
+      <span class="bg-white/10 px-3 py-1.5 rounded-full"><i class="fa-solid fa-backward text-slate-400 mr-1"></i> Tuần 8: đã chọn FPGA làm sân chơi prototype</span>
+      <span class="bg-secondary/20 border border-secondary/50 px-3 py-1.5 rounded-full text-yellow-200"><i class="fa-solid fa-star mr-1"></i> Tuần 9: mini-project đầu tiên chạy trên FPGA</span>
+      <span class="bg-white/10 px-3 py-1.5 rounded-full"><i class="fa-solid fa-forward text-slate-400 mr-1"></i> Tuần 10: counter + LED 7 đoạn — datapath hiển thị</span>
+    </div>
+  </div>
+</header>
+
+<!-- ============ 2. LEARNING MAP ============ -->
+<section id="learning-map" class="max-w-6xl mx-auto px-4 py-12">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-map-location-dot"></i></div>
+    <div>
+      <p class="text-xs font-bold uppercase tracking-wider text-primary">Section 02</p>
+      <h2 class="text-2xl md:text-3xl font-extrabold text-dark">Bản đồ học tập — nơi ba tuần trước hội tụ</h2>
+    </div>
+  </div>
+  <div class="grid md:grid-cols-3 gap-4">
+    <div class="bg-white rounded-2xl shadow-sm p-5 border-t-4 border-slate-300">
+      <p class="text-xs font-bold text-slate-500 uppercase">Tuần 6 + 7 + 8 — đã học</p>
+      <p class="font-extrabold text-lg mt-1 text-dark">FSM + Verilog + FPGA</p>
+      <p class="text-sm text-slate-600 mt-2">Cần nắm trước: sơ đồ trạng thái Moore và bảng chuyển trạng thái (T6); cấu trúc module, always_ff/always_comb (T7); vì sao FPGA là nền tảng học lý tưởng (T8).</p>
+      <p class="text-xs mt-3 bg-slate-100 rounded-lg p-2"><i class="fa-solid fa-key text-slate-500 mr-1"></i> Nếu quên FSM 3 khối — mở lại Tuần 6 và Tuần 7 trước khi học tiếp.</p>
+    </div>
+    <div class="bg-white rounded-2xl shadow-sm p-5 border-t-4 border-primary ring-2 ring-primary/20">
+      <p class="text-xs font-bold text-primary uppercase">Tuần 9 — tuần này</p>
+      <p class="font-extrabold text-lg mt-1 text-dark">Mini-project: Traffic Light Controller</p>
+      <p class="text-sm text-slate-600 mt-2">Lần đầu tiên đi trọn quy trình: yêu cầu → mô hình → RTL → testbench → waveform → (synthesis → bitstream → board). Sản phẩm: ngã tư 2 hướng với chu kỳ xanh–vàng an toàn.</p>
+      <p class="text-xs mt-3 bg-blue-50 rounded-lg p-2"><i class="fa-solid fa-lightbulb text-primary mr-1"></i> Từ khóa: state, timer, output control, controller/datapath, tick enable.</p>
+    </div>
+    <div class="bg-white rounded-2xl shadow-sm p-5 border-t-4 border-accent">
+      <p class="text-xs font-bold text-emerald-600 uppercase">Tuần 10–11 — sắp tới</p>
+      <p class="font-extrabold text-lg mt-1 text-dark">Counter + 7-segment, rồi UART</p>
+      <p class="text-sm text-slate-600 mt-2">Kỹ thuật tuần này dùng lại ngay: down-counter và tick enable xuất hiện trong bộ đếm hiển thị (T10) và baud rate generator của UART (T11). Kiến trúc controller/datapath theo bạn cả sự nghiệp.</p>
+      <p class="text-xs mt-3 bg-emerald-50 rounded-lg p-2"><i class="fa-solid fa-arrow-trend-up text-emerald-600 mr-1"></i> Dùng sau: mọi khối điều khiển trong SoC đều là FSM + datapath.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 3. BEFORE SESSION ============ -->
+<section id="before-session" class="bg-white py-12">
+  <div class="max-w-6xl mx-auto px-4">
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-clipboard-check"></i></div>
+      <div>
+        <p class="text-xs font-bold uppercase tracking-wider text-primary">Section 03</p>
+        <h2 class="text-2xl md:text-3xl font-extrabold text-dark">Chuẩn bị trước buổi học</h2>
+      </div>
+    </div>
+    <p class="text-slate-600 max-w-3xl mb-6">Tuần mini-project khác tuần lý thuyết: buổi học sẽ <strong>làm việc trên mô hình của chính bạn</strong>. Ai đến với sơ đồ trạng thái vẽ sẵn (dù sai) sẽ học nhanh gấp ba người đến tay trắng. Lỗi trong mô hình là nguyên liệu quý của buổi mentor.</p>
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="bg-slate-50 rounded-2xl p-5">
+        <div class="flex items-center justify-between mb-3">
+          <p class="font-bold text-dark"><i class="fa-solid fa-list-check text-primary mr-2"></i>Checklist chuẩn bị</p>
+          <span class="text-xs font-bold bg-primary/10 text-primary px-2 py-1 rounded-full"><span id="before-count">0</span>/6 mục</span>
+        </div>
+        <div class="space-y-2">
+          <label class="chk-item"><input type="checkbox" class="before-chk"><span class="text-sm">Xem lại Tuần 6: FSM Moore là gì, vì sao cần tách 3 khối (state register / next-state / output).</span></label>
+          <label class="chk-item"><input type="checkbox" class="before-chk"><span class="text-sm">Xem lại Tuần 7: cú pháp always_ff với reset và always_comb với default assignment.</span></label>
+          <label class="chk-item"><input type="checkbox" class="before-chk"><span class="text-sm">Quan sát một ngã tư thật (hoặc video): ghi lại trình tự đèn và ước lượng thời gian mỗi pha.</span></label>
+          <label class="chk-item"><input type="checkbox" class="before-chk"><span class="text-sm">Tự vẽ nháp sơ đồ trạng thái cho ngã tư 2 hướng (NS và EW) — bao nhiêu trạng thái là đủ?</span></label>
+          <label class="chk-item"><input type="checkbox" class="before-chk"><span class="text-sm">Tự hỏi: đèn ĐỎ của hướng NS có cần một trạng thái riêng không? Vì sao?</span></label>
+          <label class="chk-item"><input type="checkbox" class="before-chk"><span class="text-sm">Nghĩ trước: clock trên board là 50 MHz, đèn cần đổi theo giây — làm sao "chậm lại" đúng cách?</span></label>
+        </div>
+      </div>
+      <div class="space-y-4">
+        <div class="bg-blue-50 border border-blue-200 rounded-2xl p-5">
+          <p class="font-bold text-dark mb-2"><i class="fa-solid fa-fire text-secondary mr-2"></i>3 câu hỏi khởi động</p>
+          <ol class="list-decimal list-inside text-sm text-slate-700 space-y-2">
+            <li>Điều gì là "tội lỗi không thể tha thứ" của một bộ điều khiển đèn giao thông? (Gợi ý: nghĩ về tai nạn.)</li>
+            <li>Ai quyết định "bây giờ chuyển sang pha vàng"? Ai đo "đã đủ 10 giây chưa"? — hai câu hỏi này có cùng một câu trả lời không?</li>
+            <li>Nếu viết Verilog ngay mà chưa vẽ sơ đồ trạng thái, bạn đoán lỗi kiểu gì sẽ xuất hiện?</li>
+          </ol>
+        </div>
+        <div class="bg-amber-50 border border-amber-200 rounded-2xl p-5">
+          <p class="font-bold text-dark mb-1"><i class="fa-solid fa-stopwatch text-secondary mr-2"></i>Nhiệm vụ nhỏ (5–10 phút)</p>
+          <p class="text-sm text-slate-700">Trên một tờ giấy, kẻ bảng 3 cột: <strong>State — Đèn NS — Đèn EW</strong>. Điền cho 4 trạng thái bạn nghĩ ra. Sau đó kiểm tra từng dòng bằng câu hỏi an toàn: <em>"Ở trạng thái này, có khi nào cả hai hướng cùng được đi không?"</em> Mang bảng này đến buổi học — nó chính là phôi của bảng output logic trong RTL.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- ============ 4. CORE CONCEPTS ============ -->
+<section id="core-concepts" class="max-w-6xl mx-auto px-4 py-12">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-brain"></i></div>
+    <div>
+      <p class="text-xs font-bold uppercase tracking-wider text-primary">Section 04</p>
+      <h2 class="text-2xl md:text-3xl font-extrabold text-dark">Khái niệm cốt lõi</h2>
+    </div>
+  </div>
+
+  <!-- Concept 1 -->
+  <div class="bg-white rounded-2xl shadow-sm p-6 mb-5">
+    <div class="flex items-center gap-2 mb-3"><span class="layer-chip bg-blue-100 text-blue-700"><i class="fa-solid fa-diagram-project"></i> Khái niệm 1</span><h3 class="font-extrabold text-lg text-dark">Từ ngã tư thật đến mô hình FSM 4 trạng thái</h3></div>
+    <div class="grid md:grid-cols-2 gap-4 text-sm">
+      <div class="space-y-3">
+        <p><span class="font-bold text-primary">Định nghĩa dễ hiểu:</span> ngã tư có hai hướng NS (North–South, Bắc–Nam) và EW (East–West, Đông–Tây). Tại mỗi thời điểm, giao lộ ở đúng một "pha": NS đi (xanh), NS chuẩn bị dừng (vàng), EW đi, EW chuẩn bị dừng. Mỗi pha là một <strong>state (trạng thái)</strong>: <span class="font-mono text-xs bg-slate-100 px-1 rounded">GREEN_NS → YELLOW_NS → GREEN_EW → YELLOW_EW → quay lại</span>.</p>
+        <p><span class="font-bold text-primary">Bản chất kỹ thuật:</span> đây là FSM kiểu <strong>Moore</strong> — đèn (output) chỉ phụ thuộc trạng thái hiện tại, không phụ thuộc trực tiếp input. Điều kiện chuyển trạng thái (transition) duy nhất là <span class="font-mono text-xs bg-slate-100 px-1 rounded">timer_done</span>: hết giờ của pha thì sang pha kế tiếp. 4 trạng thái cần 2 bit mã hóa → <strong>2 flip-flop</strong> cho state register.</p>
+      </div>
+      <div class="space-y-3">
+        <p><span class="font-bold text-emerald-600">Ví dụ đời sống:</span> một buổi lễ có 4 tiết mục diễn theo kịch bản cố định, mỗi tiết mục có thời lượng định trước; MC (FSM) nhìn đồng hồ bấm giờ (timer) để chuyển tiết mục.</p>
+        <p><span class="font-bold text-emerald-600">Trong IC/FPGA:</span> vô số khối điều khiển thực tế có cấu trúc y hệt: bộ điều khiển bắt tay giao thức, sequencer khởi động chip, khối điều khiển DRAM refresh — đều là "FSM + timer".</p>
+        <p class="bg-red-50 border-l-4 border-danger rounded-r-lg p-3"><span class="font-bold text-danger"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Hiểu sai phổ biến:</span> "phải có thêm trạng thái RED_NS, RED_EW". Không cần — đỏ của hướng này là <em>hệ quả</em> khi hướng kia đang xanh/vàng. Trạng thái mô tả <em>pha của cả giao lộ</em>, còn đèn đỏ do khối output logic sinh ra. Thêm state thừa làm FSM phình to và dễ sai.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Concept 2 -->
+  <div class="bg-white rounded-2xl shadow-sm p-6 mb-5">
+    <div class="flex items-center gap-2 mb-3"><span class="layer-chip bg-purple-100 text-purple-700"><i class="fa-solid fa-sitemap"></i> Khái niệm 2</span><h3 class="font-extrabold text-lg text-dark">Controller vs Datapath — bộ não và bắp thịt</h3></div>
+    <div class="grid md:grid-cols-2 gap-4 text-sm">
+      <div class="space-y-3">
+        <p><span class="font-bold text-primary">Định nghĩa dễ hiểu:</span> <strong>Controller (khối điều khiển)</strong> là FSM — trả lời câu hỏi "đang ở pha nào, tiếp theo làm gì?". <strong>Datapath (khối dữ liệu)</strong> là phần "cơ bắp" xử lý/đếm số liệu — ở đây là timer đếm lùi. Hai khối nói chuyện với nhau bằng tín hiệu điều khiển và tín hiệu trạng thái.</p>
+        <p><span class="font-bold text-primary">Bản chất kỹ thuật:</span> controller phát tín hiệu điều khiển (nạp lại timer với giá trị nào); datapath báo ngược sự kiện (<span class="font-mono text-xs bg-slate-100 px-1 rounded">timer_done</span>). FSM <em>không</em> ôm việc đếm vào trong state — nếu mỗi giây là một state thì pha xanh 10 giây cần 10 state! Tách datapath giúp FSM giữ nguyên 4 trạng thái dù thời gian pha là 10 giây hay 10 phút (chỉ đổi parameter).</p>
+      </div>
+      <div class="space-y-3">
+        <p><span class="font-bold text-emerald-600">Ví dụ đời sống:</span> huấn luyện viên (controller) quyết định "chạy bài tập nào tiếp theo"; đồng hồ bấm giờ (datapath) đo thời gian và reo khi hết giờ. Không ai bắt huấn luyện viên tự đếm từng giây trong đầu.</p>
+        <p><span class="font-bold text-emerald-600">Trong IC/FPGA:</span> đây là kiến trúc chuẩn của mọi khối số: CPU (control unit vs ALU/register file), UART (FSM khung truyền vs shift register + baud counter), bộ điều khiển bộ nhớ. Học được cách "cắt" này là học được cách thiết kế hệ thống lớn.</p>
+        <p class="bg-red-50 border-l-4 border-danger rounded-r-lg p-3"><span class="font-bold text-danger"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Hiểu sai phổ biến:</span> viết tất cả (đếm + chuyển pha + bật đèn) vào một khối always khổng lồ. Chạy được lúc đầu, nhưng không mở rộng nổi (thêm nút đi bộ? chế độ đêm?) và rất khó debug.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Concept 3 -->
+  <div class="bg-white rounded-2xl shadow-sm p-6 mb-5">
+    <div class="flex items-center gap-2 mb-3"><span class="layer-chip bg-amber-100 text-amber-700"><i class="fa-solid fa-hourglass-half"></i> Khái niệm 3</span><h3 class="font-extrabold text-lg text-dark">Timer = down-counter (bộ đếm lùi) + so sánh</h3></div>
+    <div class="grid md:grid-cols-2 gap-4 text-sm">
+      <div class="space-y-3">
+        <p><span class="font-bold text-primary">Định nghĩa dễ hiểu:</span> timer của ta là một bộ đếm lùi: được <strong>nạp (load)</strong> giá trị thời lượng pha, mỗi "nhịp giây" trừ đi 1, về đến 0 thì giơ cờ <span class="font-mono text-xs bg-slate-100 px-1 rounded">timer_done</span>.</p>
+        <p><span class="font-bold text-primary">Bản chất kỹ thuật:</span> phần cứng gồm: <strong>thanh ghi n-bit</strong> (n flip-flop — nhớ tuần 5: mỗi FF lưu đúng 1 bit; timer đếm tối đa 15 cần 4 FF), <strong>mạch trừ 1</strong> (tổ hợp), <strong>MUX</strong> chọn "nạp lại hay trừ tiếp", và <strong>comparator</strong> so sánh bằng 0. Cờ timer_done là tín hiệu tổ hợp từ comparator.</p>
+      </div>
+      <div class="space-y-3">
+        <p><span class="font-bold text-emerald-600">Ví dụ đời sống:</span> đồng hồ đếm ngược lò vi sóng: nạp 90 giây, đếm lùi từng giây, kêu "ting" khi về 0 — rồi được nạp lại giá trị mới cho lần chạy sau.</p>
+        <p><span class="font-bold text-emerald-600">Trong IC/FPGA:</span> down-counter + compare là mô-típ phổ biến bậc nhất: watchdog timer, PWM, baud rate generator (tuần 11), bộ chia thời gian hiển thị (tuần 10).</p>
+        <p class="bg-red-50 border-l-4 border-danger rounded-r-lg p-3"><span class="font-bold text-danger"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Hiểu sai phổ biến:</span> nạp <span class="font-mono text-xs">GREEN_TICKS</span> rồi đợi về 0 và nghĩ pha kéo dài GREEN_TICKS nhịp. Đếm từ 10 về 0 là 11 nhịp! Muốn đúng 10 nhịp phải nạp <span class="font-mono text-xs">GREEN_TICKS − 1</span> — lỗi lệch một (off-by-one) kinh điển.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Concept 4 -->
+  <div class="bg-white rounded-2xl shadow-sm p-6 mb-5">
+    <div class="flex items-center gap-2 mb-3"><span class="layer-chip bg-emerald-100 text-emerald-700"><i class="fa-solid fa-clock"></i> Khái niệm 4</span><h3 class="font-extrabold text-lg text-dark">Tick enable — tạo "nhịp 1 giây" từ clock 50 MHz đúng cách</h3></div>
+    <div class="grid md:grid-cols-2 gap-4 text-sm">
+      <div class="space-y-3">
+        <p><span class="font-bold text-primary">Định nghĩa dễ hiểu:</span> clock trên board chạy 50.000.000 nhịp mỗi giây, còn đèn đổi theo giây. Ta cần một tín hiệu <strong>tick</strong> — cứ mỗi giây "nháy" lên mức 1 <em>đúng một chu kỳ clock</em> — để bảo timer "trừ 1 đi".</p>
+        <p><span class="font-bold text-primary">Bản chất kỹ thuật:</span> một counter đếm 0 → 49.999.999; khi chạm đỉnh, phát <strong>xung enable rộng 1 chu kỳ</strong> rồi đếm lại. Timer chỉ cập nhật khi <span class="font-mono text-xs bg-slate-100 px-1 rounded">tick = 1</span>, nhưng <em>mọi flip-flop vẫn đóng trên cùng một clock 50 MHz</em>. Đây gọi là <strong>clock enable (cho phép theo nhịp)</strong> — kỹ thuật chuẩn công nghiệp.</p>
+      </div>
+      <div class="space-y-3">
+        <p><span class="font-bold text-emerald-600">Ví dụ đời sống:</span> kim giây đồng hồ cơ: bánh răng bên trong quay rất nhanh, nhưng cơ cấu chỉ "cho phép" kim giây nhích mỗi giây một lần — không ai chế tạo một bộ máy riêng quay chậm cho kim giây.</p>
+        <p><span class="font-bold text-emerald-600">Trong IC/FPGA:</span> giữ toàn thiết kế trong một miền clock (clock domain) giúp công cụ phân tích timing chính xác, tránh clock skew giữa các "clock tự chế".</p>
+        <p class="bg-red-50 border-l-4 border-danger rounded-r-lg p-3"><span class="font-bold text-danger"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Hiểu sai phổ biến (và nguy hiểm):</span> lấy một bit của counter làm clock mới: <span class="font-mono text-xs">always_ff @(posedge cnt[25])</span>. Đó là <strong>derived clock (clock dẫn xuất)</strong> — tạo thêm miền clock chưa được phân tích, gây skew, và là anti-pattern với người mới. TUYỆT ĐỐI dùng tick enable thay thế (chi tiết ở Common Mistakes).</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Concept 5 -->
+  <div class="bg-white rounded-2xl shadow-sm p-6">
+    <div class="flex items-center gap-2 mb-3"><span class="layer-chip bg-rose-100 text-rose-700"><i class="fa-solid fa-shield-halved"></i> Khái niệm 5</span><h3 class="font-extrabold text-lg text-dark">Safety invariant (bất biến an toàn) và output mặc định</h3></div>
+    <div class="grid md:grid-cols-2 gap-4 text-sm">
+      <div class="space-y-3">
+        <p><span class="font-bold text-primary">Định nghĩa dễ hiểu:</span> <strong>invariant (bất biến)</strong> là điều kiện phải đúng <em>tại mọi thời điểm, trong mọi trạng thái</em>. Với đèn giao thông: <em>"không bao giờ hai hướng cùng xanh (hoặc xanh + vàng chéo nhau)"</em> — vi phạm là tai nạn thật.</p>
+        <p><span class="font-bold text-primary">Bản chất kỹ thuật:</span> ta bảo vệ invariant bằng 3 lớp: (1) mô hình 4 trạng thái vốn dĩ không có pha nào hai hướng cùng đi; (2) khối output always_comb gán <strong>default = đỏ cả hai hướng</strong> trước khi vào case — mọi trường hợp lọt lưới đều rơi về an toàn; (3) testbench kiểm tra invariant ở từng cạnh clock (assertion).</p>
+      </div>
+      <div class="space-y-3">
+        <p><span class="font-bold text-emerald-600">Ví dụ đời sống:</span> quy tắc "dao luôn quay lưỡi xuống dưới khi đưa cho người khác" — không cần nghĩ, mặc định an toàn dù tay run.</p>
+        <p><span class="font-bold text-emerald-600">Trong IC/FPGA:</span> tư duy default-safe xuất hiện khắp nơi: giá trị reset an toàn, trạng thái Idle của giao thức, chế độ fail-safe của chip ô tô (ISO 26262).</p>
+        <p class="bg-red-50 border-l-4 border-danger rounded-r-lg p-3"><span class="font-bold text-danger"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Hiểu sai phổ biến:</span> "mô phỏng chạy đúng rồi thì khỏi cần default/assertion". Sai — testbench chỉ chứng minh các kịch bản bạn <em>đã thử</em>. Default an toàn + assertion bảo vệ cả những kịch bản bạn chưa nghĩ tới (reset giữa chừng, nhiễu, state lỗi).</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 5. SYSTEM VIEW ============ -->
+<section id="system-view" class="bg-white py-12">
+  <div class="max-w-6xl mx-auto px-4">
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-sitemap"></i></div>
+      <div>
+        <p class="text-xs font-bold uppercase tracking-wider text-primary">Section 05</p>
+        <h2 class="text-2xl md:text-3xl font-extrabold text-dark">Góc nhìn hệ thống — sơ đồ khối của thiết kế</h2>
+      </div>
+    </div>
+    <div class="bg-slate-50 rounded-2xl p-4 overflow-x-auto mb-6">
+      <svg viewBox="0 0 760 250" xmlns="http://www.w3.org/2000/svg" class="w-full min-w-[620px]" role="img" aria-label="Sơ đồ khối traffic light controller">
+        <rect x="10" y="95" width="120" height="60" rx="10" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+        <text x="70" y="120" text-anchor="middle" font-size="12" font-weight="bold" fill="#92400e">tick_gen</text>
+        <text x="70" y="138" text-anchor="middle" font-size="10" fill="#92400e">50 MHz → tick 1 Hz</text>
+        <rect x="210" y="30" width="190" height="80" rx="10" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/>
+        <text x="305" y="58" text-anchor="middle" font-size="12" font-weight="bold" fill="#1e40af">CONTROLLER — FSM Moore</text>
+        <text x="305" y="76" text-anchor="middle" font-size="10" fill="#1e40af">state register (2 FF) + next-state logic</text>
+        <text x="305" y="92" text-anchor="middle" font-size="10" fill="#1e40af">GREEN_NS → YELLOW_NS → GREEN_EW → YELLOW_EW</text>
+        <rect x="210" y="150" width="190" height="70" rx="10" fill="#dcfce7" stroke="#10b981" stroke-width="2"/>
+        <text x="305" y="176" text-anchor="middle" font-size="12" font-weight="bold" fill="#065f46">DATAPATH — Timer</text>
+        <text x="305" y="194" text-anchor="middle" font-size="10" fill="#065f46">down-counter 4 FF + comparator = 0</text>
+        <rect x="500" y="40" width="150" height="60" rx="10" fill="#e0e7ff" stroke="#6366f1" stroke-width="2"/>
+        <text x="575" y="65" text-anchor="middle" font-size="12" font-weight="bold" fill="#3730a3">Output logic</text>
+        <text x="575" y="83" text-anchor="middle" font-size="10" fill="#3730a3">always_comb, default = RED</text>
+        <rect x="680" y="30" width="70" height="90" rx="10" fill="#0f172a"/>
+        <circle cx="715" cy="50" r="9" fill="#ef4444"/><circle cx="715" cy="74" r="9" fill="#f59e0b" opacity="0.25"/><circle cx="715" cy="98" r="9" fill="#22c55e" opacity="0.25"/>
+        <text x="715" y="140" text-anchor="middle" font-size="10" fill="#475569" font-weight="bold">ns_light / ew_light</text>
+        <line x1="130" y1="125" x2="205" y2="125" stroke="#f59e0b" stroke-width="2" marker-end="url(#w9ar)"/>
+        <text x="167" y="117" text-anchor="middle" font-size="10" fill="#92400e" font-weight="bold">tick</text>
+        <path d="M 168 125 L 168 70 L 205 70" fill="none" stroke="#f59e0b" stroke-width="2" marker-end="url(#w9ar)"/>
+        <line x1="305" y1="150" x2="305" y2="115" stroke="#10b981" stroke-width="2" marker-end="url(#w9ar)"/>
+        <text x="317" y="136" font-size="10" fill="#065f46" font-weight="bold">timer_done</text>
+        <path d="M 400 90 C 440 90 440 130 407 158" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#w9ar)"/>
+        <text x="452" y="128" font-size="10" fill="#1e40af" font-weight="bold">load giá trị pha kế</text>
+        <line x1="400" y1="70" x2="495" y2="70" stroke="#2563eb" stroke-width="2" marker-end="url(#w9ar)"/>
+        <text x="447" y="62" text-anchor="middle" font-size="10" fill="#1e40af" font-weight="bold">state</text>
+        <line x1="650" y1="70" x2="675" y2="70" stroke="#6366f1" stroke-width="2" marker-end="url(#w9ar)"/>
+        <text x="70" y="230" font-size="10" fill="#475569">Input hệ thống: clk 50 MHz, rst_n</text>
+        <text x="450" y="230" font-size="10" fill="#475569">Toàn bộ FF dùng CHUNG một clock — tick chỉ là enable, không phải clock mới</text>
+        <defs><marker id="w9ar" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 z" fill="#64748b"/></marker></defs>
+      </svg>
+    </div>
+    <div class="overflow-x-auto bg-slate-50 rounded-2xl p-4">
+      <table class="vtable w-full bg-white rounded-xl overflow-hidden">
+        <thead><tr><th class="w-48">Câu hỏi hệ thống</th><th>Trả lời cho traffic light controller</th></tr></thead>
+        <tbody>
+          <tr><td class="font-semibold">Khối nằm ở đâu?</td><td>Là một khối điều khiển độc lập; trong sản phẩm thật nó có thể là một module nhỏ trong chip điều khiển giao thông (cạnh CPU, bộ giao tiếp cảm biến…).</td></tr>
+          <tr><td class="font-semibold">Input</td><td><span class="font-mono">clk</span> (50 MHz từ oscillator trên board), <span class="font-mono">rst_n</span> (reset bất đồng bộ, tích cực mức thấp). Phiên bản mở rộng: nút đi bộ, cảm biến xe.</td></tr>
+          <tr><td class="font-semibold">Output</td><td><span class="font-mono">ns_light[2:0]</span>, <span class="font-mono">ew_light[2:0]</span> — mỗi bus 3 bit {đỏ, vàng, xanh} lái LED qua chân FPGA.</td></tr>
+          <tr><td class="font-semibold">Tổ hợp hay tuần tự?</td><td>Cả hai: state register + timer là <strong>tuần tự</strong> (always_ff); next-state logic + output logic + comparator là <strong>tổ hợp</strong> (always_comb / assign).</td></tr>
+          <tr><td class="font-semibold">Cần clock? Cần reset?</td><td>Có clock (mọi FF chung 1 miền 50 MHz). Có reset — đưa hệ về trạng thái an toàn xác định (GREEN_NS, timer nạp lại).</td></tr>
+          <tr><td class="font-semibold">Viết Verilog thế nào?</td><td>FSM 3 khối chuẩn + module timer/tick riêng — xem Section 08.</td></tr>
+          <tr><td class="font-semibold">Synthesis ra gì?</td><td>2 FF state + 4 FF timer + ~26 FF tick counter, cùng LUT cho next-state/output/comparator (trên FPGA) — hoặc standard cell tương đương (trên ASIC).</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+<!-- ============ 6. INTERACTIVE DEMO ============ -->
+<section id="demo" class="max-w-6xl mx-auto px-4 py-12">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-traffic-light"></i></div>
+    <div>
+      <p class="text-xs font-bold uppercase tracking-wider text-primary">Section 06</p>
+      <h2 class="text-2xl md:text-3xl font-extrabold text-dark">Demo tương tác — chạy thử FSM đèn giao thông</h2>
+    </div>
+  </div>
+  <p class="text-slate-600 max-w-3xl mb-6">Mô phỏng đúng mô hình RTL của bài: mỗi lần bấm <strong>"+1 tick"</strong> tương đương một nhịp 1 giây (một xung tick enable); <strong>"Chạy tự động"</strong> phát tick liên tục. Quan sát đồng thời: ngã tư, sơ đồ trạng thái (node sáng theo state), timer đếm lùi, và hai panel Controller / Datapath. Tham số demo: <span class="font-mono text-xs bg-slate-200 px-1.5 py-0.5 rounded">GREEN_TICKS = 6</span>, <span class="font-mono text-xs bg-slate-200 px-1.5 py-0.5 rounded">YELLOW_TICKS = 2</span>.</p>
+
+  <div class="bg-white rounded-2xl shadow-sm p-5 md:p-6">
+    <div class="flex flex-wrap gap-3 mb-4">
+      <button id="tl-btn-auto" class="demo-btn bg-accent text-white hover:bg-emerald-600"><i class="fa-solid fa-play"></i>Chạy tự động</button>
+      <button id="tl-btn-step" class="demo-btn bg-primary text-white hover:bg-blue-700"><i class="fa-solid fa-forward-step"></i>+1 tick (bước đơn)</button>
+      <button id="tl-btn-reset" class="demo-btn bg-slate-200 text-slate-700 hover:bg-slate-300"><i class="fa-solid fa-rotate-left"></i>Reset (rst_n = 0)</button>
+      <span class="ml-auto self-center text-xs font-mono text-slate-500">tổng tick: <span id="tl-tickcount" class="font-bold text-dark">0</span></span>
+    </div>
+
+    <div class="grid lg:grid-cols-2 gap-5">
+      <!-- Intersection -->
+      <div class="bg-slate-50 rounded-xl p-3">
+        <p class="text-xs font-bold text-slate-500 uppercase mb-2"><i class="fa-solid fa-road mr-1"></i>Ngã tư — trạng thái đèn</p>
+        <svg id="tl-scene" viewBox="0 0 320 320" xmlns="http://www.w3.org/2000/svg" class="w-full max-w-[380px] mx-auto" role="img" aria-label="Mô phỏng ngã tư với đèn NS và EW">
+          <rect x="0" y="0" width="320" height="320" fill="#d1fae5"/>
+          <rect x="120" y="0" width="80" height="320" fill="#475569"/>
+          <rect x="0" y="120" width="320" height="80" fill="#475569"/>
+          <line x1="160" y1="0" x2="160" y2="112" stroke="#f8fafc" stroke-width="3" stroke-dasharray="12 10"/>
+          <line x1="160" y1="208" x2="160" y2="320" stroke="#f8fafc" stroke-width="3" stroke-dasharray="12 10"/>
+          <line x1="0" y1="160" x2="112" y2="160" stroke="#f8fafc" stroke-width="3" stroke-dasharray="12 10"/>
+          <line x1="208" y1="160" x2="320" y2="160" stroke="#f8fafc" stroke-width="3" stroke-dasharray="12 10"/>
+          <!-- NS light box -->
+          <rect x="216" y="16" width="40" height="96" rx="9" fill="#0f172a"/>
+          <circle id="tl-ns-r" cx="236" cy="36" r="11" fill="#ef4444"/>
+          <circle id="tl-ns-y" cx="236" cy="64" r="11" fill="#f59e0b" opacity="0.18"/>
+          <circle id="tl-ns-g" cx="236" cy="92" r="11" fill="#22c55e" opacity="0.18"/>
+          <text x="236" y="10" text-anchor="middle" font-size="11" font-weight="bold" fill="#0f172a">NS (Bắc–Nam)</text>
+          <!-- EW light box -->
+          <rect x="16" y="216" width="96" height="40" rx="9" fill="#0f172a"/>
+          <circle id="tl-ew-r" cx="36" cy="236" r="11" fill="#ef4444"/>
+          <circle id="tl-ew-y" cx="64" cy="236" r="11" fill="#f59e0b" opacity="0.18"/>
+          <circle id="tl-ew-g" cx="92" cy="236" r="11" fill="#22c55e" opacity="0.18"/>
+          <text x="64" y="272" text-anchor="middle" font-size="11" font-weight="bold" fill="#0f172a">EW (Đông–Tây)</text>
+          <!-- center timer -->
+          <rect x="132" y="132" width="56" height="56" rx="12" fill="#0f172a" opacity="0.85"/>
+          <text id="tl-timer-big" x="160" y="170" text-anchor="middle" font-size="26" font-weight="bold" fill="#fbbf24" font-family="monospace">5</text>
+          <text x="160" y="205" text-anchor="middle" font-size="9" fill="#f8fafc">timer (tick còn lại)</text>
+          <text id="tl-state-label" x="160" y="26" text-anchor="middle" font-size="14" font-weight="bold" fill="#166534" font-family="monospace">GREEN_NS</text>
+        </svg>
+        <div id="tl-safety" class="mt-3 rounded-xl px-4 py-3 text-sm font-semibold bg-emerald-50 border border-emerald-300 text-emerald-800"></div>
+      </div>
+
+      <!-- State diagram + panels -->
+      <div class="space-y-4">
+        <div class="bg-slate-50 rounded-xl p-3">
+          <p class="text-xs font-bold text-slate-500 uppercase mb-2"><i class="fa-solid fa-diagram-project mr-1"></i>Sơ đồ trạng thái — node sáng = state hiện tại</p>
+          <svg id="tl-diagram" viewBox="0 0 380 250" xmlns="http://www.w3.org/2000/svg" class="w-full" role="img" aria-label="Sơ đồ 4 trạng thái của FSM">
+            <defs><marker id="tlar" markerWidth="9" markerHeight="9" refX="7" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 z" fill="#64748b"/></marker></defs>
+            <path d="M 148 62 L 232 62" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#tlar)"/>
+            <path d="M 290 100 L 290 150" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#tlar)"/>
+            <path d="M 232 188 L 148 188" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#tlar)"/>
+            <path d="M 90 150 L 90 100" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#tlar)"/>
+            <text x="190" y="52" text-anchor="middle" font-size="10" fill="#475569" font-style="italic">timer_done</text>
+            <text x="298" y="128" font-size="10" fill="#475569" font-style="italic">timer_done</text>
+            <text x="190" y="205" text-anchor="middle" font-size="10" fill="#475569" font-style="italic">timer_done</text>
+            <text x="82" y="128" text-anchor="end" font-size="10" fill="#475569" font-style="italic">timer_done</text>
+            <g id="tl-node-0"><circle cx="90" cy="62" r="42" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/><text x="90" y="58" text-anchor="middle" font-size="11" font-weight="bold" fill="#14532d">GREEN_NS</text><text x="90" y="74" text-anchor="middle" font-size="9" fill="#14532d">6 tick</text></g>
+            <g id="tl-node-1"><circle cx="290" cy="62" r="42" fill="#fef9c3" stroke="#ca8a04" stroke-width="2"/><text x="290" y="58" text-anchor="middle" font-size="11" font-weight="bold" fill="#713f12">YELLOW_NS</text><text x="290" y="74" text-anchor="middle" font-size="9" fill="#713f12">2 tick</text></g>
+            <g id="tl-node-2"><circle cx="290" cy="188" r="42" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/><text x="290" y="184" text-anchor="middle" font-size="11" font-weight="bold" fill="#14532d">GREEN_EW</text><text x="290" y="200" text-anchor="middle" font-size="9" fill="#14532d">6 tick</text></g>
+            <g id="tl-node-3"><circle cx="90" cy="188" r="42" fill="#fef9c3" stroke="#ca8a04" stroke-width="2"/><text x="90" y="184" text-anchor="middle" font-size="11" font-weight="bold" fill="#713f12">YELLOW_EW</text><text x="90" y="200" text-anchor="middle" font-size="9" fill="#713f12">2 tick</text></g>
+          </svg>
+        </div>
+        <div class="grid sm:grid-cols-2 gap-3 text-sm">
+          <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
+            <p class="font-bold text-blue-800 text-xs uppercase mb-2"><i class="fa-solid fa-brain mr-1"></i>Controller (FSM) — "bộ não"</p>
+            <p class="text-slate-700">State hiện tại: <span id="ctl-state" class="font-mono font-bold text-blue-800">GREEN_NS</span></p>
+            <p class="text-slate-700 mt-1">State kế tiếp (khi hết giờ): <span id="ctl-next" class="font-mono font-bold text-blue-800">YELLOW_NS</span></p>
+            <p id="ctl-desc" class="text-xs text-slate-600 mt-2 leading-relaxed">FSM chỉ quyết định pha và ra lệnh nạp timer — nó không tự đếm thời gian.</p>
+          </div>
+          <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
+            <p class="font-bold text-emerald-800 text-xs uppercase mb-2"><i class="fa-solid fa-hourglass-half mr-1"></i>Datapath (Timer) — "bắp thịt"</p>
+            <p class="text-slate-700">Giá trị timer: <span id="dp-timer" class="font-mono font-bold text-emerald-800 text-lg">5</span></p>
+            <p class="text-slate-700 mt-1">timer_done: <span id="dp-done" class="font-mono font-bold">0</span></p>
+            <p class="text-xs text-slate-600 mt-2 leading-relaxed">Down-counter trừ 1 mỗi tick; chạm 0 thì giơ cờ timer_done cho FSM và được nạp thời lượng của pha kế tiếp.</p>
+          </div>
+        </div>
+        <div id="tl-explain" class="bg-slate-100 border border-slate-200 rounded-xl p-4 text-sm text-slate-700" aria-live="polite"></div>
+      </div>
+    </div>
+  </div>
+  <div class="mt-5 grid md:grid-cols-2 gap-4 text-sm">
+    <div class="bg-blue-50 border-l-4 border-primary rounded-r-2xl p-4 text-slate-700"><i class="fa-solid fa-magnifying-glass text-primary mr-2"></i><strong>Thí nghiệm nên thử:</strong> (1) Bấm từng tick và dự đoán trước giá trị timer; (2) Reset giữa pha GREEN_EW — hệ về đâu? Vì sao về GREEN_NS là "xác định" chứ không phải "ngẫu nhiên"?; (3) Đếm xem một chu kỳ trọn vẹn dài bao nhiêu tick (6+2+6+2 = 16).</div>
+    <div class="bg-amber-50 border-l-4 border-secondary rounded-r-2xl p-4 text-slate-700"><i class="fa-solid fa-circle-info text-secondary mr-2"></i><strong>Demo này mô phỏng đúng RTL:</strong> mỗi tick của demo = một xung tick enable trong mạch thật (mỗi giây một xung, giữa hai xung là 50 triệu chu kỳ clock). Trên board FPGA, bạn sẽ thấy đúng hành vi này bằng LED thật.</div>
+  </div>
+</section>
+<!-- ============ 7. ENGINEERING WORKFLOW ============ -->
+<section id="workflow" class="bg-white py-12">
+  <div class="max-w-6xl mx-auto px-4">
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-diagram-project"></i></div>
+      <div>
+        <p class="text-xs font-bold uppercase tracking-wider text-primary">Section 07</p>
+        <h2 class="text-2xl md:text-3xl font-extrabold text-dark">Quy trình kỹ sư — xương sống của tuần mini-project</h2>
+      </div>
+    </div>
+    <p class="text-slate-600 max-w-3xl mb-6">Đây là section quan trọng nhất tuần này. Ghi nhớ thứ tự: <strong>code là bước thứ 5, không phải bước đầu tiên.</strong> Mỗi bước có một "sản phẩm nộp được" — làm xong bước nào, chốt sản phẩm bước đó rồi mới đi tiếp.</p>
+
+    <div class="space-y-3">
+      <div class="bg-slate-50 rounded-2xl p-4 flex gap-4 items-start"><span class="shrink-0 w-9 h-9 rounded-full bg-primary text-white font-extrabold flex items-center justify-center text-sm">1</span><div class="text-sm"><p class="font-bold text-dark">Requirement — chốt yêu cầu bằng lời</p><p class="text-slate-600 mt-0.5">"Ngã tư 2 hướng NS/EW. Mỗi hướng có đèn đỏ–vàng–xanh. Xanh 10 s, vàng 3 s, luân phiên. Không bao giờ hai hướng cùng được đi. Có reset về trạng thái an toàn." <span class="font-semibold text-primary">Sản phẩm: đoạn spec 3–5 câu.</span></p></div></div>
+      <div class="bg-slate-50 rounded-2xl p-4 flex gap-4 items-start"><span class="shrink-0 w-9 h-9 rounded-full bg-primary text-white font-extrabold flex items-center justify-center text-sm">2</span><div class="text-sm w-full"><p class="font-bold text-dark">I/O table — giao diện của khối</p><div class="overflow-x-auto mt-2"><table class="vtable w-full bg-white rounded-lg"><thead><tr><th>Tín hiệu</th><th>Hướng</th><th>Rộng</th><th>Ý nghĩa</th></tr></thead><tbody><tr><td class="font-mono">clk</td><td>in</td><td>1</td><td>Clock 50 MHz từ board</td></tr><tr><td class="font-mono">rst_n</td><td>in</td><td>1</td><td>Reset bất đồng bộ, tích cực mức thấp</td></tr><tr><td class="font-mono">ns_light</td><td>out</td><td>3</td><td>{đỏ, vàng, xanh} hướng Bắc–Nam</td></tr><tr><td class="font-mono">ew_light</td><td>out</td><td>3</td><td>{đỏ, vàng, xanh} hướng Đông–Tây</td></tr></tbody></table></div><p class="text-slate-600 mt-1"><span class="font-semibold text-primary">Sản phẩm: bảng I/O như trên.</span></p></div></div>
+      <div class="bg-slate-50 rounded-2xl p-4 flex gap-4 items-start"><span class="shrink-0 w-9 h-9 rounded-full bg-primary text-white font-extrabold flex items-center justify-center text-sm">3</span><div class="text-sm"><p class="font-bold text-dark">State diagram — vẽ trước khi gõ</p><p class="text-slate-600 mt-0.5">4 node GREEN_NS → YELLOW_NS → GREEN_EW → YELLOW_EW, mọi cung đều gắn nhãn <span class="font-mono">timer_done</span> (chính là sơ đồ trong Demo). Kiểm tra invariant trên từng node. <span class="font-semibold text-primary">Sản phẩm: sơ đồ trạng thái có chú thích thời lượng.</span></p></div></div>
+      <div class="bg-slate-50 rounded-2xl p-4 flex gap-4 items-start"><span class="shrink-0 w-9 h-9 rounded-full bg-primary text-white font-extrabold flex items-center justify-center text-sm">4</span><div class="text-sm w-full"><p class="font-bold text-dark">State / transition table — dạng bảng để soi lỗi</p><div class="overflow-x-auto mt-2"><table class="vtable w-full bg-white rounded-lg"><thead><tr><th>State hiện tại</th><th>Điều kiện</th><th>State kế</th><th>ns_light</th><th>ew_light</th><th>Thời lượng</th></tr></thead><tbody><tr><td class="font-mono">GREEN_NS</td><td class="font-mono">timer_done</td><td class="font-mono">YELLOW_NS</td><td>Xanh</td><td>Đỏ</td><td>GREEN_TICKS</td></tr><tr><td class="font-mono">YELLOW_NS</td><td class="font-mono">timer_done</td><td class="font-mono">GREEN_EW</td><td>Vàng</td><td>Đỏ</td><td>YELLOW_TICKS</td></tr><tr><td class="font-mono">GREEN_EW</td><td class="font-mono">timer_done</td><td class="font-mono">YELLOW_EW</td><td>Đỏ</td><td>Xanh</td><td>GREEN_TICKS</td></tr><tr><td class="font-mono">YELLOW_EW</td><td class="font-mono">timer_done</td><td class="font-mono">GREEN_NS</td><td>Đỏ</td><td>Vàng</td><td>YELLOW_TICKS</td></tr></tbody></table></div><p class="text-slate-600 mt-1">Soi từng dòng: không dòng nào có hai cột đèn cùng "đi" → invariant giữ vững. <span class="font-semibold text-primary">Sản phẩm: bảng transition đầy đủ.</span></p></div></div>
+      <div class="bg-slate-50 rounded-2xl p-4 flex gap-4 items-start"><span class="shrink-0 w-9 h-9 rounded-full bg-secondary text-white font-extrabold flex items-center justify-center text-sm">5</span><div class="text-sm"><p class="font-bold text-dark">RTL — bây giờ mới mở editor</p><p class="text-slate-600 mt-0.5">Dịch bảng ở bước 4 thành FSM 3 khối + timer datapath + tick_gen (Section 08). Mỗi dòng bảng ↔ một nhánh case — dịch cơ học, ít chỗ cho sáng tạo sai. <span class="font-semibold text-primary">Sản phẩm: 2 file .sv biên dịch sạch.</span></p></div></div>
+      <div class="bg-slate-50 rounded-2xl p-4 flex gap-4 items-start"><span class="shrink-0 w-9 h-9 rounded-full bg-secondary text-white font-extrabold flex items-center justify-center text-sm">6</span><div class="text-sm"><p class="font-bold text-dark">Testbench — kịch bản tra tấn thiết kế</p><p class="text-slate-600 mt-0.5">Sinh clock, thả reset, chạy vài chu kỳ trọn vẹn, in trạng thái bằng $monitor, kiểm invariant mỗi cạnh clock. <span class="font-semibold text-primary">Sản phẩm: tb chạy không lỗi + log.</span></p></div></div>
+      <div class="bg-slate-50 rounded-2xl p-4 flex gap-4 items-start"><span class="shrink-0 w-9 h-9 rounded-full bg-secondary text-white font-extrabold flex items-center justify-center text-sm">7</span><div class="text-sm"><p class="font-bold text-dark">Simulate &amp; đọc waveform</p><p class="text-slate-600 mt-0.5">Mở waveform, dò state – timer – đèn theo từng cạnh clock (Section 09); so với bảng bước 4 từng ô một. <span class="font-semibold text-primary">Sản phẩm: ảnh waveform + 3 câu nhận xét.</span></p></div></div>
+      <div class="bg-slate-50 rounded-2xl p-4 flex gap-4 items-start"><span class="shrink-0 w-9 h-9 rounded-full bg-accent text-white font-extrabold flex items-center justify-center text-sm">8</span><div class="text-sm"><p class="font-bold text-dark">Synthesize — RTL thành netlist</p><p class="text-slate-600 mt-0.5">Công cụ FPGA ánh xạ thiết kế vào LUT/FF; đọc report: bao nhiêu FF? (kỳ vọng ~2 state + 4 timer + ~26 tick counter). Gán chân LED trong file constraint. <span class="font-semibold text-primary">Sản phẩm: report tài nguyên + timing pass.</span></p></div></div>
+      <div class="bg-slate-50 rounded-2xl p-4 flex gap-4 items-start"><span class="shrink-0 w-9 h-9 rounded-full bg-accent text-white font-extrabold flex items-center justify-center text-sm">9</span><div class="text-sm"><p class="font-bold text-dark">Nạp bitstream lên FPGA — khoảnh khắc "chip của tôi chạy"</p><p class="text-slate-600 mt-0.5">Nạp file bitstream qua USB, LED bắt đầu luân phiên như demo. <strong class="text-danger">Nhắc lại tuần 8:</strong> đây là <em>cấu hình FPGA</em>, hoàn toàn KHÔNG phải tape-out — muốn sửa, nạp lại bao nhiêu lần cũng được. Tape-out là chuyện của flow ASIC, một quyết định không đảo ngược. <span class="font-semibold text-primary">Sản phẩm: video 20 giây board chạy.</span></p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 8. CODE / RTL ============ -->
+<section id="code-rtl" class="max-w-6xl mx-auto px-4 py-12">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-code"></i></div>
+    <div>
+      <p class="text-xs font-bold uppercase tracking-wider text-primary">Section 08</p>
+      <h2 class="text-2xl md:text-3xl font-extrabold text-dark">Code SystemVerilog hoàn chỉnh</h2>
+    </div>
+  </div>
+  <p class="text-slate-600 max-w-3xl mb-5">Ba file: bộ phát tick enable, controller chính (FSM 3 khối + timer datapath), và testbench. Đọc comment tiếng Việt trong code — mỗi khối đều ghi rõ nó tổng hợp ra phần cứng gì.</p>
+
+  <div class="rounded-xl overflow-hidden shadow-sm mb-3">
+    <div class="code-head"><span><i class="fa-solid fa-file-code mr-2"></i>tick_gen.sv — phát xung enable 1 Hz từ clock 50 MHz (KHÔNG phải clock mới)</span><button class="copy-btn" data-copy="code-tickgen">Copy</button></div>
+    <pre class="code-body" id="code-tickgen"><span class="tok-kw">module</span> <span class="tok-fn">tick_gen</span> #(
+  <span class="tok-kw">parameter</span> <span class="tok-type">int unsigned</span> DIV = <span class="tok-num">50_000_000</span>   <span class="tok-cmt">// 50 MHz / 50 triệu = 1 Hz; mô phỏng nên đặt nhỏ (vd 10)</span>
+)(
+  <span class="tok-kw">input</span>  <span class="tok-type">logic</span> clk,      <span class="tok-cmt">// clock hệ thống DUY NHẤT của toàn thiết kế</span>
+  <span class="tok-kw">input</span>  <span class="tok-type">logic</span> rst_n,    <span class="tok-cmt">// reset bất đồng bộ, tích cực mức thấp</span>
+  <span class="tok-kw">output</span> <span class="tok-type">logic</span> tick      <span class="tok-cmt">// xung enable RỘNG ĐÚNG 1 CHU KỲ clk, mỗi giây 1 lần</span>
+);
+
+  <span class="tok-cmt">// Counter đếm 0 .. DIV-1: cần $clog2(DIV) flip-flop (~26 FF cho 50 triệu)</span>
+  <span class="tok-type">logic</span> [$clog2(DIV)-<span class="tok-num">1</span>:<span class="tok-num">0</span>] cnt;
+
+  <span class="tok-kw">always_ff</span> @(<span class="tok-kw">posedge</span> clk <span class="tok-kw">or</span> <span class="tok-kw">negedge</span> rst_n) <span class="tok-kw">begin</span>
+    <span class="tok-kw">if</span> (!rst_n) <span class="tok-kw">begin</span>
+      cnt  &lt;= '<span class="tok-num">0</span>;
+      tick &lt;= <span class="tok-num">1'b0</span>;
+    <span class="tok-kw">end else if</span> (cnt == DIV-<span class="tok-num">1</span>) <span class="tok-kw">begin</span>
+      cnt  &lt;= '<span class="tok-num">0</span>;
+      tick &lt;= <span class="tok-num">1'b1</span>;   <span class="tok-cmt">// bật đúng 1 chu kỳ rồi tắt ở nhánh dưới</span>
+    <span class="tok-kw">end else begin</span>
+      cnt  &lt;= cnt + <span class="tok-num">1'b1</span>;
+      tick &lt;= <span class="tok-num">1'b0</span>;
+    <span class="tok-kw">end</span>
+  <span class="tok-kw">end</span>
+
+  <span class="tok-cmt">// LƯU Ý SỐNG CÒN: tick là tín hiệu ENABLE cho các FF khác dùng,</span>
+  <span class="tok-cmt">// TUYỆT ĐỐI không viết always_ff @(posedge tick) hay lấy cnt[25] làm "clock 1 Hz".</span>
+  <span class="tok-cmt">// Mọi flip-flop trong thiết kế đều đóng theo posedge clk 50 MHz duy nhất.</span>
+<span class="tok-kw">endmodule</span></pre>
+  </div>
+  <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-slate-700 mb-6"><i class="fa-solid fa-microchip text-secondary mr-2"></i><strong>Phần cứng sinh ra:</strong> ~26 flip-flop (counter) + LUT cộng 1 + comparator so sánh với DIV−1 + 1 flip-flop cho tick. Tín hiệu tick đi vào chân <em>enable</em> của các FF phía sau — clock tree của chip vẫn chỉ có một clock 50 MHz sạch sẽ.</div>
+
+  <div class="rounded-xl overflow-hidden shadow-sm mb-3">
+    <div class="code-head"><span><i class="fa-solid fa-file-code mr-2"></i>traffic_light_controller.sv — FSM 3 khối + timer datapath</span><button class="copy-btn" data-copy="code-tlc">Copy</button></div>
+    <pre class="code-body" id="code-tlc"><span class="tok-kw">module</span> <span class="tok-fn">traffic_light_controller</span> #(
+  <span class="tok-kw">parameter</span> <span class="tok-type">int unsigned</span> GREEN_TICKS  = <span class="tok-num">10</span>,  <span class="tok-cmt">// số giây đèn xanh (giả định &lt;= 16 để timer 4 bit đủ)</span>
+  <span class="tok-kw">parameter</span> <span class="tok-type">int unsigned</span> YELLOW_TICKS = <span class="tok-num">3</span>    <span class="tok-cmt">// số giây đèn vàng</span>
+)(
+  <span class="tok-kw">input</span>  <span class="tok-type">logic</span>       clk,       <span class="tok-cmt">// clock 50 MHz duy nhất</span>
+  <span class="tok-kw">input</span>  <span class="tok-type">logic</span>       rst_n,     <span class="tok-cmt">// reset bất đồng bộ mức thấp</span>
+  <span class="tok-kw">input</span>  <span class="tok-type">logic</span>       tick,      <span class="tok-cmt">// enable 1 Hz từ tick_gen (KHÔNG phải clock)</span>
+  <span class="tok-kw">output</span> <span class="tok-type">logic</span> [<span class="tok-num">2</span>:<span class="tok-num">0</span>] ns_light,  <span class="tok-cmt">// {đỏ, vàng, xanh} hướng Bắc-Nam</span>
+  <span class="tok-kw">output</span> <span class="tok-type">logic</span> [<span class="tok-num">2</span>:<span class="tok-num">0</span>] ew_light   <span class="tok-cmt">// {đỏ, vàng, xanh} hướng Đông-Tây</span>
+);
+
+  <span class="tok-cmt">// ---------- Mã hóa trạng thái: 4 state → 2 bit → 2 flip-flop ----------</span>
+  <span class="tok-kw">typedef enum</span> <span class="tok-type">logic</span> [<span class="tok-num">1</span>:<span class="tok-num">0</span>] {
+    GREEN_NS  = <span class="tok-num">2'd0</span>,
+    YELLOW_NS = <span class="tok-num">2'd1</span>,
+    GREEN_EW  = <span class="tok-num">2'd2</span>,
+    YELLOW_EW = <span class="tok-num">2'd3</span>
+  } state_t;
+
+  state_t state, next_state;
+
+  <span class="tok-cmt">// Mẫu bit đèn: {red, yellow, green}</span>
+  <span class="tok-kw">localparam</span> <span class="tok-type">logic</span> [<span class="tok-num">2</span>:<span class="tok-num">0</span>] LAMP_RED    = <span class="tok-num">3'b100</span>;
+  <span class="tok-kw">localparam</span> <span class="tok-type">logic</span> [<span class="tok-num">2</span>:<span class="tok-num">0</span>] LAMP_YELLOW = <span class="tok-num">3'b010</span>;
+  <span class="tok-kw">localparam</span> <span class="tok-type">logic</span> [<span class="tok-num">2</span>:<span class="tok-num">0</span>] LAMP_GREEN  = <span class="tok-num">3'b001</span>;
+
+  <span class="tok-cmt">// ================= DATAPATH: timer đếm lùi =================</span>
+  <span class="tok-cmt">// 4 flip-flop (đếm tối đa 15) + mạch trừ 1 + MUX nạp lại + comparator == 0</span>
+  <span class="tok-type">logic</span> [<span class="tok-num">3</span>:<span class="tok-num">0</span>] timer;
+  <span class="tok-type">logic</span>       timer_done;
+  <span class="tok-type">logic</span> [<span class="tok-num">3</span>:<span class="tok-num">0</span>] timer_load_val;
+
+  <span class="tok-kw">assign</span> timer_done = (timer == <span class="tok-num">4'd0</span>);   <span class="tok-cmt">// comparator: tín hiệu tổ hợp</span>
+
+  <span class="tok-cmt">// Giá trị nạp lại = thời lượng của STATE KẾ TIẾP trừ 1 (nạp N-1, đếm N nhịp)</span>
+  <span class="tok-kw">always_comb begin</span>
+    <span class="tok-kw">case</span> (next_state)
+      GREEN_NS, GREEN_EW: timer_load_val = <span class="tok-num">4'</span>(GREEN_TICKS  - <span class="tok-num">1</span>);
+      <span class="tok-kw">default</span>:            timer_load_val = <span class="tok-num">4'</span>(YELLOW_TICKS - <span class="tok-num">1</span>);
+    <span class="tok-kw">endcase</span>
+  <span class="tok-kw">end</span>
+
+  <span class="tok-cmt">// Thanh ghi timer: chỉ cập nhật khi tick = 1 (clock enable, KHÔNG gate clock)</span>
+  <span class="tok-kw">always_ff</span> @(<span class="tok-kw">posedge</span> clk <span class="tok-kw">or</span> <span class="tok-kw">negedge</span> rst_n) <span class="tok-kw">begin</span>
+    <span class="tok-kw">if</span> (!rst_n)
+      timer &lt;= <span class="tok-num">4'</span>(GREEN_TICKS - <span class="tok-num">1</span>);      <span class="tok-cmt">// reset: nạp thời lượng pha đầu (GREEN_NS)</span>
+    <span class="tok-kw">else if</span> (tick) <span class="tok-kw">begin</span>
+      <span class="tok-kw">if</span> (timer_done) timer &lt;= timer_load_val;  <span class="tok-cmt">// hết giờ: nạp thời lượng pha kế</span>
+      <span class="tok-kw">else</span>            timer &lt;= timer - <span class="tok-num">4'd1</span>;    <span class="tok-cmt">// chưa hết: trừ 1</span>
+    <span class="tok-kw">end</span>
+  <span class="tok-kw">end</span>
+
+  <span class="tok-cmt">// ================= CONTROLLER: FSM 3 khối chuẩn =================</span>
+
+  <span class="tok-cmt">// Khối 1 — STATE REGISTER (tuần tự, non-blocking &lt;=, có reset)</span>
+  <span class="tok-kw">always_ff</span> @(<span class="tok-kw">posedge</span> clk <span class="tok-kw">or</span> <span class="tok-kw">negedge</span> rst_n) <span class="tok-kw">begin</span>
+    <span class="tok-kw">if</span> (!rst_n)
+      state &lt;= GREEN_NS;                  <span class="tok-cmt">// trạng thái khởi động an toàn, xác định</span>
+    <span class="tok-kw">else if</span> (tick &amp;&amp; timer_done)
+      state &lt;= next_state;                <span class="tok-cmt">// chỉ chuyển pha đúng "nhịp giây" khi hết giờ</span>
+  <span class="tok-kw">end</span>
+
+  <span class="tok-cmt">// Khối 2 — NEXT-STATE LOGIC (tổ hợp, blocking =, default trước case → không latch)</span>
+  <span class="tok-kw">always_comb begin</span>
+    next_state = state;                   <span class="tok-cmt">// default: đứng yên nếu không khớp nhánh nào</span>
+    <span class="tok-kw">case</span> (state)
+      GREEN_NS : next_state = YELLOW_NS;
+      YELLOW_NS: next_state = GREEN_EW;
+      GREEN_EW : next_state = YELLOW_EW;
+      YELLOW_EW: next_state = GREEN_NS;
+      <span class="tok-kw">default</span>  : next_state = GREEN_NS;  <span class="tok-cmt">// state lỗi → kéo về pha an toàn</span>
+    <span class="tok-kw">endcase</span>
+  <span class="tok-kw">end</span>
+
+  <span class="tok-cmt">// Khối 3 — OUTPUT LOGIC kiểu Moore (tổ hợp, default = ĐỎ CẢ HAI HƯỚNG)</span>
+  <span class="tok-cmt">// Default an toàn bảo vệ invariant: mọi nhánh lọt lưới đều rơi về đỏ-đỏ</span>
+  <span class="tok-kw">always_comb begin</span>
+    ns_light = LAMP_RED;
+    ew_light = LAMP_RED;
+    <span class="tok-kw">case</span> (state)
+      GREEN_NS : <span class="tok-kw">begin</span> ns_light = LAMP_GREEN;  ew_light = LAMP_RED;    <span class="tok-kw">end</span>
+      YELLOW_NS: <span class="tok-kw">begin</span> ns_light = LAMP_YELLOW; ew_light = LAMP_RED;    <span class="tok-kw">end</span>
+      GREEN_EW : <span class="tok-kw">begin</span> ns_light = LAMP_RED;    ew_light = LAMP_GREEN;  <span class="tok-kw">end</span>
+      YELLOW_EW: <span class="tok-kw">begin</span> ns_light = LAMP_RED;    ew_light = LAMP_YELLOW; <span class="tok-kw">end</span>
+      <span class="tok-kw">default</span>  : ;  <span class="tok-cmt">// giữ default đỏ-đỏ</span>
+    <span class="tok-kw">endcase</span>
+  <span class="tok-kw">end</span>
+
+<span class="tok-kw">endmodule</span></pre>
+  </div>
+  <div class="grid md:grid-cols-3 gap-3 text-sm mb-6">
+    <div class="bg-blue-50 border border-blue-200 rounded-xl p-4"><p class="font-bold text-blue-800 mb-1">Khối 1 sinh ra gì?</p><p class="text-slate-700">2 flip-flop (state 2 bit) có reset bất đồng bộ; đầu vào D được "gác cổng" bởi điều kiện enable <span class="font-mono text-xs">tick &amp;&amp; timer_done</span> (một MUX giữ giá trị) — không ai đụng vào đường clock.</p></div>
+    <div class="bg-blue-50 border border-blue-200 rounded-xl p-4"><p class="font-bold text-blue-800 mb-1">Khối 2 sinh ra gì?</p><p class="text-slate-700">Thuần logic tổ hợp (vài LUT / vài cổng): từ 2 bit state ra 2 bit next_state. Nhờ gán default đầu khối, không nhánh nào "quên gán" → không sinh latch ngoài ý muốn.</p></div>
+    <div class="bg-blue-50 border border-blue-200 rounded-xl p-4"><p class="font-bold text-blue-800 mb-1">Khối 3 sinh ra gì?</p><p class="text-slate-700">Bộ giải mã tổ hợp 2-sang-6: state → 6 dây đèn. Kiểu Moore: đèn chỉ phụ thuộc state, thay đổi ngay sau cạnh clock chuyển pha (cộng propagation delay), không phụ thuộc trực tiếp input.</p></div>
+  </div>
+  <div class="rounded-xl overflow-hidden shadow-sm mb-3">
+    <div class="code-head"><span><i class="fa-solid fa-vial mr-2"></i>tb_traffic_light.sv — testbench: sinh clock, thả reset, kiểm invariant từng cạnh</span><button class="copy-btn" data-copy="code-tb">Copy</button></div>
+    <pre class="code-body" id="code-tb"><span class="tok-kw">module</span> <span class="tok-fn">tb_traffic_light</span>;
+  <span class="tok-type">logic</span> clk = <span class="tok-num">1'b0</span>, rst_n;
+  <span class="tok-type">logic</span> tick;
+  <span class="tok-type">logic</span> [<span class="tok-num">2</span>:<span class="tok-num">0</span>] ns_light, ew_light;
+
+  <span class="tok-cmt">// Mô phỏng: DIV = 10 → "1 giây" chỉ dài 10 chu kỳ clock, chạy nhanh mà logic không đổi</span>
+  <span class="tok-fn">tick_gen</span> #(.DIV(<span class="tok-num">10</span>)) u_tick (.clk, .rst_n, .tick);
+
+  <span class="tok-fn">traffic_light_controller</span> #(.GREEN_TICKS(<span class="tok-num">6</span>), .YELLOW_TICKS(<span class="tok-num">2</span>)) dut
+    (.clk, .rst_n, .tick, .ns_light, .ew_light);
+
+  <span class="tok-kw">always</span> #<span class="tok-num">5</span> clk = ~clk;   <span class="tok-cmt">// chu kỳ 10 ns — chỉ tồn tại trong mô phỏng</span>
+
+  <span class="tok-cmt">// KIỂM INVARIANT MỖI CẠNH CLOCK: luôn có ít nhất một hướng đang ĐỎ</span>
+  <span class="tok-cmt">// (nếu cả hai hướng cùng rời đèn đỏ → in lỗi ngay, không cần nhìn waveform)</span>
+  <span class="tok-kw">always</span> @(<span class="tok-kw">posedge</span> clk) <span class="tok-kw">if</span> (rst_n)
+    <span class="tok-kw">if</span> (!(ns_light == <span class="tok-num">3'b100</span> || ew_light == <span class="tok-num">3'b100</span>))
+      <span class="tok-fn">$error</span>(<span class="tok-cmt">"VI PHAM INVARIANT: ns=%b ew=%b"</span>, ns_light, ew_light);
+
+  <span class="tok-kw">initial begin</span>
+    rst_n = <span class="tok-num">0</span>;
+    <span class="tok-kw">repeat</span> (<span class="tok-num">3</span>) @(<span class="tok-kw">posedge</span> clk);   <span class="tok-cmt">// giữ reset vài chu kỳ cho chắc</span>
+    rst_n = <span class="tok-num">1</span>;
+    <span class="tok-kw">repeat</span> (<span class="tok-num">400</span>) @(<span class="tok-kw">posedge</span> clk); <span class="tok-cmt">// ≥ 2 vòng đèn trọn vẹn (16 tick × 10 chu kỳ)</span>
+    <span class="tok-fn">$finish</span>;
+  <span class="tok-kw">end</span>
+
+  <span class="tok-kw">initial</span> <span class="tok-fn">$monitor</span>(<span class="tok-cmt">"t=%0t state=%s timer=%0d ns=%b ew=%b"</span>,
+    $time, dut.state.name(), dut.timer, ns_light, ew_light);
+<span class="tok-kw">endmodule</span></pre>
+  </div>
+  <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-sm text-slate-700"><i class="fa-solid fa-flask text-accent mr-2"></i><strong>Mẹo mô phỏng quan trọng:</strong> đừng mô phỏng với DIV = 50.000.000 — mỗi "giây" sẽ tốn 50 triệu chu kỳ. Nhờ <span class="font-mono text-xs">parameter</span>, ta đổi DIV = 10 trong testbench mà <em>không sửa một dòng RTL nào</em>. Khi synthesize lên board thật mới dùng DIV = 50.000.000. Đây chính là lý do bài học tuần 7 bắt viết parameter thay vì "số cứng".</div>
+</section>
+
+<!-- ============ 9. WAVEFORM / TIMING ============ -->
+<section id="waveform" class="bg-white py-12">
+  <div class="max-w-6xl mx-auto px-4">
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-wave-square"></i></div>
+      <div>
+        <p class="text-xs font-bold uppercase tracking-wider text-primary">Section 09</p>
+        <h2 class="text-2xl md:text-3xl font-extrabold text-dark">Waveform / Timing — đọc một lần chuyển pha</h2>
+      </div>
+    </div>
+    <p class="text-slate-600 max-w-3xl mb-5">Trích đoạn waveform quanh thời điểm <strong>YELLOW_NS hết giờ → GREEN_EW</strong> (tham số demo: YELLOW_TICKS = 2). Trục thời gian tính theo <strong>tick</strong>; nhớ rằng giữa hai tick là 50 triệu chu kỳ clock 50 MHz — tick chỉ là <em>enable</em>, mọi flip-flop vẫn đóng theo cạnh lên của cùng một clock.</p>
+
+    <div class="bg-slate-50 rounded-2xl p-4 overflow-x-auto mb-5">
+      <svg viewBox="0 0 800 360" xmlns="http://www.w3.org/2000/svg" class="w-full min-w-[700px]" role="img" aria-label="Waveform chuyển pha YELLOW_NS sang GREEN_EW">
+        <g font-size="10" fill="#64748b" font-family="monospace">
+          <text x="205" y="16" text-anchor="middle">tick k</text>
+          <text x="375" y="16" text-anchor="middle">tick k+1 (timer_done)</text>
+          <text x="545" y="16" text-anchor="middle">tick k+2</text>
+        </g>
+        <g stroke="#cbd5e1" stroke-width="1" stroke-dasharray="4 4">
+          <line x1="205" y1="22" x2="205" y2="330"/>
+          <line x1="375" y1="22" x2="375" y2="330"/>
+          <line x1="545" y1="22" x2="545" y2="330"/>
+        </g>
+        <!-- tick -->
+        <text x="108" y="50" text-anchor="end" font-size="11" font-weight="bold" fill="#92400e" font-family="monospace">tick</text>
+        <path d="M120,58 H195 V34 H215 V58 H365 V34 H385 V58 H535 V34 H555 V58 H700" fill="none" stroke="#f59e0b" stroke-width="2.5"/>
+        <text x="700" y="50" font-size="9" fill="#92400e">xung rộng đúng 1 chu kỳ clk</text>
+        <!-- timer -->
+        <text x="108" y="105" text-anchor="end" font-size="11" font-weight="bold" fill="#065f46" font-family="monospace">timer</text>
+        <g font-family="monospace" font-size="11" font-weight="bold">
+          <path d="M120,92 H198 L208,106 L198,120 H120 Z" fill="#d1fae5" stroke="#10b981" stroke-width="1.5"/><text x="160" y="110" text-anchor="middle" fill="#065f46">1</text>
+          <path d="M208,92 H368 L378,106 L368,120 H218 L208,106 Z" fill="#d1fae5" stroke="#10b981" stroke-width="1.5"/><text x="290" y="110" text-anchor="middle" fill="#065f46">0</text>
+          <path d="M378,92 H538 L548,106 L538,120 H388 L378,106 Z" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/><text x="460" y="110" text-anchor="middle" fill="#1e40af">5 (nạp GREEN−1)</text>
+          <path d="M548,92 H690 L700,106 L690,120 H558 L548,106 Z" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/><text x="622" y="110" text-anchor="middle" fill="#1e40af">4</text>
+        </g>
+        <!-- timer_done -->
+        <text x="108" y="160" text-anchor="end" font-size="11" font-weight="bold" fill="#9d174d" font-family="monospace">timer_done</text>
+        <path d="M120,168 H208 V144 H378 V168 H700" fill="none" stroke="#ec4899" stroke-width="2.5"/>
+        <text x="293" y="138" text-anchor="middle" font-size="9" fill="#9d174d">= (timer == 0), tổ hợp — bám theo timer</text>
+        <!-- state -->
+        <text x="108" y="215" text-anchor="end" font-size="11" font-weight="bold" fill="#334155" font-family="monospace">state</text>
+        <g font-family="monospace" font-size="11" font-weight="bold">
+          <path d="M120,202 H368 L378,216 L368,230 H120 Z" fill="#fef9c3" stroke="#ca8a04" stroke-width="1.5"/><text x="245" y="220" text-anchor="middle" fill="#713f12">YELLOW_NS</text>
+          <path d="M378,202 H690 L700,216 L690,230 H388 L378,216 Z" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/><text x="540" y="220" text-anchor="middle" fill="#14532d">GREEN_EW</text>
+        </g>
+        <text x="388" y="246" font-size="9" fill="#94a3b8">↖ đổi SAU cạnh clock có tick &amp;&amp; timer_done (trễ t_CQ, không "ngay lập tức")</text>
+        <!-- lights -->
+        <text x="108" y="285" text-anchor="end" font-size="11" font-weight="bold" fill="#334155" font-family="monospace">ns_light</text>
+        <g font-family="monospace" font-size="10" font-weight="bold">
+          <path d="M120,272 H368 L378,286 L368,300 H120 Z" fill="#fef9c3" stroke="#ca8a04" stroke-width="1.5"/><text x="245" y="290" text-anchor="middle" fill="#713f12">010 (vàng)</text>
+          <path d="M378,272 H690 L700,286 L690,300 H388 L378,286 Z" fill="#fee2e2" stroke="#ef4444" stroke-width="1.5"/><text x="540" y="290" text-anchor="middle" fill="#991b1b">100 (đỏ)</text>
+        </g>
+        <text x="108" y="330" text-anchor="end" font-size="11" font-weight="bold" fill="#334155" font-family="monospace">ew_light</text>
+        <g font-family="monospace" font-size="10" font-weight="bold">
+          <path d="M120,317 H368 L378,331 L368,345 H120 Z" fill="#fee2e2" stroke="#ef4444" stroke-width="1.5"/><text x="245" y="335" text-anchor="middle" fill="#991b1b">100 (đỏ)</text>
+          <path d="M378,317 H690 L700,331 L690,345 H388 L378,331 Z" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/><text x="540" y="335" text-anchor="middle" fill="#14532d">001 (xanh)</text>
+        </g>
+      </svg>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-4 text-sm">
+      <div class="bg-slate-50 rounded-2xl p-5"><p class="font-bold text-dark mb-1"><i class="fa-solid fa-crosshairs text-primary mr-1.5"></i>Dữ liệu được lấy mẫu khi nào?</p><p class="text-slate-600">Tại <strong>cạnh lên clk</strong> mà tick = 1: state register xem timer_done và nạp next_state; timer nạp giá trị mới. Giữa hai tick, mọi thứ đứng yên dù clock vẫn chạy 50 triệu nhịp/giây.</p></div>
+      <div class="bg-slate-50 rounded-2xl p-5"><p class="font-bold text-dark mb-1"><i class="fa-solid fa-hourglass-half text-secondary mr-1.5"></i>Setup / hold ở đâu trong bài này?</p><p class="text-slate-600">timer_done (tổ hợp từ comparator) phải ổn định <em>trước</em> cạnh clock một khoảng setup time. Vì mọi FF chung một clock 50 MHz và logic rất ngắn, timing dư dả — chính sự "nhàn" này là phần thưởng của kiến trúc tick enable, không derived clock, không clock skew tự chế.</p></div>
+      <div class="bg-slate-50 rounded-2xl p-5"><p class="font-bold text-dark mb-1"><i class="fa-solid fa-triangle-exclamation text-danger mr-1.5"></i>Đèn có đổi "ngay lập tức" không?</p><p class="text-slate-600">Không. Sau cạnh clock: state đổi sau t<sub>CQ</sub> của FF, rồi tín hiệu lan qua output logic (propagation delay của cổng) mới tới chân LED. Tổng cỡ nano-giây — mắt người thấy "tức thì", nhưng kỹ sư phải biết nó là một chuỗi trễ vật lý.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 10. ACTIVE LEARNING ============ -->
+<section id="active-learning" class="max-w-6xl mx-auto px-4 py-12">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-people-group"></i></div>
+    <div>
+      <p class="text-xs font-bold uppercase tracking-wider text-primary">Section 10</p>
+      <h2 class="text-2xl md:text-3xl font-extrabold text-dark">Active Learning — kịch bản buổi học 60 phút</h2>
+    </div>
+  </div>
+  <div class="space-y-3">
+    <div class="bg-white rounded-2xl shadow-sm p-4 flex gap-4 items-start"><span class="shrink-0 w-16 text-center"><span class="block font-mono font-extrabold text-primary">0–5'</span><span class="text-[10px] uppercase text-slate-400 font-bold">5 phút</span></span><div class="text-sm"><p class="font-bold text-dark">Quick check-in</p><p class="text-slate-600">Mỗi người 1 câu: "đèn giao thông gần nhà em có pha nào khác mô hình 4 trạng thái của bài không?" (đèn rẽ trái, đếm ngược, nhấp nháy vàng ban đêm…) — kho ý tưởng mở rộng cho breakout.</p></div></div>
+    <div class="bg-white rounded-2xl shadow-sm p-4 flex gap-4 items-start"><span class="shrink-0 w-16 text-center"><span class="block font-mono font-extrabold text-primary">5–15'</span><span class="text-[10px] uppercase text-slate-400 font-bold">10 phút</span></span><div class="text-sm"><p class="font-bold text-dark">Student presentation</p><p class="text-slate-600">Nhóm phụ trách trình bày: đi lại 4 bước đầu workflow (spec → I/O → diagram → table) cho traffic light. Cả lớp soi bằng câu hỏi: "invariant nằm ở đâu trong bảng?", "vì sao timer không nằm trong state?"</p></div></div>
+    <div class="bg-white rounded-2xl shadow-sm p-4 flex gap-4 items-start"><span class="shrink-0 w-16 text-center"><span class="block font-mono font-extrabold text-primary">15–25'</span><span class="text-[10px] uppercase text-slate-400 font-bold">10 phút</span></span><div class="text-sm"><p class="font-bold text-dark">Mentor correction</p><p class="text-slate-600">Mentor chạy demo Section 06 từng tick, đối chiếu code Section 08: chỉ đúng chỗ <span class="font-mono text-xs">tick &amp;&amp; timer_done</span> trong khối 1, default đỏ-đỏ trong khối 3, và cảnh báo derived clock (mở phần Common Mistakes).</p></div></div>
+    <div class="bg-blue-50 rounded-2xl border-2 border-primary shadow-sm p-4 flex gap-4 items-start"><span class="shrink-0 w-16 text-center"><span class="block font-mono font-extrabold text-primary">25–45'</span><span class="text-[10px] uppercase text-slate-400 font-bold">20 phút</span></span><div class="text-sm"><p class="font-bold text-dark">Breakout room — nâng cấp ngã tư (Section 11)</p><p class="text-slate-600">Nhóm 3–4 người thêm nút đi bộ vào thiết kế. Sản phẩm nộp: state diagram mở rộng + transition table + khung RTL (chỉ khối bị sửa).</p></div></div>
+    <div class="bg-white rounded-2xl shadow-sm p-4 flex gap-4 items-start"><span class="shrink-0 w-16 text-center"><span class="block font-mono font-extrabold text-primary">45–55'</span><span class="text-[10px] uppercase text-slate-400 font-bold">10 phút</span></span><div class="text-sm"><p class="font-bold text-dark">Group sharing</p><p class="text-slate-600">Mỗi nhóm 2 phút: Reporter trình bày diagram mở rộng; nhóm khác làm Skeptic — thử kịch bản "bấm nút đi bộ ngay giữa pha vàng" xem thiết kế phản ứng ra sao.</p></div></div>
+    <div class="bg-white rounded-2xl shadow-sm p-4 flex gap-4 items-start"><span class="shrink-0 w-16 text-center"><span class="block font-mono font-extrabold text-primary">55–60'</span><span class="text-[10px] uppercase text-slate-400 font-bold">5 phút</span></span><div class="text-sm"><p class="font-bold text-dark">Wrap-up</p><p class="text-slate-600">Chốt 3 điều: (1) code là bước 5 của quy trình 9 bước; (2) controller ra lệnh — datapath đếm; (3) tick là enable, không phải clock. Giao homework + hẹn tuần 10: thêm "màn hình" cho hệ thống bằng LED 7 đoạn.</p></div></div>
+  </div>
+</section>
+<!-- ============ 11. BREAKOUT ROOM GUIDE ============ -->
+<section id="breakout" class="bg-white py-12">
+  <div class="max-w-6xl mx-auto px-4">
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-users-rectangle"></i></div>
+      <div>
+        <p class="text-xs font-bold uppercase tracking-wider text-primary">Section 11</p>
+        <h2 class="text-2xl md:text-3xl font-extrabold text-dark">Breakout Room — thêm nút đi bộ (pedestrian button)</h2>
+      </div>
+    </div>
+    <div class="bg-slate-50 rounded-2xl p-6 mb-4">
+      <p class="text-sm leading-relaxed mb-2"><strong>Đề bài:</strong> nâng cấp thiết kế của bài: thêm input <span class="font-mono font-bold">ped_btn</span> (nút đi bộ) và pha <span class="font-mono font-bold">WALK</span> — cả hai hướng xe ĐỎ, đèn đi bộ sáng trong <span class="font-mono">WALK_TICKS = 4</span>. Yêu cầu: bấm nút giữa pha xanh thì <em>không cắt ngang</em> — hệ đi hết pha vàng hiện hành rồi mới vào WALK; bấm trong pha WALK thì không kéo dài thêm.</p>
+      <p class="text-xs text-slate-500">Gợi ý khung: cần "nhớ" việc nút đã được bấm → một flip-flop cờ (ped_req) thuộc datapath, được FSM xóa khi vào WALK. Đây chính là bài học controller/datapath thu nhỏ.</p>
+    </div>
+    <div class="grid md:grid-cols-2 gap-4">
+      <div class="bg-slate-50 rounded-2xl p-6">
+        <h3 class="font-bold text-dark text-sm uppercase tracking-wide mb-3"><i class="fa-solid fa-comments text-primary mr-1.5"></i>4 câu hỏi thảo luận (buộc phân tích)</h3>
+        <ol class="text-sm space-y-2.5 list-decimal list-inside text-slate-700">
+          <li>Pha WALK chen vào <em>vị trí nào</em> của vòng GREEN_NS → YELLOW_NS → GREEN_EW → YELLOW_EW? Có mấy phương án hợp lệ, và tiêu chí nào để chọn (công bằng hai hướng? tổng thời gian chờ)?</li>
+          <li>Tín hiệu ped_btn là nút bấm cơ — có thể rung (bounce) và được bấm bất kỳ lúc nào giữa chu kỳ. Cờ ped_req phải được chốt và xóa như thế nào để không "nuốt" lần bấm và không kích hoạt hai lần?</li>
+          <li>Invariant mới của hệ là gì? (Gợi ý: ngoài "không hai hướng xe cùng đi", thêm "đèn đi bộ sáng ⇒ cả hai hướng xe đỏ".) Viết thành biểu thức kiểm tra được trong testbench.</li>
+          <li>Thiết kế mới cần thêm bao nhiêu state, bao nhiêu flip-flop? Transition table tăng thêm những dòng nào? Có dòng nào của bảng cũ phải <em>sửa</em> không?</li>
+        </ol>
+      </div>
+      <div>
+        <div class="bg-slate-50 rounded-2xl p-6 mb-4">
+          <h3 class="font-bold text-dark text-sm uppercase tracking-wide mb-3"><i class="fa-solid fa-user-gear text-primary mr-1.5"></i>Vai trò trong nhóm</h3>
+          <ul class="text-sm space-y-2 text-slate-700">
+            <li><strong class="text-primary">Facilitator:</strong> giữ nhịp 20 phút — 8 phút cho câu 1–2, 6 phút câu 3–4, 6 phút chốt sản phẩm.</li>
+            <li><strong class="text-primary">Note keeper:</strong> vẽ diagram mở rộng + bảng transition trên giấy/whiteboard chung.</li>
+            <li><strong class="text-primary">Reporter:</strong> chuẩn bị 2 phút: vị trí chèn WALK → invariant mới → 1 quyết định gây tranh cãi.</li>
+            <li><strong class="text-primary">Skeptic/Checker:</strong> thử phá bằng kịch bản ác: bấm nút liên tục, bấm đúng lúc chuyển pha, reset giữa WALK — dò bảng xem hệ về đâu.</li>
+          </ul>
+        </div>
+        <div class="bg-emerald-50 rounded-2xl border border-emerald-200 p-6">
+          <h3 class="font-bold text-emerald-800 text-sm uppercase tracking-wide mb-2"><i class="fa-solid fa-box-archive mr-1.5"></i>Output nhóm phải nộp</h3>
+          <ul class="text-sm text-emerald-900 space-y-1.5">
+            <li><i class="fa-solid fa-check mr-1.5"></i>State diagram mở rộng (5+ state, có WALK, đủ nhãn điều kiện trên mọi cung).</li>
+            <li><i class="fa-solid fa-check mr-1.5"></i>Transition table đầy đủ + cột output đèn đi bộ.</li>
+            <li><i class="fa-solid fa-check mr-1.5"></i>RTL skeleton: chỉ khối next-state (always_comb) đã sửa + khai báo cờ ped_req.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 12. COMMON MISTAKES ============ -->
+<section id="mistakes" class="max-w-6xl mx-auto px-4 py-12">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-danger/10 text-danger flex items-center justify-center"><i class="fa-solid fa-triangle-exclamation"></i></div>
+    <div>
+      <p class="text-xs font-bold uppercase tracking-wider text-danger">Section 12</p>
+      <h2 class="text-2xl md:text-3xl font-extrabold text-dark">Common Mistakes — lỗi kinh điển của tuần mini-project</h2>
+    </div>
+  </div>
+  <div class="grid md:grid-cols-2 gap-4">
+    <div class="bg-red-50 rounded-2xl border border-red-200 p-5 text-sm">
+      <p class="font-bold text-red-700 mb-1.5"><i class="fa-solid fa-xmark-circle mr-1.5"></i>1. Chế clock 1 Hz bằng gated clock hoặc counter bit</p>
+      <p class="mb-2 text-slate-700"><strong>Lỗi:</strong> viết <span class="font-mono text-xs bg-white/70 px-1 rounded">assign clk_1hz = clk &amp; en;</span> (gated clock) hoặc <span class="font-mono text-xs bg-white/70 px-1 rounded">always_ff @(posedge cnt[25])</span> (derived clock). <strong>Vì sao nguy hiểm:</strong> tạo miền clock mới méo mó, có glitch, công cụ timing không phân tích được, thiết kế "lúc chạy lúc không" — anti-pattern số một của người mới.</p>
+      <p class="text-red-900 bg-red-100/70 rounded-lg p-2.5"><strong>Sửa đúng:</strong> một clock 50 MHz duy nhất cho mọi FF; tick_gen phát <em>xung enable rộng 1 chu kỳ</em>; FF nào cần chậm thì thêm điều kiện <span class="font-mono text-xs">else if (tick)</span>. Xem tick_gen.sv ở Section 08.</p>
+    </div>
+    <div class="bg-red-50 rounded-2xl border border-red-200 p-5 text-sm">
+      <p class="font-bold text-red-700 mb-1.5"><i class="fa-solid fa-xmark-circle mr-1.5"></i>2. Nhét thời gian vào state — "GREEN_NS_1s, GREEN_NS_2s…"</p>
+      <p class="mb-2 text-slate-700"><strong>Lỗi:</strong> mỗi giây một state → 26 state cho một chu kỳ đèn. <strong>Vì sao nguy hiểm:</strong> bùng nổ trạng thái; đổi 10 s thành 15 s phải vẽ lại toàn bộ diagram và viết lại FSM; không tái sử dụng được.</p>
+      <p class="text-red-900 bg-red-100/70 rounded-lg p-2.5"><strong>Sửa đúng:</strong> 4 state theo <em>pha</em>, thời gian giao cho timer (datapath) đếm; đổi thời lượng chỉ là đổi parameter. Nhầm counter với FSM chính là lỗi này ở dạng khác.</p>
+    </div>
+    <div class="bg-red-50 rounded-2xl border border-red-200 p-5 text-sm">
+      <p class="font-bold text-red-700 mb-1.5"><i class="fa-solid fa-xmark-circle mr-1.5"></i>3. Quên default trong khối output → latch + vỡ invariant</p>
+      <p class="mb-2 text-slate-700"><strong>Lỗi:</strong> case chỉ gán đèn cho 4 state "đẹp", không gán nhánh default. <strong>Vì sao nguy hiểm:</strong> công cụ suy diễn latch (phần tử nhớ ngoài ý muốn); nếu state register lỗi rơi vào mã không định nghĩa, đèn <em>giữ nguyên giá trị cũ</em> — hai hướng có thể cùng xanh.</p>
+      <p class="text-red-900 bg-red-100/70 rounded-lg p-2.5"><strong>Sửa đúng:</strong> dòng đầu khối output luôn là <span class="font-mono text-xs">ns_light = LAMP_RED; ew_light = LAMP_RED;</span> — mọi tình huống lọt lưới rơi về đỏ-đỏ an toàn. Đọc log synthesis: thấy "inferred latch" là phải sửa ngay.</p>
+    </div>
+    <div class="bg-red-50 rounded-2xl border border-red-200 p-5 text-sm">
+      <p class="font-bold text-red-700 mb-1.5"><i class="fa-solid fa-xmark-circle mr-1.5"></i>4. Không reset state register và timer</p>
+      <p class="mb-2 text-slate-700"><strong>Lỗi:</strong> bỏ nhánh <span class="font-mono text-xs">if (!rst_n)</span>. <strong>Vì sao nguy hiểm:</strong> sau bật nguồn FF mang giá trị ngẫu nhiên: FSM có thể "tỉnh dậy" ở pha bất kỳ, timer ở giá trị bất kỳ — trên board mỗi lần cắm điện chạy một kiểu, lỗi cực khó tái hiện.</p>
+      <p class="text-red-900 bg-red-100/70 rounded-lg p-2.5"><strong>Sửa đúng:</strong> reset đưa state về GREEN_NS và timer về GREEN_TICKS−1 — một trạng thái khởi đầu <em>xác định và an toàn</em>. Testbench luôn bắt đầu bằng chuỗi thả reset.</p>
+    </div>
+    <div class="bg-orange-50 rounded-2xl border border-orange-200 p-5 text-sm">
+      <p class="font-bold text-orange-700 mb-1.5"><i class="fa-solid fa-xmark-circle mr-1.5"></i>5. Trộn controller và datapath vào một khối always khổng lồ</p>
+      <p class="mb-2 text-slate-700"><strong>Lỗi:</strong> một always_ff vừa chuyển state, vừa trừ timer, vừa gán đèn. <strong>Vì sao nguy hiểm:</strong> đèn bị trễ thêm 1 chu kỳ ngoài dự tính (vì bị đăng ký hóa), khó debug, khó mở rộng (thêm nút đi bộ phải mổ lại toàn bộ), công cụ khó nhận dạng FSM để tối ưu.</p>
+      <p class="text-orange-900 bg-orange-100/70 rounded-lg p-2.5"><strong>Sửa đúng:</strong> giữ đúng kiến trúc bài: tick_gen riêng, timer riêng, FSM 3 khối riêng. Mỗi khối một trách nhiệm — như Section 05.</p>
+    </div>
+    <div class="bg-orange-50 rounded-2xl border border-orange-200 p-5 text-sm">
+      <p class="font-bold text-orange-700 mb-1.5"><i class="fa-solid fa-xmark-circle mr-1.5"></i>6. Coi "nạp bitstream chạy được" là xong — thậm chí gọi là tape-out</p>
+      <p class="mb-2 text-slate-700"><strong>Lỗi:</strong> bỏ qua mô phỏng, sửa code → nạp board → nhìn LED đoán lỗi; hoặc gọi việc nạp bitstream là "tape-out". <strong>Vì sao nguy hiểm:</strong> debug bằng mắt trên LED chậm gấp trăm lần đọc waveform; và lẫn lộn thuật ngữ: bitstream là <em>cấu hình lại được</em> của FPGA, tape-out là gửi layout ASIC đi sản xuất — quyết định không đảo ngược, sai là mất hàng triệu USD.</p>
+      <p class="text-orange-900 bg-orange-100/70 rounded-lg p-2.5"><strong>Sửa đúng:</strong> kỷ luật workflow 9 bước: waveform sạch + invariant pass rồi mới synthesize/nạp board. Dùng đúng thuật ngữ của tuần 8.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 13. MINI-PROJECT CONNECTION ============ -->
+<section id="mini-project" class="bg-white py-12">
+  <div class="max-w-6xl mx-auto px-4">
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-rocket"></i></div>
+      <div>
+        <p class="text-xs font-bold uppercase tracking-wider text-primary">Section 13</p>
+        <h2 class="text-2xl md:text-3xl font-extrabold text-dark">Mini-project — tuần này CHÍNH LÀ project, và các nấc mở rộng</h2>
+      </div>
+    </div>
+    <p class="text-slate-600 max-w-3xl mb-5">Khác các tuần trước, traffic light controller không phải "gợi ý liên hệ" — nó là sản phẩm phải hoàn thành. Ba nấc dưới đây cho bạn leo theo sức; nấc 1 là bắt buộc của homework Mức 3.</p>
+    <div class="grid md:grid-cols-3 gap-4">
+      <div class="bg-slate-50 rounded-2xl p-6 border-t-4 border-accent">
+        <div class="w-11 h-11 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center text-xl mb-3"><i class="fa-solid fa-traffic-light"></i></div>
+        <h3 class="font-extrabold text-dark mb-1">Nấc 1 — Bản chuẩn của bài</h3>
+        <p class="text-xs font-bold text-emerald-600 uppercase mb-2">Bắt buộc · ~2–3 giờ</p>
+        <p class="text-sm text-slate-600 leading-relaxed mb-3">Đúng thiết kế Section 08: 4 pha, tick_gen + timer + FSM 3 khối, testbench kiểm invariant, mô phỏng sạch. Nếu có board: nạp và quay video 20 giây.</p>
+        <ul class="text-xs text-slate-500 space-y-1"><li><i class="fa-solid fa-puzzle-piece text-primary mr-1.5"></i>Kỹ năng chốt: quy trình 9 bước, tick enable, default an toàn.</li></ul>
+      </div>
+      <div class="bg-slate-50 rounded-2xl p-6 border-t-4 border-primary">
+        <div class="w-11 h-11 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center text-xl mb-3"><i class="fa-solid fa-person-walking"></i></div>
+        <h3 class="font-extrabold text-dark mb-1">Nấc 2 — Nút đi bộ + ALL_RED</h3>
+        <p class="text-xs font-bold text-blue-600 uppercase mb-2">Khuyến khích · +2 giờ</p>
+        <p class="text-sm text-slate-600 leading-relaxed mb-3">Thêm pha WALK từ breakout, cộng pha ALL_RED 1 giây đệm giữa các chuyển hướng (đúng thực tế giao thông). Cờ ped_req thuộc datapath.</p>
+        <ul class="text-xs text-slate-500 space-y-1"><li><i class="fa-solid fa-puzzle-piece text-primary mr-1.5"></i>Kỹ năng chốt: mở rộng FSM có kỷ luật, input bất đồng bộ + cờ nhớ.</li></ul>
+      </div>
+      <div class="bg-slate-50 rounded-2xl p-6 border-t-4 border-secondary">
+        <div class="w-11 h-11 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center text-xl mb-3"><i class="fa-solid fa-moon"></i></div>
+        <h3 class="font-extrabold text-dark mb-1">Nấc 3 — Chế độ ban đêm + đếm ngược</h3>
+        <p class="text-xs font-bold text-amber-600 uppercase mb-2">Thử thách · tự do</p>
+        <p class="text-sm text-slate-600 leading-relaxed mb-3">Switch night_mode: cả hai hướng nhấp nháy vàng (vẫn dùng tick, không chế clock!). Hiển thị số giây còn lại — chờ tuần 10 để nối LED 7 đoạn vào chính timer này.</p>
+        <ul class="text-xs text-slate-500 space-y-1"><li><i class="fa-solid fa-puzzle-piece text-primary mr-1.5"></i>Kỹ năng chốt: mode switching, chuẩn bị datapath hiển thị cho tuần 10.</li></ul>
+      </div>
+    </div>
+    <div class="mt-4 bg-blue-50 border-l-4 border-primary rounded-r-2xl p-5 text-sm text-slate-700"><i class="fa-solid fa-forward text-primary mr-2"></i><strong>Nhìn sang tuần 10:</strong> hệ thống của bạn đã có "bộ não" (FSM) và "đồng hồ" (timer) nhưng chưa có "màn hình". Tuần 10 ghép counter → decoder → LED 7 đoạn — và số giây đếm ngược của đèn giao thông sẽ hiện lên thật.</div>
+  </div>
+</section>
+<!-- ============ 14. QUIZ ============ -->
+<section id="quiz" class="max-w-6xl mx-auto px-4 py-12">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-circle-question"></i></div>
+    <div>
+      <p class="text-xs font-bold uppercase tracking-wider text-primary">Section 14</p>
+      <h2 class="text-2xl md:text-3xl font-extrabold text-dark">Quiz — 10 câu tự kiểm tra</h2>
+    </div>
+  </div>
+  <div class="bg-white rounded-2xl shadow-sm p-4 mb-4 flex flex-wrap items-center gap-3">
+    <p class="text-sm text-slate-600"><i class="fa-solid fa-circle-info text-primary mr-1.5"></i>Chọn đáp án — chấm ngay và hiện giải thích. Mỗi câu chỉ chọn được một lần.</p>
+    <span class="ml-auto text-sm font-bold bg-slate-50 border border-slate-200 rounded-full px-4 py-1.5">Đúng <span id="qz-correct" class="text-emerald-600">0</span> / trả lời <span id="qz-answered">0</span> / 10</span>
+    <button id="qz-final" class="px-4 py-1.5 rounded-full bg-primary text-white text-sm font-bold hover:bg-blue-700 transition">Chấm điểm</button>
+  </div>
+  <p id="qz-verdict" class="hidden mb-4 text-sm font-bold bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl p-4"></p>
+  <div class="space-y-4">
+    <div class="quiz-q bg-white rounded-2xl shadow-sm p-5">
+      <p class="font-bold text-dark text-sm mb-3">1. Trong kiến trúc của bài, vì sao tách Controller (FSM) khỏi Datapath (timer)?</p>
+      <button class="quiz-opt"><span>A. Vì Verilog không cho phép viết chung một file</span></button>
+      <button class="quiz-opt" data-correct="1"><span>B. Vì FSM chỉ nên quyết định "pha nào", còn việc đếm giao cho counter — tránh bùng nổ trạng thái, dễ sửa thời lượng, dễ mở rộng</span></button>
+      <button class="quiz-opt"><span>C. Vì timer chạy ở clock khác với FSM</span></button>
+      <button class="quiz-opt"><span>D. Chỉ là quy ước thẩm mỹ, gộp chung không có hại gì</span></button>
+      <div class="quiz-expl"><strong>Giải thích:</strong> nếu nhét thời gian vào state (mỗi giây một state) thì đổi 10 s → 15 s phải vẽ lại FSM. Tách ra: FSM 4 state cố định, thời lượng chỉ là parameter của timer. Cả hai vẫn dùng chung MỘT clock 50 MHz (C sai).</div>
+    </div>
+    <div class="quiz-q bg-white rounded-2xl shadow-sm p-5">
+      <p class="font-bold text-dark text-sm mb-3">2. Tín hiệu tick do tick_gen phát ra có bản chất là gì?</p>
+      <button class="quiz-opt"><span>A. Một clock 1 Hz mới, dùng cho @(posedge tick)</span></button>
+      <button class="quiz-opt"><span>B. Tín hiệu reset định kỳ mỗi giây</span></button>
+      <button class="quiz-opt" data-correct="1"><span>C. Xung enable rộng đúng 1 chu kỳ clk, mỗi giây một lần — FF khác chỉ cập nhật khi tick = 1 nhưng vẫn đóng theo posedge clk</span></button>
+      <button class="quiz-opt"><span>D. Tín hiệu tổ hợp thuần túy, không cần flip-flop nào</span></button>
+      <div class="quiz-expl"><strong>Giải thích:</strong> tick là <em>clock enable</em> — kỹ thuật chuẩn công nghiệp. Viết @(posedge tick) là tạo derived clock: thêm miền clock chưa phân tích, gây skew. tick_gen cần ~26 FF cho counter + 1 FF cho tick (D sai).</div>
+    </div>
+    <div class="quiz-q bg-white rounded-2xl shadow-sm p-5">
+      <p class="font-bold text-dark text-sm mb-3">3. Vì sao TUYỆT ĐỐI không lấy cnt[25] của counter làm "clock 1 Hz" cho phần còn lại?</p>
+      <button class="quiz-opt"><span>A. Vì cnt[25] đổi quá chậm nên mạch không chạy</span></button>
+      <button class="quiz-opt" data-correct="1"><span>B. Vì đó là derived clock: tạo miền clock mới ngoài phân tích timing, dễ skew/glitch — anti-pattern với người mới chưa học clock domain</span></button>
+      <button class="quiz-opt"><span>C. Vì cnt[25] chỉ tồn tại trong mô phỏng, không có trên FPGA</span></button>
+      <button class="quiz-opt"><span>D. Vì FPGA chỉ cho phép đúng một tín hiệu tên là clk</span></button>
+      <div class="quiz-expl"><strong>Giải thích:</strong> mọi FF nên đóng trên cùng một clock để công cụ STA phân tích được toàn thiết kế. Clock "tự chế" từ logic thường đi đường dây thường (không phải clock tree), méo và lệch pha. Giải pháp đúng: tick enable.</div>
+    </div>
+    <div class="quiz-q bg-white rounded-2xl shadow-sm p-5">
+      <p class="font-bold text-dark text-sm mb-3">4. State register của FSM cập nhật giá trị mới khi nào?</p>
+      <button class="quiz-opt"><span>A. Ngay khi timer chạm 0, bất kể clock</span></button>
+      <button class="quiz-opt"><span>B. Tại mọi cạnh lên clk, mỗi 20 ns một lần</span></button>
+      <button class="quiz-opt" data-correct="1"><span>C. Tại cạnh lên clk khi tick = 1 VÀ timer_done = 1 — tức đúng "nhịp giây" mà pha hết giờ</span></button>
+      <button class="quiz-opt"><span>D. Khi rst_n chuyển từ 0 lên 1</span></button>
+      <div class="quiz-expl"><strong>Giải thích:</strong> điều kiện trong khối 1: <span class="font-mono text-xs">else if (tick &amp;&amp; timer_done) state &lt;= next_state;</span>. Không có tick thì dù timer_done = 1, state vẫn đứng yên chờ đúng nhịp. Sau cạnh còn trễ t_CQ — không "ngay lập tức".</div>
+    </div>
+    <div class="quiz-q bg-white rounded-2xl shadow-sm p-5">
+      <p class="font-bold text-dark text-sm mb-3">5. Hai dòng default <span class="font-mono text-xs">ns_light = LAMP_RED; ew_light = LAMP_RED;</span> ở đầu khối output có tác dụng gì?</p>
+      <button class="quiz-opt"><span>A. Làm đèn đỏ sáng xen kẽ giữa các pha cho đẹp</span></button>
+      <button class="quiz-opt" data-correct="1"><span>B. Vừa tránh latch (mọi nhánh đều có gán), vừa bảo vệ invariant: tình huống lọt lưới nào cũng rơi về đỏ-đỏ an toàn</span></button>
+      <button class="quiz-opt"><span>C. Giúp code chạy nhanh hơn vì gán trước</span></button>
+      <button class="quiz-opt"><span>D. Bắt buộc của cú pháp SystemVerilog, thiếu là không biên dịch</span></button>
+      <div class="quiz-expl"><strong>Giải thích:</strong> always_comb thiếu gán ở nhánh nào đó → công cụ suy diễn latch. Default = ĐỎ cả hai hướng còn là "lưới an toàn" đúng tinh thần fail-safe: state lỗi thì cả ngã tư dừng, không bao giờ hai hướng cùng đi.</div>
+    </div>
+    <div class="quiz-q bg-white rounded-2xl shadow-sm p-5">
+      <p class="font-bold text-dark text-sm mb-3">6. Vì sao timer nạp GREEN_TICKS − 1 (chứ không phải GREEN_TICKS) rồi đếm về 0?</p>
+      <button class="quiz-opt"><span>A. Để tiết kiệm một flip-flop</span></button>
+      <button class="quiz-opt"><span>B. Vì phép trừ trong Verilog luôn lệch 1</span></button>
+      <button class="quiz-opt" data-correct="1"><span>C. Vì đếm từ N−1 xuống 0 là đúng N nhịp tick (tính cả giá trị 0) — nạp N sẽ dư một nhịp</span></button>
+      <button class="quiz-opt"><span>D. Không có lý do, nạp N cũng cho kết quả y hệt</span></button>
+      <div class="quiz-expl"><strong>Giải thích:</strong> chuỗi 5→4→3→2→1→0 với GREEN_TICKS = 6 là đủ 6 nhịp; timer_done = 1 tại giá trị 0 để cạnh tick kế tiếp chuyển pha. Lỗi off-by-one kiểu này là lỗi kinh điển khi thiết kế counter/timer.</div>
+    </div>
+    <div class="quiz-q bg-white rounded-2xl shadow-sm p-5">
+      <p class="font-bold text-dark text-sm mb-3">7. Ước lượng số flip-flop của toàn thiết kế (DIV = 50.000.000, timer 4 bit, 4 state mã hóa nhị phân)?</p>
+      <button class="quiz-opt"><span>A. Đúng 4 FF — mỗi state một FF</span></button>
+      <button class="quiz-opt"><span>B. Khoảng 6 FF: 2 state + 4 timer</span></button>
+      <button class="quiz-opt" data-correct="1"><span>C. Khoảng 33 FF: 2 state + 4 timer + ~26 counter của tick_gen + 1 FF tick</span></button>
+      <button class="quiz-opt"><span>D. Hơn 1000 FF vì FSM rất phức tạp</span></button>
+      <div class="quiz-expl"><strong>Giải thích:</strong> đếm đến 50 triệu cần ⌈log₂(5×10⁷)⌉ = 26 bit → 26 FF; cộng 1 FF cho tick, 4 FF timer, 2 FF state. Phần "nặng" nhất của thiết kế hóa ra là bộ chia nhịp — nhận xét thú vị khi đọc report synthesis.</div>
+    </div>
+    <div class="quiz-q bg-white rounded-2xl shadow-sm p-5">
+      <p class="font-bold text-dark text-sm mb-3">8. Nạp bitstream cho FPGA và tape-out ASIC khác nhau thế nào?</p>
+      <button class="quiz-opt"><span>A. Là một — "tape-out lên FPGA" là cách gọi chuyên nghiệp</span></button>
+      <button class="quiz-opt" data-correct="1"><span>B. Nạp bitstream = cấu hình lại FPGA, sai thì sửa và nạp lại; tape-out = gửi layout ASIC đi sản xuất, quyết định không đảo ngược, chi phí mask hàng triệu USD</span></button>
+      <button class="quiz-opt"><span>C. Tape-out nhanh và rẻ hơn nạp bitstream</span></button>
+      <button class="quiz-opt"><span>D. FPGA không cần verification vì có thể nạp lại</span></button>
+      <div class="quiz-expl"><strong>Giải thích:</strong> đúng bài tuần 8. Khả năng "nạp lại vô hạn" là lý do FPGA hợp với học tập và prototype; nhưng kỷ luật verification vẫn bắt buộc (D sai) — debug bằng LED chậm hơn đọc waveform rất nhiều.</div>
+    </div>
+    <div class="quiz-q bg-white rounded-2xl shadow-sm p-5">
+      <p class="font-bold text-dark text-sm mb-3">9. FSM của bài là máy Moore. Điều đó thể hiện ở chỗ nào?</p>
+      <button class="quiz-opt"><span>A. Đèn phụ thuộc cả state lẫn tick</span></button>
+      <button class="quiz-opt" data-correct="1"><span>B. Khối output chỉ đọc state — đèn ổn định trọn pha, không rung theo input giữa chu kỳ</span></button>
+      <button class="quiz-opt"><span>C. Vì có đúng 4 trạng thái</span></button>
+      <button class="quiz-opt"><span>D. Vì dùng typedef enum để đặt tên state</span></button>
+      <div class="quiz-expl"><strong>Giải thích:</strong> nhìn khối 3: case (state) — không có input nào trong biểu thức output → Moore. Với tín hiệu an toàn như đèn giao thông, output sạch glitch của Moore là lựa chọn đúng (bài tuần 6).</div>
+    </div>
+    <div class="quiz-q bg-white rounded-2xl shadow-sm p-5">
+      <p class="font-bold text-dark text-sm mb-3">10. Testbench của bài kiểm tra invariant bằng cách nào?</p>
+      <button class="quiz-opt"><span>A. Nhìn waveform bằng mắt sau khi chạy xong</span></button>
+      <button class="quiz-opt"><span>B. Đếm số lần đèn xanh sáng trong 1 phút</span></button>
+      <button class="quiz-opt" data-correct="1"><span>C. Ở mỗi cạnh lên clock (sau reset), kiểm tra "ít nhất một hướng đang đỏ" — vi phạm là $error in lỗi ngay</span></button>
+      <button class="quiz-opt"><span>D. Không cần kiểm — mô hình 4 state tự đảm bảo tuyệt đối</span></button>
+      <div class="quiz-expl"><strong>Giải thích:</strong> kiểm tự động từng cạnh bắt được cả những kịch bản bạn không chủ động nhìn (reset giữa chừng, state lỗi). Mô hình đúng + default an toàn + assertion = ba lớp bảo vệ; bỏ lớp nào cũng là tự tin quá mức (D sai).</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 15. HOMEWORK ============ -->
+<section id="homework" class="bg-white py-12">
+  <div class="max-w-6xl mx-auto px-4">
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-house-laptop"></i></div>
+      <div>
+        <p class="text-xs font-bold uppercase tracking-wider text-primary">Section 15</p>
+        <h2 class="text-2xl md:text-3xl font-extrabold text-dark">Homework — bài tập sau buổi học (3 mức)</h2>
+      </div>
+    </div>
+    <div class="space-y-4">
+      <div class="bg-slate-50 rounded-2xl border-l-4 border-accent p-6">
+        <div class="flex flex-wrap items-center gap-2 mb-3">
+          <span class="text-xs font-extrabold uppercase bg-emerald-100 text-emerald-700 rounded-full px-3 py-1">Mức 1 — Nhận biết / giải thích</span>
+          <span class="text-xs text-slate-400 font-semibold"><i class="fa-regular fa-clock mr-1"></i>~30 phút</span>
+        </div>
+        <p class="text-sm text-slate-700 leading-relaxed mb-2"><strong>Đề bài:</strong> viết bằng lời của bạn (không chép bài): (a) vì sao tách controller/datapath; (b) tick enable khác derived clock chỗ nào và vì sao tick an toàn hơn; (c) hai vai trò của default đỏ-đỏ trong khối output. Mỗi ý 3–5 câu.</p>
+        <div class="grid md:grid-cols-3 gap-3 text-xs mt-3">
+          <div class="bg-white rounded-xl p-3 border border-slate-200"><p class="font-bold text-slate-700 uppercase mb-1"><i class="fa-solid fa-paper-plane mr-1 text-primary"></i>Nộp</p><p>1 trang note (ảnh/PDF) vào kênh chung trước buổi tuần 10.</p></div>
+          <div class="bg-white rounded-xl p-3 border border-slate-200"><p class="font-bold text-slate-700 uppercase mb-1"><i class="fa-solid fa-lightbulb mr-1 text-secondary"></i>Gợi ý</p><p>Chơi lại demo Section 06: bấm từng tick và tự thuật lại điều gì xảy ra ở controller, điều gì ở datapath.</p></div>
+          <div class="bg-white rounded-xl p-3 border border-slate-200"><p class="font-bold text-slate-700 uppercase mb-1"><i class="fa-solid fa-clipboard-check mr-1 text-accent"></i>Tiêu chí</p><p>Giải thích đúng bản chất (enable ≠ clock; latch; invariant); có ví dụ minh họa riêng, không lặp nguyên văn bài giảng.</p></div>
+        </div>
+      </div>
+      <div class="bg-slate-50 rounded-2xl border-l-4 border-primary p-6">
+        <div class="flex flex-wrap items-center gap-2 mb-3">
+          <span class="text-xs font-extrabold uppercase bg-blue-100 text-blue-700 rounded-full px-3 py-1">Mức 2 — Thiết kế / lập bảng / vẽ sơ đồ</span>
+          <span class="text-xs text-slate-400 font-semibold"><i class="fa-regular fa-clock mr-1"></i>~60 phút</span>
+        </div>
+        <p class="text-sm text-slate-700 leading-relaxed mb-2"><strong>Đề bài:</strong> mở rộng thiết kế trên giấy với pha <strong>ALL_RED</strong> (cả hai hướng đỏ 1 giây) chèn sau mỗi pha vàng — đúng thực tế giao thông. Vẽ state diagram 6 trạng thái, lập transition table đầy đủ (kèm cột thời lượng), và chỉ ra invariant vẫn giữ vững ở từng dòng.</p>
+        <div class="grid md:grid-cols-3 gap-3 text-xs mt-3">
+          <div class="bg-white rounded-xl p-3 border border-slate-200"><p class="font-bold text-slate-700 uppercase mb-1"><i class="fa-solid fa-paper-plane mr-1 text-primary"></i>Nộp</p><p>Ảnh diagram + bảng + 3 dòng: "tôi phải sửa những dòng nào của bảng cũ?"</p></div>
+          <div class="bg-white rounded-xl p-3 border border-slate-200"><p class="font-bold text-slate-700 uppercase mb-1"><i class="fa-solid fa-lightbulb mr-1 text-secondary"></i>Gợi ý</p><p>ALL_RED dùng lại timer sẵn có — chỉ thêm giá trị nạp mới (ALLRED_TICKS − 1). FSM thêm 2 state, datapath không đổi.</p></div>
+          <div class="bg-white rounded-xl p-3 border border-slate-200"><p class="font-bold text-slate-700 uppercase mb-1"><i class="fa-solid fa-clipboard-check mr-1 text-accent"></i>Tiêu chí</p><p>Đủ 6 state, đủ transition, thời lượng đúng vị trí, lập luận invariant rõ ràng từng dòng bảng.</p></div>
+        </div>
+      </div>
+      <div class="bg-slate-50 rounded-2xl border-l-4 border-secondary p-6">
+        <div class="flex flex-wrap items-center gap-2 mb-3">
+          <span class="text-xs font-extrabold uppercase bg-amber-100 text-amber-700 rounded-full px-3 py-1">Mức 3 — RTL / testbench / mini-project</span>
+          <span class="text-xs text-slate-400 font-semibold"><i class="fa-regular fa-clock mr-1"></i>~2–3 giờ</span>
+        </div>
+        <p class="text-sm text-slate-700 leading-relaxed mb-2"><strong>Đề bài (Nấc 1 của mini-project):</strong> gõ lại và chạy trọn bộ 3 file Section 08 trên <a href="https://www.edaplayground.com" target="_blank" rel="noopener" class="text-primary underline font-semibold">EDA Playground</a> (DIV = 10). Sau đó nâng cấp theo Mức 2: thêm ALL_RED vào RTL, sửa testbench kiểm invariant mới ("đèn đi bộ/ALL_RED ⇒ hai hướng xe đỏ" nếu làm thêm WALK), chụp waveform một vòng đèn trọn vẹn.</p>
+        <div class="grid md:grid-cols-3 gap-3 text-xs mt-3">
+          <div class="bg-white rounded-xl p-3 border border-slate-200"><p class="font-bold text-slate-700 uppercase mb-1"><i class="fa-solid fa-paper-plane mr-1 text-primary"></i>Nộp</p><p>Link EDA Playground + ảnh waveform có chú thích tay các thời điểm chuyển pha + log $monitor.</p></div>
+          <div class="bg-white rounded-xl p-3 border border-slate-200"><p class="font-bold text-slate-700 uppercase mb-1"><i class="fa-solid fa-lightbulb mr-1 text-secondary"></i>Gợi ý</p><p>Làm đúng thứ tự workflow: bảng Mức 2 chốt xong mới sửa case. Mỗi dòng bảng ↔ một nhánh case — dịch cơ học.</p></div>
+          <div class="bg-white rounded-xl p-3 border border-slate-200"><p class="font-bold text-slate-700 uppercase mb-1"><i class="fa-solid fa-clipboard-check mr-1 text-accent"></i>Tiêu chí</p><p>Biên dịch sạch, không "inferred latch", invariant pass suốt mô phỏng, waveform khớp bảng thiết kế, không derived clock.</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- ============ 16. RUBRIC ============ -->
+<section id="rubric" class="max-w-6xl mx-auto px-4 py-12">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-ranking-star"></i></div>
+    <div>
+      <p class="text-xs font-bold uppercase tracking-wider text-primary">Section 16</p>
+      <h2 class="text-2xl md:text-3xl font-extrabold text-dark">Rubric — tự định vị năng lực tuần mini-project</h2>
+    </div>
+  </div>
+  <p class="text-slate-600 max-w-3xl mb-4">Tuần 9 là tuần "gặt": mục tiêu tối thiểu là mọi tiêu chí đạt <strong>Đạt cơ bản</strong>, riêng "Quy trình thiết kế" và "Viết RTL" nên chạm <strong>Khá</strong> trước khi sang tuần 10.</p>
+  <div class="bg-white rounded-2xl shadow-sm overflow-x-auto">
+    <table class="vtable w-full min-w-[900px]">
+      <thead>
+        <tr>
+          <th class="w-44">Tiêu chí</th>
+          <th class="bg-red-50 text-red-700">Chưa đạt</th>
+          <th class="bg-amber-50 text-amber-700">Đạt cơ bản</th>
+          <th class="bg-blue-50 text-blue-700">Khá</th>
+          <th class="bg-emerald-50 text-emerald-700">Tốt</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="font-bold">Quy trình thiết kế (workflow 9 bước)</td>
+          <td>Mở editor code ngay khi nhận đề.</td>
+          <td>Kể đúng thứ tự 9 bước và sản phẩm của từng bước.</td>
+          <td>Tự đi đủ bước 1–4 (spec → I/O → diagram → table) cho đề mới trước khi code.</td>
+          <td>Giữ kỷ luật quy trình cả khi mở rộng đề (WALK/ALL_RED); mỗi bước có sản phẩm nộp được.</td>
+        </tr>
+        <tr>
+          <td class="font-bold">Kiến trúc controller / datapath</td>
+          <td>Nhét thời gian vào state hoặc trộn tất cả vào một always.</td>
+          <td>Chỉ ra được trên sơ đồ khối: FSM ra lệnh gì, timer trả về gì.</td>
+          <td>Tự quyết định "cái gì vào state, cái gì vào datapath" cho yêu cầu mới (cờ ped_req…).</td>
+          <td>Lập luận trade-off được: khi nào thêm state, khi nào thêm datapath, hệ quả mỗi lựa chọn.</td>
+        </tr>
+        <tr>
+          <td class="font-bold">Tick enable vs derived clock</td>
+          <td>Viết @(posedge tick) hoặc lấy cnt[25] làm clock.</td>
+          <td>Phát biểu đúng: tick là enable, mọi FF chung một clock.</td>
+          <td>Giải thích được vì sao derived clock nguy hiểm (miền clock mới, skew, STA).</td>
+          <td>Viết tick_gen tham số hóa đúng và giải thích số FF sinh ra từ DIV.</td>
+        </tr>
+        <tr>
+          <td class="font-bold">Viết RTL 3 khối + tham số</td>
+          <td>Code không biên dịch hoặc sinh latch.</td>
+          <td>Gõ lại code mẫu chạy được; đổi parameter đúng chỗ.</td>
+          <td>Tự thêm pha ALL_RED: sửa đúng enum, case, giá trị nạp — không đụng datapath.</td>
+          <td>Thiết kế mở rộng (WALK + cờ ped_req) sạch: không latch, invariant giữ, code đọc như bảng.</td>
+        </tr>
+        <tr>
+          <td class="font-bold">Testbench &amp; đọc waveform</td>
+          <td>Chỉ nhìn LED trên board để "debug".</td>
+          <td>Chạy testbench mẫu, đọc được state/timer trên waveform theo cạnh clock.</td>
+          <td>Tự viết check invariant bằng $error; chỉ ra thời điểm chuyển pha và giải thích t_CQ.</td>
+          <td>Thiết kế kịch bản ác (reset giữa pha, bấm nút dồn dập) và chứng minh hệ vẫn an toàn.</td>
+        </tr>
+        <tr>
+          <td class="font-bold">Giải thích lỗi</td>
+          <td>Không nhận ra lỗi trong code có gated/derived clock.</td>
+          <td>Nhận diện được 3 lỗi kinh điển của Section 12 khi được chỉ vào code.</td>
+          <td>Tự soi code bạn cùng nhóm và chỉ đúng lỗi + cách sửa.</td>
+          <td>Giải thích được hậu quả phần cứng của từng lỗi (latch, skew, trạng thái vô định sau bật nguồn).</td>
+        </tr>
+        <tr>
+          <td class="font-bold">Liên hệ ứng dụng</td>
+          <td>Xem bài chỉ là "bài tập đèn LED".</td>
+          <td>Kể được 2–3 hệ thực dùng kiến trúc FSM + timer (thang máy, máy giặt, lò vi sóng).</td>
+          <td>Mô tả được cách thêm cảm biến xe/nút đi bộ vào kiến trúc hiện có.</td>
+          <td>Phác được kiến trúc controller/datapath cho một đề hoàn toàn mới trong 10 phút.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============ 17. MENTOR NOTES ============ -->
+<section id="mentor-notes" class="bg-white py-12">
+  <div class="max-w-6xl mx-auto px-4">
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-10 h-10 rounded-xl bg-slate-800 text-emerald-400 flex items-center justify-center"><i class="fa-solid fa-chalkboard-user"></i></div>
+      <div>
+        <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Section 17 — dành cho mentor</p>
+        <h2 class="text-2xl md:text-3xl font-extrabold text-dark">Mentor Notes — ghi chú cho người dẫn buổi</h2>
+      </div>
+    </div>
+    <div class="bg-slate-900 text-slate-300 rounded-2xl shadow-lg p-6 sm:p-8 space-y-6">
+      <div class="grid md:grid-cols-2 gap-6">
+        <div>
+          <h3 class="text-white font-bold text-sm uppercase tracking-wide mb-3"><i class="fa-solid fa-bullhorn text-emerald-400 mr-1.5"></i>Nên nhấn mạnh điều gì</h3>
+          <ul class="text-sm space-y-2 leading-relaxed">
+            <li><i class="fa-solid fa-star text-amber-400 mr-2"></i><strong class="text-white">Code là bước 5.</strong> Cả buổi xoay quanh quy trình 9 bước — nếu sinh viên chỉ nhớ một điều, hãy là điều này. Yêu cầu nộp "sản phẩm từng bước", không chỉ code cuối.</li>
+            <li><i class="fa-solid fa-star text-amber-400 mr-2"></i><strong class="text-white">Tick enable</strong> là khái niệm mới thực sự của tuần — dành thời gian demo phần "50 triệu chu kỳ giữa hai tick" để sinh viên không nghĩ tick là clock.</li>
+            <li><i class="fa-solid fa-star text-amber-400 mr-2"></i><strong class="text-white">Default = an toàn:</strong> nối tư duy default tránh latch (tuần 7) lên tầm invariant/fail-safe — sinh viên lần đầu thấy "một dòng code" mang ý nghĩa an toàn tính mạng.</li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="text-white font-bold text-sm uppercase tracking-wide mb-3"><i class="fa-solid fa-magnifying-glass text-red-400 mr-1.5"></i>Sinh viên thường vấp ở đâu</h3>
+          <ul class="text-sm space-y-2 leading-relaxed">
+            <li><i class="fa-solid fa-xmark text-red-400 mr-2"></i>Muốn chế "clock 1 giây" — gần như nhóm nào cũng thử derived clock nếu chưa bị chặn trước.</li>
+            <li><i class="fa-solid fa-xmark text-red-400 mr-2"></i>Off-by-one: nạp N thay vì N−1, hoặc timer_done so sánh với 1.</li>
+            <li><i class="fa-solid fa-xmark text-red-400 mr-2"></i>Mô phỏng với DIV = 50 triệu rồi than "treo máy" — chưa thấy sức mạnh của parameter.</li>
+            <li><i class="fa-solid fa-xmark text-red-400 mr-2"></i>Khi thêm WALK: xóa cờ ped_req sai chỗ → WALK kích hoạt hai lần liên tiếp.</li>
+          </ul>
+        </div>
+      </div>
+      <div>
+        <h3 class="text-white font-bold text-sm uppercase tracking-wide mb-3"><i class="fa-solid fa-comments text-blue-400 mr-1.5"></i>Câu vấn đáp nên hỏi — và câu trả lời kỳ vọng</h3>
+        <div class="grid md:grid-cols-2 gap-3 text-sm">
+          <div class="bg-white/5 border border-white/10 rounded-xl p-4">
+            <p class="font-semibold text-blue-300 mb-1.5">1. "Vì sao timer nạp GREEN_TICKS − 1 chứ không phải GREEN_TICKS?"</p>
+            <p class="text-slate-400"><strong class="text-emerald-400">Kỳ vọng:</strong> đếm N−1 → 0 là đúng N nhịp (tính cả 0). Ai trả lời trôi chảy là đã thực sự dò bảng/waveform, không học vẹt.</p>
+          </div>
+          <div class="bg-white/5 border border-white/10 rounded-xl p-4">
+            <p class="font-semibold text-blue-300 mb-1.5">2. "Nếu tick vô tình rộng 2 chu kỳ clock thì hệ sai thế nào?"</p>
+            <p class="text-slate-400"><strong class="text-emerald-400">Kỳ vọng:</strong> timer trừ 2 lần mỗi "giây", các pha ngắn đi một nửa; và tại cạnh chuyển pha, state có thể nhảy 2 bước. Câu này kiểm tra hiểu enable sâu hơn định nghĩa.</p>
+          </div>
+          <div class="bg-white/5 border border-white/10 rounded-xl p-4">
+            <p class="font-semibold text-blue-300 mb-1.5">3. "Thêm nút đi bộ thì phải sửa những khối nào, giữ nguyên khối nào?"</p>
+            <p class="text-slate-400"><strong class="text-emerald-400">Kỳ vọng:</strong> sửa enum + khối 2 (next-state) + khối 3 (output); thêm 1 FF cờ ped_req ở datapath; tick_gen và timer giữ nguyên. Trả lời đúng = hiểu giá trị của kiến trúc tách khối.</p>
+          </div>
+          <div class="bg-white/5 border border-white/10 rounded-xl p-4">
+            <p class="font-semibold text-blue-300 mb-1.5">4. "Làm sao biết thiết kế không bao giờ cho hai hướng cùng xanh?"</p>
+            <p class="text-slate-400"><strong class="text-emerald-400">Kỳ vọng:</strong> ba lớp — mô hình 4 pha không có trạng thái nào hai hướng đi; default đỏ-đỏ chặn state lỗi; testbench kiểm invariant mỗi cạnh clock. Nếu chỉ nói "vì mô phỏng thấy đúng" → chưa đạt.</p>
+          </div>
+        </div>
+      </div>
+      <div class="bg-emerald-500/10 border border-emerald-400/30 rounded-xl p-4 text-sm">
+        <p class="font-bold text-emerald-300 mb-1"><i class="fa-solid fa-arrow-right-long mr-1.5"></i>Cách nối sang tuần 10 (Counter &amp; 7-Segment Display)</p>
+        <p class="text-slate-300 leading-relaxed">Chốt buổi: "Hệ của chúng ta có não (FSM) và đồng hồ (timer) nhưng chưa có mặt đồng hồ. Tuần 10 ta lấy chính giá trị timer đang đếm lùi này, đưa qua bộ giải mã 7 đoạn, và số giây hiện lên LED thật." Kiến trúc không đổi — chỉ thêm nhánh hiển thị vào datapath. Sinh viên nào làm Nấc 3 (đếm ngược) sẽ thấy tuần 10 là mảnh ghép họ đang thiếu.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 18. KEY VOCABULARY ============ -->
+<section id="vocabulary" class="max-w-6xl mx-auto px-4 py-12">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-book-open"></i></div>
+    <div>
+      <p class="text-xs font-bold uppercase tracking-wider text-primary">Section 18</p>
+      <h2 class="text-2xl md:text-3xl font-extrabold text-dark">Key Vocabulary — từ vựng kỹ thuật song ngữ</h2>
+    </div>
+  </div>
+  <div class="bg-white rounded-2xl shadow-sm overflow-x-auto">
+    <table class="vtable w-full min-w-[860px]">
+      <thead><tr><th>English term</th><th>Nghĩa tiếng Việt</th><th>Giải thích kỹ thuật</th><th>Câu ví dụ</th></tr></thead>
+      <tbody>
+        <tr><td class="font-bold text-primary whitespace-nowrap">Controller</td><td>Khối điều khiển</td><td>FSM quyết định pha/chế độ và phát lệnh (load, en, clear) cho datapath.</td><td class="italic text-slate-500">"The controller decides the phase; it never counts time itself."</td></tr>
+        <tr><td class="font-bold text-primary whitespace-nowrap">Datapath</td><td>Đường dữ liệu</td><td>Các khối xử lý/lưu dữ liệu: timer, counter, register, comparator — nhận lệnh từ FSM, trả tín hiệu trạng thái.</td><td class="italic text-slate-500">"Keep the one-second timer in the datapath."</td></tr>
+        <tr><td class="font-bold text-primary whitespace-nowrap">Clock enable (tick)</td><td>Cho phép theo nhịp</td><td>Xung rộng 1 chu kỳ clock cho phép FF cập nhật; mọi FF vẫn chung một clock — cách đúng để "chạy chậm".</td><td class="italic text-slate-500">"Use a clock-enable tick instead of dividing the clock."</td></tr>
+        <tr><td class="font-bold text-danger whitespace-nowrap">Derived / gated clock</td><td>Clock dẫn xuất / bị chặn</td><td>Clock tạo từ logic thường (cnt[25], clk &amp; en) — sinh miền clock mới ngoài phân tích, gây glitch/skew. Anti-pattern nhập môn.</td><td class="italic text-slate-500">"The review rejected the design because of a gated clock."</td></tr>
+        <tr><td class="font-bold text-primary whitespace-nowrap">Down-counter</td><td>Bộ đếm lùi</td><td>Counter trừ dần về 0; kết hợp comparator == 0 tạo tín hiệu hết giờ (timer_done).</td><td class="italic text-slate-500">"The down-counter reloads when it reaches zero."</td></tr>
+        <tr><td class="font-bold text-primary whitespace-nowrap">Parameter</td><td>Tham số module</td><td>Hằng số cấu hình lúc biên dịch (GREEN_TICKS, DIV) — đổi cấu hình không sửa RTL; mô phỏng dùng giá trị nhỏ.</td><td class="italic text-slate-500">"Override the DIV parameter to 10 in simulation."</td></tr>
+        <tr><td class="font-bold text-primary whitespace-nowrap">Invariant</td><td>Bất biến an toàn</td><td>Điều kiện phải đúng ở mọi trạng thái, mọi thời điểm (VD: không hai hướng cùng xanh); kiểm bằng assertion trong testbench.</td><td class="italic text-slate-500">"The testbench checks the safety invariant at every clock edge."</td></tr>
+        <tr><td class="font-bold text-primary whitespace-nowrap">Assertion</td><td>Khẳng định kiểm tra</td><td>Phát biểu tự động kiểm tra trong mô phỏng ($error khi vi phạm) — bắt lỗi không cần nhìn waveform bằng mắt.</td><td class="italic text-slate-500">"An assertion fired when both directions went green."</td></tr>
+        <tr><td class="font-bold text-primary whitespace-nowrap">Constraint file</td><td>File ràng buộc</td><td>File gán chân FPGA (LED nào nối ns_light[2]?) và khai báo clock cho công cụ phân tích timing.</td><td class="italic text-slate-500">"Map ew_light to the three LEDs in the constraint file."</td></tr>
+        <tr><td class="font-bold text-primary whitespace-nowrap">Bitstream</td><td>Luồng cấu hình FPGA</td><td>File cấu hình LUT/FF/routing của FPGA; nạp lại vô hạn lần — là <em>cấu hình</em>, không phải sản xuất chip.</td><td class="italic text-slate-500">"Download the bitstream and the intersection comes alive."</td></tr>
+        <tr><td class="font-bold text-danger whitespace-nowrap">Tape-out</td><td>Gửi sản xuất ASIC</td><td>Gửi layout (GDSII) đến foundry chế tạo — quyết định không đảo ngược, chi phí mask rất lớn. KHÔNG phải nạp bitstream.</td><td class="italic text-slate-500">"After tape-out, no bug can be fixed for free."</td></tr>
+        <tr><td class="font-bold text-primary whitespace-nowrap">Off-by-one error</td><td>Lỗi lệch một đơn vị</td><td>Lỗi kinh điển của counter/timer: nạp N thay vì N−1, so sánh nhầm biên — phát hiện bằng dò waveform từng tick.</td><td class="italic text-slate-500">"The yellow phase lasted four seconds — a classic off-by-one."</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============ 19. FINAL SUMMARY ============ -->
+<section id="summary" class="bg-white py-12">
+  <div class="max-w-6xl mx-auto px-4">
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-flag-checkered"></i></div>
+      <div>
+        <p class="text-xs font-bold uppercase tracking-wider text-primary">Section 19</p>
+        <h2 class="text-2xl md:text-3xl font-extrabold text-dark">Final Summary — chốt lại tuần 9</h2>
+      </div>
+    </div>
+
+    <div class="bg-slate-50 rounded-2xl p-6 mb-4">
+      <h3 class="font-bold text-dark text-sm uppercase tracking-wide mb-4"><i class="fa-solid fa-key text-secondary mr-1.5"></i>5 ý chính cần nhớ</h3>
+      <div class="grid md:grid-cols-2 gap-3 text-sm">
+        <div class="flex gap-3 bg-white border border-blue-100 rounded-xl p-4"><span class="shrink-0 w-7 h-7 rounded-lg bg-primary text-white flex items-center justify-center font-extrabold text-xs">1</span><p class="text-slate-700"><strong>Code là bước 5:</strong> spec → I/O → state diagram → transition table → RTL → testbench → waveform → synthesize → nạp FPGA. Mỗi bước một sản phẩm.</p></div>
+        <div class="flex gap-3 bg-white border border-blue-100 rounded-xl p-4"><span class="shrink-0 w-7 h-7 rounded-lg bg-primary text-white flex items-center justify-center font-extrabold text-xs">2</span><p class="text-slate-700"><strong>Controller ra lệnh, datapath đếm:</strong> FSM 4 pha + timer tách bạch — đổi thời lượng chỉ là đổi parameter, không vẽ lại máy trạng thái.</p></div>
+        <div class="flex gap-3 bg-white border border-blue-100 rounded-xl p-4"><span class="shrink-0 w-7 h-7 rounded-lg bg-primary text-white flex items-center justify-center font-extrabold text-xs">3</span><p class="text-slate-700"><strong>Tick là enable, không phải clock:</strong> một clock 50 MHz duy nhất cho mọi FF; muốn nhịp chậm → xung enable 1 chu kỳ. Tuyệt đối không gated/derived clock.</p></div>
+        <div class="flex gap-3 bg-white border border-blue-100 rounded-xl p-4"><span class="shrink-0 w-7 h-7 rounded-lg bg-primary text-white flex items-center justify-center font-extrabold text-xs">4</span><p class="text-slate-700"><strong>Default = an toàn:</strong> đỏ-đỏ mặc định trong khối output vừa diệt latch vừa giữ invariant "không hai hướng cùng đi" — tư duy fail-safe của kỹ sư thật.</p></div>
+        <div class="flex gap-3 bg-white border border-blue-100 rounded-xl p-4 md:col-span-2"><span class="shrink-0 w-7 h-7 rounded-lg bg-primary text-white flex items-center justify-center font-extrabold text-xs">5</span><p class="text-slate-700"><strong>Verification là một nửa công việc:</strong> testbench sinh clock, thả reset, kiểm invariant từng cạnh; waveform sạch rồi mới nạp board. Nạp bitstream = cấu hình FPGA — tape-out là chuyện khác hẳn của ASIC.</p></div>
+      </div>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-4 mb-4">
+      <div class="bg-slate-50 rounded-2xl p-6">
+        <h3 class="font-bold text-dark text-sm uppercase tracking-wide mb-3"><i class="fa-solid fa-person-circle-question text-primary mr-1.5"></i>3 câu hỏi tự phản tỉnh</h3>
+        <ul class="text-sm space-y-2.5 text-slate-700">
+          <li class="flex gap-2.5"><i class="fa-solid fa-circle-dot text-primary mt-1 text-[9px]"></i><span>Nhận một đề mới hôm nay, tôi có thật sự viết spec và vẽ bảng trước — hay tay vẫn ngứa mở editor code ngay?</span></li>
+          <li class="flex gap-2.5"><i class="fa-solid fa-circle-dot text-primary mt-1 text-[9px]"></i><span>Tôi giải thích được cho người khác vì sao tick enable an toàn còn derived clock nguy hiểm — hay chỉ nhớ "luật cấm"?</span></li>
+          <li class="flex gap-2.5"><i class="fa-solid fa-circle-dot text-primary mt-1 text-[9px]"></i><span>Nếu thầy đổi đề thành "đèn cho ngã ba chữ T", tôi mất bao lâu để có state diagram + bảng đúng?</span></li>
+        </ul>
+      </div>
+      <div class="bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 text-white rounded-2xl shadow-lg p-6 flex flex-col justify-center">
+        <i class="fa-solid fa-quote-left text-3xl text-emerald-400 mb-3"></i>
+        <p class="text-lg font-semibold leading-relaxed mb-3">"Đèn giao thông chỉ là bốn trạng thái và một bộ đếm. Nhưng người viết được nó <em>đúng quy trình, có invariant, không chế clock</em> — người đó đã bắt đầu suy nghĩ như một kỹ sư thiết kế số thực thụ."</p>
+        <p class="text-sm text-slate-400">— Mentor note, tuần 9</p>
+      </div>
+    </div>
+
+    <div class="bg-slate-50 rounded-2xl p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="font-bold text-dark text-sm uppercase tracking-wide"><i class="fa-solid fa-list-check text-accent mr-1.5"></i>Sau buổi học, tôi có thể…</h3>
+        <span class="text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full px-3 py-1">Đạt: <span id="sum-count">0</span>/6</span>
+      </div>
+      <div class="grid sm:grid-cols-2 gap-2.5">
+        <label class="chk-item"><input type="checkbox" class="sum-chk"><span class="text-sm">Kể đúng thứ tự 9 bước của workflow và sản phẩm từng bước.</span></label>
+        <label class="chk-item"><input type="checkbox" class="sum-chk"><span class="text-sm">Vẽ sơ đồ khối controller / datapath / tick_gen và các tín hiệu nối giữa chúng.</span></label>
+        <label class="chk-item"><input type="checkbox" class="sum-chk"><span class="text-sm">Giải thích tick enable vs derived clock — và vì sao chỉ tick enable được chấp nhận.</span></label>
+        <label class="chk-item"><input type="checkbox" class="sum-chk"><span class="text-sm">Đọc hiểu 3 file SystemVerilog của bài và chỉ ra phần cứng mỗi khối sinh ra.</span></label>
+        <label class="chk-item"><input type="checkbox" class="sum-chk"><span class="text-sm">Chạy testbench, đọc waveform một lần chuyển pha, chỉ ra thời điểm lấy mẫu và t_CQ.</span></label>
+        <label class="chk-item"><input type="checkbox" class="sum-chk"><span class="text-sm">Mở rộng thiết kế (ALL_RED hoặc nút đi bộ) mà không phá invariant.</span></label>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer class="bg-dark text-slate-300 mt-4">
+  <div class="max-w-6xl mx-auto px-4 py-8">
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+      <a href="Week8.html" class="group inline-flex items-center gap-2 text-sm font-semibold text-slate-300 hover:text-white transition"><i class="fa-solid fa-arrow-left-long group-hover:-translate-x-0.5 transition"></i><span><span class="block text-[10px] uppercase tracking-widest text-slate-500">Tuần trước</span>Tuần 8: FPGA vs ASIC</span></a>
+      <div class="text-center">
+        <p class="text-xs text-slate-500">Chương trình Mentoring Thiết kế Vi mạch số — 12 tuần</p>
+        <p class="text-[11px] text-slate-600 mt-1">Tuần 9/12 · Traffic Light Controller</p>
+        <p class="text-[11px] text-slate-600 mt-1">Bản quyền © Khoa Điện - Điện tử, Trường Kỹ thuật Phenikaa, Đại học Phenikaa · Giảng viên: ThS. Đinh Văn Nam</p>
+      </div>
+      <a href="Week10.html" class="group inline-flex items-center gap-2 text-sm font-semibold text-slate-300 hover:text-white transition text-right"><span><span class="block text-[10px] uppercase tracking-widest text-slate-500">Tuần sau</span>Tuần 10: Counter &amp; 7-Segment Display</span><i class="fa-solid fa-arrow-right-long group-hover:translate-x-0.5 transition"></i></a>
+    </div>
+  </div>
+</footer>
+<script>
+(function () {
+  'use strict';
+  function $id(x) { return document.getElementById(x); }
+
+  // ============ Copy buttons ============
+  document.querySelectorAll('.copy-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var src = $id(btn.getAttribute('data-copy'));
+      if (!src) return;
+      var text = src.innerText;
+      function done() {
+        var old = btn.textContent;
+        btn.textContent = 'Đã copy!';
+        setTimeout(function () { btn.textContent = old; }, 1600);
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done, fallback);
+      } else { fallback(); }
+      function fallback() {
+        var ta = document.createElement('textarea');
+        ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta); ta.select();
+        try { document.execCommand('copy'); done(); } catch (e) {}
+        document.body.removeChild(ta);
+      }
+    });
+  });
+
+  // ============ Summary checklist ============
+  (function () {
+    var boxes = document.querySelectorAll('input.sum-chk');
+    var out = $id('sum-count');
+    if (!out || !boxes.length) return;
+    function upd() {
+      var n = 0; boxes.forEach(function (b) { if (b.checked) n++; });
+      out.textContent = n;
+    }
+    boxes.forEach(function (b) { b.addEventListener('change', upd); });
+    upd();
+  })();
+
+  // ============ Before-session checklist ============
+  (function () {
+    var boxes = document.querySelectorAll('input.before-chk');
+    var out = $id('before-count');
+    if (!out || !boxes.length) return;
+    function upd() {
+      var n = 0; boxes.forEach(function (b) { if (b.checked) n++; });
+      out.textContent = n;
+    }
+    boxes.forEach(function (b) { b.addEventListener('change', upd); });
+    upd();
+  })();
+
+  // ============ Traffic light FSM demo ============
+  // Mô hình đúng RTL: state 0..3, timer down-counter nạp DUR−1, chuyển pha khi tick && timer_done
+  var GREEN_TICKS = 6, YELLOW_TICKS = 2;
+  var NAMES = ['GREEN_NS', 'YELLOW_NS', 'GREEN_EW', 'YELLOW_EW'];
+  var DUR = [GREEN_TICKS, YELLOW_TICKS, GREEN_TICKS, YELLOW_TICKS];
+  var NEXT = [1, 2, 3, 0];
+  // Đèn theo state: [nsR,nsY,nsG, ewR,ewY,ewG]
+  var LAMPS = [
+    [0, 0, 1, 1, 0, 0],  // GREEN_NS : NS xanh, EW đỏ
+    [0, 1, 0, 1, 0, 0],  // YELLOW_NS: NS vàng, EW đỏ
+    [1, 0, 0, 0, 0, 1],  // GREEN_EW : NS đỏ, EW xanh
+    [1, 0, 0, 0, 1, 0]   // YELLOW_EW: NS đỏ, EW vàng
+  ];
+  var LAMP_IDS = ['tl-ns-r', 'tl-ns-y', 'tl-ns-g', 'tl-ew-r', 'tl-ew-y', 'tl-ew-g'];
+  var COLOR_TXT = { GREEN_NS: '#166534', YELLOW_NS: '#a16207', GREEN_EW: '#166534', YELLOW_EW: '#a16207' };
+  var VN = { GREEN_NS: 'NS xanh — EW đỏ', YELLOW_NS: 'NS vàng — EW đỏ', GREEN_EW: 'NS đỏ — EW xanh', YELLOW_EW: 'NS đỏ — EW vàng' };
+
+  var st = 0, timer = GREEN_TICKS - 1, ticks = 0, autoId = null;
+
+  function paint() {
+    // Đèn ngã tư
+    var L = LAMPS[st];
+    LAMP_IDS.forEach(function (id, i) {
+      var c = $id(id);
+      if (c) c.setAttribute('opacity', L[i] ? '1' : '0.18');
+    });
+    // Nhãn + timer
+    $id('tl-state-label').textContent = NAMES[st];
+    $id('tl-state-label').setAttribute('fill', COLOR_TXT[NAMES[st]]);
+    $id('tl-timer-big').textContent = timer;
+    $id('tl-tickcount').textContent = ticks;
+    // Diagram: node sáng = state hiện tại
+    for (var i = 0; i < 4; i++) {
+      var g = $id('tl-node-' + i);
+      if (!g) continue;
+      g.setAttribute('opacity', i === st ? '1' : '0.45');
+      var circ = g.querySelector('circle');
+      if (circ) circ.setAttribute('stroke-width', i === st ? '4.5' : '2');
+    }
+    // Panels
+    var done = (timer === 0);
+    $id('ctl-state').textContent = NAMES[st];
+    $id('ctl-next').textContent = NAMES[NEXT[st]];
+    $id('dp-timer').textContent = timer;
+    $id('dp-done').textContent = done ? '1' : '0';
+    $id('dp-done').className = 'font-mono font-bold ' + (done ? 'text-danger' : 'text-emerald-800');
+    // Safety invariant — luôn kiểm và hiển thị
+    var nsGo = L[2] || L[1], ewGo = L[5] || L[4];
+    var safe = !(nsGo && ewGo);
+    var sBox = $id('tl-safety');
+    sBox.innerHTML = safe
+      ? '<i class="fa-solid fa-shield-halved mr-1.5"></i>Invariant giữ vững: không có hai hướng cùng được đi (' + VN[NAMES[st]] + ').'
+      : '<i class="fa-solid fa-triangle-exclamation mr-1.5"></i>VI PHẠM INVARIANT!';
+    sBox.className = 'mt-3 rounded-xl px-4 py-3 text-sm font-semibold ' + (safe ? 'bg-emerald-50 border border-emerald-300 text-emerald-800' : 'bg-red-100 border border-red-400 text-red-800');
+  }
+
+  function explain(html) { $id('tl-explain').innerHTML = html; }
+
+  function doTick() {
+    ticks++;
+    if (timer === 0) {
+      // tick && timer_done: state <= next_state; timer <= DUR(next)−1 — cùng một cạnh clock
+      var old = st;
+      st = NEXT[st];
+      timer = DUR[st] - 1;
+      paint();
+      explain('<i class="fa-solid fa-bolt text-secondary mr-1"></i><b>Tick #' + ticks + ' — CHUYỂN PHA:</b> tại cạnh lên clk có tick, timer_done = 1 → state register nạp <b class="font-mono">' + NAMES[old] + ' → ' + NAMES[st] + '</b>; đồng thời timer nạp ' + DUR[st] + '−1 = ' + timer + '. Cả hai FF cập nhật trên CÙNG một cạnh clock (sau đó mới trễ t<sub>CQ</sub> + delay logic ra đèn).');
+    } else {
+      timer--;
+      paint();
+      explain('<i class="fa-solid fa-clock text-primary mr-1"></i><b>Tick #' + ticks + ':</b> timer_done = 0 → FSM đứng yên ở <b class="font-mono">' + NAMES[st] + '</b>, datapath trừ timer còn <b class="font-mono">' + timer + '</b>' + (timer === 0 ? ' — <b class="text-danger">timer_done vừa lên 1</b>: tick KẾ TIẾP sẽ chuyển pha.' : '.') + ' Nhớ: giữa hai tick là 50 triệu chu kỳ clock 50 MHz.');
+    }
+  }
+
+  function doReset() {
+    stopAuto();
+    st = 0; timer = GREEN_TICKS - 1; ticks = 0;
+    paint();
+    explain('<i class="fa-solid fa-rotate-left text-danger mr-1"></i><b>rst_n = 0:</b> state register ← GREEN_NS, timer ← ' + (GREEN_TICKS - 1) + ' (GREEN_TICKS − 1). Trạng thái khởi đầu <b>xác định và an toàn</b> — không phụ thuộc giá trị ngẫu nhiên của FF sau bật nguồn.');
+  }
+
+  function stopAuto() {
+    if (autoId !== null) {
+      clearInterval(autoId); autoId = null;
+      $id('tl-btn-auto').innerHTML = '<i class="fa-solid fa-play"></i>Chạy tự động';
+      $id('tl-btn-auto').classList.remove('bg-danger');
+      $id('tl-btn-auto').classList.add('bg-accent');
+    }
+  }
+
+  $id('tl-btn-step').addEventListener('click', function () { stopAuto(); doTick(); });
+  $id('tl-btn-reset').addEventListener('click', doReset);
+  $id('tl-btn-auto').addEventListener('click', function () {
+    if (autoId === null) {
+      autoId = setInterval(doTick, 800);
+      this.innerHTML = '<i class="fa-solid fa-pause"></i>Tạm dừng';
+      this.classList.remove('bg-accent');
+      this.classList.add('bg-danger');
+    } else { stopAuto(); }
+  });
+
+  paint();
+  explain('<i class="fa-solid fa-circle-info text-primary mr-1"></i>Sau reset: state = GREEN_NS, timer = ' + (GREEN_TICKS - 1) + '. Bấm <b>+1 tick</b> và thử dự đoán trước giá trị timer ở mỗi bước — hoặc bật <b>Chạy tự động</b>.');
+
+  // ============ Quiz ============
+  var answered = 0, correct = 0;
+  var qs = document.querySelectorAll('.quiz-q');
+  var total = qs.length;
+  function updScore() {
+    $id('qz-correct').textContent = correct;
+    $id('qz-answered').textContent = answered;
+  }
+  qs.forEach(function (q) {
+    q.querySelectorAll('.quiz-opt').forEach(function (opt) {
+      opt.addEventListener('click', function () {
+        if (q.dataset.done) return;
+        q.dataset.done = '1';
+        var ok = opt.hasAttribute('data-correct');
+        opt.classList.add('sel');
+        if (ok) { opt.classList.add('correct'); correct++; }
+        else {
+          opt.classList.add('wrong');
+          var right = q.querySelector('[data-correct]');
+          if (right) right.classList.add('correct');
+        }
+        answered++;
+        var exp = q.querySelector('.quiz-expl');
+        if (exp) exp.classList.add('show');
+        updScore();
+      });
+    });
+  });
+  $id('qz-final').addEventListener('click', function () {
+    var v = $id('qz-verdict'), txt;
+    if (answered < total) {
+      txt = '<i class="fa-solid fa-circle-info mr-1.5"></i>Bạn mới trả lời ' + answered + '/' + total + ' câu — làm nốt rồi chấm nhé!';
+    } else if (correct >= 9) {
+      txt = '<i class="fa-solid fa-trophy mr-1.5"></i>' + correct + '/' + total + ' — Xuất sắc! Bắt tay vào Mức 3 của homework: thiết kế của bạn xứng đáng chạy trên board thật.';
+    } else if (correct >= 7) {
+      txt = '<i class="fa-solid fa-thumbs-up mr-1.5"></i>' + correct + '/' + total + ' — Tốt! Xem lại giải thích các câu sai, đặc biệt tick enable (câu 2–3) và off-by-one (câu 6).';
+    } else if (correct >= 5) {
+      txt = '<i class="fa-solid fa-book-open mr-1.5"></i>' + correct + '/' + total + ' — Ổn ở mức nền. Chạy lại demo từng tick, đối chiếu code Section 08, rồi làm lại các câu sai.';
+    } else {
+      txt = '<i class="fa-solid fa-rotate-left mr-1.5"></i>' + correct + '/' + total + ' — Đừng nản: tuần này gộp kiến thức 3 tuần. Đọc lại Core Concepts + Workflow rồi quay lại quiz.';
+    }
+    v.innerHTML = txt;
+    v.classList.remove('hidden');
+    v.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+})();
+</script>
+</body>
+</html>

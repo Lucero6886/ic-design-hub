@@ -1,0 +1,1193 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tuần 7 — What Is Verilog? | IC Design Mentoring</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: { extend: {
+    colors: { primary:'#2563eb', secondary:'#f59e0b', accent:'#10b981', danger:'#ef4444', dark:'#0f172a', light:'#f8fafc' },
+    fontFamily: { sans:['Inter','system-ui','sans-serif'], mono:['"JetBrains Mono"','Consolas','monospace'] }
+  } }
+};
+</script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  html{scroll-behavior:smooth}
+  body{font-family:'Inter',system-ui,sans-serif}
+  .code-body{background:#0f172a;color:#e2e8f0;font-family:'JetBrains Mono',Consolas,monospace;font-size:.8rem;line-height:1.65;padding:1rem 1.25rem;overflow-x:auto;border-radius:0 0 .75rem .75rem;margin:0}
+  .tok-kw{color:#c084fc;font-weight:600}
+  .tok-type{color:#67e8f9}
+  .tok-num{color:#fbbf24}
+  .tok-cmt{color:#7c8fa6;font-style:italic}
+  .tok-fn{color:#7dd3fc;font-weight:600}
+  .tok-sig{color:#93c5fd}
+  .code-head{display:flex;justify-content:space-between;align-items:center;background:#1e293b;color:#cbd5e1;font-size:.75rem;padding:.45rem 1rem;border-radius:.75rem .75rem 0 0;font-family:'JetBrains Mono',monospace}
+  .copy-btn{background:#334155;color:#e2e8f0;border:none;padding:.25rem .7rem;border-radius:.4rem;font-size:.72rem;cursor:pointer}
+  .copy-btn:hover{background:#2563eb}
+  .quiz-opt{display:flex;gap:.6rem;align-items:flex-start;width:100%;text-align:left;padding:.65rem .9rem;border:2px solid #e2e8f0;border-radius:.65rem;background:#fff;cursor:pointer;font-size:.92rem;transition:all .15s;margin-bottom:.5rem}
+  .quiz-opt:hover{border-color:#93c5fd;background:#eff6ff}
+  .quiz-opt.sel{border-color:#2563eb;background:#dbeafe}
+  .quiz-opt.correct{border-color:#10b981;background:#d1fae5}
+  .quiz-opt.wrong{border-color:#ef4444;background:#fee2e2}
+  .quiz-expl{display:none;margin-top:.5rem;padding:.75rem 1rem;border-radius:.6rem;background:#f1f5f9;border-left:4px solid #2563eb;font-size:.88rem}
+  .quiz-expl.show{display:block}
+  .chk-item{display:flex;gap:.7rem;align-items:flex-start;padding:.55rem .8rem;border-radius:.6rem;background:#fff;border:1px solid #e2e8f0;cursor:pointer}
+  .chk-item input{margin-top:.25rem;accent-color:#2563eb;width:1rem;height:1rem;flex-shrink:0}
+  .snip-btn{width:100%;text-align:left;padding:.7rem .9rem;border-radius:.7rem;border:2px solid #e2e8f0;background:#fff;cursor:pointer;font-size:.88rem;font-weight:600;transition:all .15s}
+  .snip-btn:hover{border-color:#93c5fd}
+  .snip-btn.active{border-color:#2563eb;background:#dbeafe;color:#1e40af}
+  .snip-panel{display:none}
+  .snip-panel.show{display:block}
+  .layer-chip{display:inline-flex;align-items:center;gap:.35rem;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.03em;padding:.15rem .55rem;border-radius:9999px;white-space:nowrap}
+  table.vtable td, table.vtable th{padding:.55rem .75rem;border:1px solid #e2e8f0;font-size:.85rem;vertical-align:top}
+  table.vtable th{background:#eff6ff;color:#1e40af;text-align:left}
+  ::-webkit-scrollbar{height:8px;width:8px}
+  ::-webkit-scrollbar-thumb{background:#94a3b8;border-radius:4px}
+</style>
+</head>
+<body class="bg-slate-100 text-slate-800">
+<div id="lichub-nav-top" data-lichub="v2" role="navigation" aria-label="Điều hướng Learning Hub (bổ sung, không thuộc trang gốc)" style="background:#0f172a;color:#e2e8f0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:13.5px;line-height:1.6;padding:8px 16px;display:flex;flex-wrap:wrap;gap:4px 16px;align-items:center;border-bottom:3px solid #38bdf8"><a href="../../index.html" style="color:#7dd3fc;text-decoration:none;font-weight:600">⌂ Learning Hub</a><span style="font-size:11px;font-weight:700;letter-spacing:.04em;color:#38bdf8;border:1px solid #38bdf8;border-radius:6px;padding:1px 7px;white-space:nowrap">V2 · BẢN MỞ RỘNG</span><a href="index.html" style="color:#cbd5e1;text-decoration:none">Mục lục V2</a><span style="flex:1"></span><a href="Week6.html" style="color:#7dd3fc;text-decoration:none" title="Finite State Machines">← Tuần 6</a><a href="Week8.html" style="color:#7dd3fc;text-decoration:none" title="FPGA vs ASIC">Tuần 8 →</a><span aria-hidden="true" style="color:#475569">|</span><span style="display:inline-flex;gap:8px;align-items:center"><span style="color:#94a3b8">Chuyển bản:</span> <a href="../v1/index.html" style="color:#cbd5e1;text-decoration:none">V1</a> <b aria-current="true" style="color:#38bdf8">V2</b> <a href="../v3/index.html" style="color:#cbd5e1;text-decoration:none">V3</a></span></div>
+
+
+<!-- ============ STICKY NAV ============ -->
+<nav class="sticky top-0 z-50 bg-dark/95 backdrop-blur text-white shadow-lg">
+  <div class="max-w-6xl mx-auto px-4 py-2.5 flex items-center gap-4">
+    <div class="flex items-center gap-2 shrink-0">
+      <i class="fa-solid fa-microchip text-primary"></i>
+      <span class="font-bold text-sm hidden sm:inline">IC Design Mentoring</span>
+    </div>
+    <div class="shrink-0 flex items-center gap-2">
+      <span class="text-xs font-bold bg-primary px-2 py-1 rounded-md">Tuần 7/12</span>
+      <div class="w-20 h-1.5 bg-slate-700 rounded-full hidden md:block"><div class="h-1.5 bg-primary rounded-full" style="width:58%"></div></div>
+    </div>
+    <div class="flex-1 overflow-x-auto whitespace-nowrap text-xs font-medium text-slate-300 flex gap-4 py-1">
+      <a href="#hero" class="hover:text-white">Mục tiêu</a>
+      <a href="#core-concepts" class="hover:text-white">Khái niệm</a>
+      <a href="#demo" class="hover:text-white">Demo</a>
+      <a href="#code-rtl" class="hover:text-white">Code</a>
+      <a href="#waveform" class="hover:text-white">Waveform</a>
+      <a href="#mistakes" class="hover:text-white">Lỗi thường gặp</a>
+      <a href="#quiz" class="hover:text-white">Quiz</a>
+      <a href="#homework" class="hover:text-white">Bài tập</a>
+      <a href="#summary" class="hover:text-white">Tổng kết</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ============ 1. HERO ============ -->
+<header id="hero" class="bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 text-white">
+  <div class="max-w-6xl mx-auto px-4 py-14 md:py-20">
+    <span class="inline-flex items-center gap-2 bg-primary/20 border border-primary/50 text-blue-200 text-xs font-bold px-3 py-1.5 rounded-full uppercase tracking-wider mb-5"><i class="fa-solid fa-code"></i> Tuần 7 / 12 — Technical Talk</span>
+    <h1 class="text-3xl md:text-5xl font-extrabold leading-tight">What Is Verilog?</h1>
+    <p class="text-xl md:text-2xl font-semibold text-blue-200 mt-2">Verilog là gì và vì sao kỹ sư thiết kế số cần nó?</p>
+    <p class="mt-5 max-w-3xl text-slate-300 leading-relaxed">
+      Suốt 6 tuần qua, bạn đã thiết kế trên giấy: cổng logic, khối tổ hợp, flip-flop, và máy trạng thái (FSM).
+      Nhưng công cụ EDA không đọc được hình vẽ tay — chúng cần một ngôn ngữ chính xác. Đó là
+      <strong class="text-white">Verilog / SystemVerilog — Hardware Description Language (HDL, ngôn ngữ mô tả phần cứng)</strong>.
+      Điều quan trọng nhất của tuần này chỉ gói trong một câu: <em class="text-yellow-300">bạn không "lập trình" cho máy tính chạy từng dòng —
+      bạn đang MÔ TẢ một mạch điện, nơi mọi khối tồn tại và hoạt động song song cùng lúc.</em>
+      Ai đổi được tư duy này sớm, người đó viết RTL đúng ngay từ đầu.
+    </p>
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
+      <div class="bg-white/10 border border-white/15 rounded-xl p-4">
+        <i class="fa-solid fa-language text-secondary text-xl"></i>
+        <p class="font-bold mt-2 text-sm">Mục tiêu 1</p>
+        <p class="text-xs text-slate-300 mt-1">Giải thích được HDL khác ngôn ngữ lập trình tuần tự (C/Python) ở điểm nào và vì sao.</p>
+      </div>
+      <div class="bg-white/10 border border-white/15 rounded-xl p-4">
+        <i class="fa-solid fa-cube text-secondary text-xl"></i>
+        <p class="font-bold mt-2 text-sm">Mục tiêu 2</p>
+        <p class="text-xs text-slate-300 mt-1">Đọc hiểu giải phẫu một module: port, input/output, wire, reg/logic.</p>
+      </div>
+      <div class="bg-white/10 border border-white/15 rounded-xl p-4">
+        <i class="fa-solid fa-code-branch text-secondary text-xl"></i>
+        <p class="font-bold mt-2 text-sm">Mục tiêu 3</p>
+        <p class="text-xs text-slate-300 mt-1">Chọn đúng công cụ mô tả: assign, always_comb (tổ hợp) hay always_ff (tuần tự).</p>
+      </div>
+      <div class="bg-white/10 border border-white/15 rounded-xl p-4">
+        <i class="fa-solid fa-eye text-secondary text-xl"></i>
+        <p class="font-bold mt-2 text-sm">Mục tiêu 4</p>
+        <p class="text-xs text-slate-300 mt-1">Nhìn một đoạn code và "thấy" phần cứng nó sinh ra: cổng, MUX, FF hay… latch ngoài ý muốn.</p>
+      </div>
+    </div>
+    <div class="flex flex-wrap gap-3 mt-8 text-xs">
+      <span class="bg-white/10 px-3 py-1.5 rounded-full"><i class="fa-solid fa-backward text-slate-400 mr-1"></i> Tuần 6: FSM — mô hình điều khiển trên giấy</span>
+      <span class="bg-secondary/20 border border-secondary/50 px-3 py-1.5 rounded-full text-yellow-200"><i class="fa-solid fa-star mr-1"></i> Tuần 7: Ngôn ngữ để biến mô hình thành mạch thật</span>
+      <span class="bg-white/10 px-3 py-1.5 rounded-full"><i class="fa-solid fa-forward text-slate-400 mr-1"></i> Tuần 8: RTL này sẽ "hạ cánh" xuống FPGA hay ASIC?</span>
+    </div>
+  </div>
+</header>
+
+<!-- ============ 2. LEARNING MAP ============ -->
+<section id="learning-map" class="max-w-6xl mx-auto px-4 py-12">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-map-location-dot"></i></div>
+    <div>
+      <p class="text-xs font-bold uppercase tracking-wider text-primary">Section 02</p>
+      <h2 class="text-2xl md:text-3xl font-extrabold text-dark">Bản đồ học tập — Verilog nằm ở đâu?</h2>
+    </div>
+  </div>
+  <div class="grid md:grid-cols-3 gap-4 items-stretch">
+    <div class="bg-white rounded-2xl shadow-sm p-5 border-t-4 border-slate-300">
+      <p class="text-xs font-bold text-slate-500 uppercase">Tuần 6 — Đã học</p>
+      <h3 class="font-bold text-lg mt-1">Finite State Machine</h3>
+      <p class="text-sm text-slate-600 mt-2">Bạn đã biết mô hình hóa hệ thống điều khiển bằng state, transition, output — nhưng mới dừng ở sơ đồ và bảng trên giấy.</p>
+      <p class="text-xs mt-3 text-slate-500"><i class="fa-solid fa-arrow-right mr-1"></i> FSM chính là "đề bài" mà Verilog sẽ mô tả.</p>
+    </div>
+    <div class="bg-blue-50 rounded-2xl shadow-md p-5 border-t-4 border-primary ring-2 ring-primary/30">
+      <p class="text-xs font-bold text-primary uppercase">Tuần 7 — Hôm nay</p>
+      <h3 class="font-bold text-lg mt-1">Verilog / SystemVerilog (HDL)</h3>
+      <p class="text-sm text-slate-600 mt-2">Ngôn ngữ văn bản để mô tả chính xác mạch tổ hợp và mạch tuần tự, làm đầu vào cho mô phỏng (simulation) và tổng hợp (synthesis — biến mô tả thành mạch cổng thật).</p>
+      <p class="text-xs mt-3 text-primary font-semibold"><i class="fa-solid fa-key mr-1"></i> Chìa khóa: tư duy phần cứng song song.</p>
+    </div>
+    <div class="bg-white rounded-2xl shadow-sm p-5 border-t-4 border-accent">
+      <p class="text-xs font-bold text-accent uppercase">Tuần 8–11 — Sắp tới</p>
+      <h3 class="font-bold text-lg mt-1">FPGA vs ASIC → Dự án thật</h3>
+      <p class="text-sm text-slate-600 mt-2">Tuần 8 chọn "bến đỗ" cho RTL (FPGA hay ASIC). Tuần 9 viết trọn bộ điều khiển đèn giao thông. Tuần 10–11: counter + LED 7 đoạn, UART — tất cả bằng Verilog.</p>
+      <p class="text-xs mt-3 text-slate-500"><i class="fa-solid fa-arrow-right mr-1"></i> Không có tuần 7, các tuần sau chỉ là chép code.</p>
+    </div>
+  </div>
+  <div class="grid md:grid-cols-2 gap-4 mt-4">
+    <div class="bg-white rounded-2xl shadow-sm p-5">
+      <p class="font-bold text-sm text-dark"><i class="fa-solid fa-clipboard-check text-primary mr-2"></i>Cần nắm trước khi vào bài</p>
+      <ul class="text-sm text-slate-600 mt-2 space-y-1.5 list-disc list-inside">
+        <li>Phân biệt mạch tổ hợp (combinational) và mạch tuần tự (sequential) — Tuần 4, 5.</li>
+        <li>D Flip-Flop chỉ lưu 1 bit, lấy mẫu tại cạnh lên clock — Tuần 5.</li>
+        <li>FSM gồm state register + logic trạng thái kế + logic ngõ ra — Tuần 6.</li>
+      </ul>
+    </div>
+    <div class="bg-white rounded-2xl shadow-sm p-5">
+      <p class="font-bold text-sm text-dark"><i class="fa-solid fa-rocket text-accent mr-2"></i>Học xong sẽ dùng vào đâu</p>
+      <ul class="text-sm text-slate-600 mt-2 space-y-1.5 list-disc list-inside">
+        <li>Tuần 9: viết <span class="font-mono text-xs">traffic_light_controller</span> hoàn chỉnh, mô phỏng rồi nạp FPGA.</li>
+        <li>Đọc hiểu code mẫu trong tài liệu, phỏng vấn thực tập RTL design/verification.</li>
+        <li>Nền tảng cho testbench, UVM, và mọi công việc front-end sau này.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 3. BEFORE SESSION ============ -->
+<section id="before-session" class="bg-white border-y border-slate-200">
+  <div class="max-w-6xl mx-auto px-4 py-12">
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-10 h-10 rounded-xl bg-secondary/10 text-secondary flex items-center justify-center"><i class="fa-solid fa-list-check"></i></div>
+      <div>
+        <p class="text-xs font-bold uppercase tracking-wider text-secondary">Section 03</p>
+        <h2 class="text-2xl md:text-3xl font-extrabold text-dark">Chuẩn bị trước buổi học</h2>
+      </div>
+    </div>
+    <p class="max-w-3xl text-slate-600 text-sm leading-relaxed">
+      Tuần này chúng ta thảo luận <strong>"What Is Verilog?"</strong>. Mục tiêu không phải là thuộc cú pháp,
+      mà là hiểu Verilog dùng để <em>mô tả phần cứng</em>, không phải lập trình như C/Python.
+      Trước buổi học, hãy hoàn thành checklist dưới đây (tick để tự theo dõi — thanh tiến độ sẽ chạy theo bạn).
+    </p>
+    <div class="grid lg:grid-cols-2 gap-6 mt-6">
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <p class="font-bold text-sm text-dark">Checklist chuẩn bị</p>
+          <span id="pre-chk-count" class="text-xs font-bold text-primary">0/6 hoàn thành</span>
+        </div>
+        <div class="space-y-2">
+          <label class="chk-item"><input type="checkbox" class="pre-chk"><span class="text-sm">Xem lại sơ đồ FSM đèn giao thông của Tuần 6 (state, transition, output) — Verilog tuần này sẽ mô tả đúng thứ đó.</span></label>
+          <label class="chk-item"><input type="checkbox" class="pre-chk"><span class="text-sm">Ôn lại: mạch tổ hợp khác mạch tuần tự ở điểm nào? Khối nào cần clock?</span></label>
+          <label class="chk-item"><input type="checkbox" class="pre-chk"><span class="text-sm">Đọc lướt 1 đoạn code Verilog bất kỳ trên mạng (chưa cần hiểu hết) và ghi lại 3 từ khóa bạn thấy lạ.</span></label>
+          <label class="chk-item"><input type="checkbox" class="pre-chk"><span class="text-sm">Tạo tài khoản <strong>EDA Playground</strong> (edaplayground.com) — công cụ mô phỏng online miễn phí dùng trong buổi học.</span></label>
+          <label class="chk-item"><input type="checkbox" class="pre-chk"><span class="text-sm">Tự trả lời: "Nếu tôi viết 2 dòng lệnh, phần cứng có chạy dòng trên trước dòng dưới không?" (giữ câu trả lời để đối chiếu cuối buổi).</span></label>
+          <label class="chk-item"><input type="checkbox" class="pre-chk"><span class="text-sm">Chuẩn bị 3 câu hỏi mang vào breakout room.</span></label>
+        </div>
+      </div>
+      <div class="space-y-4">
+        <div class="bg-slate-50 rounded-2xl p-5 border border-slate-200">
+          <p class="font-bold text-sm text-dark mb-3"><i class="fa-solid fa-fire text-secondary mr-2"></i>3 câu hỏi khởi động</p>
+          <ol class="space-y-2 text-sm text-slate-700 list-decimal list-inside">
+            <li>Một con chip có hàng tỷ transistor hoạt động <em>cùng lúc</em>. Ngôn ngữ C mô tả "từng bước một" — vậy C thiếu điều gì để mô tả chip?</li>
+            <li>Bản vẽ kiến trúc mô tả ngôi nhà chứ không "chạy" ngôi nhà. Code Verilog giống bản vẽ hay giống chương trình hơn? Vì sao?</li>
+            <li>Tuần 6 bạn vẽ FSM bằng hình tròn và mũi tên. Làm sao "kể" chính xác sơ đồ đó cho một công cụ chỉ đọc được văn bản?</li>
+          </ol>
+        </div>
+        <div class="bg-blue-50 rounded-2xl p-5 border border-blue-200">
+          <p class="font-bold text-sm text-dark mb-2"><i class="fa-solid fa-stopwatch text-primary mr-2"></i>Nhiệm vụ nhỏ (5–10 phút)</p>
+          <p class="text-sm text-slate-700">Chọn 1 mạch đơn giản bạn đã học (cổng AND, MUX 2-sang-1, half adder, D flip-flop). Viết ra giấy: <strong>tên mạch — input — output — hành vi bằng lời</strong> ("khi sel bằng 0 thì y bằng a…"). Mang tờ giấy này vào buổi học: chúng ta sẽ dịch nó sang Verilog từng dòng một.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- ============ 4. CORE CONCEPTS ============ -->
+<section id="core-concepts" class="max-w-6xl mx-auto px-4 py-12">
+  <div class="flex items-center gap-3 mb-2">
+    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-cubes"></i></div>
+    <div>
+      <p class="text-xs font-bold uppercase tracking-wider text-primary">Section 04</p>
+      <h2 class="text-2xl md:text-3xl font-extrabold text-dark">Khái niệm cốt lõi</h2>
+    </div>
+  </div>
+  <p class="text-sm text-slate-600 mb-6 max-w-3xl">Mỗi khái niệm đi qua 5 tầng: định nghĩa dễ hiểu → bản chất kỹ thuật → ví dụ đời sống → trong IC/FPGA → lỗi hiểu sai phổ biến.</p>
+
+  <div class="grid md:grid-cols-2 gap-5">
+    <!-- Concept 1: HDL -->
+    <div class="bg-white rounded-2xl shadow-sm p-5">
+      <h3 class="font-extrabold text-lg text-dark"><i class="fa-solid fa-language text-primary mr-2"></i>1. HDL — Hardware Description Language</h3>
+      <div class="mt-3 space-y-2.5 text-sm text-slate-700">
+        <p><span class="layer-chip bg-blue-100 text-blue-700">Định nghĩa</span> Ngôn ngữ văn bản dùng để <strong>mô tả</strong> cấu trúc và hành vi của mạch số. Verilog (1984) và VHDL là hai HDL phổ biến; SystemVerilog là bản mở rộng hiện đại của Verilog.</p>
+        <p><span class="layer-chip bg-slate-200 text-slate-700">Bản chất</span> File .v/.sv không được "thực thi" trên chip. Nó được <strong>simulator</strong> dùng để mô phỏng hành vi, và được <strong>synthesis tool</strong> dịch thành netlist (danh sách cổng logic + dây nối) — tức là phần cứng thật.</p>
+        <p><span class="layer-chip bg-amber-100 text-amber-700">Đời sống</span> Giống bản vẽ kiến trúc: bản vẽ mô tả mọi phòng <em>tồn tại đồng thời</em>; không ai nói "phòng khách chạy xong rồi mới tới phòng bếp".</p>
+        <p><span class="layer-chip bg-emerald-100 text-emerald-700">Trong IC/FPGA</span> Cùng một file RTL Verilog có thể được tổng hợp cho FPGA (LUT + FF) hoặc ASIC (standard cell) — nội dung Tuần 8.</p>
+        <p><span class="layer-chip bg-red-100 text-red-700">Hiểu sai</span> "Verilog là một ngôn ngữ lập trình như C." Sai: C mô tả <em>chuỗi lệnh cho CPU thực thi tuần tự</em>; Verilog mô tả <em>các khối mạch tồn tại song song</em>.</p>
+      </div>
+    </div>
+
+    <!-- Concept 2: Module -->
+    <div class="bg-white rounded-2xl shadow-sm p-5">
+      <h3 class="font-extrabold text-lg text-dark"><i class="fa-solid fa-cube text-primary mr-2"></i>2. Module &amp; Port</h3>
+      <div class="mt-3 space-y-2.5 text-sm text-slate-700">
+        <p><span class="layer-chip bg-blue-100 text-blue-700">Định nghĩa</span> <strong>Module</strong> là đơn vị thiết kế cơ bản của Verilog — một "chiếc hộp" có tên, có chân vào/ra (<strong>port</strong>: input, output, inout).</p>
+        <p><span class="layer-chip bg-slate-200 text-slate-700">Bản chất</span> Module tương ứng một khối phần cứng. Module lớn <strong>instantiate</strong> (gọi/lắp) module nhỏ — tạo cây phân cấp (hierarchy). Mỗi instance là một bản sao phần cứng RIÊNG, không phải "gọi hàm dùng chung".</p>
+        <p><span class="layer-chip bg-amber-100 text-amber-700">Đời sống</span> Như một linh kiện LEGO: khối có mấu nối chuẩn, lắp bao nhiêu lần thì tốn bấy nhiêu viên gạch thật.</p>
+        <p><span class="layer-chip bg-emerald-100 text-emerald-700">Trong IC/FPGA</span> SoC là MỘT IC chứa nhiều khối chức năng — mỗi khối (CPU, UART, timer…) là các module lồng nhau trong RTL.</p>
+        <p><span class="layer-chip bg-red-100 text-red-700">Hiểu sai</span> "Instantiate 10 lần cũng như gọi hàm 10 lần, không tốn thêm gì." Sai: 10 instance = 10 cụm mạch chiếm diện tích thật trên silicon/FPGA.</p>
+      </div>
+    </div>
+
+    <!-- Concept 3: wire/reg/logic -->
+    <div class="bg-white rounded-2xl shadow-sm p-5">
+      <h3 class="font-extrabold text-lg text-dark"><i class="fa-solid fa-wave-square text-primary mr-2"></i>3. wire — reg — logic</h3>
+      <div class="mt-3 space-y-2.5 text-sm text-slate-700">
+        <p><span class="layer-chip bg-blue-100 text-blue-700">Định nghĩa</span> <strong>wire</strong>: tín hiệu được lái bởi assign hoặc ngõ ra module khác. <strong>reg</strong>: tín hiệu được gán bên trong khối always. SystemVerilog gộp lại thành <strong>logic</strong> dùng cho cả hai.</p>
+        <p><span class="layer-chip bg-slate-200 text-slate-700">Bản chất</span> Đây là <em>luật cú pháp về nơi được phép gán</em>, KHÔNG phải tuyên bố về phần cứng. Tín hiệu reg có thể tổng hợp thành dây tổ hợp thuần túy nếu nằm trong always tổ hợp.</p>
+        <p><span class="layer-chip bg-amber-100 text-amber-700">Đời sống</span> Giống danh xưng trên giấy tờ: "tài xế" trong hợp đồng chưa chắc đang cầm vô lăng — phải xem hành vi thực tế.</p>
+        <p><span class="layer-chip bg-emerald-100 text-emerald-700">Trong IC/FPGA</span> Tool tổng hợp quyết định FF hay dây dựa trên <em>cách viết</em> (có posedge clk hay không), không dựa vào từ khóa reg.</p>
+        <p><span class="layer-chip bg-red-100 text-red-700">Hiểu sai</span> "reg = register vật lý, wire = sợi dây đồng." Sai trong nhiều ngữ cảnh — đây là lỗi kinh điển của người mới. Hãy hỏi: <em>tín hiệu này được gán ở đâu, theo kiểu nào?</em></p>
+      </div>
+    </div>
+
+    <!-- Concept 4: assign -->
+    <div class="bg-white rounded-2xl shadow-sm p-5">
+      <h3 class="font-extrabold text-lg text-dark"><i class="fa-solid fa-equals text-primary mr-2"></i>4. assign — gán liên tục (continuous assignment)</h3>
+      <div class="mt-3 space-y-2.5 text-sm text-slate-700">
+        <p><span class="layer-chip bg-blue-100 text-blue-700">Định nghĩa</span> <span class="font-mono text-xs">assign y = a &amp; b;</span> nghĩa là: y <strong>luôn luôn</strong> bằng a AND b, tại mọi thời điểm.</p>
+        <p><span class="layer-chip bg-slate-200 text-slate-700">Bản chất</span> Mỗi assign mô tả một mạng logic tổ hợp nối cứng. Input đổi → output đổi theo, sau một <strong>propagation delay</strong> (độ trễ lan truyền) — không phải "ngay lập tức", cũng không chờ ai "gọi" nó.</p>
+        <p><span class="layer-chip bg-amber-100 text-amber-700">Đời sống</span> Như đường ống nước nối thẳng: mở van nguồn thì đầu kia có nước — ống không "được thực thi", nó chỉ tồn tại.</p>
+        <p><span class="layer-chip bg-emerald-100 text-emerald-700">Trong IC/FPGA</span> assign tổng hợp thành cổng/LUT. Nhiều assign trong một module = nhiều mạch hoạt động song song.</p>
+        <p><span class="layer-chip bg-red-100 text-red-700">Hiểu sai</span> "assign chạy một lần lúc khởi động như phép gán biến." Sai: nó là quan hệ vĩnh viễn giữa các tín hiệu.</p>
+      </div>
+    </div>
+
+    <!-- Concept 5: always -->
+    <div class="bg-white rounded-2xl shadow-sm p-5">
+      <h3 class="font-extrabold text-lg text-dark"><i class="fa-solid fa-rotate text-primary mr-2"></i>5. always_comb &amp; always_ff</h3>
+      <div class="mt-3 space-y-2.5 text-sm text-slate-700">
+        <p><span class="layer-chip bg-blue-100 text-blue-700">Định nghĩa</span> Khối <strong>always</strong> mô tả hành vi bằng if/case. SystemVerilog tách rõ: <strong>always_comb</strong> cho mạch tổ hợp, <strong>always_ff @(posedge clk)</strong> cho mạch tuần tự (flip-flop).</p>
+        <p><span class="layer-chip bg-slate-200 text-slate-700">Bản chất</span> Code trong always trông "tuần tự" nhưng chỉ là cách <em>mô tả hàm logic</em>; kết quả tổng hợp vẫn là một mạch song song. Quy tắc vàng: always_comb dùng <span class="font-mono text-xs">=</span> (blocking) + gán mặc định; always_ff dùng <span class="font-mono text-xs">&lt;=</span> (non-blocking).</p>
+        <p><span class="layer-chip bg-amber-100 text-amber-700">Đời sống</span> Bản mô tả công việc của một trạm trong dây chuyền: liệt kê theo gạch đầu dòng, nhưng cả dây chuyền vận hành cùng lúc.</p>
+        <p><span class="layer-chip bg-emerald-100 text-emerald-700">Trong IC/FPGA</span> always_ff sinh ra FF trong logic cell FPGA hoặc DFF standard cell ASIC; always_comb sinh cổng/MUX/LUT.</p>
+        <p><span class="layer-chip bg-red-100 text-red-700">Hiểu sai</span> "Trong always_comb, quên else/default cũng không sao." Rất sai: tín hiệu không được gán ở một nhánh → tool phải tạo <strong>latch</strong> để "nhớ" giá trị cũ — mạch ngoài ý muốn, khó phân tích timing.</p>
+      </div>
+    </div>
+
+    <!-- Concept 6: parallelism -->
+    <div class="bg-white rounded-2xl shadow-sm p-5 border-2 border-primary/30">
+      <h3 class="font-extrabold text-lg text-dark"><i class="fa-solid fa-layer-group text-primary mr-2"></i>6. Tư duy song song — trái tim của tuần này</h3>
+      <div class="mt-3 space-y-2.5 text-sm text-slate-700">
+        <p><span class="layer-chip bg-blue-100 text-blue-700">Định nghĩa</span> Mọi assign, mọi khối always, mọi instance trong thiết kế <strong>tồn tại và hoạt động đồng thời</strong> — như mọi linh kiện trên một bo mạch.</p>
+        <p><span class="layer-chip bg-slate-200 text-slate-700">Bản chất</span> Thứ tự các khối trong file KHÔNG ảnh hưởng phần cứng. Đảo vị trí 2 khối always → cùng một mạch. Trong C, đảo 2 câu lệnh → chương trình khác.</p>
+        <p><span class="layer-chip bg-amber-100 text-amber-700">Đời sống</span> Dàn nhạc giao hưởng: mỗi nhạc công (khối mạch) chơi liên tục theo nhịp trưởng (clock), không ai "chờ tới lượt dòng code của mình".</p>
+        <p><span class="layer-chip bg-emerald-100 text-emerald-700">Trong IC/FPGA</span> Chính sự song song này tạo sức mạnh của phần cứng: 100 bộ cộng trong RTL = 100 phép cộng trong CÙNG một chu kỳ clock.</p>
+        <p><span class="layer-chip bg-red-100 text-red-700">Hiểu sai</span> "Viết luôn ở dòng đầu thì được ưu tiên chạy trước." Không có "chạy trước" — chỉ có mạch nối với mạch.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 5. SYSTEM VIEW ============ -->
+<section id="system-view" class="bg-white border-y border-slate-200">
+  <div class="max-w-6xl mx-auto px-4 py-12">
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-sitemap"></i></div>
+      <div>
+        <p class="text-xs font-bold uppercase tracking-wider text-primary">Section 05</p>
+        <h2 class="text-2xl md:text-3xl font-extrabold text-dark">Góc nhìn hệ thống — code nào sinh ra phần cứng nào?</h2>
+      </div>
+    </div>
+    <p class="text-sm text-slate-600 max-w-3xl mb-5">Verilog đứng giữa "ý tưởng/sơ đồ" và "mạch thật": Spec → Block diagram/FSM → <strong>RTL Verilog</strong> → Synthesis → Netlist cổng → FPGA/ASIC. Bảng dưới là "bảng tra" quan trọng nhất của tuần:</p>
+    <div class="overflow-x-auto rounded-xl border border-slate-200">
+      <table class="vtable w-full bg-white">
+        <thead>
+          <tr><th>Cấu trúc Verilog</th><th>Phần cứng sau synthesis</th><th>Loại mạch</th><th>Cần clock?</th><th>Ghi chú kỹ thuật</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="font-mono text-xs">assign y = a &amp; b;</td><td>Cổng AND (hoặc LUT trên FPGA)</td><td class="text-blue-700 font-semibold">Tổ hợp</td><td>Không</td><td>Gán liên tục, có propagation delay.</td></tr>
+          <tr><td class="font-mono text-xs">always_comb + if/case đủ nhánh</td><td>MUX, decoder, mạng cổng</td><td class="text-blue-700 font-semibold">Tổ hợp</td><td>Không</td><td>Phải có default/gán mặc định để tránh latch.</td></tr>
+          <tr><td class="font-mono text-xs">always_ff @(posedge clk)</td><td>Flip-flop / thanh ghi n-bit (n FF)</td><td class="text-purple-700 font-semibold">Tuần tự</td><td>Có (+ reset)</td><td>Dùng &lt;= non-blocking; chỉ đổi tại cạnh clock.</td></tr>
+          <tr><td class="font-mono text-xs">always_comb thiếu else/default</td><td class="text-danger font-semibold">Latch (ngoài ý muốn!)</td><td>Nhớ theo mức</td><td>Không</td><td>Cảnh báo "inferred latch" — hầu như luôn là bug.</td></tr>
+          <tr><td class="font-mono text-xs">module + instance</td><td>Khối mạch lặp lại, phân cấp thiết kế</td><td>Tùy nội dung</td><td>Tùy</td><td>Mỗi instance là một bản sao phần cứng riêng.</td></tr>
+          <tr><td class="font-mono text-xs">parameter GREEN_TICKS = 5;</td><td>Không sinh mạch — hằng số lúc tổng hợp</td><td>—</td><td>—</td><td>Cấu hình thiết kế (độ rộng bus, giá trị đếm…).</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="grid md:grid-cols-3 gap-4 mt-5 text-sm">
+      <div class="bg-slate-50 rounded-xl p-4 border border-slate-200"><p class="font-bold text-dark"><i class="fa-solid fa-plug text-primary mr-2"></i>Input của khối RTL</p><p class="text-slate-600 mt-1">Spec + sơ đồ khối + bảng chân lý/bảng trạng thái từ Tuần 3–6. Chưa có những thứ này thì <em>chưa viết code</em>.</p></div>
+      <div class="bg-slate-50 rounded-xl p-4 border border-slate-200"><p class="font-bold text-dark"><i class="fa-solid fa-right-from-bracket text-primary mr-2"></i>Output của khối RTL</p><p class="text-slate-600 mt-1">File .sv được mô phỏng đúng hành vi → đưa vào synthesis để ra netlist cổng cho FPGA/ASIC.</p></div>
+      <div class="bg-slate-50 rounded-xl p-4 border border-slate-200"><p class="font-bold text-dark"><i class="fa-solid fa-clock text-primary mr-2"></i>Clock &amp; Reset</p><p class="text-slate-600 mt-1">Chỉ phần tuần tự (always_ff) cần clock và reset. Phần tổ hợp không giữ trạng thái nên không cần.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 6. INTERACTIVE DEMO ============ -->
+<section id="demo" class="max-w-6xl mx-auto px-4 py-12">
+  <div class="flex items-center gap-3 mb-2">
+    <div class="w-10 h-10 rounded-xl bg-accent/10 text-accent flex items-center justify-center"><i class="fa-solid fa-flask"></i></div>
+    <div>
+      <p class="text-xs font-bold uppercase tracking-wider text-accent">Section 06 — Interactive Demo</p>
+      <h2 class="text-2xl md:text-3xl font-extrabold text-dark">Verilog → Hardware Visualizer</h2>
+    </div>
+  </div>
+  <p class="text-sm text-slate-600 max-w-3xl mb-4">Chọn một đoạn code ở cột trái. Bạn sẽ thấy chính đoạn code đó và <strong>phần cứng mà công cụ tổng hợp sẽ tạo ra</strong>. Hãy tập thói quen: đọc code — nhắm mắt — hình dung mạch.</p>
+  <div class="bg-amber-50 border-l-4 border-secondary rounded-r-xl p-4 mb-6 text-sm text-amber-900">
+    <i class="fa-solid fa-triangle-exclamation mr-1"></i> <strong>Nguyên lý trung tâm:</strong> những dòng code này <strong>KHÔNG chạy tuần tự</strong> — chúng <strong>MÔ TẢ phần cứng tồn tại song song</strong>. Cả 4 đoạn dưới nếu đặt chung một module thì cả 4 mạch cùng tồn tại, cùng hoạt động một lúc.
+  </div>
+  <div class="grid lg:grid-cols-[250px,1fr] gap-5">
+    <div class="space-y-2">
+      <button class="snip-btn active" data-snip="0" id="snip-btn-0"><i class="fa-solid fa-circle-nodes mr-2 text-primary"></i>assign — cổng AND</button>
+      <button class="snip-btn" data-snip="1" id="snip-btn-1"><i class="fa-solid fa-clock mr-2 text-purple-600"></i>always_ff — bộ đếm 4-bit</button>
+      <button class="snip-btn" data-snip="2" id="snip-btn-2"><i class="fa-solid fa-code-branch mr-2 text-primary"></i>always_comb — MUX 2-sang-1</button>
+      <button class="snip-btn" data-snip="3" id="snip-btn-3"><i class="fa-solid fa-bug mr-2 text-danger"></i>Code thiếu else — chuyện gì xảy ra?</button>
+      <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-600 mt-3">
+        <i class="fa-solid fa-lightbulb text-secondary mr-1"></i> Mẹo: trước khi bấm, tự đoán phần cứng. Đoán đúng 4/4 nghĩa là bạn đã có "con mắt RTL".
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl shadow-sm p-5 min-h-[420px]">
+
+      <!-- Panel 0: assign AND -->
+      <div id="snip-0" class="snip-panel show">
+        <div class="flex items-center gap-2 mb-3"><span class="layer-chip bg-blue-100 text-blue-700">Mạch tổ hợp</span><span class="text-xs text-slate-500">gán liên tục — luôn "sống"</span></div>
+        <div class="grid md:grid-cols-2 gap-4 items-start">
+          <div>
+            <div class="code-head"><span>and_gate.sv</span><button class="copy-btn" data-target="code-snip-0"><i class="fa-regular fa-copy mr-1"></i>Copy</button></div>
+            <pre class="code-body" id="code-snip-0"><code><span class="tok-kw">module</span> <span class="tok-fn">and_gate</span> (
+  <span class="tok-kw">input</span>  <span class="tok-type">logic</span> a, b,
+  <span class="tok-kw">output</span> <span class="tok-type">logic</span> y
+);
+  <span class="tok-cmt">// y LUÔN LUÔN bằng a AND b</span>
+  <span class="tok-kw">assign</span> y = a &amp; b;
+<span class="tok-kw">endmodule</span></code></pre>
+          </div>
+          <div class="text-center">
+            <svg viewBox="0 0 260 130" class="w-full max-w-[280px] mx-auto" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Cổng AND">
+              <defs><marker id="arr7a" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#334155"/></marker></defs>
+              <text x="130" y="16" text-anchor="middle" font-size="11" font-weight="700" fill="#0f172a">Phần cứng: 1 cổng AND</text>
+              <line x1="25" y1="48" x2="80" y2="48" stroke="#334155" stroke-width="2"/>
+              <line x1="25" y1="82" x2="80" y2="82" stroke="#334155" stroke-width="2"/>
+              <path d="M80,32 H112 A33 33 0 0 1 112,98 H80 Z" fill="#dbeafe" stroke="#2563eb" stroke-width="2.5"/>
+              <line x1="145" y1="65" x2="215" y2="65" stroke="#334155" stroke-width="2" marker-end="url(#arr7a)"/>
+              <text x="16" y="52" font-size="12" font-weight="700" fill="#1e40af">a</text>
+              <text x="16" y="86" font-size="12" font-weight="700" fill="#1e40af">b</text>
+              <text x="224" y="69" font-size="12" font-weight="700" fill="#047857">y</text>
+              <text x="108" y="70" text-anchor="middle" font-size="11" font-weight="700" fill="#1e40af">AND</text>
+            </svg>
+          </div>
+        </div>
+        <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mt-4 text-sm text-slate-700">
+          <strong class="text-primary"><i class="fa-solid fa-magnifying-glass mr-1"></i>Đọc kết quả:</strong> dòng <span class="font-mono text-xs">assign</span> không phải "một lệnh được thực thi lúc nào đó" — nó là <strong>một cổng AND tồn tại vĩnh viễn</strong>, liên tục theo dõi a và b. Khi a hoặc b đổi, y đổi theo sau một độ trễ lan truyền cỡ nano-giây. Dòng code này KHÔNG chạy tuần tự — nó MÔ TẢ phần cứng tồn tại song song với mọi mạch khác trong chip.
+        </div>
+      </div>
+
+      <!-- Panel 1: always_ff counter -->
+      <div id="snip-1" class="snip-panel">
+        <div class="flex items-center gap-2 mb-3"><span class="layer-chip bg-purple-100 text-purple-700">Mạch tuần tự</span><span class="text-xs text-slate-500">chỉ đổi tại cạnh lên clock</span></div>
+        <div class="grid md:grid-cols-2 gap-4 items-start">
+          <div>
+            <div class="code-head"><span>counter4.sv</span><button class="copy-btn" data-target="code-snip-1"><i class="fa-regular fa-copy mr-1"></i>Copy</button></div>
+            <pre class="code-body" id="code-snip-1"><code><span class="tok-kw">always_ff</span> @(<span class="tok-kw">posedge</span> clk) <span class="tok-kw">begin</span>
+  <span class="tok-kw">if</span> (rst)              <span class="tok-cmt">// reset đồng bộ</span>
+    q &lt;= <span class="tok-num">4'd0</span>;
+  <span class="tok-kw">else</span>
+    q &lt;= q + <span class="tok-num">4'd1</span>;    <span class="tok-cmt">// đếm lên mỗi cạnh clock</span>
+<span class="tok-kw">end</span></code></pre>
+          </div>
+          <div class="text-center">
+            <svg viewBox="0 0 320 160" class="w-full max-w-[330px] mx-auto" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Bộ đếm 4-bit">
+              <defs><marker id="arr7b" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#334155"/></marker></defs>
+              <text x="160" y="14" text-anchor="middle" font-size="11" font-weight="700" fill="#0f172a">Phần cứng: bộ cộng +1 → thanh ghi 4-bit (4 FF)</text>
+              <rect x="35" y="48" width="62" height="46" rx="8" fill="#fef3c7" stroke="#f59e0b" stroke-width="2.5"/>
+              <text x="66" y="75" text-anchor="middle" font-size="13" font-weight="700" fill="#92400e">+1</text>
+              <rect x="160" y="38" width="110" height="66" rx="8" fill="#ede9fe" stroke="#7c3aed" stroke-width="2.5"/>
+              <text x="215" y="62" text-anchor="middle" font-size="10.5" font-weight="700" fill="#5b21b6">Register 4-bit</text>
+              <text x="215" y="77" text-anchor="middle" font-size="9.5" fill="#6d28d9">(4 × D Flip-Flop)</text>
+              <polyline points="160,96 170,90 160,84" fill="none" stroke="#7c3aed" stroke-width="2"/>
+              <line x1="97" y1="71" x2="158" y2="71" stroke="#334155" stroke-width="2" marker-end="url(#arr7b)"/>
+              <line x1="270" y1="71" x2="308" y2="71" stroke="#334155" stroke-width="2" marker-end="url(#arr7b)"/>
+              <text x="290" y="62" font-size="10" font-weight="700" fill="#047857">q[3:0]</text>
+              <path d="M290,71 V138 H66 V96" fill="none" stroke="#64748b" stroke-width="1.8" stroke-dasharray="5,4" marker-end="url(#arr7b)"/>
+              <text x="178" y="150" font-size="9.5" fill="#64748b">phản hồi: giá trị cũ quay lại bộ cộng</text>
+              <text x="128" y="102" font-size="9.5" font-weight="700" fill="#7c3aed">clk</text>
+              <line x1="140" y1="112" x2="140" y2="96" stroke="#7c3aed" stroke-width="1.8"/><line x1="140" y1="96" x2="158" y2="96" stroke="#7c3aed" stroke-width="1.8"/>
+            </svg>
+          </div>
+        </div>
+        <div class="bg-purple-50 border border-purple-200 rounded-xl p-4 mt-4 text-sm text-slate-700">
+          <strong class="text-purple-700"><i class="fa-solid fa-magnifying-glass mr-1"></i>Đọc kết quả:</strong> <span class="font-mono text-xs">always_ff @(posedge clk)</span> sinh ra <strong>4 flip-flop</strong> (mỗi FF lưu 1 bit) cùng một bộ cộng +1 tổ hợp. Giữa hai cạnh clock, bộ cộng đã tính sẵn q+1; tại cạnh lên, FF "chụp" giá trị đó. Code trông như if/else tuần tự nhưng thực chất mô tả <strong>một cấu trúc mạch cố định</strong> hoạt động song song với phần còn lại của chip.
+        </div>
+      </div>
+
+      <!-- Panel 2: always_comb MUX -->
+      <div id="snip-2" class="snip-panel">
+        <div class="flex items-center gap-2 mb-3"><span class="layer-chip bg-blue-100 text-blue-700">Mạch tổ hợp</span><span class="text-xs text-slate-500">if/else đủ nhánh → MUX sạch</span></div>
+        <div class="grid md:grid-cols-2 gap-4 items-start">
+          <div>
+            <div class="code-head"><span>mux2.sv</span><button class="copy-btn" data-target="code-snip-2"><i class="fa-regular fa-copy mr-1"></i>Copy</button></div>
+            <pre class="code-body" id="code-snip-2"><code><span class="tok-kw">always_comb</span> <span class="tok-kw">begin</span>
+  <span class="tok-kw">if</span> (sel)
+    y = b;   <span class="tok-cmt">// sel = 1 → chọn b</span>
+  <span class="tok-kw">else</span>
+    y = a;   <span class="tok-cmt">// sel = 0 → chọn a</span>
+<span class="tok-kw">end</span>
+<span class="tok-cmt">// đủ 2 nhánh: y luôn được gán → KHÔNG có latch</span></code></pre>
+          </div>
+          <div class="text-center">
+            <svg viewBox="0 0 260 150" class="w-full max-w-[280px] mx-auto" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="MUX 2 sang 1">
+              <defs><marker id="arr7c" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#334155"/></marker></defs>
+              <text x="130" y="16" text-anchor="middle" font-size="11" font-weight="700" fill="#0f172a">Phần cứng: 1 bộ MUX 2-sang-1</text>
+              <path d="M95,30 L95,120 L150,98 L150,52 Z" fill="#dbeafe" stroke="#2563eb" stroke-width="2.5"/>
+              <line x1="35" y1="52" x2="95" y2="52" stroke="#334155" stroke-width="2"/>
+              <line x1="35" y1="98" x2="95" y2="98" stroke="#334155" stroke-width="2"/>
+              <line x1="150" y1="75" x2="215" y2="75" stroke="#334155" stroke-width="2" marker-end="url(#arr7c)"/>
+              <line x1="120" y1="138" x2="120" y2="110" stroke="#f59e0b" stroke-width="2" marker-end="url(#arr7c)"/>
+              <text x="22" y="56" font-size="12" font-weight="700" fill="#1e40af">a</text><text x="103" y="56" font-size="9" fill="#64748b">0</text>
+              <text x="22" y="102" font-size="12" font-weight="700" fill="#1e40af">b</text><text x="103" y="102" font-size="9" fill="#64748b">1</text>
+              <text x="224" y="79" font-size="12" font-weight="700" fill="#047857">y</text>
+              <text x="130" y="146" font-size="10" font-weight="700" fill="#b45309">sel</text>
+            </svg>
+          </div>
+        </div>
+        <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mt-4 text-sm text-slate-700">
+          <strong class="text-primary"><i class="fa-solid fa-magnifying-glass mr-1"></i>Đọc kết quả:</strong> vì y được gán trong <strong>mọi nhánh</strong> (if lẫn else), đây là hàm tổ hợp thuần túy → một bộ MUX. Không có gì cần "nhớ", không cần clock. Cả hai đường a và b <strong>luôn được tính song song</strong> — MUX chỉ chọn đường nào ra y; không hề có chuyện "chạy nhánh if xong mới tới else".
+        </div>
+      </div>
+
+      <!-- Panel 3: latch -->
+      <div id="snip-3" class="snip-panel">
+        <div class="flex items-center gap-2 mb-3"><span class="layer-chip bg-red-100 text-red-700">Cảnh báo: latch ngoài ý muốn</span><span class="text-xs text-slate-500">lỗi kinh điển của người mới</span></div>
+        <div class="grid md:grid-cols-2 gap-4 items-start">
+          <div>
+            <div class="code-head"><span>oops_latch.sv</span><button class="copy-btn" data-target="code-snip-3"><i class="fa-regular fa-copy mr-1"></i>Copy</button></div>
+            <pre class="code-body" id="code-snip-3"><code><span class="tok-kw">always_comb</span> <span class="tok-kw">begin</span>
+  <span class="tok-kw">if</span> (en)
+    y = d;
+  <span class="tok-cmt">// THIẾU else! Khi en = 0, y bằng gì?</span>
+  <span class="tok-cmt">// → tool buộc phải tạo LATCH để "nhớ" y cũ</span>
+<span class="tok-kw">end</span>
+
+<span class="tok-cmt">// SỬA ĐÚNG: gán mặc định trước</span>
+<span class="tok-cmt">//   y = 1'b0;          // default</span>
+<span class="tok-cmt">//   if (en) y = d;</span></code></pre>
+          </div>
+          <div class="text-center">
+            <svg viewBox="0 0 260 150" class="w-full max-w-[280px] mx-auto" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Latch ngoài ý muốn">
+              <defs><marker id="arr7d" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#334155"/></marker></defs>
+              <text x="130" y="16" text-anchor="middle" font-size="11" font-weight="700" fill="#b91c1c">Phần cứng: D-LATCH (không mong muốn!)</text>
+              <rect x="90" y="38" width="100" height="70" rx="8" fill="#fee2e2" stroke="#ef4444" stroke-width="2.5"/>
+              <text x="140" y="66" text-anchor="middle" font-size="11" font-weight="700" fill="#b91c1c">D-Latch</text>
+              <text x="140" y="82" text-anchor="middle" font-size="8.5" fill="#dc2626">nhạy theo MỨC (level)</text>
+              <line x1="30" y1="55" x2="90" y2="55" stroke="#334155" stroke-width="2"/>
+              <line x1="30" y1="92" x2="90" y2="92" stroke="#f59e0b" stroke-width="2"/>
+              <line x1="190" y1="72" x2="230" y2="72" stroke="#334155" stroke-width="2" marker-end="url(#arr7d)"/>
+              <text x="18" y="59" font-size="11" font-weight="700" fill="#1e40af">d</text>
+              <text x="14" y="96" font-size="11" font-weight="700" fill="#b45309">en</text>
+              <text x="238" y="76" font-size="11" font-weight="700" fill="#047857">y</text>
+              <path d="M40,128 L52,108 L64,128 Z" fill="#fbbf24" stroke="#b45309" stroke-width="1.5"/>
+              <text x="52" y="125" text-anchor="middle" font-size="11" font-weight="800" fill="#7c2d12">!</text>
+              <text x="150" y="126" text-anchor="middle" font-size="9" fill="#b91c1c">"trong suốt" khi en=1, "đóng băng" khi en=0</text>
+            </svg>
+          </div>
+        </div>
+        <div class="bg-red-50 border border-red-200 rounded-xl p-4 mt-4 text-sm text-slate-700">
+          <strong class="text-danger"><i class="fa-solid fa-magnifying-glass mr-1"></i>Đọc kết quả:</strong> bạn <em>định</em> viết mạch tổ hợp, nhưng vì khi <span class="font-mono text-xs">en = 0</span> không nói y bằng gì, ngôn ngữ quy định "y giữ giá trị cũ" → tool tổng hợp buộc phải sinh một <strong>latch</strong> (phần tử nhớ nhạy theo mức, khác flip-flop nhạy theo cạnh). Latch ngoài ý muốn gây khó khăn cho phân tích timing và thường là bug. <strong>Phòng bệnh:</strong> luôn gán mặc định ở đầu always_comb, hoặc luôn đủ else/default.
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+<!-- ============ 7. ENGINEERING WORKFLOW ============ -->
+<section id="workflow" class="bg-white border-y border-slate-200">
+  <div class="max-w-6xl mx-auto px-4 py-12">
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-diagram-project"></i></div>
+      <div>
+        <p class="text-xs font-bold uppercase tracking-wider text-primary">Section 07</p>
+        <h2 class="text-2xl md:text-3xl font-extrabold text-dark">Quy trình kỹ sư: từ yêu cầu đến RTL</h2>
+      </div>
+    </div>
+    <p class="text-sm text-slate-600 max-w-3xl mb-6">Chú ý vị trí của bước "viết code": <strong>ở bước 5, không phải bước 1</strong>. Kỹ sư giỏi dành phần lớn thời gian ở các bước trước code.</p>
+    <div class="grid md:grid-cols-4 gap-3 text-sm">
+      <div class="bg-slate-50 rounded-xl p-4 border-l-4 border-slate-400"><p class="text-xs font-bold text-slate-500">BƯỚC 1</p><p class="font-bold mt-1">Requirement</p><p class="text-xs text-slate-600 mt-1">"Đèn y sáng khi cả 2 công tắc bật" — yêu cầu bằng lời, đo đếm được.</p></div>
+      <div class="bg-slate-50 rounded-xl p-4 border-l-4 border-slate-400"><p class="text-xs font-bold text-slate-500">BƯỚC 2</p><p class="font-bold mt-1">Xác định I/O</p><p class="text-xs text-slate-600 mt-1">Input: a, b (1 bit). Output: y (1 bit). Đây chính là port list của module.</p></div>
+      <div class="bg-slate-50 rounded-xl p-4 border-l-4 border-slate-400"><p class="text-xs font-bold text-slate-500">BƯỚC 3</p><p class="font-bold mt-1">Block diagram</p><p class="text-xs text-slate-600 mt-1">Vẽ hộp, mũi tên vào/ra. Tổ hợp hay tuần tự? Cần clock/reset không?</p></div>
+      <div class="bg-slate-50 rounded-xl p-4 border-l-4 border-slate-400"><p class="text-xs font-bold text-slate-500">BƯỚC 4</p><p class="font-bold mt-1">Truth/State table</p><p class="text-xs text-slate-600 mt-1">Bảng chân lý (tổ hợp) hoặc bảng trạng thái (FSM) — hành vi chính xác 100%.</p></div>
+      <div class="bg-blue-50 rounded-xl p-4 border-l-4 border-primary"><p class="text-xs font-bold text-primary">BƯỚC 5</p><p class="font-bold mt-1">Viết RTL Verilog</p><p class="text-xs text-slate-600 mt-1">Bây giờ mới code! Chọn assign / always_comb / always_ff theo loại mạch.</p></div>
+      <div class="bg-blue-50 rounded-xl p-4 border-l-4 border-primary"><p class="text-xs font-bold text-primary">BƯỚC 6</p><p class="font-bold mt-1">Testbench + Simulate</p><p class="text-xs text-slate-600 mt-1">Viết testbench cấp kích thích, chạy simulator (ModelSim/EDA Playground).</p></div>
+      <div class="bg-blue-50 rounded-xl p-4 border-l-4 border-primary"><p class="text-xs font-bold text-primary">BƯỚC 7</p><p class="font-bold mt-1">Đọc waveform &amp; sửa</p><p class="text-xs text-slate-600 mt-1">So sánh dạng sóng với bảng ở bước 4. Sai → quay lại bước 4/5, không "vá đại".</p></div>
+      <div class="bg-emerald-50 rounded-xl p-4 border-l-4 border-accent"><p class="text-xs font-bold text-accent">BƯỚC 8</p><p class="font-bold mt-1">Synthesis → FPGA</p><p class="text-xs text-slate-600 mt-1">Tool dịch RTL thành netlist, map vào LUT/FF, nạp bitstream cấu hình FPGA (Tuần 8–9).</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 8. CODE / RTL ============ -->
+<section id="code-rtl" class="max-w-6xl mx-auto px-4 py-12">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-dark/10 text-dark flex items-center justify-center"><i class="fa-solid fa-file-code"></i></div>
+    <div>
+      <p class="text-xs font-bold uppercase tracking-wider text-slate-600">Section 08</p>
+      <h2 class="text-2xl md:text-3xl font-extrabold text-dark">Code RTL mẫu — giải phẫu &amp; ba công cụ mô tả</h2>
+    </div>
+  </div>
+
+  <div class="grid lg:grid-cols-2 gap-6">
+    <!-- Card 1: module anatomy -->
+    <div>
+      <h3 class="font-bold text-dark mb-2"><i class="fa-solid fa-cube text-primary mr-2"></i>1) Giải phẫu một module — MUX 2-sang-1</h3>
+      <div class="code-head"><span>mux2to1.sv</span><button class="copy-btn" data-target="code-w7-1"><i class="fa-regular fa-copy mr-1"></i>Copy</button></div>
+      <pre class="code-body" id="code-w7-1"><code><span class="tok-cmt">// module = "chiếc hộp" phần cứng có tên + chân I/O</span>
+<span class="tok-kw">module</span> <span class="tok-fn">mux2to1</span> (
+  <span class="tok-kw">input</span>  <span class="tok-type">logic</span> a, b,    <span class="tok-cmt">// 2 ngõ vào dữ liệu</span>
+  <span class="tok-kw">input</span>  <span class="tok-type">logic</span> sel,     <span class="tok-cmt">// tín hiệu chọn kênh</span>
+  <span class="tok-kw">output</span> <span class="tok-type">logic</span> y       <span class="tok-cmt">// ngõ ra</span>
+);
+  <span class="tok-cmt">// Thân module: mọi mô tả ở đây TỒN TẠI SONG SONG,</span>
+  <span class="tok-cmt">// không có "dòng trên chạy trước dòng dưới".</span>
+  <span class="tok-kw">assign</span> y = sel ? b : a;  <span class="tok-cmt">// toán tử ?: → 1 bộ MUX</span>
+<span class="tok-kw">endmodule</span></code></pre>
+      <div class="bg-white rounded-xl border border-slate-200 p-4 mt-3 text-sm text-slate-700 space-y-2">
+        <p><strong class="text-dark">wire / reg / logic — nói cho rõ:</strong> trong Verilog cổ điển, tín hiệu lái bởi <span class="font-mono text-xs">assign</span> phải khai báo <span class="font-mono text-xs">wire</span>; tín hiệu gán trong <span class="font-mono text-xs">always</span> phải khai báo <span class="font-mono text-xs">reg</span>.</p>
+        <p class="bg-amber-50 border-l-4 border-secondary rounded-r-lg p-2.5 text-xs"><i class="fa-solid fa-triangle-exclamation text-secondary mr-1"></i><strong>Caveat quan trọng:</strong> <span class="font-mono">reg</span> KHÔNG hứa hẹn tạo ra thanh ghi vật lý, <span class="font-mono">wire</span> không phải lúc nào cũng là "sợi dây" đơn thuần — chúng chỉ là luật cú pháp về nơi được phép gán. Phần cứng thật do <em>cách viết</em> quyết định. SystemVerilog dùng <span class="font-mono">logic</span> cho cả hai để bớt nhầm lẫn — khóa học này dùng logic.</p>
+      </div>
+    </div>
+
+    <!-- Card 2: assign -->
+    <div>
+      <h3 class="font-bold text-dark mb-2"><i class="fa-solid fa-equals text-primary mr-2"></i>2) assign — mô tả tổ hợp kiểu "công thức"</h3>
+      <div class="code-head"><span>half_adder.sv</span><button class="copy-btn" data-target="code-w7-2"><i class="fa-regular fa-copy mr-1"></i>Copy</button></div>
+      <pre class="code-body" id="code-w7-2"><code><span class="tok-kw">module</span> <span class="tok-fn">half_adder</span> (
+  <span class="tok-kw">input</span>  <span class="tok-type">logic</span> a, b,
+  <span class="tok-kw">output</span> <span class="tok-type">logic</span> sum, carry
+);
+  <span class="tok-cmt">// Hai assign = HAI mạch song song, độc lập.</span>
+  <span class="tok-cmt">// Đảo thứ tự 2 dòng → phần cứng KHÔNG đổi!</span>
+  <span class="tok-kw">assign</span> sum   = a ^ b;  <span class="tok-cmt">// cổng XOR</span>
+  <span class="tok-kw">assign</span> carry = a &amp; b;  <span class="tok-cmt">// cổng AND</span>
+<span class="tok-kw">endmodule</span></code></pre>
+      <p class="text-sm text-slate-600 mt-3">Sinh ra: 1 XOR + 1 AND, cùng "nghe" a, b và cùng hoạt động. Đây là bằng chứng nhỏ nhất của tính song song: hai dòng — hai mạch — không có thứ tự thực thi.</p>
+
+      <h3 class="font-bold text-dark mb-2 mt-5"><i class="fa-solid fa-code-branch text-primary mr-2"></i>3) always_comb — tổ hợp kiểu "hành vi"</h3>
+      <div class="code-head"><span>mux_comb.sv</span><button class="copy-btn" data-target="code-w7-3"><i class="fa-regular fa-copy mr-1"></i>Copy</button></div>
+      <pre class="code-body" id="code-w7-3"><code><span class="tok-kw">always_comb</span> <span class="tok-kw">begin</span>
+  y = a;              <span class="tok-cmt">// GÁN MẶC ĐỊNH: chống latch</span>
+  <span class="tok-kw">if</span> (sel) y = b;     <span class="tok-cmt">// ghi đè khi sel = 1</span>
+<span class="tok-kw">end</span>
+<span class="tok-cmt">// Tổ hợp: dùng dấu = (blocking).</span>
+<span class="tok-cmt">// y luôn được gán ở mọi trường hợp → MUX sạch.</span></code></pre>
+    </div>
+  </div>
+
+  <div class="grid lg:grid-cols-2 gap-6 mt-8">
+    <!-- Card 4: always_ff -->
+    <div>
+      <h3 class="font-bold text-dark mb-2"><i class="fa-solid fa-clock text-purple-600 mr-2"></i>4) always_ff — mạch tuần tự (flip-flop)</h3>
+      <div class="code-head"><span>counter4.sv</span><button class="copy-btn" data-target="code-w7-4"><i class="fa-regular fa-copy mr-1"></i>Copy</button></div>
+      <pre class="code-body" id="code-w7-4"><code><span class="tok-kw">module</span> <span class="tok-fn">counter4</span> (
+  <span class="tok-kw">input</span>  <span class="tok-type">logic</span>       clk,
+  <span class="tok-kw">input</span>  <span class="tok-type">logic</span>       rst,   <span class="tok-cmt">// reset đồng bộ</span>
+  <span class="tok-kw">output</span> <span class="tok-type">logic</span> [<span class="tok-num">3</span>:<span class="tok-num">0</span>] q      <span class="tok-cmt">// 4 bit = 4 FF</span>
+);
+  <span class="tok-kw">always_ff</span> @(<span class="tok-kw">posedge</span> clk) <span class="tok-kw">begin</span>
+    <span class="tok-kw">if</span> (rst) q &lt;= <span class="tok-num">4'd0</span>;      <span class="tok-cmt">// về 0 tại cạnh clock</span>
+    <span class="tok-kw">else</span>     q &lt;= q + <span class="tok-num">4'd1</span>;  <span class="tok-cmt">// &lt;= non-blocking</span>
+  <span class="tok-kw">end</span>
+<span class="tok-kw">endmodule</span></code></pre>
+      <p class="text-sm text-slate-600 mt-3">Quy tắc: mạch tuần tự dùng <span class="font-mono text-xs">&lt;=</span> (non-blocking) — mọi FF trong chip "chụp" giá trị cũ cùng lúc tại cạnh clock, đúng bản chất phần cứng. Trộn <span class="font-mono text-xs">=</span> vào đây sẽ mô tả sai hành vi.</p>
+    </div>
+
+    <!-- Card 5: wrong example -->
+    <div>
+      <h3 class="font-bold text-danger mb-2"><i class="fa-solid fa-skull-crossbones mr-2"></i>5) Ví dụ SAI — tư duy C: "vòng lặp + delay sẽ chạy lúc mạch hoạt động"</h3>
+      <div class="code-head"><span>blink_WRONG.sv — ĐỪNG viết thế này</span><button class="copy-btn" data-target="code-w7-5"><i class="fa-regular fa-copy mr-1"></i>Copy</button></div>
+      <pre class="code-body" id="code-w7-5"><code><span class="tok-cmt">// Ý định: "nhấp nháy LED 10 lần, mỗi lần chờ 100ns"</span>
+<span class="tok-cmt">// — nghĩ như hàm sleep() trong C. SAI HOÀN TOÀN.</span>
+<span class="tok-kw">always</span> @(<span class="tok-kw">posedge</span> clk) <span class="tok-kw">begin</span>
+  <span class="tok-kw">for</span> (<span class="tok-type">int</span> i = <span class="tok-num">0</span>; i &lt; <span class="tok-num">10</span>; i++) <span class="tok-kw">begin</span>
+    led = ~led;
+    #<span class="tok-num">100</span>;  <span class="tok-cmt">// delay kiểu mô phỏng — KHÔNG tổng hợp được!</span>
+  <span class="tok-kw">end</span>
+<span class="tok-kw">end</span></code></pre>
+      <div class="bg-red-50 border border-red-200 rounded-xl p-3.5 mt-3 text-xs text-slate-700 space-y-1.5">
+        <p><strong class="text-danger">Vì sao sai?</strong> (1) <span class="font-mono">#100</span> chỉ có nghĩa trong mô phỏng — không tồn tại phần cứng "chờ 100ns" sinh từ nó. (2) for-loop KHÔNG "chạy từng vòng theo thời gian": tool tổng hợp <strong>trải phẳng (unroll)</strong> toàn bộ vòng lặp thành mạch song song ngay trong MỘT cạnh clock.</p>
+      </div>
+      <div class="code-head mt-3"><span>blink_CORRECT.sv — cách đúng: đếm chu kỳ clock</span><button class="copy-btn" data-target="code-w7-6"><i class="fa-regular fa-copy mr-1"></i>Copy</button></div>
+      <pre class="code-body" id="code-w7-6"><code><span class="tok-cmt">// Muốn "chờ N chu kỳ" trong phần cứng → dùng BỘ ĐẾM</span>
+<span class="tok-kw">parameter</span> <span class="tok-type">int</span> MAX = <span class="tok-num">24_999_999</span>; <span class="tok-cmt">// 0,5s @ 50 MHz</span>
+<span class="tok-type">logic</span> [<span class="tok-num">24</span>:<span class="tok-num">0</span>] cnt;
+
+<span class="tok-kw">always_ff</span> @(<span class="tok-kw">posedge</span> clk) <span class="tok-kw">begin</span>
+  <span class="tok-kw">if</span> (cnt == MAX) <span class="tok-kw">begin</span>
+    cnt &lt;= <span class="tok-num">'0</span>;
+    led &lt;= ~led;        <span class="tok-cmt">// đảo LED mỗi 0,5 giây</span>
+  <span class="tok-kw">end</span> <span class="tok-kw">else</span>
+    cnt &lt;= cnt + <span class="tok-num">1'b1</span>;
+<span class="tok-kw">end</span></code></pre>
+      <p class="text-xs text-slate-600 mt-2"><i class="fa-solid fa-circle-check text-accent mr-1"></i>Thời gian trong phần cứng = <strong>đếm số cạnh clock</strong>, không phải "delay trong code". Tư duy này sẽ dùng lại nguyên vẹn ở Tuần 9 (timer đèn giao thông).</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 9. WAVEFORM / TIMING ============ -->
+<section id="waveform" class="bg-white border-y border-slate-200">
+  <div class="max-w-6xl mx-auto px-4 py-12">
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-chart-line"></i></div>
+      <div>
+        <p class="text-xs font-bold uppercase tracking-wider text-primary">Section 09</p>
+        <h2 class="text-2xl md:text-3xl font-extrabold text-dark">Waveform — thời gian mô phỏng vs phần cứng song song</h2>
+      </div>
+    </div>
+    <p class="text-sm text-slate-600 max-w-3xl mb-5">Dạng sóng dưới đây mô phỏng mạch: <span class="font-mono text-xs">assign y = a &amp; b;</span> (b giữ mức 1) và một FF lấy mẫu y: <span class="font-mono text-xs">always_ff @(posedge clk) q &lt;= y;</span>. Hãy để ý HAI loại thời gian: tổ hợp "ổn định dần" sau khi input đổi, còn FF chỉ đổi tại cạnh clock.</p>
+    <div class="bg-slate-900 rounded-2xl p-4 overflow-x-auto">
+      <svg viewBox="0 0 720 300" class="w-full min-w-[640px]" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Waveform minh họa">
+        <defs>
+          <pattern id="w7grid" width="100" height="300" patternUnits="userSpaceOnUse"><line x1="100" y1="0" x2="100" y2="300" stroke="#334155" stroke-width="1" stroke-dasharray="3,4"/></pattern>
+        </defs>
+        <rect x="60" y="10" width="600" height="250" fill="url(#w7grid)"/>
+        <!-- clk -->
+        <text x="12" y="45" font-size="12" fill="#93c5fd" font-weight="700">clk</text>
+        <polyline points="60,60 60,30 110,30 110,60 160,60 160,30 210,30 210,60 260,60 260,30 310,30 310,60 360,60 360,30 410,30 410,60 460,60 460,30 510,30 510,60 560,60 560,30 610,30 610,60 660,60" fill="none" stroke="#60a5fa" stroke-width="2"/>
+        <!-- posedge markers -->
+        <line x1="160" y1="20" x2="160" y2="260" stroke="#facc15" stroke-width="1" stroke-dasharray="4,4" opacity="0.55"/>
+        <line x1="460" y1="20" x2="460" y2="260" stroke="#facc15" stroke-width="1" stroke-dasharray="4,4" opacity="0.55"/>
+        <!-- a -->
+        <text x="12" y="105" font-size="12" fill="#e2e8f0" font-weight="700">a</text>
+        <polyline points="60,120 120,120 120,90 420,90 420,120 660,120" fill="none" stroke="#e2e8f0" stroke-width="2"/>
+        <!-- y comb -->
+        <text x="12" y="165" font-size="12" fill="#34d399" font-weight="700">y</text>
+        <rect x="120" y="145" width="14" height="35" fill="#f59e0b" opacity="0.35"/>
+        <rect x="420" y="145" width="14" height="35" fill="#f59e0b" opacity="0.35"/>
+        <polyline points="60,180 134,180 134,150 434,150 434,180 660,180" fill="none" stroke="#34d399" stroke-width="2"/>
+        <text x="141" y="143" font-size="9" fill="#fbbf24">trễ lan truyền t_pd</text>
+        <!-- q -->
+        <text x="12" y="225" font-size="12" fill="#c084fc" font-weight="700">q</text>
+        <polyline points="60,240 168,240 168,210 468,210 468,240 660,240" fill="none" stroke="#c084fc" stroke-width="2"/>
+        <text x="176" y="205" font-size="9" fill="#c084fc">đổi SAU cạnh clock (clk-to-Q)</text>
+        <!-- captions -->
+        <text x="164" y="278" font-size="10" fill="#facc15">cạnh lên: FF "chụp" y = 1</text>
+        <text x="464" y="278" font-size="10" fill="#facc15">cạnh lên: FF "chụp" y = 0</text>
+        <text x="60" y="296" font-size="9.5" fill="#94a3b8">b = 1 cố định; y = a AND b. Thời gian mô phỏng chạy từ trái sang phải; mọi tín hiệu tồn tại song song.</text>
+      </svg>
+    </div>
+    <div class="grid md:grid-cols-3 gap-4 mt-5 text-sm">
+      <div class="bg-slate-50 rounded-xl p-4 border-l-4 border-secondary">
+        <p class="font-bold text-dark">1. Tổ hợp không đổi "ngay lập tức"</p>
+        <p class="text-slate-600 mt-1 text-xs">Khi a đổi, y đổi theo sau một <strong>propagation delay</strong> (vùng cam). Trong chip thực, đây là thời gian tín hiệu xuyên qua transistor và dây nối — yếu tố quyết định tần số tối đa của mạch.</p>
+      </div>
+      <div class="bg-slate-50 rounded-xl p-4 border-l-4 border-primary">
+        <p class="font-bold text-dark">2. Khoảng "lắng" trước cạnh clock</p>
+        <p class="text-slate-600 mt-1 text-xs">Giữa hai cạnh clock, mọi logic tổ hợp phải kịp <strong>ổn định (settle)</strong> trước khi FF lấy mẫu — đây chính là gốc rễ của khái niệm setup time đã gặp ở Tuần 5. Simulator mô phỏng quá trình này bằng các sự kiện nối tiếp, nhưng phần cứng thật là các mạch chạy song song liên tục.</p>
+      </div>
+      <div class="bg-slate-50 rounded-xl p-4 border-l-4 border-accent">
+        <p class="font-bold text-dark">3. FF chỉ nghe theo cạnh clock</p>
+        <p class="text-slate-600 mt-1 text-xs">q bỏ qua mọi biến động của y giữa hai cạnh; nó chỉ "chụp ảnh" đúng lúc cạnh lên, và ngõ ra đổi sau một khoảng clk-to-Q nhỏ. Đó là ranh giới tổ hợp/tuần tự mà Verilog diễn đạt bằng assign/always_comb vs always_ff.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- ============ 10. ACTIVE LEARNING ============ -->
+<section id="active-learning" class="max-w-6xl mx-auto px-4 py-12">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-accent/10 text-accent flex items-center justify-center"><i class="fa-solid fa-people-group"></i></div>
+    <div>
+      <p class="text-xs font-bold uppercase tracking-wider text-accent">Section 10</p>
+      <h2 class="text-2xl md:text-3xl font-extrabold text-dark">Kịch bản buổi học 60 phút</h2>
+    </div>
+  </div>
+  <div class="space-y-3">
+    <div class="bg-white rounded-xl shadow-sm p-4 flex gap-4 items-start"><span class="shrink-0 w-16 text-center bg-slate-800 text-white text-xs font-bold rounded-lg py-1.5">0–5'</span><div><p class="font-bold text-sm">Quick check-in</p><p class="text-xs text-slate-600 mt-0.5">Hỏi nhanh: "Verilog giống bản vẽ hay giống chương trình?" — thu 3–4 câu trả lời, chưa chốt đúng sai.</p></div></div>
+    <div class="bg-white rounded-xl shadow-sm p-4 flex gap-4 items-start"><span class="shrink-0 w-16 text-center bg-primary text-white text-xs font-bold rounded-lg py-1.5">5–15'</span><div><p class="font-bold text-sm">Student presentation</p><p class="text-xs text-slate-600 mt-0.5">Nhóm được phân công trình bày: Verilog là gì, module/port, khác C/Python ở đâu, 1 ví dụ code tự tìm hiểu.</p></div></div>
+    <div class="bg-white rounded-xl shadow-sm p-4 flex gap-4 items-start"><span class="shrink-0 w-16 text-center bg-secondary text-white text-xs font-bold rounded-lg py-1.5">15–25'</span><div><p class="font-bold text-sm">Mentor correction</p><p class="text-xs text-slate-600 mt-0.5">Mentor chỉnh các điểm hiểu sai (reg = register?, code chạy tuần tự?), chạy demo Verilog → Hardware Visualizer, chốt bảng "code nào sinh mạch nào".</p></div></div>
+    <div class="bg-white rounded-xl shadow-sm p-4 flex gap-4 items-start"><span class="shrink-0 w-16 text-center bg-accent text-white text-xs font-bold rounded-lg py-1.5">25–45'</span><div><p class="font-bold text-sm">Breakout room (15–20')</p><p class="text-xs text-slate-600 mt-0.5">Mỗi nhóm nhận 1 mạch (AND, MUX, half adder, D-FF) → điền RTL skeleton theo hướng dẫn Section 11.</p></div></div>
+    <div class="bg-white rounded-xl shadow-sm p-4 flex gap-4 items-start"><span class="shrink-0 w-16 text-center bg-primary text-white text-xs font-bold rounded-lg py-1.5">45–55'</span><div><p class="font-bold text-sm">Group sharing</p><p class="text-xs text-slate-600 mt-0.5">Mỗi nhóm 2 phút: đọc code nhóm bạn và đoán phần cứng — trò chơi "code-to-hardware" chéo nhóm.</p></div></div>
+    <div class="bg-white rounded-xl shadow-sm p-4 flex gap-4 items-start"><span class="shrink-0 w-16 text-center bg-slate-800 text-white text-xs font-bold rounded-lg py-1.5">55–60'</span><div><p class="font-bold text-sm">Wrap-up</p><p class="text-xs text-slate-600 mt-0.5">Chốt 3 câu thần chú: "Mô tả, không phải thực thi" — "Song song, không tuần tự" — "Hỏi: phần cứng gì? trước khi gõ code". Giao homework.</p></div></div>
+  </div>
+</section>
+
+<!-- ============ 11. BREAKOUT ROOM GUIDE ============ -->
+<section id="breakout" class="bg-white border-y border-slate-200">
+  <div class="max-w-6xl mx-auto px-4 py-12">
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-users-rectangle"></i></div>
+      <div>
+        <p class="text-xs font-bold uppercase tracking-wider text-primary">Section 11</p>
+        <h2 class="text-2xl md:text-3xl font-extrabold text-dark">Hướng dẫn Breakout Room</h2>
+      </div>
+    </div>
+    <div class="grid lg:grid-cols-2 gap-6">
+      <div>
+        <p class="font-bold text-sm text-dark mb-3">Câu hỏi thảo luận (buộc phân tích, không chỉ nhớ định nghĩa)</p>
+        <ol class="space-y-2.5 text-sm text-slate-700 list-decimal list-inside">
+          <li>Mạch nhóm nhận có input/output gì? Nó là tổ hợp hay tuần tự — dựa vào dấu hiệu nào để kết luận?</li>
+          <li>Nếu mô tả bằng lời "output phản ứng thế nào khi input đổi", câu mô tả đó gợi ý dùng assign, always_comb hay always_ff? Vì sao?</li>
+          <li>Đoạn code nhóm viết: nếu ĐẢO thứ tự hai dòng bất kỳ, phần cứng có đổi không? Chứng minh bằng lập luận song song.</li>
+          <li>Cố tình xóa một nhánh else trong always_comb — dự đoán tool tổng hợp sẽ tạo gì, và vì sao đó là vấn đề?</li>
+          <li>(Nâng cao) Nếu instantiate module của nhóm 8 lần, tài nguyên phần cứng thay đổi thế nào so với "gọi hàm 8 lần" trong C?</li>
+        </ol>
+      </div>
+      <div class="space-y-4">
+        <div class="bg-slate-50 rounded-2xl p-5 border border-slate-200">
+          <p class="font-bold text-sm text-dark mb-3">Phân vai trong nhóm</p>
+          <div class="grid grid-cols-2 gap-3 text-xs">
+            <div class="bg-white rounded-lg p-3 border"><p class="font-bold text-primary"><i class="fa-solid fa-compass mr-1"></i>Facilitator</p><p class="text-slate-600 mt-1">Điều phối thảo luận, giữ nhịp thời gian, đảm bảo ai cũng nói.</p></div>
+            <div class="bg-white rounded-lg p-3 border"><p class="font-bold text-primary"><i class="fa-solid fa-pen mr-1"></i>Note keeper</p><p class="text-slate-600 mt-1">Ghi lại I/O, lựa chọn assign/always và lý do của nhóm.</p></div>
+            <div class="bg-white rounded-lg p-3 border"><p class="font-bold text-primary"><i class="fa-solid fa-bullhorn mr-1"></i>Reporter</p><p class="text-slate-600 mt-1">Trình bày RTL skeleton 2 phút trước lớp.</p></div>
+            <div class="bg-white rounded-lg p-3 border"><p class="font-bold text-danger"><i class="fa-solid fa-magnifying-glass mr-1"></i>Skeptic/Checker</p><p class="text-slate-600 mt-1">Săm soi: "dòng này sinh phần cứng gì? có latch không? sao dùng dấu = ở đây?"</p></div>
+          </div>
+        </div>
+        <div class="bg-blue-50 rounded-2xl p-5 border border-blue-200">
+          <p class="font-bold text-sm text-dark mb-2"><i class="fa-solid fa-box-open text-primary mr-2"></i>Sản phẩm nhóm nộp: RTL Skeleton Card</p>
+          <ul class="text-xs text-slate-700 space-y-1 list-disc list-inside">
+            <li>Tên module + bảng port (tên, hướng, độ rộng bit).</li>
+            <li>Phân loại: tổ hợp / tuần tự — kèm 1 câu lý do.</li>
+            <li>Khung code: khai báo module + chọn assign / always_comb / always_ff (thân có thể để "…").</li>
+            <li>1 câu trả lời của Skeptic: "phần cứng sinh ra là gì?"</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 12. COMMON MISTAKES ============ -->
+<section id="mistakes" class="max-w-6xl mx-auto px-4 py-12">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-danger/10 text-danger flex items-center justify-center"><i class="fa-solid fa-triangle-exclamation"></i></div>
+    <div>
+      <p class="text-xs font-bold uppercase tracking-wider text-danger">Section 12</p>
+      <h2 class="text-2xl md:text-3xl font-extrabold text-dark">Lỗi thường gặp — nhận diện sớm, đỡ đau về sau</h2>
+    </div>
+  </div>
+  <div class="grid md:grid-cols-2 gap-4">
+    <div class="bg-red-50 border border-red-200 rounded-2xl p-5">
+      <p class="font-bold text-danger text-sm"><i class="fa-solid fa-xmark-circle mr-2"></i>Lỗi 1: Đọc Verilog như đọc C — "dòng trên chạy trước"</p>
+      <p class="text-xs text-slate-700 mt-2"><strong>Vì sao nguy hiểm:</strong> dẫn tới code dựa vào "thứ tự thực thi" không tồn tại, ví dụ mong biến được cập nhật rồi mới dùng ở dòng dưới trong 2 khối khác nhau.</p>
+      <p class="text-xs text-slate-700 mt-2"><strong>Cách sửa:</strong> với mỗi khối assign/always, tự hỏi "mạch này là gì, nối với mạch nào" — vẽ block diagram trước khi viết.</p>
+    </div>
+    <div class="bg-red-50 border border-red-200 rounded-2xl p-5">
+      <p class="font-bold text-danger text-sm"><i class="fa-solid fa-xmark-circle mr-2"></i>Lỗi 2: Tin rằng reg = thanh ghi vật lý</p>
+      <p class="text-xs text-slate-700 mt-2"><strong>Vì sao nguy hiểm:</strong> bạn sẽ không hiểu vì sao tín hiệu reg trong always tổ hợp lại không hề có FF, hoặc hoang mang khi thấy logic dùng được cả hai chỗ.</p>
+      <p class="text-xs text-slate-700 mt-2"><strong>Cách sửa:</strong> phân loại theo <em>cách gán</em>: có @(posedge clk) → FF; always_comb/assign → tổ hợp. Từ khóa chỉ là cú pháp.</p>
+    </div>
+    <div class="bg-orange-50 border border-orange-200 rounded-2xl p-5">
+      <p class="font-bold text-orange-600 text-sm"><i class="fa-solid fa-xmark-circle mr-2"></i>Lỗi 3: Thiếu else/default trong always_comb → latch</p>
+      <p class="text-xs text-slate-700 mt-2"><strong>Vì sao nguy hiểm:</strong> latch ngoài ý muốn nhạy theo mức, dễ gây glitch, phá vỡ phân tích timing, và lỗi chỉ lộ ra sau synthesis.</p>
+      <p class="text-xs text-slate-700 mt-2"><strong>Cách sửa:</strong> dòng ĐẦU TIÊN của mọi always_comb là gán mặc định cho tất cả output; case luôn có default. Đọc kỹ warning "inferred latch".</p>
+    </div>
+    <div class="bg-orange-50 border border-orange-200 rounded-2xl p-5">
+      <p class="font-bold text-orange-600 text-sm"><i class="fa-solid fa-xmark-circle mr-2"></i>Lỗi 4: Dùng nhầm = và &lt;=</p>
+      <p class="text-xs text-slate-700 mt-2"><strong>Vì sao nguy hiểm:</strong> dùng = (blocking) trong always_ff có thể tạo chuỗi phụ thuộc sai giữa các FF; mô phỏng một đằng, phần cứng một nẻo (race condition).</p>
+      <p class="text-xs text-slate-700 mt-2"><strong>Cách sửa:</strong> quy tắc cứng: always_ff → chỉ dùng &lt;= ; always_comb → chỉ dùng =. Không trộn trong cùng một khối.</p>
+    </div>
+    <div class="bg-red-50 border border-red-200 rounded-2xl p-5">
+      <p class="font-bold text-danger text-sm"><i class="fa-solid fa-xmark-circle mr-2"></i>Lỗi 5: Dùng #delay / for-loop như thời gian thực</p>
+      <p class="text-xs text-slate-700 mt-2"><strong>Vì sao nguy hiểm:</strong> #delay không tổng hợp được; for-loop bị unroll thành mạch song song — "chương trình" của bạn không tồn tại trên chip như bạn tưởng.</p>
+      <p class="text-xs text-slate-700 mt-2"><strong>Cách sửa:</strong> cần "chờ" → dùng counter đếm cạnh clock (xem code mục 8.5). #delay chỉ dùng trong testbench.</p>
+    </div>
+    <div class="bg-orange-50 border border-orange-200 rounded-2xl p-5">
+      <p class="font-bold text-orange-600 text-sm"><i class="fa-solid fa-xmark-circle mr-2"></i>Lỗi 6: Gõ code trước khi biết mình muốn mạch gì</p>
+      <p class="text-xs text-slate-700 mt-2"><strong>Vì sao nguy hiểm:</strong> ra code "chạy được trong mô phỏng" nhưng không tổng hợp được, hoặc sinh phần cứng cồng kềnh vô nghĩa.</p>
+      <p class="text-xs text-slate-700 mt-2"><strong>Cách sửa:</strong> luôn đi theo workflow Section 07: I/O → sơ đồ → bảng → rồi mới RTL. Câu hỏi trước khi gõ: "Tôi muốn TẠO RA phần cứng gì?"</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 13. MINI-PROJECT CONNECTION ============ -->
+<section id="mini-project" class="bg-white border-y border-slate-200">
+  <div class="max-w-6xl mx-auto px-4 py-12">
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-10 h-10 rounded-xl bg-accent/10 text-accent flex items-center justify-center"><i class="fa-solid fa-screwdriver-wrench"></i></div>
+      <div>
+        <p class="text-xs font-bold uppercase tracking-wider text-accent">Section 13</p>
+        <h2 class="text-2xl md:text-3xl font-extrabold text-dark">Kết nối Mini-project</h2>
+      </div>
+    </div>
+    <p class="text-sm text-slate-600 max-w-3xl mb-5">Tuần này, "sản phẩm" là những viên gạch RTL đầu tiên. Mỗi mạch nhỏ dưới đây đều tái xuất trong các dự án lớn của chương trình:</p>
+    <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+      <div class="bg-slate-50 rounded-xl p-4 border border-slate-200"><p class="font-bold text-dark"><i class="fa-solid fa-circle-nodes text-primary mr-1"></i> AND gate / MUX 2-1</p><p class="text-xs text-slate-600 mt-1.5">Viết bằng assign. Xuất hiện trong: chọn nguồn dữ liệu cảm biến (T4), logic ngõ ra đèn giao thông (T9).</p></div>
+      <div class="bg-slate-50 rounded-xl p-4 border border-slate-200"><p class="font-bold text-dark"><i class="fa-solid fa-plus text-primary mr-1"></i> Half adder</p><p class="text-xs text-slate-600 mt-1.5">Hai assign song song. Nền tảng của bộ cộng đầy đủ và phép +1 trong counter (T10).</p></div>
+      <div class="bg-slate-50 rounded-xl p-4 border border-slate-200"><p class="font-bold text-dark"><i class="fa-solid fa-database text-purple-600 mr-1"></i> D Flip-Flop</p><p class="text-xs text-slate-600 mt-1.5">always_ff đầu tiên của bạn. Là hạt nhân của state register FSM (T9) và shift register UART (T11).</p></div>
+      <div class="bg-slate-50 rounded-xl p-4 border border-slate-200"><p class="font-bold text-dark"><i class="fa-solid fa-stopwatch text-purple-600 mr-1"></i> Counter 4-bit</p><p class="text-xs text-slate-600 mt-1.5">Kết hợp tổ hợp (+1) và tuần tự (FF). Chính là timer của đèn giao thông (T9) và bộ đếm LED 7 đoạn (T10).</p></div>
+    </div>
+    <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 mt-5 text-sm text-slate-700">
+      <i class="fa-solid fa-flag-checkered text-accent mr-1"></i> <strong>Thử thách tuần này:</strong> chọn 1 trong 4 mạch trên, viết module hoàn chỉnh trên EDA Playground, mô phỏng và chụp waveform. Ai hoàn thành cả 4 sẽ thấy Tuần 9 (traffic light) chỉ là "ghép hình".
+    </div>
+  </div>
+</section>
+
+<!-- ============ 14. QUIZ ============ -->
+<section id="quiz" class="max-w-6xl mx-auto px-4 py-12">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-circle-question"></i></div>
+    <div>
+      <p class="text-xs font-bold uppercase tracking-wider text-primary">Section 14</p>
+      <h2 class="text-2xl md:text-3xl font-extrabold text-dark">Quiz — 10 câu tự kiểm tra</h2>
+    </div>
+  </div>
+  <p class="text-sm text-slate-600 mb-5">Chọn đáp án cho từng câu rồi bấm <strong>"Chấm điểm"</strong>. Đáp án đúng hiện màu xanh lá, sai hiện màu đỏ kèm giải thích chi tiết.</p>
+  <div id="quiz-container" class="space-y-5"></div>
+  <div class="flex flex-wrap items-center gap-3 mt-6">
+    <button id="quiz-grade" class="bg-primary hover:bg-blue-700 text-white font-bold px-6 py-2.5 rounded-xl text-sm"><i class="fa-solid fa-check-double mr-2"></i>Chấm điểm</button>
+    <button id="quiz-reset" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold px-6 py-2.5 rounded-xl text-sm"><i class="fa-solid fa-rotate-left mr-2"></i>Làm lại</button>
+    <span id="quiz-result" class="font-bold text-sm"></span>
+  </div>
+</section>
+
+<!-- ============ 15. HOMEWORK ============ -->
+<section id="homework" class="bg-white border-y border-slate-200">
+  <div class="max-w-6xl mx-auto px-4 py-12">
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-10 h-10 rounded-xl bg-secondary/10 text-secondary flex items-center justify-center"><i class="fa-solid fa-house-laptop"></i></div>
+      <div>
+        <p class="text-xs font-bold uppercase tracking-wider text-secondary">Section 15</p>
+        <h2 class="text-2xl md:text-3xl font-extrabold text-dark">Bài tập về nhà — 3 mức độ</h2>
+      </div>
+    </div>
+    <div class="grid lg:grid-cols-3 gap-5">
+      <div class="bg-slate-50 rounded-2xl p-5 border-t-4 border-slate-400">
+        <p class="text-xs font-bold text-slate-500 uppercase">Mức 1 — Nhận biết &amp; giải thích</p>
+        <p class="font-bold mt-1 text-dark">"Verilog vs C" bằng lời của em</p>
+        <ul class="text-sm text-slate-700 mt-3 space-y-2 list-disc list-inside">
+          <li><strong>Yêu cầu nộp:</strong> bảng so sánh 5 dòng (mô hình thực thi, khái niệm thời gian, biến vs tín hiệu, hàm vs module, sản phẩm cuối) + 5 câu giải thích: module, port, logic, assign, always.</li>
+          <li><strong>Gợi ý:</strong> dùng lại bảng Section 05; tự đặt ví dụ, không chép nguyên văn.</li>
+          <li><strong>Tiêu chí:</strong> nêu được "mô tả phần cứng song song" là khác biệt gốc; thuật ngữ dùng đúng.</li>
+        </ul>
+      </div>
+      <div class="bg-blue-50 rounded-2xl p-5 border-t-4 border-primary">
+        <p class="text-xs font-bold text-primary uppercase">Mức 2 — Thiết kế trên giấy</p>
+        <p class="font-bold mt-1 text-dark">Từ tình huống → khung module</p>
+        <ul class="text-sm text-slate-700 mt-3 space-y-2 list-disc list-inside">
+          <li><strong>Đề:</strong> đèn cầu thang 2 công tắc (bật/tắt từ 2 đầu — gợi ý XOR) VÀ một nút đếm số người qua cửa (cần nhớ — gợi ý counter).</li>
+          <li><strong>Yêu cầu nộp:</strong> với mỗi mạch: I/O table, phân loại tổ hợp/tuần tự, chọn assign / always_comb / always_ff kèm lý do, khung module viết tay (được phép "…" ở thân).</li>
+          <li><strong>Tiêu chí:</strong> chọn đúng loại khối cho từng mạch; giải thích được vì sao mạch đếm bắt buộc cần clock + FF.</li>
+        </ul>
+      </div>
+      <div class="bg-emerald-50 rounded-2xl p-5 border-t-4 border-accent">
+        <p class="text-xs font-bold text-accent uppercase">Mức 3 — RTL &amp; mô phỏng</p>
+        <p class="font-bold mt-1 text-dark">Chạy thật trên EDA Playground</p>
+        <ul class="text-sm text-slate-700 mt-3 space-y-2 list-disc list-inside">
+          <li><strong>Yêu cầu nộp:</strong> link EDA Playground + ảnh waveform của: (a) half_adder với đủ 4 tổ hợp input; (b) counter4 chạy 20 chu kỳ clock có reset ở giữa.</li>
+          <li><strong>Gợi ý:</strong> testbench tạo clock bằng <span class="font-mono text-xs">always #10 clk = ~clk;</span> — sẽ học kỹ ở Tuần 9; tuần này cho phép chép mẫu.</li>
+          <li><strong>Tiêu chí:</strong> waveform khớp bảng chân lý; chỉ ra được trên waveform chỗ q đổi ngay sau cạnh clock; giải thích 1 câu vì sao sum đổi không cần clock.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 16. RUBRIC ============ -->
+<section id="rubric" class="max-w-6xl mx-auto px-4 py-12">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-table-list"></i></div>
+    <div>
+      <p class="text-xs font-bold uppercase tracking-wider text-primary">Section 16</p>
+      <h2 class="text-2xl md:text-3xl font-extrabold text-dark">Rubric tự đánh giá</h2>
+    </div>
+  </div>
+  <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+    <table class="vtable w-full">
+      <thead><tr><th class="w-44">Tiêu chí</th><th>Chưa đạt</th><th>Đạt cơ bản</th><th>Khá</th><th>Tốt</th></tr></thead>
+      <tbody>
+        <tr><td class="font-semibold">Hiểu bản chất HDL</td><td>Vẫn nghĩ Verilog chạy tuần tự như C</td><td>Phát biểu được "Verilog mô tả phần cứng"</td><td>Giải thích được tính song song bằng ví dụ 2 assign</td><td>Tự phản biện được vì sao C không thay được HDL</td></tr>
+        <tr><td class="font-semibold">Module &amp; I/O</td><td>Chưa viết được khung module</td><td>Viết được module với port đúng hướng</td><td>Khai báo đúng độ rộng bit, đặt tên tín hiệu rõ nghĩa</td><td>Phân cấp: instantiate module con đúng cách</td></tr>
+        <tr><td class="font-semibold">Chọn assign/always</td><td>Chọn ngẫu nhiên, hên xui</td><td>Phân biệt được tổ hợp vs tuần tự</td><td>Chọn đúng khối + đúng toán tử =/&lt;= cho từng loại</td><td>Giải thích được hậu quả nếu chọn sai (latch, race)</td></tr>
+        <tr><td class="font-semibold">Code-to-hardware</td><td>Không hình dung được mạch từ code</td><td>Đoán đúng với assign đơn giản</td><td>Đoán đúng cả 4 mẫu demo (gate/FF/MUX/latch)</td><td>Nhìn code lạ vẫn phác được block diagram</td></tr>
+        <tr><td class="font-semibold">Đọc waveform mô phỏng</td><td>Chưa đọc được dạng sóng</td><td>Chỉ được cạnh clock, mức tín hiệu</td><td>Chỉ được propagation delay và thời điểm FF lấy mẫu</td><td>Đối chiếu waveform với bảng chân lý để bắt bug</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+<!-- ============ 17. MENTOR NOTES ============ -->
+<section id="mentor-notes" class="bg-dark text-slate-200">
+  <div class="max-w-6xl mx-auto px-4 py-12">
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-10 h-10 rounded-xl bg-secondary/20 text-secondary flex items-center justify-center"><i class="fa-solid fa-chalkboard-user"></i></div>
+      <div>
+        <p class="text-xs font-bold uppercase tracking-wider text-secondary">Section 17 — dành cho mentor</p>
+        <h2 class="text-2xl md:text-3xl font-extrabold text-white">Ghi chú của Mentor</h2>
+      </div>
+    </div>
+    <div class="grid md:grid-cols-2 gap-5 text-sm">
+      <div class="bg-white/5 border border-white/10 rounded-2xl p-5">
+        <p class="font-bold text-secondary"><i class="fa-solid fa-bullseye mr-2"></i>Nhấn mạnh điều gì</p>
+        <ul class="mt-2 space-y-1.5 text-slate-300 list-disc list-inside text-xs">
+          <li>Chỉ MỘT thông điệp xuyên suốt: "Verilog mô tả phần cứng song song". Mọi cú pháp khác đều là phụ.</li>
+          <li>Luôn hỏi trước khi code: "Em muốn tạo ra phần cứng gì?" — lặp lại như điệp khúc.</li>
+          <li>Demo đảo thứ tự 2 khối always trong EDA Playground để chứng minh kết quả không đổi.</li>
+        </ul>
+      </div>
+      <div class="bg-white/5 border border-white/10 rounded-2xl p-5">
+        <p class="font-bold text-secondary"><i class="fa-solid fa-person-falling-burst mr-2"></i>Sinh viên hay vấp ở đâu</p>
+        <ul class="mt-2 space-y-1.5 text-slate-300 list-disc list-inside text-xs">
+          <li>reg = register vật lý (sai); wire = dây đồng (không hẳn) — dành riêng 5 phút cho caveat này.</li>
+          <li>Cho rằng if/else trong always "chạy" như C — hãy vẽ MUX ngay cạnh code.</li>
+          <li>Quên default trong always_comb; nhiều bạn không đọc warning của tool.</li>
+          <li>Sinh viên biết lập trình trước lại vấp NHIỀU HƠN sinh viên "trang giấy trắng" — cảnh báo trước để không ai chủ quan.</li>
+        </ul>
+      </div>
+      <div class="bg-white/5 border border-white/10 rounded-2xl p-5 md:col-span-2">
+        <p class="font-bold text-secondary"><i class="fa-solid fa-comments mr-2"></i>Câu hỏi vấn đáp nên dùng (kèm đáp án kỳ vọng)</p>
+        <div class="grid md:grid-cols-3 gap-4 mt-3 text-xs text-slate-300">
+          <div class="bg-black/20 rounded-xl p-3"><p class="font-semibold text-white">"Hai dòng assign, dòng nào chạy trước?"</p><p class="mt-1.5">Kỳ vọng: không dòng nào — cả hai là hai mạch tồn tại đồng thời; khái niệm "chạy trước" không áp dụng.</p></div>
+          <div class="bg-black/20 rounded-xl p-3"><p class="font-semibold text-white">"Khi nào một tín hiệu trở thành flip-flop?"</p><p class="mt-1.5">Kỳ vọng: khi nó được gán trong always_ff @(posedge clk) — tức mô tả hành vi lấy mẫu theo cạnh clock; không phải vì nó được khai báo reg/logic.</p></div>
+          <div class="bg-black/20 rounded-xl p-3"><p class="font-semibold text-white">"Vì sao thiếu else lại sinh latch?"</p><p class="mt-1.5">Kỳ vọng: vì ngôn ngữ quy định tín hiệu không được gán thì giữ giá trị cũ → cần phần tử nhớ theo mức → latch; sửa bằng gán mặc định/default.</p></div>
+        </div>
+      </div>
+      <div class="bg-white/5 border border-white/10 rounded-2xl p-5 md:col-span-2">
+        <p class="font-bold text-secondary"><i class="fa-solid fa-bridge mr-2"></i>Nối sang Tuần 8</p>
+        <p class="text-xs text-slate-300 mt-2">Kết buổi bằng câu hỏi treo: "File RTL các em vừa viết sẽ 'sống' ở đâu — trên một con FPGA tái cấu hình được, hay hóa thân thành silicon vĩnh viễn trong ASIC? Chi phí và sức mạnh khác nhau thế nào?" → đó chính là chủ đề FPGA vs ASIC tuần sau. Nhắc nhóm thuyết trình Tuần 8 chuẩn bị so sánh theo 5 trục: linh hoạt, chi phí, tốc độ, điện năng, time-to-market.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 18. KEY VOCABULARY ============ -->
+<section id="vocabulary" class="max-w-6xl mx-auto px-4 py-12">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-book"></i></div>
+    <div>
+      <p class="text-xs font-bold uppercase tracking-wider text-primary">Section 18</p>
+      <h2 class="text-2xl md:text-3xl font-extrabold text-dark">Từ vựng chuyên ngành</h2>
+    </div>
+  </div>
+  <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+    <table class="vtable w-full">
+      <thead><tr><th>English term</th><th>Nghĩa tiếng Việt</th><th>Giải thích kỹ thuật</th><th>Câu ví dụ</th></tr></thead>
+      <tbody>
+        <tr><td class="font-semibold">HDL (Hardware Description Language)</td><td>Ngôn ngữ mô tả phần cứng</td><td>Ngôn ngữ văn bản mô tả cấu trúc/hành vi mạch số; đầu vào cho simulation và synthesis.</td><td class="italic text-slate-500">Verilog and VHDL are the two classic HDLs.</td></tr>
+        <tr><td class="font-semibold">Module</td><td>Khối thiết kế</td><td>Đơn vị cơ bản của Verilog: tên + port + thân mô tả phần cứng.</td><td class="italic text-slate-500">Each UART has a transmitter module and a receiver module.</td></tr>
+        <tr><td class="font-semibold">Port</td><td>Cổng giao tiếp của module</td><td>Điểm nối input/output/inout giữa module và thế giới bên ngoài.</td><td class="italic text-slate-500">List all ports before writing the module body.</td></tr>
+        <tr><td class="font-semibold">wire</td><td>Tín hiệu kiểu nối dây</td><td>Kiểu tín hiệu được lái bởi assign/ngõ ra instance; không tự giữ giá trị.</td><td class="italic text-slate-500">A wire must be driven by a continuous assignment.</td></tr>
+        <tr><td class="font-semibold">reg / logic</td><td>Biến gán trong khối thủ tục</td><td>reg (Verilog) / logic (SystemVerilog): được gán trong always; KHÔNG đồng nghĩa thanh ghi vật lý.</td><td class="italic text-slate-500">Despite its name, a reg does not always become a register.</td></tr>
+        <tr><td class="font-semibold">Continuous assignment</td><td>Gán liên tục (assign)</td><td>Quan hệ vĩnh viễn giữa tín hiệu → mạch tổ hợp.</td><td class="italic text-slate-500">Use a continuous assignment for simple combinational logic.</td></tr>
+        <tr><td class="font-semibold">always_comb / always_ff</td><td>Khối tổ hợp / khối flip-flop</td><td>Khối hành vi SystemVerilog: always_comb sinh logic tổ hợp; always_ff @(posedge clk) sinh FF.</td><td class="italic text-slate-500">Describe the state register in an always_ff block.</td></tr>
+        <tr><td class="font-semibold">Non-blocking assignment</td><td>Gán không chặn (&lt;=)</td><td>Mọi vế phải được tính trước, cập nhật đồng thời — mô hình đúng của FF tại cạnh clock.</td><td class="italic text-slate-500">Use non-blocking assignments inside clocked blocks.</td></tr>
+        <tr><td class="font-semibold">Synthesis</td><td>Tổng hợp logic</td><td>Quá trình tool dịch RTL thành netlist cổng/LUT tương đương.</td><td class="italic text-slate-500">Synthesis reported an inferred latch warning.</td></tr>
+        <tr><td class="font-semibold">Netlist</td><td>Danh sách cổng và kết nối</td><td>Kết quả synthesis: các phần tử logic + dây nối, sẵn sàng cho bước physical.</td><td class="italic text-slate-500">The netlist is mapped onto FPGA LUTs and flip-flops.</td></tr>
+        <tr><td class="font-semibold">Testbench</td><td>Môi trường kiểm thử</td><td>Code Verilog không tổng hợp, cấp clock/kích thích và kiểm tra DUT trong mô phỏng.</td><td class="italic text-slate-500">The testbench toggles the clock every 10 nanoseconds.</td></tr>
+        <tr><td class="font-semibold">Concurrency / Parallelism</td><td>Tính đồng thời / song song</td><td>Bản chất phần cứng: mọi khối mạch hoạt động cùng lúc; code chỉ là mô tả.</td><td class="italic text-slate-500">Concurrency is what makes HDL different from C.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============ 19. FINAL SUMMARY ============ -->
+<section id="summary" class="bg-white border-t border-slate-200">
+  <div class="max-w-6xl mx-auto px-4 py-12">
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-10 h-10 rounded-xl bg-accent/10 text-accent flex items-center justify-center"><i class="fa-solid fa-flag-checkered"></i></div>
+      <div>
+        <p class="text-xs font-bold uppercase tracking-wider text-accent">Section 19</p>
+        <h2 class="text-2xl md:text-3xl font-extrabold text-dark">Tổng kết tuần 7</h2>
+      </div>
+    </div>
+    <div class="grid lg:grid-cols-2 gap-6">
+      <div>
+        <p class="font-bold text-sm text-dark mb-3">5 ý chính cần nhớ</p>
+        <ol class="space-y-2 text-sm text-slate-700">
+          <li class="bg-slate-50 rounded-xl p-3 border-l-4 border-primary"><strong>1.</strong> Verilog là HDL: nó <em>mô tả</em> phần cứng để tool mô phỏng và tổng hợp — không phải chương trình chạy tuần tự trên chip.</li>
+          <li class="bg-slate-50 rounded-xl p-3 border-l-4 border-primary"><strong>2.</strong> Mọi assign, always, instance tồn tại <em>song song</em>; thứ tự viết trong file không đổi phần cứng.</li>
+          <li class="bg-slate-50 rounded-xl p-3 border-l-4 border-primary"><strong>3.</strong> Bảng tra vàng: assign/always_comb (=, có default) → tổ hợp; always_ff @(posedge clk) (&lt;=) → flip-flop.</li>
+          <li class="bg-slate-50 rounded-xl p-3 border-l-4 border-primary"><strong>4.</strong> reg/wire là luật cú pháp, không phải lời hứa về phần cứng; SystemVerilog dùng logic cho gọn.</li>
+          <li class="bg-slate-50 rounded-xl p-3 border-l-4 border-primary"><strong>5.</strong> Thiếu else/default trong always_comb → latch ngoài ý muốn; "chờ" trong phần cứng = đếm cạnh clock, không phải #delay.</li>
+        </ol>
+        <div class="bg-gradient-to-r from-blue-900 to-slate-900 text-white rounded-2xl p-5 mt-5">
+          <i class="fa-solid fa-quote-left text-secondary"></i>
+          <p class="text-sm mt-2 italic">"Đừng hỏi 'code này chạy thế nào?'. Hãy hỏi 'code này TẠO RA mạch gì?'. Ngày em đổi được câu hỏi, em đã là người thiết kế phần cứng."</p>
+          <p class="text-xs text-slate-400 mt-2">— Mentor note, Week 7</p>
+        </div>
+      </div>
+      <div class="space-y-5">
+        <div class="bg-slate-50 rounded-2xl p-5 border border-slate-200">
+          <p class="font-bold text-sm text-dark mb-2">3 câu hỏi tự phản tỉnh</p>
+          <ul class="text-sm text-slate-700 space-y-1.5 list-disc list-inside">
+            <li>Tôi có còn "đọc code từ trên xuống như C" ở chỗ nào không?</li>
+            <li>Với một tình huống mới, tôi quyết định assign / always_comb / always_ff dựa trên tiêu chí nào?</li>
+            <li>Nếu bạn cùng nhóm viết code sinh latch, tôi có chỉ ra và giải thích được không?</li>
+          </ul>
+        </div>
+        <div class="bg-emerald-50 rounded-2xl p-5 border border-emerald-200">
+          <div class="flex items-center justify-between mb-2">
+            <p class="font-bold text-sm text-dark">Sau buổi học, tôi có thể…</p>
+            <span id="sum-chk-count" class="text-xs font-bold text-accent">0/5</span>
+          </div>
+          <div class="space-y-2">
+            <label class="chk-item"><input type="checkbox" class="sum-chk"><span class="text-sm">Giải thích cho bạn khác vì sao Verilog không phải C.</span></label>
+            <label class="chk-item"><input type="checkbox" class="sum-chk"><span class="text-sm">Viết khung module với port đúng hướng, đúng độ rộng.</span></label>
+            <label class="chk-item"><input type="checkbox" class="sum-chk"><span class="text-sm">Nhìn 4 mẫu code demo và gọi tên đúng phần cứng sinh ra.</span></label>
+            <label class="chk-item"><input type="checkbox" class="sum-chk"><span class="text-sm">Viết half adder + counter 4-bit và mô phỏng trên EDA Playground.</span></label>
+            <label class="chk-item"><input type="checkbox" class="sum-chk"><span class="text-sm">Phát hiện và sửa một always_comb thiếu default.</span></label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer class="bg-dark text-slate-300">
+  <div class="max-w-6xl mx-auto px-4 py-8">
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+      <a href="Week6.html" class="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 px-4 py-2 rounded-xl text-sm font-semibold"><i class="fa-solid fa-arrow-left"></i> Tuần 6: Finite State Machines</a>
+      <p class="text-xs text-slate-400 text-center">Chương trình Mentoring Thiết kế Vi mạch số — 12 tuần<br>Tuần 7: What Is Verilog?<br>Bản quyền © Khoa Điện - Điện tử, Trường Kỹ thuật Phenikaa, Đại học Phenikaa · Giảng viên: ThS. Đinh Văn Nam</p>
+      <a href="Week8.html" class="inline-flex items-center gap-2 bg-primary hover:bg-blue-700 px-4 py-2 rounded-xl text-sm font-semibold text-white">Tuần 8: FPGA vs ASIC <i class="fa-solid fa-arrow-right"></i></a>
+    </div>
+  </div>
+</footer>
+
+<script>
+// ===== Copy buttons =====
+function showCopied(btn){var old=btn.innerHTML;btn.innerHTML='<i class="fa-solid fa-check mr-1"></i>Đã copy!';setTimeout(function(){btn.innerHTML=old;},1500);}
+function fallbackCopy(text,btn){var ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');}catch(e){}document.body.removeChild(ta);showCopied(btn);}
+document.querySelectorAll('.copy-btn').forEach(function(btn){
+  btn.addEventListener('click',function(){
+    var target=document.getElementById(btn.getAttribute('data-target'));
+    if(!target)return;
+    var text=target.innerText;
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).then(function(){showCopied(btn);}).catch(function(){fallbackCopy(text,btn);});}
+    else{fallbackCopy(text,btn);}
+  });
+});
+
+// ===== Checklists =====
+function bindChecklist(cls,counterId,total){
+  var boxes=document.querySelectorAll('.'+cls);
+  var counter=document.getElementById(counterId);
+  boxes.forEach(function(b){b.addEventListener('change',function(){
+    var n=0;boxes.forEach(function(x){if(x.checked)n++;});
+    counter.textContent=n+'/'+total+(cls==='pre-chk'?' hoàn thành':'');
+    counter.style.color=(n===total)?'#10b981':'#2563eb';
+  });});
+}
+bindChecklist('pre-chk','pre-chk-count',6);
+bindChecklist('sum-chk','sum-chk-count',5);
+
+// ===== Demo: snippet switcher =====
+var snipBtns=document.querySelectorAll('.snip-btn');
+snipBtns.forEach(function(btn){
+  btn.addEventListener('click',function(){
+    var idx=btn.getAttribute('data-snip');
+    snipBtns.forEach(function(b){b.classList.remove('active');});
+    btn.classList.add('active');
+    for(var i=0;i<4;i++){
+      var p=document.getElementById('snip-'+i);
+      if(p){if(String(i)===idx){p.classList.add('show');}else{p.classList.remove('show');}}
+    }
+  });
+});
+
+// ===== Quiz =====
+var quizData=[
+ {q:"1. Verilog được gọi là HDL (Hardware Description Language). Điều đó có nghĩa là gì?",
+  opts:["Một ngôn ngữ lập trình chạy tuần tự trên chip sau khi nạp","Một ngôn ngữ dùng để MÔ TẢ cấu trúc và hành vi của mạch số, làm đầu vào cho mô phỏng và tổng hợp","Một ngôn ngữ kịch bản để điều khiển máy đo trong phòng lab","Một phiên bản của C dành riêng cho vi điều khiển"],
+  ans:1,
+  expl:"HDL mô tả phần cứng: file Verilog được simulator dùng để mô phỏng hành vi và được synthesis tool dịch thành netlist cổng logic. Nó không được 'thực thi từng dòng' trên chip như chương trình C trên CPU."},
+ {q:"2. Một module có hai dòng: assign s = a ^ b; và assign c = a &amp; b;. Chúng 'thực thi' theo thứ tự nào?",
+  opts:["Dòng trên trước, dòng dưới sau, như C","Dòng nào có ít toán tử hơn chạy trước","Không có thứ tự — mỗi assign là một mạch, cả hai tồn tại và hoạt động song song","Chỉ dòng cuối cùng có hiệu lực"],
+  ans:2,
+  expl:"Mỗi assign mô tả một mạch tổ hợp riêng (XOR và AND). Cả hai cùng 'nghe' a, b và cùng hoạt động mọi lúc. Đảo thứ tự hai dòng, phần cứng không đổi — đây là khác biệt gốc so với ngôn ngữ tuần tự."},
+ {q:"3. Trong Verilog cổ điển, từ khóa reg có ý nghĩa chính xác nhất là gì?",
+  opts:["Chắc chắn tạo ra một thanh ghi (register) vật lý","Kiểu dữ liệu cho tín hiệu được GÁN bên trong khối always — phần cứng sinh ra có thể là FF hoặc logic tổ hợp tùy cách viết","Chỉ dùng được trong testbench","Một ô nhớ RAM 1 byte"],
+  ans:1,
+  expl:"reg chỉ là luật cú pháp: 'tín hiệu này được gán trong khối thủ tục'. Nếu khối luôn gán đủ mọi nhánh và không có posedge clk thì kết quả là mạch tổ hợp, không có thanh ghi nào cả. SystemVerilog thay bằng logic để tránh hiểu nhầm này."},
+ {q:"4. Dòng assign y = a &amp; b; sau khi tổng hợp sẽ trở thành gì?",
+  opts:["Một lệnh máy trong bộ nhớ chương trình","Một cổng AND (hoặc một LUT trên FPGA) hoạt động liên tục","Một flip-flop lưu kết quả AND","Một chương trình con được gọi khi a hoặc b đổi"],
+  ans:1,
+  expl:"assign = gán liên tục = mạch tổ hợp nối cứng. Trên ASIC, đó là cổng AND; trên FPGA, tool map vào một LUT. Nó 'sống' mọi lúc, output đổi theo input sau propagation delay."},
+ {q:"5. Khối always_ff @(posedge clk) q &lt;= d; mô tả phần cứng nào?",
+  opts:["Một cổng đệm (buffer)","Một bộ MUX 2-sang-1","Một D flip-flop: lấy mẫu d tại cạnh lên clock","Một latch nhạy theo mức"],
+  ans:2,
+  expl:"Gán trong khối nhạy cạnh clock chính là mô tả hành vi của D flip-flop: chỉ tại cạnh lên, q nhận giá trị của d; giữa các cạnh, q giữ nguyên. Đây là viên gạch của mọi mạch tuần tự."},
+ {q:"6. Đoạn code: always_comb begin if (en) y = d; end (không có else). Tool tổng hợp sẽ tạo ra gì và vì sao?",
+  opts:["Một cổng AND, vì en AND d","Một flip-flop, vì y cần nhớ giá trị","Một latch, vì khi en = 0 tín hiệu y không được gán nên phải 'giữ giá trị cũ'","Không tạo gì, tool báo lỗi và dừng"],
+  ans:2,
+  expl:"Ngôn ngữ quy định: tín hiệu không được gán trong một nhánh thì giữ giá trị cũ. 'Giữ giá trị' trong mạch tổ hợp đòi hỏi phần tử nhớ theo mức → latch được suy ra (inferred latch), thường kèm warning chứ không phải error. Sửa: gán mặc định y = 1'b0; ở đầu khối hoặc thêm else."},
+ {q:"7. Quy tắc dùng toán tử gán nào cho đúng loại khối?",
+  opts:["always_ff dùng &lt;= (non-blocking); always_comb dùng = (blocking)","always_ff dùng =; always_comb dùng &lt;=","Dùng loại nào cũng được, chỉ là phong cách","Luôn dùng &lt;= ở mọi nơi cho an toàn"],
+  ans:0,
+  expl:"&lt;= mô hình đúng hành vi FF: mọi vế phải được 'chụp' trước rồi cập nhật đồng thời tại cạnh clock. = phù hợp mô tả logic tổ hợp tính toán tức thời trong always_comb. Trộn lẫn dễ gây sai khác giữa mô phỏng và phần cứng."},
+ {q:"8. Một for-loop bên trong always_comb, khi tổng hợp, sẽ như thế nào?",
+  opts:["Được CPU trên FPGA thực thi từng vòng theo thời gian","Bị trải phẳng (unroll): mỗi vòng lặp trở thành một bản sao mạch, tất cả hoạt động song song trong cùng chu kỳ","Tự động biến thành bộ đếm chạy nhiều chu kỳ clock","Không bao giờ tổng hợp được, luôn báo lỗi"],
+  ans:1,
+  expl:"Synthesis unroll vòng lặp có giới hạn tĩnh thành phần cứng lặp lại — ví dụ loop cộng 8 phần tử thành chuỗi/cây 8 bộ cộng. Loop KHÔNG 'chạy theo thời gian'. Muốn hành vi lặp theo thời gian thật, phải dùng FSM + counter đếm cạnh clock."},
+ {q:"9. Vì sao không dùng thẳng ngôn ngữ C để mô tả phần cứng số?",
+  opts:["Vì C chạy quá chậm trên máy tính","Vì C thiếu thư viện toán học","Vì mô hình của C là THỰC THI TUẦN TỰ trên CPU — thiếu khái niệm mạch song song, tín hiệu, clock và thời gian vốn là bản chất của phần cứng","Thực ra có thể thay thế hoàn toàn, chỉ là thói quen ngành"],
+  ans:2,
+  expl:"C mô tả 'làm gì, theo thứ tự nào' cho một CPU. Phần cứng là hàng nghìn khối cùng hoạt động, nối nhau bằng tín hiệu, nhịp theo clock. HDL sinh ra để diễn đạt đúng các khái niệm đó (các công cụ HLS dùng C có tồn tại nhưng vẫn phải sinh ra RTL và áp thêm ràng buộc phần cứng)."},
+ {q:"10. Câu hỏi đúng nhất một RTL designer tự hỏi TRƯỚC khi gõ mỗi khối code là gì?",
+  opts:["Thuật toán nào chạy nhanh nhất?","Khối này MÔ TẢ phần cứng gì: tổ hợp hay tuần tự, cần clock/reset không?","Làm sao viết ít dòng code nhất?","Nên dùng thư viện có sẵn nào?"],
+  ans:1,
+  expl:"Tư duy hardware-first: xác định loại mạch, I/O, clock/reset rồi mới chọn assign / always_comb / always_ff. Code chỉ là cách 'kể lại' phần cứng đã hình dung — đây là thông điệp trung tâm của Tuần 7."}
+];
+
+var quizSel=new Array(quizData.length).fill(-1);
+var quizGraded=false;
+var qc=document.getElementById('quiz-container');
+quizData.forEach(function(item,qi){
+  var card=document.createElement('div');
+  card.className='bg-white rounded-2xl shadow-sm p-5';
+  var html='<p class="font-bold text-sm text-dark mb-3">'+item.q+'</p>';
+  var letters=['A','B','C','D'];
+  item.opts.forEach(function(op,oi){
+    html+='<button class="quiz-opt" data-q="'+qi+'" data-o="'+oi+'"><span class="font-bold text-primary shrink-0">'+letters[oi]+'.</span><span>'+op+'</span></button>';
+  });
+  html+='<div class="quiz-expl" id="expl-'+qi+'"><strong>Giải thích:</strong> '+item.expl+'</div>';
+  card.innerHTML=html;
+  qc.appendChild(card);
+});
+qc.addEventListener('click',function(e){
+  var btn=e.target.closest('.quiz-opt');
+  if(!btn||quizGraded)return;
+  var qi=parseInt(btn.getAttribute('data-q'),10);
+  quizSel[qi]=parseInt(btn.getAttribute('data-o'),10);
+  qc.querySelectorAll('.quiz-opt[data-q="'+qi+'"]').forEach(function(b){b.classList.remove('sel');});
+  btn.classList.add('sel');
+});
+document.getElementById('quiz-grade').addEventListener('click',function(){
+  if(quizGraded)return;
+  var score=0;
+  quizData.forEach(function(item,qi){
+    var opts=qc.querySelectorAll('.quiz-opt[data-q="'+qi+'"]');
+    opts.forEach(function(b){
+      var oi=parseInt(b.getAttribute('data-o'),10);
+      if(oi===item.ans)b.classList.add('correct');
+      else if(quizSel[qi]===oi)b.classList.add('wrong');
+    });
+    if(quizSel[qi]===item.ans)score++;
+    document.getElementById('expl-'+qi).classList.add('show');
+  });
+  quizGraded=true;
+  var res=document.getElementById('quiz-result');
+  var msg=score>=9?' — Xuất sắc! Tư duy phần cứng đã "bén rễ".':score>=7?' — Tốt! Xem lại các câu sai trước Tuần 9.':score>=5?' — Ổn, nhưng nên đọc lại Section 4 và 8.':' — Hãy học lại phần Core Concepts rồi làm lại nhé.';
+  res.textContent='Kết quả: '+score+'/'+quizData.length+msg;
+  res.style.color=score>=7?'#10b981':(score>=5?'#f59e0b':'#ef4444');
+});
+document.getElementById('quiz-reset').addEventListener('click',function(){
+  quizGraded=false;
+  quizSel=new Array(quizData.length).fill(-1);
+  qc.querySelectorAll('.quiz-opt').forEach(function(b){b.classList.remove('sel','correct','wrong');});
+  qc.querySelectorAll('.quiz-expl').forEach(function(d){d.classList.remove('show');});
+  document.getElementById('quiz-result').textContent='';
+});
+</script>
+</body>
+</html>

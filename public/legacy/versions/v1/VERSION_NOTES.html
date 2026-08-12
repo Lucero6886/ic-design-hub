@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="Giảng Viên Đinh Văn Nam">
+<title>Ghi chú phiên bản — Version 1 | IC Design Mentoring</title>
+<link rel="stylesheet" href="../../assets/css/site.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-in">
+    <a class="brand" href="../../index.html"><span class="logo">IC</span>
+      <span>IC Design Mentoring<small>Version 1 · Ghi chú phiên bản</small></span></a>
+    <nav class="nav" aria-label="Điều hướng chính">
+      <a href="../../index.html">Trang chủ</a>
+      <a href="index.html">Mục lục V1</a>
+      <a href="../v2/VERSION_NOTES.html">Notes V2</a>
+      <a href="../../evolution.html">Tiến hóa</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap prose">
+  <div class="vhead" style="margin-top:34px"><span class="badge b-v1">V1 · BẢN LƯU TRỮ GỐC</span></div>
+  <h1>Ghi chú phiên bản — Version 1</h1>
+
+  <h2>Nguồn gốc</h2>
+  <ul>
+    <li><b>Nguồn:</b> <code>version 1.zip</code> — 139.466 byte, 11 file HTML, ngày file 09/07/2026. Bản nguyên trạng lưu tại <code>_source/version 1.zip</code> của kho mã.</li>
+    <li><b>Bản chất:</b> phiếu điều phối buổi sinh hoạt 60 phút cho từng tuần — checklist chuẩn bị, agenda, nhiệm vụ thuyết trình nhóm, breakout, từ vựng Anh–Việt, lời khuyên mentor, hành động sau buổi. Khoảng 1.300–1.600 từ/trang.</li>
+    <li><b>Thương hiệu:</b> cả 11 file gắn Phenikaa University.</li>
+  </ul>
+
+  <h2>Danh mục file</h2>
+  <div class="tblwrap">
+    <table class="tbl">
+      <tr><th>File</th><th>Kích thước</th><th>Chủ đề</th></tr>
+      <tr><td><code>Week1.html</code></td><td>56,0 KB</td><td>Why Semiconductor? Why IC Design?</td></tr>
+      <tr><td><code>Week2.html</code></td><td>56,0 KB</td><td>From Idea to Chip</td></tr>
+      <tr><td><code>Week3.html</code></td><td>55,9 KB</td><td>Logic Gates in Real Systems</td></tr>
+      <tr><td><code>Week4.html</code></td><td>56,5 KB</td><td>Combinational Logic Circuits</td></tr>
+      <tr><td><code>Week5.html</code></td><td>—</td><td><b>Không có trong bản lưu trữ</b> (xem <a href="Week5.html">trang ghi nhận</a>)</td></tr>
+      <tr><td><code>Week6.html</code></td><td>58,4 KB</td><td>Finite State Machines (FSM)</td></tr>
+      <tr><td><code>Week7.html</code></td><td>59,1 KB</td><td>What Is Verilog? <span class="dim">(chứa 2 đoạn code duy nhất của cả bộ)</span></td></tr>
+      <tr><td><code>Week8.html</code></td><td>59,6 KB</td><td>FPGA vs ASIC</td></tr>
+      <tr><td><code>Week9.html</code></td><td>61,6 KB</td><td>Traffic Light Controller</td></tr>
+      <tr><td><code>Week10.html</code></td><td>56,4 KB</td><td>Counter &amp; 7-Segment Display</td></tr>
+      <tr><td><code>Week11.html</code></td><td>55,4 KB</td><td>UART Communication Basics</td></tr>
+      <tr><td><code>Week12.html</code></td><td>51,6 KB</td><td>Course Wrap-up &amp; Next Steps</td></tr>
+    </table>
+  </div>
+
+  <h2>Hiện trạng kỹ thuật (rà soát 07/08/2026)</h2>
+  <ul>
+    <li>Cả 11 trang render không phát sinh lỗi JavaScript (kiểm bằng trình duyệt headless, gồm cả thao tác checkbox/slider).</li>
+    <li>Chi tiết chuyên môn được kiểm ngẫu nhiên — sơ đồ truyền ký tự 'A' (0x41) qua UART theo thứ tự LSB-first ở Tuần 11 — vẽ đúng chuỗi bit.</li>
+    <li>Phụ thuộc tài nguyên ngoài lúc chạy: <code>cdn.tailwindcss.com</code>, <code>cdnjs.cloudflare.com</code> (Font Awesome), <code>fonts.googleapis.com</code>. Không có mạng thì trang mất bố cục (chữ vẫn đọc được).</li>
+    <li>Liên kết ngoài trong nội dung: phiếu phản hồi Google Forms (<code>forms.gle</code>) ở một số tuần — liên kết lịch sử, được giữ nguyên.</li>
+  </ul>
+
+  <h2>Giới hạn lịch sử</h2>
+  <ul>
+    <li>Thiếu Tuần 5 (Sequential Logic) — mắt xích bắt buộc trước khi học FSM ở Tuần 6.</li>
+    <li>Không có nội dung tự học, quiz, rubric hay bài tập có tiêu chí; không lưu tiến độ.</li>
+    <li>Các trang gốc hoàn toàn không liên kết với nhau (không prev/next, không mục lục).</li>
+  </ul>
+  <div class="co co-hist"><b>Ghi chú lịch sử:</b> nhiều cách trình bày của giai đoạn này đã được tinh chỉnh ở các phiên bản sau. Đối chiếu có hệ thống: <a href="../../evolution.html">trang Tiến hóa</a>; hồ sơ hiệu chỉnh kỹ thuật (thực hiện trên V2): <a href="../v3/TECHNICAL_AUDIT.html">Technical Audit (V3)</a>.</div>
+
+  <h2>Hub đã thay đổi gì trên các trang này?</h2>
+  <ul>
+    <li>Chèn <b>một thanh điều hướng</b> ở đầu và cuối mỗi trang tuần (về Learning Hub, mục lục V1, tuần trước/sau — bỏ qua Tuần 5 có ghi chú, chuyển phiên bản). Đây là thay đổi duy nhất; <b>nội dung giảng dạy gốc không đổi một chữ nào</b>.</li>
+    <li>Tạo mới 3 trang không thuộc bản gốc, đánh dấu rõ: <code>index.html</code> (mục lục), <code>VERSION_NOTES.html</code> (trang này), <code>Week5.html</code> (trang ghi nhận thiếu nguồn).</li>
+    <li>Toàn bộ thay đổi ghi tại <a href="../../docs/CONTENT_CHANGELOG.md">docs/CONTENT_CHANGELOG.md</a>; bản gốc nguyên trạng tại <code>_source/version 1.zip</code>.</li>
+  </ul>
+
+  <p><a class="btn" href="index.html">← Mục lục V1</a> <a class="btn" href="../../index.html">Learning Hub</a></p>
+
+  <div class="footer">
+    <b>IC Design Mentoring — Version 1 (lưu trữ)</b>
+    <span class="org">Khoa Điện – Điện tử · Trường Kỹ thuật · Đại học Phenikaa · Biên soạn: <b>Giảng Viên Đinh Văn Nam</b></span>
+    <span class="org">© 2026 · Bản quyền thuộc về Giảng Viên Đinh Văn Nam, Khoa Điện-Điện Tử, Trường Kỹ Thuật, Đại học Phenikaa.</span>
+  </div>
+</main>
+</body>
+</html>

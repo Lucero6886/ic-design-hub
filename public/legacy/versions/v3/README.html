@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="Giảng Viên Đinh Văn Nam">
+<meta name="copyright" content="© 2026 · Bản quyền thuộc về Giảng Viên Đinh Văn Nam, Khoa Điện-Điện Tử, Trường Kỹ Thuật, Đại học Phenikaa">
+<meta name="description" content="README — Hướng dẫn sử dụng bộ tài liệu — IC Design Mentoring Version 3. Khoa Điện – Điện tử · Trường Kỹ thuật · Đại học Phenikaa. Biên soạn: Giảng Viên Đinh Văn Nam.">
+<title>README — Hướng dẫn sử dụng bộ tài liệu | IC Design Mentoring v3</title>
+<link rel="stylesheet" href="css/style.css">
+<script src="js/app.js" defer></script>
+</head>
+<body data-week="doc">
+
+<header class="topbar">
+  <div class="topbar-in">
+    <a class="brand" href="index.html"><span class="logo">IC</span>
+      <span>IC Design Mentoring<small>Tài liệu vận hành · Version 3</small></span></a>
+    <nav class="layer-chips">
+      <a class="chip" href="../../index.html" title="Learning Hub — cổng ba phiên bản giáo trình; đây là V3, bản hiện hành được khuyến nghị">⌂ Hub · V3</a>
+      <span class="chip active">README</span>
+      <a class="chip" href="CURRICULUM_MAP.html">Curriculum Map</a>
+      <a class="chip" href="MENTOR_GUIDE.html">Mentor Guide</a>
+      <a class="chip" href="PROJECT_GUIDE.html">Project Guide</a>
+      <a class="chip" href="TECHNICAL_AUDIT.html">Technical Audit</a>
+      <a class="chip" href="CHANGELOG_V2_TO_V3.html">Changelog</a>
+      <a class="chip" href="VALIDATION_REPORT.html">Validation</a>
+      <a class="chip" href="implementation-notes.html">Implementation Notes</a>
+      <a class="chip" href="index.html">← Mục lục</a>
+    </nav>
+  </div>
+  <div class="scrollbar"><div></div></div>
+</header>
+
+<section class="doc-hero">
+  <div class="wrap">
+    <div class="pill-row">
+      <span class="pill">Tài liệu vận hành</span>
+      <span class="pill acc">README</span>
+      <span class="pill">Khoa Điện – Điện tử · ĐH Phenikaa</span>
+    </div>
+    <h1>README — Hướng dẫn sử dụng bộ tài liệu</h1>
+    <p class="sub">Bắt đầu từ đây: cách dùng, cấu trúc thư mục, chương trình 12 tuần</p>
+    <p class="src">Bản văn bản gốc: <b>README.md</b> · cùng thư mục</p>
+  </div>
+</section>
+
+<main class="wrap doc-main">
+<nav class="doc-toc"><b>Nội dung tài liệu</b><ol><li><a href="#m-dung-ngay">Dùng ngay</a></li><li><a href="#m-cau-truc-thu-muc">Cấu trúc thư mục</a></li><li><a href="#m-chuong-trinh-12-tuan">Chương trình 12 tuần</a></li><li><a href="#m-ghi-chu-phien-ban">Ghi chú phiên bản</a></li></ol></nav>
+<article class="doc-body">
+<blockquote>
+<p><strong>Khoa Điện – Điện tử · Trường Kỹ thuật · Đại học Phenikaa</strong>
+<strong>Biên soạn:</strong> Giảng Viên Đinh Văn Nam
+© 2026 · Bản quyền thuộc về Giảng Viên Đinh Văn Nam, Khoa Điện-Điện Tử, Trường Kỹ Thuật, Đại học Phenikaa.</p>
+</blockquote>
+<p>Giáo trình mentoring thiết kế vi mạch số / FPGA bằng tiếng Việt (thuật ngữ kỹ thuật giữ tiếng Anh), xây trên nền Version 2, tái kiến trúc theo mô hình 4 lớp học tập và một project tích hợp 3 tuần.</p>
+<h2 id="m-dung-ngay">Dùng ngay</h2>
+<p>Mở <a href="index.html"><code>index.html</code></a> bằng trình duyệt bất kỳ. <strong>Không cần Internet, không cần cài đặt</strong> — chỉ cần giữ nguyên cả thư mục (các trang dùng chung <code>css/</code> và <code>js/</code>). Tiến độ (checklist, quiz, ô phản tư, chế độ mentor) tự lưu trên máy qua localStorage của trình duyệt.</p>
+<ul>
+<li>Học viên: mỗi tuần đọc <strong>Layer A</strong> trước buổi (15–25′) → dự buổi mentoring 60′ (<strong>Layer B</strong>) → thực hành với <strong>Layer C</strong> → làm quiz/bài tập <strong>Layer D</strong>.</li>
+<li>Mentor: bật công tắc <strong>Mentor</strong> trên thanh tiêu đề của mỗi trang để hiện ghi chú riêng (đáp án kỳ vọng, câu cứu nguy, bài mở rộng). Đọc thêm <a href="MENTOR_GUIDE.html" title="Mở MENTOR_GUIDE.html"><code>MENTOR_GUIDE.md</code></a>.</li>
+</ul>
+<h2 id="m-cau-truc-thu-muc">Cấu trúc thư mục</h2>
+<pre class="code" data-nohl><code>version3/
+├── index.html                  # Hub 12 tuần + tiến độ quiz
+├── Week01.html … Week12.html   # 12 tuần, mỗi tuần 4 lớp A/B/C/D
+├── css/style.css               # Design system dùng chung (không CDN)
+├── js/app.js                   # Engine: quiz, checklist, localStorage, widget tương tác
+├── assets/                     # Tài nguyên tĩnh
+├── README.md / .html           # File này
+├── CURRICULUM_MAP.md / .html   # Bản đồ 12 tuần: khái niệm, artifact, dependency, learning spirals
+├── MENTOR_GUIDE.md / .html     # Cẩm nang vận hành buổi học cho mentor
+├── PROJECT_GUIDE.md / .html    # Đặc tả project tích hợp T9–11 (Smart Traffic Controller)
+├── TECHNICAL_AUDIT.md / .html  # Hiệu chỉnh kỹ thuật so với v2 (trích dẫn gốc → bản đúng)
+├── CHANGELOG_V2_TO_V3.md/.html # Thay đổi có ý nghĩa, nhóm theo 7 hạng mục
+├── VALIDATION_REPORT.md/.html  # Kết quả kiểm định tự động toàn bộ
+└── implementation-notes.md/.html # Ghi chú triển khai + các điểm khác đặc tả
+</code></pre>
+<p>Mỗi tài liệu vận hành có <strong>hai bản</strong>: <code>.html</code> để đọc trên trình duyệt (có mục lục riêng, điều hướng qua lại giữa các tài liệu, cùng giao diện với các trang tuần) và <code>.md</code> là bản văn bản gốc để chỉnh sửa hoặc đưa vào git. Sau khi sửa <code>.md</code> cần dựng lại <code>.html</code> tương ứng — hướng dẫn trong <a href="implementation-notes.html" title="Mở implementation-notes.html"><code>implementation-notes.md</code></a>, mục Bảo trì.</p>
+<h2 id="m-chuong-trinh-12-tuan">Chương trình 12 tuần</h2>
+<p>T1 Why Semiconductor · T2 From Idea to Chip · T3 Logic Gates &amp; Boolean Thinking · T4 Combinational Building Blocks · T5 Sequential Logic &amp; Memory · T6 Finite-State Machines · T7 Writing Clean RTL in SystemVerilog · T8 FPGA vs ASIC · <strong>T9–T11 Project tích hợp: FSM Traffic Controller → 7-Segment Display → UART Status</strong> · T12 Capstone Review &amp; Research Bridge.</p>
+<p><strong>Chuẩn đầu ra Phase 1:</strong> sau 12 tuần, học viên có thể đọc một đặc tả đơn giản, phân rã hệ thống số thành các khối chức năng, viết RTL cơ bản bằng SystemVerilog, viết testbench đơn giản, đọc waveform mô phỏng, hiểu synthesis ở mức nền tảng, và tích hợp một thiết kế đồng bộ nhỏ phù hợp để prototype trên FPGA. Chương trình cung cấp nền tảng — không tuyên bố tạo ra kỹ sư IC hoàn chỉnh trong 12 tuần.</p>
+<h2 id="m-ghi-chu-phien-ban">Ghi chú phiên bản</h2>
+<ul>
+<li>Version 2 được giữ nguyên vẹn (hai file zip gốc) để đối chiếu — Version 3 nằm trong thư mục riêng này.</li>
+<li>Mọi hiệu chỉnh kỹ thuật so với v2 được đánh dấu ngay trong bài bằng callout &quot;Hiệu chỉnh kỹ thuật so với v2&quot; và tổng hợp trong <a href="TECHNICAL_AUDIT.html" title="Mở TECHNICAL_AUDIT.html"><code>TECHNICAL_AUDIT.md</code></a>.</li>
+</ul>
+</article>
+
+<div class="doc-foot-nav">
+      <a class="home" href="index.html">← Mục lục chương trình</a>
+      <a href="CURRICULUM_MAP.html">Curriculum Map</a>
+      <a href="MENTOR_GUIDE.html">Mentor Guide</a>
+      <a href="PROJECT_GUIDE.html">Project Guide</a>
+      <a href="TECHNICAL_AUDIT.html">Technical Audit</a>
+      <a href="CHANGELOG_V2_TO_V3.html">Changelog</a>
+      <a href="VALIDATION_REPORT.html">Validation</a>
+      <a href="implementation-notes.html">Implementation Notes</a>
+</div>
+
+<div class="footer">
+      <b>IC Design Mentoring — Version 3 · Phase 1</b>
+      <span class="org">Khoa Điện – Điện tử · Trường Kỹ thuật · Đại học Phenikaa</span>
+      <span>Biên soạn: <b style="display:inline">Giảng Viên Đinh Văn Nam</b></span>
+      <span class="cr">© 2026 · Bản quyền thuộc về Giảng Viên Đinh Văn Nam, Khoa Điện-Điện Tử, Trường Kỹ Thuật, Đại học Phenikaa. Tài liệu phục vụ đào tạo — vui lòng giữ nguyên thông tin tác giả khi chia sẻ.</span>
+      <span class="cr">Hoạt động offline — không cần Internet.</span>
+    </div>
+</main>
+</body>
+</html>

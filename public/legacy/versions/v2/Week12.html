@@ -1,0 +1,1984 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tuần 12 — Course Wrap-up &amp; Next Steps | IC Design Mentoring</title>
+<meta name="description" content="Tuần 12: Nhìn lại hành trình 12 tuần thiết kế vi mạch số — skill tree tự đánh giá tương tác, code retrospective, đề xuất mini-project Phase 2, định hướng bước tiếp theo.">
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        primary: '#2563eb',
+        secondary: '#f59e0b',
+        accent: '#10b981',
+        danger: '#ef4444',
+        dark: '#0f172a',
+        light: '#f8fafc'
+      },
+      fontFamily: {
+        sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace']
+      }
+    }
+  }
+}
+</script>
+<style>
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Inter', sans-serif; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  section { scroll-margin-top: 90px; }
+
+  /* Code block + syntax highlight thủ công */
+  pre.code {
+    background: #0f172a; color: #e2e8f0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem; line-height: 1.55;
+    border-radius: 0 0 0.75rem 0.75rem;
+    padding: 1rem 1.25rem; overflow-x: auto;
+  }
+  .tk { color: #93c5fd; font-weight: 500; }   /* keyword */
+  .tp { color: #c4b5fd; }                      /* type / enum */
+  .tn { color: #fbbf24; }                      /* number */
+  .tc { color: #86efac; font-style: italic; }  /* comment */
+  .ts { color: #fda4af; }                      /* string */
+  .anno { color: #f59e0b; font-weight: 800; }  /* marker ①② trong code */
+
+  /* Quiz */
+  .quiz-opt { cursor: pointer; border: 2px solid #e2e8f0; transition: all .15s ease; }
+  .quiz-opt:hover { border-color: #93c5fd; background: #eff6ff; }
+  .quiz-opt.locked { cursor: default; }
+  .quiz-opt.locked:hover { border-color: #e2e8f0; background: transparent; }
+  .quiz-opt.correct { border-color: #10b981; background: #ecfdf5 !important; }
+  .quiz-opt.wrong { border-color: #ef4444; background: #fef2f2 !important; }
+
+  input[type="checkbox"].chk { accent-color: #10b981; width: 1.1rem; height: 1.1rem; }
+
+  /* Skill tree */
+  .skill-node { cursor: pointer; border-width: 2px; transition: all .15s ease; text-align: left; }
+  .skill-node:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(15,23,42,.08); }
+  .skill-node.sel { box-shadow: 0 0 0 3px rgba(37,99,235,.35); }
+  .st-0 { border-color: #cbd5e1; background: #ffffff; color: #334155; }
+  .st-1 { border-color: #ef4444; background: #fef2f2; color: #b91c1c; }
+  .st-2 { border-color: #f59e0b; background: #fffbeb; color: #b45309; }
+  .st-3 { border-color: #10b981; background: #ecfdf5; color: #047857; }
+  .assess-btn { border-width: 2px; font-weight: 700; transition: all .15s ease; }
+</style>
+</head>
+<body class="bg-slate-100 text-slate-800 antialiased">
+<div id="lichub-nav-top" data-lichub="v2" role="navigation" aria-label="Điều hướng Learning Hub (bổ sung, không thuộc trang gốc)" style="background:#0f172a;color:#e2e8f0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:13.5px;line-height:1.6;padding:8px 16px;display:flex;flex-wrap:wrap;gap:4px 16px;align-items:center;border-bottom:3px solid #38bdf8"><a href="../../index.html" style="color:#7dd3fc;text-decoration:none;font-weight:600">⌂ Learning Hub</a><span style="font-size:11px;font-weight:700;letter-spacing:.04em;color:#38bdf8;border:1px solid #38bdf8;border-radius:6px;padding:1px 7px;white-space:nowrap">V2 · BẢN MỞ RỘNG</span><a href="index.html" style="color:#cbd5e1;text-decoration:none">Mục lục V2</a><span style="flex:1"></span><a href="Week11.html" style="color:#7dd3fc;text-decoration:none" title="UART Communication Basics">← Tuần 11</a><span style="color:#475569">Tuần sau →</span><span aria-hidden="true" style="color:#475569">|</span><span style="display:inline-flex;gap:8px;align-items:center"><span style="color:#94a3b8">Chuyển bản:</span> <a href="../v1/index.html" style="color:#cbd5e1;text-decoration:none">V1</a> <b aria-current="true" style="color:#38bdf8">V2</b> <a href="../v3/index.html" style="color:#cbd5e1;text-decoration:none">V3</a></span></div>
+
+
+<!-- ===================== STICKY NAV ===================== -->
+<nav class="fixed top-0 inset-x-0 z-50 bg-dark/95 backdrop-blur border-b border-slate-700">
+  <div class="max-w-6xl mx-auto px-4">
+    <div class="flex items-center gap-4 h-14">
+      <a href="#hero" class="flex items-center gap-2 shrink-0">
+        <span class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-blue-400 flex items-center justify-center text-white"><i class="fa-solid fa-microchip text-sm"></i></span>
+        <span class="text-white font-bold text-sm hidden sm:inline">IC Design Mentoring</span>
+      </a>
+      <div class="shrink-0">
+        <span class="text-[11px] font-bold text-blue-300 bg-blue-500/15 border border-blue-400/30 rounded-full px-2.5 py-1">Tuần 12/12</span>
+        <div class="w-24 h-1 bg-slate-700 rounded-full mt-1 overflow-hidden"><div class="h-full bg-gradient-to-r from-primary to-accent rounded-full" style="width:100%"></div></div>
+      </div>
+      <div class="flex-1 overflow-x-auto no-scrollbar">
+        <div class="flex items-center gap-1 text-[12px] font-medium text-slate-300 whitespace-nowrap">
+          <a href="#core-concepts" class="px-2.5 py-1.5 rounded-lg hover:bg-slate-700 hover:text-white">Khái niệm</a>
+          <a href="#demo" class="px-2.5 py-1.5 rounded-lg hover:bg-slate-700 hover:text-white">Skill Tree</a>
+          <a href="#code-rtl" class="px-2.5 py-1.5 rounded-lg hover:bg-slate-700 hover:text-white">Nhìn lại code</a>
+          <a href="#waveform" class="px-2.5 py-1.5 rounded-lg hover:bg-slate-700 hover:text-white">Timeline</a>
+          <a href="#mini-project" class="px-2.5 py-1.5 rounded-lg hover:bg-slate-700 hover:text-white">Phase 2</a>
+          <a href="#quiz" class="px-2.5 py-1.5 rounded-lg hover:bg-slate-700 hover:text-white">Quiz</a>
+          <a href="#homework" class="px-2.5 py-1.5 rounded-lg hover:bg-slate-700 hover:text-white">Bài tập</a>
+          <a href="#vocabulary" class="px-2.5 py-1.5 rounded-lg hover:bg-slate-700 hover:text-white">Từ vựng</a>
+          <a href="#summary" class="px-2.5 py-1.5 rounded-lg hover:bg-slate-700 hover:text-white">Tóm tắt</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- ===================== 1. HERO ===================== -->
+<header id="hero" class="pt-14 bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 text-white">
+  <div class="max-w-6xl mx-auto px-4 py-14 md:py-20">
+    <div class="flex flex-wrap items-center gap-3 mb-5">
+      <span class="text-xs font-bold uppercase tracking-widest bg-white/10 border border-white/20 rounded-full px-3 py-1.5"><i class="fa-solid fa-calendar-week mr-1.5"></i>Tuần 12 / 12</span>
+      <span class="text-xs font-bold uppercase tracking-widest bg-accent/20 text-emerald-200 border border-emerald-300/30 rounded-full px-3 py-1.5"><i class="fa-solid fa-flag-checkered mr-1.5"></i>Tuần cuối Phase 1 — Showcase &amp; Reflection</span>
+    </div>
+    <h1 class="text-3xl md:text-5xl font-black leading-tight">Course Wrap-up &amp; Next Steps</h1>
+    <p class="mt-2 text-xl md:text-2xl font-semibold text-blue-200">Nhìn Lại Hành Trình 12 Tuần Và Bước Tiếp Theo</p>
+    <p class="mt-5 max-w-3xl text-slate-300 leading-relaxed">
+      Tuần này không có mạch mới, không có khối RTL mới. Sản phẩm của tuần 12 chính là <strong class="text-white">bạn</strong>:
+      một người 12 tuần trước có thể chưa phân biệt nổi chip với board, giờ đã giải thích được logic gate, flip-flop, FSM,
+      Verilog, FPGA và UART — và đã <em>tự tay</em> làm đèn giao thông, bộ đếm LED 7 đoạn, khối truyền UART.
+      Hôm nay chúng ta làm ba việc của một kỹ sư thực thụ sau mỗi dự án: <strong class="text-white">reflection (nhìn lại)</strong> một cách trung thực,
+      <strong class="text-white">showcase (trình bày kết quả)</strong> cho đồng đội, và chọn <strong class="text-white">next step (bước tiếp theo)</strong> —
+      một mini-project Phase 2 vừa sức, dùng lại chính những viên gạch bạn đã xây.
+    </p>
+    <div class="grid sm:grid-cols-2 gap-3 mt-8 max-w-4xl">
+      <div class="bg-white/5 border border-white/15 rounded-xl p-4 flex gap-3">
+        <i class="fa-solid fa-bullseye text-secondary mt-1"></i>
+        <p class="text-sm text-slate-200"><strong>Mục tiêu 1.</strong> Nhìn lại 12 tuần như một <em>bản đồ hệ thống</em>: mảnh nào ghép vào đâu, khối nào phục vụ khối nào — không phải 12 bài học rời rạc.</p>
+      </div>
+      <div class="bg-white/5 border border-white/15 rounded-xl p-4 flex gap-3">
+        <i class="fa-solid fa-bullseye text-secondary mt-1"></i>
+        <p class="text-sm text-slate-200"><strong>Mục tiêu 2.</strong> Tự đánh giá trung thực bằng <strong>skill tree</strong> tương tác: mục nào Vững / Cơ bản / Chưa vững — kèm bằng chứng, không theo cảm giác.</p>
+      </div>
+      <div class="bg-white/5 border border-white/15 rounded-xl p-4 flex gap-3">
+        <i class="fa-solid fa-bullseye text-secondary mt-1"></i>
+        <p class="text-sm text-slate-200"><strong>Mục tiêu 3.</strong> Trình bày showcase 5 phút: topic thú vị nhất, topic khó nhất, điều quan trọng nhất học được, project muốn làm, lời khuyên cho khóa sau.</p>
+      </div>
+      <div class="bg-white/5 border border-white/15 rounded-xl p-4 flex gap-3">
+        <i class="fa-solid fa-bullseye text-secondary mt-1"></i>
+        <p class="text-sm text-slate-200"><strong>Mục tiêu 4.</strong> Chọn một đề xuất mini-project Phase 2 (stopwatch, nhiệt độ + UART, đồng hồ số, vending machine) và phác kế hoạch 6 tuần.</p>
+      </div>
+    </div>
+    <div class="mt-8 flex flex-wrap gap-3 text-sm">
+      <span class="bg-white/10 border border-white/15 rounded-lg px-3 py-2"><i class="fa-solid fa-backward-step mr-2 text-blue-300"></i>Tuần 11: UART — FPGA nói chuyện với PC</span>
+      <span class="bg-white/10 border border-white/15 rounded-lg px-3 py-2"><i class="fa-solid fa-forward-step mr-2 text-emerald-300"></i>Sau tuần này: Phase 2 — project theo nhóm</span>
+    </div>
+  </div>
+</header>
+
+<main class="max-w-6xl mx-auto px-4">
+
+<!-- ===================== 2. LEARNING MAP ===================== -->
+<section id="learning-map" class="py-12">
+  <div class="flex items-center gap-3 mb-6">
+    <span class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-map-location-dot"></i></span>
+    <div>
+      <p class="text-[11px] font-bold uppercase tracking-widest text-primary">Section 2</p>
+      <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900">Learning Map — Từ Phase 1 Sang Phase 2</h2>
+    </div>
+  </div>
+
+  <div class="grid md:grid-cols-3 gap-4">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 relative">
+      <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Tuần 11 — đã học</span>
+      <h3 class="font-bold text-slate-800 mt-1">UART Communication</h3>
+      <p class="text-sm text-slate-600 mt-2 leading-relaxed">Mảnh ghép cuối của Phase 1: hệ thống của bạn biết <em>xử lý</em> (logic) và biết <em>nói</em> (UART). Bộ ba project T9–T11 chính là vốn liếng cho Phase 2.</p>
+      <i class="fa-solid fa-arrow-right hidden md:block absolute top-1/2 -right-4 -translate-y-1/2 text-slate-300 text-xl"></i>
+    </div>
+    <div class="bg-blue-600 text-white rounded-2xl shadow-lg p-5 relative ring-4 ring-blue-200">
+      <span class="text-[11px] font-bold uppercase tracking-wider text-blue-200">Tuần 12 — hôm nay</span>
+      <h3 class="font-bold mt-1">Wrap-up &amp; Next Steps</h3>
+      <p class="text-sm text-blue-100 mt-2 leading-relaxed">Ghép 12 mảnh thành một bản đồ, tự chấm skill tree, showcase kết quả, và ký "hợp đồng" với chính mình: một mini-project Phase 2 cụ thể.</p>
+      <i class="fa-solid fa-arrow-right hidden md:block absolute top-1/2 -right-4 -translate-y-1/2 text-slate-300 text-xl"></i>
+    </div>
+    <div class="bg-white rounded-2xl shadow-sm border border-emerald-300 p-5">
+      <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-600">Phase 2 — sắp tới</span>
+      <h3 class="font-bold text-slate-800 mt-1">Project theo nhóm</h3>
+      <p class="text-sm text-slate-600 mt-2 leading-relaxed">4–6 tuần một project trọn vẹn: spec → block diagram → RTL → testbench → FPGA demo → showcase. Học bằng tay, không chỉ bằng tai.</p>
+    </div>
+  </div>
+
+  <div class="grid md:grid-cols-2 gap-4 mt-6">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+      <h3 class="font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-clipboard-check text-primary"></i>Tuần này cần mang theo gì?</h3>
+      <ul class="mt-3 space-y-2 text-sm text-slate-600">
+        <li class="flex gap-2"><i class="fa-solid fa-circle-check text-accent mt-0.5"></i><span><strong>Toàn bộ 11 tuần</strong> — không cần thuộc lòng, nhưng cần "chạm lại" được: gates → khối tổ hợp → FF/counter → FSM → Verilog → FPGA/ASIC → 3 project.</span></li>
+        <li class="flex gap-2"><i class="fa-solid fa-circle-check text-accent mt-0.5"></i><span><strong>Sản phẩm thật:</strong> waveform, frame card, ảnh terminal, code — bằng chứng để tự đánh giá và để showcase.</span></li>
+        <li class="flex gap-2"><i class="fa-solid fa-circle-check text-accent mt-0.5"></i><span><strong>Sự trung thực:</strong> buổi này chỉ có giá trị nếu bạn dám khoanh đỏ mục mình chưa vững.</span></li>
+      </ul>
+    </div>
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+      <h3 class="font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-rocket text-secondary"></i>Kết quả tuần này dùng vào đâu?</h3>
+      <ul class="mt-3 space-y-2 text-sm text-slate-600">
+        <li class="flex gap-2"><i class="fa-solid fa-angles-right text-secondary mt-0.5"></i><span><strong>Kế hoạch Phase 2:</strong> skill tree cho biết nên ôn gì trước, chọn project nào vừa sức.</span></li>
+        <li class="flex gap-2"><i class="fa-solid fa-angles-right text-secondary mt-0.5"></i><span><strong>Portfolio:</strong> reflection + proposal là hai tài liệu đầu tiên trong hồ sơ kỹ thuật của bạn.</span></li>
+        <li class="flex gap-2"><i class="fa-solid fa-angles-right text-secondary mt-0.5"></i><span><strong>Cộng đồng:</strong> tìm đồng đội cùng project, ứng tuyển core team, hoặc nhận dẫn lại một topic cho khóa sau.</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+<!-- ===================== 3. BEFORE SESSION ===================== -->
+<section id="before-session" class="py-12 border-t border-slate-200">
+  <div class="flex items-center gap-3 mb-6">
+    <span class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-list-check"></i></span>
+    <div>
+      <p class="text-[11px] font-bold uppercase tracking-widest text-primary">Section 3</p>
+      <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900">Trước Buổi Học — Chuẩn Bị "Bằng Chứng"</h2>
+    </div>
+  </div>
+
+  <p class="text-slate-600 max-w-3xl mb-6">
+    Buổi tổng kết khác mọi buổi trước: bạn không cần đọc trước kiến thức mới, nhưng cần <strong>gom lại bằng chứng</strong> về những gì
+    mình đã làm. Skill tree, showcase và proposal Phase 2 đều dựa trên bằng chứng thật (code, waveform, ảnh demo) — không dựa trên trí nhớ mơ hồ kiểu "hình như em hiểu rồi".
+  </p>
+
+  <div class="grid md:grid-cols-2 gap-4">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+      <div class="flex items-center justify-between">
+        <h3 class="font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-clipboard-list text-primary"></i>Checklist chuẩn bị</h3>
+        <span class="text-xs font-bold bg-blue-50 text-primary border border-blue-200 rounded-full px-2.5 py-1">Đã xong <span id="prepCount">0/6</span></span>
+      </div>
+      <div id="prepChecklist" class="mt-4 space-y-3 text-sm text-slate-700">
+        <label class="flex gap-3 items-start cursor-pointer"><input type="checkbox" class="chk mt-0.5"><span>Mở lại <strong>3 project T9–T11</strong> (code + ảnh/video demo). Chọn <strong>một sản phẩm tâm đắc nhất</strong> để showcase 5 phút.</span></label>
+        <label class="flex gap-3 items-start cursor-pointer"><input type="checkbox" class="chk mt-0.5"><span>Lướt lại <strong>Learning Map của 11 tuần trước</strong> (chỉ phần sơ đồ đầu mỗi file — 10 phút là đủ chạm lại toàn tuyến).</span></label>
+        <label class="flex gap-3 items-start cursor-pointer"><input type="checkbox" class="chk mt-0.5"><span>Tự chấm nhanh <strong>skill tree</strong> ở Section 6 file này — trung thực, có bằng chứng cho mỗi ô "Vững".</span></label>
+        <label class="flex gap-3 items-start cursor-pointer"><input type="checkbox" class="chk mt-0.5"><span>Viết sẵn <strong>3 gạch đầu dòng reflection</strong>: tuần khó nhất, khái niệm tâm đắc nhất, điều muốn làm tiếp.</span></label>
+        <label class="flex gap-3 items-start cursor-pointer"><input type="checkbox" class="chk mt-0.5"><span>Nghĩ trước <strong>1 ý tưởng mini-project Phase 2</strong> (xem 4 đề xuất ở Section 13 — hoặc ý tưởng riêng của bạn).</span></label>
+        <label class="flex gap-3 items-start cursor-pointer"><input type="checkbox" class="chk mt-0.5"><span>Chuẩn bị <strong>1 câu hỏi cho mentor</strong> về nghề nghiệp / lộ trình học tiếp / Phase 2.</span></label>
+      </div>
+    </div>
+
+    <div class="space-y-4">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+        <h3 class="font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-fire text-secondary"></i>3 câu hỏi khởi động (nghĩ trước, nói trong buổi)</h3>
+        <ol class="mt-3 space-y-3 text-sm text-slate-700 list-none">
+          <li class="flex gap-3"><span class="shrink-0 w-6 h-6 rounded-full bg-amber-100 text-amber-700 text-xs font-bold flex items-center justify-center">1</span><span>Nếu phải giải thích cho bạn cùng phòng (không học điện tử) <em>"12 tuần qua mình học được gì"</em> trong đúng 30 giây — bạn sẽ nói gì?</span></li>
+          <li class="flex gap-3"><span class="shrink-0 w-6 h-6 rounded-full bg-amber-100 text-amber-700 text-xs font-bold flex items-center justify-center">2</span><span>Khái niệm nào lúc đầu bạn tưởng là dễ nhưng hóa ra khó (hoặc ngược lại)? Điều gì làm bạn đổi đánh giá?</span></li>
+          <li class="flex gap-3"><span class="shrink-0 w-6 h-6 rounded-full bg-amber-100 text-amber-700 text-xs font-bold flex items-center justify-center">3</span><span>Nếu được học lại 12 tuần từ đầu, bạn sẽ làm khác điều gì? (Cách học, cách hỏi, cách làm bài tập?)</span></li>
+        </ol>
+      </div>
+
+      <div class="bg-gradient-to-br from-blue-50 to-emerald-50 rounded-2xl border border-blue-200 p-5">
+        <h3 class="font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-stopwatch text-primary"></i>Nhiệm vụ nhỏ 5–10 phút</h3>
+        <p class="text-sm text-slate-700 mt-2 leading-relaxed">
+          Mở file <strong>traffic light Tuần 9</strong> của chính bạn. Đọc từng dòng và tự hỏi:
+          <em>"dòng này mình học ở tuần nào?"</em> — ghi số tuần ra lề (giấy hoặc comment).
+          Đây chính là bài <strong>code retrospective</strong> sẽ làm ở Section 8: một file 40 dòng
+          chứa dấu vết của ít nhất 5 tuần học. Nếu có dòng bạn không truy ra được tuần nào — đó là node cần ôn.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 4. CORE CONCEPTS ===================== -->
+<section id="core-concepts" class="py-12 border-t border-slate-200">
+  <div class="flex items-center gap-3 mb-6">
+    <span class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-cubes-stacked"></i></span>
+    <div>
+      <p class="text-[11px] font-bold uppercase tracking-widest text-primary">Section 4</p>
+      <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900">Core Concepts — 12 Tuần Gói Trong 9 Viên Gạch</h2>
+    </div>
+  </div>
+
+  <p class="text-slate-600 max-w-3xl mb-5">
+    Đặt 12 tuần cạnh nhau, bạn sẽ thấy chúng không phải 12 bài rời rạc mà là <strong>9 viên gạch xếp tầng</strong> —
+    viên sau đứng trên viên trước. Với mỗi viên, hãy tự kiểm tra 3 điều: <em>nó là gì</em>, <em>vì sao quan trọng</em>,
+    và <em>nó xuất hiện ở đâu trong 3 project bạn đã làm</em>. Nếu trả lời được cả ba — viên gạch đó là của bạn.
+  </p>
+
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 mb-6 overflow-x-auto no-scrollbar">
+    <div class="flex items-center gap-1.5 text-[11px] font-bold whitespace-nowrap">
+      <span class="bg-blue-50 text-blue-700 border border-blue-200 rounded-full px-2.5 py-1">Semiconductor</span><i class="fa-solid fa-arrow-right text-slate-300"></i>
+      <span class="bg-blue-50 text-blue-700 border border-blue-200 rounded-full px-2.5 py-1">Design flow</span><i class="fa-solid fa-arrow-right text-slate-300"></i>
+      <span class="bg-violet-50 text-violet-700 border border-violet-200 rounded-full px-2.5 py-1">Gates</span><i class="fa-solid fa-arrow-right text-slate-300"></i>
+      <span class="bg-violet-50 text-violet-700 border border-violet-200 rounded-full px-2.5 py-1">Khối tổ hợp</span><i class="fa-solid fa-arrow-right text-slate-300"></i>
+      <span class="bg-amber-50 text-amber-700 border border-amber-200 rounded-full px-2.5 py-1">FF &amp; Counter</span><i class="fa-solid fa-arrow-right text-slate-300"></i>
+      <span class="bg-amber-50 text-amber-700 border border-amber-200 rounded-full px-2.5 py-1">FSM</span><i class="fa-solid fa-arrow-right text-slate-300"></i>
+      <span class="bg-sky-50 text-sky-700 border border-sky-200 rounded-full px-2.5 py-1">Verilog</span><i class="fa-solid fa-arrow-right text-slate-300"></i>
+      <span class="bg-sky-50 text-sky-700 border border-sky-200 rounded-full px-2.5 py-1">FPGA vs ASIC</span><i class="fa-solid fa-arrow-right text-slate-300"></i>
+      <span class="bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full px-2.5 py-1">3 Projects</span>
+    </div>
+  </div>
+
+  <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 flex flex-col">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="text-[10px] font-black bg-blue-600 text-white rounded px-1.5 py-0.5">T1</span>
+        <i class="fa-solid fa-microchip text-primary"></i>
+        <h3 class="font-bold text-slate-800 text-sm">Semiconductor → IC → SoC</h3>
+      </div>
+      <div class="space-y-2.5 text-[13px] leading-relaxed flex-1">
+        <p><span class="font-bold text-primary">Nó là gì.</span> Transistor là công tắc điện tử điều khiển bằng điện áp; hàng triệu–hàng tỷ transistor khắc trên silicon tạo thành IC. <strong>SoC là MỘT IC</strong> tích hợp CPU, bộ nhớ, ngoại vi… trên cùng một chip — không phải "board có nhiều IC".</p>
+        <p><span class="font-bold text-secondary">Vì sao quan trọng.</span> Đây là "vật liệu" của mọi thứ bạn thiết kế. Nó cũng nhắc bạn: logic 1/0 là <em>khoảng điện áp</em> High/Low, không phải "có điện / mất điện" tuyệt đối.</p>
+        <p><span class="font-bold text-accent">Dùng ở project nào.</span> Cả 3 project chạy trên FPGA — bản thân FPGA là một IC lớn chứa hàng nghìn khối logic cấu hình được.</p>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 flex flex-col">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="text-[10px] font-black bg-blue-600 text-white rounded px-1.5 py-0.5">T2</span>
+        <i class="fa-solid fa-route text-primary"></i>
+        <h3 class="font-bold text-slate-800 text-sm">Design Flow: Idea → Chip</h3>
+      </div>
+      <div class="space-y-2.5 text-[13px] leading-relaxed flex-1">
+        <p><span class="font-bold text-primary">Nó là gì.</span> Chuỗi Spec → Architecture → RTL → Verification → Synthesis → Physical Design → <strong>Tape-out</strong> (gửi layout đi foundry sản xuất). Front-end mô tả &amp; kiểm chứng hành vi; back-end biến nó thành layout vật lý.</p>
+        <p><span class="font-bold text-secondary">Vì sao quan trọng.</span> Là bản đồ nghề nghiệp: bạn biết Phase 1 đứng ở khúc <em>spec → RTL → simulation</em>, và mỗi khúc còn lại là một vai trò kỹ sư.</p>
+        <p><span class="font-bold text-accent">Dùng ở project nào.</span> Mỗi mini-project T9–T11 là một design flow thu nhỏ: spec → block diagram → RTL → testbench → nạp FPGA.</p>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 flex flex-col">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="text-[10px] font-black bg-violet-600 text-white rounded px-1.5 py-0.5">T3</span>
+        <i class="fa-solid fa-shapes text-violet-600"></i>
+        <h3 class="font-bold text-slate-800 text-sm">Logic Gates &amp; Truth Table</h3>
+      </div>
+      <div class="space-y-2.5 text-[13px] leading-relaxed flex-1">
+        <p><span class="font-bold text-primary">Nó là gì.</span> AND, OR, NOT, NAND, NOR, XOR — các phép quyết định cơ bản, mô tả đầy đủ và duy nhất bằng <strong>truth table</strong> (bảng chân trị).</p>
+        <p><span class="font-bold text-secondary">Vì sao quan trọng.</span> Mọi phép tính số — từ cộng hai số đến giải mã lệnh CPU — đều phân rã về gates. Truth table là "bản hợp đồng hành vi" đầu tiên bạn học cách viết và đọc.</p>
+        <p><span class="font-bold text-accent">Dùng ở project nào.</span> Điều kiện chuyển trạng thái đèn giao thông (T9) và phép so sánh <span class="font-mono">timer == hằng số</span> (T9, T10) đều tổng hợp ra gates.</p>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 flex flex-col">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="text-[10px] font-black bg-violet-600 text-white rounded px-1.5 py-0.5">T4</span>
+        <i class="fa-solid fa-cubes text-violet-600"></i>
+        <h3 class="font-bold text-slate-800 text-sm">Khối Tổ Hợp — Think in Blocks</h3>
+      </div>
+      <div class="space-y-2.5 text-[13px] leading-relaxed flex-1">
+        <p><span class="font-bold text-primary">Nó là gì.</span> MUX (chọn), Decoder (giải mã), Encoder, Adder (cộng), Comparator (so sánh) — mỗi khối mô tả bằng bộ ba <em>input / output / function</em>, không cần vẽ từng gate.</p>
+        <p><span class="font-bold text-secondary">Vì sao quan trọng.</span> Kỹ sư không thiết kế bằng từng gate — họ ghép khối chuẩn. Block diagram là ngôn ngữ giao tiếp của cả team thiết kế.</p>
+        <p><span class="font-bold text-accent">Dùng ở project nào.</span> Decoder BCD → 7 đoạn (T10), comparator trong timer (T9), bộ cộng trong counter (T10) — và mọi datapath Phase 2.</p>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 flex flex-col">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="text-[10px] font-black bg-amber-500 text-white rounded px-1.5 py-0.5">T5</span>
+        <i class="fa-solid fa-clock text-amber-600"></i>
+        <h3 class="font-bold text-slate-800 text-sm">Sequential — Flip-Flop, Counter</h3>
+      </div>
+      <div class="space-y-2.5 text-[13px] leading-relaxed flex-1">
+        <p><span class="font-bold text-primary">Nó là gì.</span> D Flip-Flop lấy mẫu đầu vào D tại <strong>cạnh lên clock</strong> và lưu <strong>đúng 1 bit</strong>. Register n-bit = n FF ghép lại; counter = register + bộ cộng; reset đưa mạch về trạng thái ban đầu xác định.</p>
+        <p><span class="font-bold text-secondary">Vì sao quan trọng.</span> FF cho mạch "trí nhớ" và nhịp thời gian. Không có FF thì không có state, không có counter, không có CPU — chỉ còn mạch tổ hợp "mất trí nhớ".</p>
+        <p><span class="font-bold text-accent">Dùng ở project nào.</span> Timer đếm giây (T9), counter 0–9 (T10), shift register phát bit UART (T11) — cùng một viên gạch FF.</p>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 flex flex-col">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="text-[10px] font-black bg-amber-500 text-white rounded px-1.5 py-0.5">T6</span>
+        <i class="fa-solid fa-diagram-project text-amber-600"></i>
+        <h3 class="font-bold text-slate-800 text-sm">Finite State Machine</h3>
+      </div>
+      <div class="space-y-2.5 text-[13px] leading-relaxed flex-1">
+        <p><span class="font-bold text-primary">Nó là gì.</span> Mô hình: state + input → next state &amp; output, vẽ bằng state diagram. <strong>Moore</strong>: output chỉ phụ thuộc state; <strong>Mealy</strong>: phụ thuộc state + input. Tách <em>controller</em> (ra lệnh) khỏi <em>datapath</em> (xử lý).</p>
+        <p><span class="font-bold text-secondary">Vì sao quan trọng.</span> FSM là "bộ não" của mọi khối điều khiển — từ đèn giao thông đến bộ điều khiển bus trong SoC. Đây là mẫu thiết kế bạn sẽ dùng cả sự nghiệp.</p>
+        <p><span class="font-bold text-accent">Dùng ở project nào.</span> FSM Đỏ→Xanh→Vàng (T9); FSM idle/start/data/stop điều khiển UART TX (T11).</p>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 flex flex-col">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="text-[10px] font-black bg-sky-600 text-white rounded px-1.5 py-0.5">T7</span>
+        <i class="fa-solid fa-code text-sky-600"></i>
+        <h3 class="font-bold text-slate-800 text-sm">Verilog / SystemVerilog HDL</h3>
+      </div>
+      <div class="space-y-2.5 text-[13px] leading-relaxed flex-1">
+        <p><span class="font-bold text-primary">Nó là gì.</span> Ngôn ngữ <strong>mô tả</strong> phần cứng: module + port, <span class="font-mono">assign</span>, <span class="font-mono">always_ff</span> (tuần tự, gán <span class="font-mono">&lt;=</span>), <span class="font-mono">always_comb</span> (tổ hợp, có default assignment). <strong>Không phải</strong> ngôn ngữ chạy tuần tự như C/Python — mọi khối "chạy" song song như phần cứng thật.</p>
+        <p><span class="font-bold text-secondary">Vì sao quan trọng.</span> Là cây cầu duy nhất từ ý tưởng sang mạch: công cụ synthesis đọc RTL của bạn và sinh ra FF + gates thật.</p>
+        <p><span class="font-bold text-accent">Dùng ở project nào.</span> Toàn bộ RTL của T9–T11 viết bằng SystemVerilog theo template 3 khối FSM.</p>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 flex flex-col">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="text-[10px] font-black bg-sky-600 text-white rounded px-1.5 py-0.5">T8</span>
+        <i class="fa-solid fa-scale-balanced text-sky-600"></i>
+        <h3 class="font-bold text-slate-800 text-sm">FPGA vs ASIC — Trade-off</h3>
+      </div>
+      <div class="space-y-2.5 text-[13px] leading-relaxed flex-1">
+        <p><span class="font-bold text-primary">Nó là gì.</span> Hai con đường hiện thực hóa: <strong>FPGA</strong> cấu hình lại được bằng bitstream, NRE ≈ 0, ra mẫu nhanh; <strong>ASIC</strong> tape-out tại foundry — NRE khổng lồ nhưng unit cost thấp và PPA tối ưu khi sản lượng lớn. Là <em>trade-off</em>, không ai "luôn thắng".</p>
+        <p><span class="font-bold text-secondary">Vì sao quan trọng.</span> Là quyết định kinh doanh–kỹ thuật lớn nhất của một dự án chip; và giải thích vì sao khóa này học bằng FPGA: thử sai không mất tiền.</p>
+        <p><span class="font-bold text-accent">Dùng ở project nào.</span> Cả 3 project đều nạp bitstream lên FPGA — sửa code, nạp lại, 2 phút sau có phần cứng mới.</p>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-sm border border-emerald-300 p-5 flex flex-col">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="text-[10px] font-black bg-emerald-600 text-white rounded px-1.5 py-0.5">T9–11</span>
+        <i class="fa-solid fa-screwdriver-wrench text-emerald-600"></i>
+        <h3 class="font-bold text-slate-800 text-sm">Ba Mini-Project</h3>
+      </div>
+      <div class="space-y-2.5 text-[13px] leading-relaxed flex-1">
+        <p><span class="font-bold text-primary">Nó là gì.</span> <strong>Traffic light</strong> (FSM + timer), <strong>Counter + 7-segment</strong> (clock → counter → decoder → LED), <strong>UART TX</strong> (frame + baud rate + shift register) — ba hệ thống nhỏ nhưng hoàn chỉnh từ spec đến demo.</p>
+        <p><span class="font-bold text-secondary">Vì sao quan trọng.</span> Là nơi "hiểu" biến thành "làm được": mỗi project buộc bạn ghép 4–5 khái niệm và debug khi chúng không chịu chạy — kỹ năng không sách nào dạy được.</p>
+        <p><span class="font-bold text-accent">Dùng ở đâu tiếp.</span> Chính là bộ LEGO cho Phase 2: stopwatch, đồng hồ số, datalogger UART đều lắp từ những khối này.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="mt-6 bg-amber-50 border border-amber-200 rounded-2xl p-5 flex gap-3">
+    <i class="fa-solid fa-triangle-exclamation text-secondary mt-0.5"></i>
+    <p class="text-sm text-slate-700 leading-relaxed"><strong>Tự kiểm tra kiểu kỹ sư:</strong> đừng hỏi "mình có nhớ định nghĩa không?" — hãy hỏi
+      <em>"mình có dùng được nó không?"</em>. Ví dụ: không cần thuộc lòng định nghĩa FSM, nhưng phải vẽ được state diagram cho khóa số 3 nút trong 5 phút.
+      Skill tree ở Section 6 chấm theo tiêu chí "dùng được", không phải "nhớ được".</p>
+  </div>
+</section>
+
+<!-- ===================== 5. SYSTEM VIEW ===================== -->
+<section id="system-view" class="py-12 border-t border-slate-200">
+  <div class="flex items-center gap-3 mb-6">
+    <span class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-sitemap"></i></span>
+    <div>
+      <p class="text-[11px] font-bold uppercase tracking-widest text-primary">Section 5</p>
+      <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900">System View — Một Design FPGA Hoàn Chỉnh</h2>
+    </div>
+  </div>
+
+  <p class="text-slate-600 max-w-3xl mb-6">
+    Đây là điều quan trọng nhất của Section này: <strong>bạn đã học đủ 100% mảnh ghép</strong> của một design FPGA tiêu chuẩn.
+    Mọi design bạn làm ở Phase 2 — dù là stopwatch hay datalogger — đều có đúng cấu trúc dưới đây:
+    <strong>clock &amp; reset</strong> (nhịp chung + điểm xuất phát), <strong>FSM controller</strong> (ra lệnh),
+    <strong>datapath</strong> (đếm, dịch, tính), và <strong>I/O</strong> (hiển thị, giao tiếp).
+  </p>
+
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 mb-6">
+    <h3 class="font-bold text-slate-800 mb-1"><i class="fa-solid fa-puzzle-piece text-primary mr-2"></i>Kiến trúc chuẩn Controller + Datapath + I/O — chú thích tuần đã học từng khối</h3>
+    <p class="text-xs text-slate-500 mb-3">Kéo ngang nếu xem trên điện thoại.</p>
+    <div class="overflow-x-auto">
+      <svg viewBox="0 0 900 480" class="min-w-[820px] w-full h-auto" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Sơ đồ khối một design FPGA hoàn chỉnh">
+        <defs>
+          <marker id="arwB" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#2563eb"/></marker>
+          <marker id="arwG" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#10b981"/></marker>
+          <marker id="arwR" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#ef4444"/></marker>
+          <marker id="arwO" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#f97316"/></marker>
+        </defs>
+
+        <!-- Input & sync -->
+        <rect x="20" y="60" width="130" height="52" rx="10" fill="#f8fafc" stroke="#64748b" stroke-width="1.5"/>
+        <text x="85" y="82" text-anchor="middle" font-size="12" font-weight="700" fill="#334155">INPUT</text>
+        <text x="85" y="98" text-anchor="middle" font-size="10" fill="#64748b">nút nhấn / cảm biến</text>
+
+        <rect x="195" y="60" width="145" height="52" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+        <text x="267" y="82" text-anchor="middle" font-size="12" font-weight="700" fill="#1d4ed8">Đồng bộ 2 FF</text>
+        <text x="267" y="98" text-anchor="middle" font-size="10" fill="#64748b">chống metastability · T5</text>
+
+        <line x1="150" y1="86" x2="187" y2="86" stroke="#10b981" stroke-width="2" marker-end="url(#arwG)"/>
+        <line x1="340" y1="86" x2="382" y2="86" stroke="#10b981" stroke-width="2" marker-end="url(#arwG)"/>
+
+        <!-- FSM controller -->
+        <rect x="390" y="40" width="210" height="110" rx="12" fill="#eff6ff" stroke="#2563eb" stroke-width="2.5"/>
+        <text x="495" y="68" text-anchor="middle" font-size="14" font-weight="800" fill="#1d4ed8">FSM CONTROLLER</text>
+        <text x="495" y="88" text-anchor="middle" font-size="10.5" fill="#475569">state register (always_ff)</text>
+        <text x="495" y="103" text-anchor="middle" font-size="10.5" fill="#475569">next-state + output (always_comb)</text>
+        <text x="495" y="126" text-anchor="middle" font-size="10" font-weight="700" fill="#2563eb">Học ở T6 · dùng ở T9, T11</text>
+
+        <!-- Datapath -->
+        <rect x="390" y="200" width="210" height="180" rx="12" fill="#fffbeb" stroke="#f59e0b" stroke-width="2" stroke-dasharray="6 4"/>
+        <text x="495" y="222" text-anchor="middle" font-size="12" font-weight="800" fill="#b45309">DATAPATH</text>
+
+        <rect x="405" y="235" width="180" height="52" rx="9" fill="#ffffff" stroke="#f59e0b" stroke-width="1.5"/>
+        <text x="495" y="257" text-anchor="middle" font-size="11.5" font-weight="700" fill="#92400e">Timer / Counter</text>
+        <text x="495" y="273" text-anchor="middle" font-size="10" fill="#64748b">n FF + adder · T5, T9, T10</text>
+
+        <rect x="405" y="303" width="180" height="52" rx="9" fill="#ffffff" stroke="#f59e0b" stroke-width="1.5"/>
+        <text x="495" y="325" text-anchor="middle" font-size="11.5" font-weight="700" fill="#92400e">Shift register (UART TX)</text>
+        <text x="495" y="341" text-anchor="middle" font-size="10" fill="#64748b">dịch 1 bit mỗi baud tick · T5, T11</text>
+
+        <!-- Control & status arrows -->
+        <line x1="465" y1="150" x2="465" y2="196" stroke="#2563eb" stroke-width="2" marker-end="url(#arwB)"/>
+        <text x="455" y="176" text-anchor="end" font-size="10" font-weight="700" fill="#2563eb">enable / load / start</text>
+        <line x1="530" y1="200" x2="530" y2="154" stroke="#10b981" stroke-width="2" marker-end="url(#arwG)"/>
+        <text x="540" y="176" font-size="10" font-weight="700" fill="#059669">tick / done</text>
+
+        <!-- Outputs -->
+        <rect x="640" y="235" width="120" height="52" rx="10" fill="#f5f3ff" stroke="#7c3aed" stroke-width="1.5"/>
+        <text x="700" y="257" text-anchor="middle" font-size="11.5" font-weight="700" fill="#6d28d9">Decoder 7-seg</text>
+        <text x="700" y="273" text-anchor="middle" font-size="10" fill="#64748b">tổ hợp · T4, T10</text>
+
+        <rect x="785" y="235" width="95" height="52" rx="10" fill="#ecfdf5" stroke="#10b981" stroke-width="1.5"/>
+        <text x="832" y="257" text-anchor="middle" font-size="11.5" font-weight="700" fill="#047857">LED 7 đoạn</text>
+        <text x="832" y="273" text-anchor="middle" font-size="10" fill="#64748b">hiển thị số</text>
+
+        <rect x="640" y="303" width="240" height="52" rx="10" fill="#ecfdf5" stroke="#10b981" stroke-width="1.5"/>
+        <text x="760" y="325" text-anchor="middle" font-size="11.5" font-weight="700" fill="#047857">PC — Serial Terminal (qua UART)</text>
+        <text x="760" y="341" text-anchor="middle" font-size="10" fill="#64748b">frame 8N1, LSB first · T11</text>
+
+        <line x1="585" y1="261" x2="632" y2="261" stroke="#10b981" stroke-width="2" marker-end="url(#arwG)"/>
+        <text x="608" y="252" text-anchor="middle" font-size="9.5" fill="#059669">giá trị BCD</text>
+        <line x1="760" y1="261" x2="777" y2="261" stroke="#10b981" stroke-width="2" marker-end="url(#arwG)"/>
+        <line x1="585" y1="329" x2="632" y2="329" stroke="#10b981" stroke-width="2" marker-end="url(#arwG)"/>
+        <text x="608" y="320" text-anchor="middle" font-size="9.5" fill="#059669">1 bit nối tiếp</text>
+
+        <!-- Clock & reset -->
+        <rect x="20" y="200" width="130" height="52" rx="10" fill="#fef2f2" stroke="#ef4444" stroke-width="2"/>
+        <text x="85" y="222" text-anchor="middle" font-size="12" font-weight="800" fill="#b91c1c">CLOCK 50 MHz</text>
+        <text x="85" y="238" text-anchor="middle" font-size="10" fill="#64748b">một nhịp chung · T5</text>
+
+        <rect x="20" y="285" width="130" height="52" rx="10" fill="#fff7ed" stroke="#f97316" stroke-width="2"/>
+        <text x="85" y="307" text-anchor="middle" font-size="12" font-weight="800" fill="#c2410c">RESET (nút)</text>
+        <text x="85" y="323" text-anchor="middle" font-size="10" fill="#64748b">trạng thái ban đầu · T5</text>
+
+        <path d="M150,226 L360,226 L360,130 L382,130" fill="none" stroke="#ef4444" stroke-width="2" marker-end="url(#arwR)"/>
+        <path d="M360,226 L360,261 L397,261" fill="none" stroke="#ef4444" stroke-width="2" marker-end="url(#arwR)"/>
+        <text x="343" y="216" text-anchor="end" font-size="10" font-weight="700" fill="#ef4444">clk</text>
+
+        <path d="M150,311 L345,311 L345,143 L382,143" fill="none" stroke="#f97316" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#arwO)"/>
+        <path d="M345,311 L345,329 L397,329" fill="none" stroke="#f97316" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#arwO)"/>
+        <text x="330" y="303" text-anchor="end" font-size="10" font-weight="700" fill="#f97316">rst_n</text>
+
+        <!-- Legend -->
+        <rect x="20" y="405" width="860" height="55" rx="10" fill="#f8fafc" stroke="#e2e8f0"/>
+        <line x1="40" y1="432" x2="70" y2="432" stroke="#ef4444" stroke-width="2.5"/>
+        <text x="78" y="436" font-size="10.5" fill="#334155">clock — nhịp chung duy nhất</text>
+        <line x1="245" y1="432" x2="275" y2="432" stroke="#f97316" stroke-width="2.5" stroke-dasharray="5 4"/>
+        <text x="283" y="436" font-size="10.5" fill="#334155">reset — điểm xuất phát</text>
+        <line x1="435" y1="432" x2="465" y2="432" stroke="#2563eb" stroke-width="2.5"/>
+        <text x="473" y="436" font-size="10.5" fill="#334155">control — FSM ra lệnh</text>
+        <line x1="630" y1="432" x2="660" y2="432" stroke="#10b981" stroke-width="2.5"/>
+        <text x="668" y="436" font-size="10.5" fill="#334155">data / status — datapath xử lý</text>
+      </svg>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-6">
+    <div class="px-5 py-4 border-b border-slate-100">
+      <h3 class="font-bold text-slate-800"><i class="fa-solid fa-table-list text-primary mr-2"></i>Từng khối trong sơ đồ — bạn học nó ở tuần nào, viết Verilog ra sao?</h3>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm min-w-[760px]">
+        <thead>
+          <tr class="bg-slate-50 text-left text-xs uppercase tracking-wider text-slate-500">
+            <th class="px-4 py-3 font-bold">Khối</th>
+            <th class="px-4 py-3 font-bold">Học ở tuần</th>
+            <th class="px-4 py-3 font-bold">Tổ hợp / Tuần tự</th>
+            <th class="px-4 py-3 font-bold">Clock?</th>
+            <th class="px-4 py-3 font-bold">Reset?</th>
+            <th class="px-4 py-3 font-bold">Viết Verilog bằng gì</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 text-slate-700">
+          <tr><td class="px-4 py-2.5 font-semibold">State register (FSM)</td><td class="px-4 py-2.5">T5, T6</td><td class="px-4 py-2.5">Tuần tự</td><td class="px-4 py-2.5 text-accent font-bold">Có</td><td class="px-4 py-2.5 text-accent font-bold">Có</td><td class="px-4 py-2.5 font-mono text-xs">always_ff, gán &lt;=</td></tr>
+          <tr><td class="px-4 py-2.5 font-semibold">Next-state logic</td><td class="px-4 py-2.5">T6</td><td class="px-4 py-2.5">Tổ hợp</td><td class="px-4 py-2.5 text-slate-400">Không</td><td class="px-4 py-2.5 text-slate-400">Không</td><td class="px-4 py-2.5 font-mono text-xs">always_comb + default (tránh latch)</td></tr>
+          <tr><td class="px-4 py-2.5 font-semibold">Output logic (Moore)</td><td class="px-4 py-2.5">T6</td><td class="px-4 py-2.5">Tổ hợp</td><td class="px-4 py-2.5 text-slate-400">Không</td><td class="px-4 py-2.5 text-slate-400">Không</td><td class="px-4 py-2.5 font-mono text-xs">always_comb + case + default</td></tr>
+          <tr><td class="px-4 py-2.5 font-semibold">Timer / Counter</td><td class="px-4 py-2.5">T5, T9, T10</td><td class="px-4 py-2.5">Tuần tự</td><td class="px-4 py-2.5 text-accent font-bold">Có</td><td class="px-4 py-2.5 text-accent font-bold">Có</td><td class="px-4 py-2.5 font-mono text-xs">always_ff, cnt &lt;= cnt + 1 khi enable</td></tr>
+          <tr><td class="px-4 py-2.5 font-semibold">Decoder 7 đoạn</td><td class="px-4 py-2.5">T4, T10</td><td class="px-4 py-2.5">Tổ hợp</td><td class="px-4 py-2.5 text-slate-400">Không</td><td class="px-4 py-2.5 text-slate-400">Không</td><td class="px-4 py-2.5 font-mono text-xs">always_comb + case + default</td></tr>
+          <tr><td class="px-4 py-2.5 font-semibold">Shift register (UART TX)</td><td class="px-4 py-2.5">T5, T11</td><td class="px-4 py-2.5">Tuần tự</td><td class="px-4 py-2.5 text-accent font-bold">Có</td><td class="px-4 py-2.5 text-accent font-bold">Có</td><td class="px-4 py-2.5 font-mono text-xs">always_ff, dịch khi baud tick (enable)</td></tr>
+          <tr><td class="px-4 py-2.5 font-semibold">Đồng bộ input (2 FF)</td><td class="px-4 py-2.5">T5</td><td class="px-4 py-2.5">Tuần tự</td><td class="px-4 py-2.5 text-accent font-bold">Có</td><td class="px-4 py-2.5 text-accent font-bold">Có</td><td class="px-4 py-2.5 font-mono text-xs">always_ff hai tầng FF nối tiếp</td></tr>
+          <tr><td class="px-4 py-2.5 font-semibold">Top-level wiring</td><td class="px-4 py-2.5">T7</td><td class="px-4 py-2.5">—</td><td class="px-4 py-2.5 text-slate-400">—</td><td class="px-4 py-2.5 text-slate-400">—</td><td class="px-4 py-2.5 font-mono text-xs">module + instance + tín hiệu nối khối</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="grid md:grid-cols-3 gap-4">
+    <div class="bg-red-50 border border-red-200 rounded-2xl p-4">
+      <p class="text-sm font-bold text-red-700"><i class="fa-solid fa-heart-pulse mr-1.5"></i>Dòng chảy 1 — Clock &amp; Reset</p>
+      <p class="text-[13px] text-slate-700 mt-1.5 leading-relaxed">Một clock chung cấp nhịp cho mọi FF; reset đặt tất cả về trạng thái xuất phát. Muốn chạy chậm hơn? Dùng <strong>enable tick</strong> (T9) — không bao giờ chế clock mới từ counter khi chưa học clock domain.</p>
+    </div>
+    <div class="bg-blue-50 border border-blue-200 rounded-2xl p-4">
+      <p class="text-sm font-bold text-blue-700"><i class="fa-solid fa-gamepad mr-1.5"></i>Dòng chảy 2 — Control</p>
+      <p class="text-[13px] text-slate-700 mt-1.5 leading-relaxed">FSM đọc input + status, quyết định state kế, phát lệnh <span class="font-mono text-xs">enable / load / start</span> cho datapath. Controller không tự xử lý dữ liệu — nó chỉ huy.</p>
+    </div>
+    <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-4">
+      <p class="text-sm font-bold text-emerald-700"><i class="fa-solid fa-database mr-1.5"></i>Dòng chảy 3 — Data</p>
+      <p class="text-[13px] text-slate-700 mt-1.5 leading-relaxed">Datapath đếm, dịch, cộng, so sánh rồi báo <span class="font-mono text-xs">tick / done</span> ngược về FSM và đẩy kết quả ra I/O: LED 7 đoạn cho mắt người, UART cho máy tính.</p>
+    </div>
+  </div>
+</section>
+<!-- ===================== 6. INTERACTIVE DEMO: SKILL TREE ===================== -->
+<section id="demo" class="py-12 border-t border-slate-200">
+  <div class="flex items-center gap-3 mb-6">
+    <span class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-network-wired"></i></span>
+    <div>
+      <p class="text-[11px] font-bold uppercase tracking-widest text-primary">Section 6</p>
+      <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900">Interactive Demo — Skill Tree Tự Đánh Giá</h2>
+    </div>
+  </div>
+
+  <p class="text-slate-600 max-w-3xl mb-4">
+    11 node kỹ năng chia thành 5 nhánh — đúng bản đồ Phase 1. Với mỗi node, hãy chấm mình theo <strong>3 mức có tiêu chí</strong>
+    (không chấm theo cảm giác). Panel tổng hợp sẽ tính <strong>% readiness</strong> cho Phase 2, chỉ ra tuần cần ôn lại
+    và gợi ý mini-project phù hợp với thế mạnh hiện tại của bạn.
+  </p>
+
+  <div class="flex flex-wrap gap-2 mb-4 text-[12px] font-semibold">
+    <span class="bg-white border border-slate-200 rounded-full px-3 py-1.5"><span class="text-primary font-black">1.</span> Bấm chọn một node</span>
+    <i class="fa-solid fa-arrow-right text-slate-300 self-center"></i>
+    <span class="bg-white border border-slate-200 rounded-full px-3 py-1.5"><span class="text-primary font-black">2.</span> Chọn mức: <span class="text-danger">Chưa vững</span> / <span class="text-amber-600">Cơ bản</span> / <span class="text-accent">Vững</span></span>
+    <i class="fa-solid fa-arrow-right text-slate-300 self-center"></i>
+    <span class="bg-white border border-slate-200 rounded-full px-3 py-1.5"><span class="text-primary font-black">3.</span> Đọc panel tổng hợp &amp; gợi ý</span>
+  </div>
+
+  <div class="bg-amber-50 border border-amber-200 rounded-xl p-3.5 mb-5 flex gap-2.5 text-[13px] text-slate-700">
+    <i class="fa-solid fa-camera text-secondary mt-0.5"></i>
+    <p><strong>Lưu ý:</strong> kết quả chỉ nằm trong bộ nhớ trang — <strong>reload là mất</strong>. Chấm xong hãy <strong>chụp màn hình</strong> panel tổng hợp để nộp kèm bài tập Mức 2 và mang vào buổi breakout.</p>
+  </div>
+
+  <div class="grid sm:grid-cols-2 lg:grid-cols-5 gap-3">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-3">
+      <p class="text-[11px] font-black uppercase tracking-wider text-blue-700 bg-blue-50 border border-blue-200 rounded-lg px-2.5 py-1.5 mb-2.5"><i class="fa-solid fa-layer-group mr-1"></i>Foundation · T1–T2</p>
+      <div class="space-y-2">
+        <button type="button" class="skill-node st-0 w-full rounded-xl px-3 py-2.5" data-node="n1">
+          <span class="block text-[10px] font-black uppercase tracking-wider opacity-70">Tuần 1</span>
+          <span class="block text-[12.5px] font-bold leading-snug mt-0.5">Semiconductor, transistor, IC, SoC</span>
+          <span class="node-status block text-[10.5px] font-bold mt-1 opacity-80">Chưa đánh giá</span>
+        </button>
+        <button type="button" class="skill-node st-0 w-full rounded-xl px-3 py-2.5" data-node="n2">
+          <span class="block text-[10px] font-black uppercase tracking-wider opacity-70">Tuần 2</span>
+          <span class="block text-[12.5px] font-bold leading-snug mt-0.5">Design flow: Spec → Tape-out</span>
+          <span class="node-status block text-[10.5px] font-bold mt-1 opacity-80">Chưa đánh giá</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-3">
+      <p class="text-[11px] font-black uppercase tracking-wider text-violet-700 bg-violet-50 border border-violet-200 rounded-lg px-2.5 py-1.5 mb-2.5"><i class="fa-solid fa-shapes mr-1"></i>Combinational · T3–T4</p>
+      <div class="space-y-2">
+        <button type="button" class="skill-node st-0 w-full rounded-xl px-3 py-2.5" data-node="n3">
+          <span class="block text-[10px] font-black uppercase tracking-wider opacity-70">Tuần 3</span>
+          <span class="block text-[12.5px] font-bold leading-snug mt-0.5">Logic gates &amp; truth table</span>
+          <span class="node-status block text-[10.5px] font-bold mt-1 opacity-80">Chưa đánh giá</span>
+        </button>
+        <button type="button" class="skill-node st-0 w-full rounded-xl px-3 py-2.5" data-node="n4">
+          <span class="block text-[10px] font-black uppercase tracking-wider opacity-70">Tuần 4</span>
+          <span class="block text-[12.5px] font-bold leading-snug mt-0.5">MUX, Decoder, Adder, Comparator</span>
+          <span class="node-status block text-[10.5px] font-bold mt-1 opacity-80">Chưa đánh giá</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-3">
+      <p class="text-[11px] font-black uppercase tracking-wider text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-2.5 py-1.5 mb-2.5"><i class="fa-solid fa-clock mr-1"></i>Sequential &amp; FSM · T5–T6</p>
+      <div class="space-y-2">
+        <button type="button" class="skill-node st-0 w-full rounded-xl px-3 py-2.5" data-node="n5">
+          <span class="block text-[10px] font-black uppercase tracking-wider opacity-70">Tuần 5</span>
+          <span class="block text-[12.5px] font-bold leading-snug mt-0.5">Flip-Flop, register, counter, reset</span>
+          <span class="node-status block text-[10.5px] font-bold mt-1 opacity-80">Chưa đánh giá</span>
+        </button>
+        <button type="button" class="skill-node st-0 w-full rounded-xl px-3 py-2.5" data-node="n6">
+          <span class="block text-[10px] font-black uppercase tracking-wider opacity-70">Tuần 6</span>
+          <span class="block text-[12.5px] font-bold leading-snug mt-0.5">FSM: state diagram, Moore / Mealy</span>
+          <span class="node-status block text-[10.5px] font-bold mt-1 opacity-80">Chưa đánh giá</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-3">
+      <p class="text-[11px] font-black uppercase tracking-wider text-sky-700 bg-sky-50 border border-sky-200 rounded-lg px-2.5 py-1.5 mb-2.5"><i class="fa-solid fa-code mr-1"></i>HDL &amp; Platform · T7–T8</p>
+      <div class="space-y-2">
+        <button type="button" class="skill-node st-0 w-full rounded-xl px-3 py-2.5" data-node="n7">
+          <span class="block text-[10px] font-black uppercase tracking-wider opacity-70">Tuần 7</span>
+          <span class="block text-[12.5px] font-bold leading-snug mt-0.5">Verilog: module, always, tư duy song song</span>
+          <span class="node-status block text-[10.5px] font-bold mt-1 opacity-80">Chưa đánh giá</span>
+        </button>
+        <button type="button" class="skill-node st-0 w-full rounded-xl px-3 py-2.5" data-node="n8">
+          <span class="block text-[10px] font-black uppercase tracking-wider opacity-70">Tuần 8</span>
+          <span class="block text-[12.5px] font-bold leading-snug mt-0.5">FPGA vs ASIC trade-off</span>
+          <span class="node-status block text-[10.5px] font-bold mt-1 opacity-80">Chưa đánh giá</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-sm border border-emerald-300 p-3">
+      <p class="text-[11px] font-black uppercase tracking-wider text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-2.5 py-1.5 mb-2.5"><i class="fa-solid fa-screwdriver-wrench mr-1"></i>Projects · T9–T11</p>
+      <div class="space-y-2">
+        <button type="button" class="skill-node st-0 w-full rounded-xl px-3 py-2.5" data-node="n9">
+          <span class="block text-[10px] font-black uppercase tracking-wider opacity-70">Tuần 9</span>
+          <span class="block text-[12.5px] font-bold leading-snug mt-0.5">Traffic light: FSM + timer + tick</span>
+          <span class="node-status block text-[10.5px] font-bold mt-1 opacity-80">Chưa đánh giá</span>
+        </button>
+        <button type="button" class="skill-node st-0 w-full rounded-xl px-3 py-2.5" data-node="n10">
+          <span class="block text-[10px] font-black uppercase tracking-wider opacity-70">Tuần 10</span>
+          <span class="block text-[12.5px] font-bold leading-snug mt-0.5">Counter + decoder + LED 7 đoạn</span>
+          <span class="node-status block text-[10.5px] font-bold mt-1 opacity-80">Chưa đánh giá</span>
+        </button>
+        <button type="button" class="skill-node st-0 w-full rounded-xl px-3 py-2.5" data-node="n11">
+          <span class="block text-[10px] font-black uppercase tracking-wider opacity-70">Tuần 11</span>
+          <span class="block text-[12.5px] font-bold leading-snug mt-0.5">UART TX: frame, baud rate, shift register</span>
+          <span class="node-status block text-[10.5px] font-bold mt-1 opacity-80">Chưa đánh giá</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid lg:grid-cols-3 gap-4 mt-5">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+      <h3 class="font-bold text-slate-800 text-sm mb-1"><i class="fa-solid fa-pen-clip text-primary mr-1.5"></i>Bước 2 — Tự chấm node đang chọn</h3>
+      <p id="assessTitle" class="text-sm font-black text-slate-900 mt-2">Chưa chọn node nào</p>
+      <p id="assessHint" class="text-xs text-slate-500 mt-1">Bấm vào một node phía trên để bắt đầu tự đánh giá.</p>
+      <div class="space-y-2 mt-4">
+        <button type="button" class="assess-btn w-full text-left rounded-xl px-3.5 py-2.5 text-[13px] border-red-300 bg-red-50 text-red-700 hover:border-red-500" data-level="1">
+          <strong class="block">Chưa vững</strong><span class="text-[11.5px] opacity-90">Đọc lại tài liệu vẫn thấy mơ hồ, chưa tự làm được bài tập tuần đó.</span>
+        </button>
+        <button type="button" class="assess-btn w-full text-left rounded-xl px-3.5 py-2.5 text-[13px] border-amber-300 bg-amber-50 text-amber-700 hover:border-amber-500" data-level="2">
+          <strong class="block">Cơ bản</strong><span class="text-[11.5px] opacity-90">Làm được khi mở lại bài giảng / code cũ để tham khảo.</span>
+        </button>
+        <button type="button" class="assess-btn w-full text-left rounded-xl px-3.5 py-2.5 text-[13px] border-emerald-300 bg-emerald-50 text-emerald-700 hover:border-emerald-500" data-level="3">
+          <strong class="block">Vững</strong><span class="text-[11.5px] opacity-90">Tự làm lại từ đầu không cần nhìn tài liệu VÀ giải thích được cho bạn khác.</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="lg:col-span-2 bg-slate-900 text-slate-200 rounded-2xl shadow-lg p-5">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <h3 class="font-bold text-white text-sm"><i class="fa-solid fa-gauge-high text-emerald-400 mr-1.5"></i>Bước 3 — Panel tổng hợp: Readiness Phase 2</h3>
+        <button id="treeReset" type="button" class="text-[11.5px] font-bold bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg px-3 py-1.5"><i class="fa-solid fa-rotate-left mr-1"></i>Làm lại từ đầu</button>
+      </div>
+
+      <div class="mt-4 flex items-center gap-4">
+        <div class="flex-1">
+          <div class="flex justify-between text-[11px] font-bold text-slate-400 mb-1"><span>READINESS (tạm tính trên 11 node)</span><span id="ratedCount">Đã chấm 0/11</span></div>
+          <div class="h-4 bg-slate-700 rounded-full overflow-hidden">
+            <div id="readinessBar" class="h-full bg-gradient-to-r from-red-500 via-amber-400 to-emerald-400 rounded-full transition-all duration-500" style="width:0%"></div>
+          </div>
+        </div>
+        <span id="readinessPct" class="text-3xl font-black text-white w-20 text-right">0%</span>
+      </div>
+
+      <div class="grid grid-cols-3 gap-2 mt-4 text-center">
+        <div class="bg-emerald-500/10 border border-emerald-400/30 rounded-xl py-2"><span id="cnt3" class="block text-xl font-black text-emerald-300">0</span><span class="text-[10.5px] font-bold text-emerald-200/80 uppercase tracking-wider">Vững</span></div>
+        <div class="bg-amber-500/10 border border-amber-400/30 rounded-xl py-2"><span id="cnt2" class="block text-xl font-black text-amber-300">0</span><span class="text-[10.5px] font-bold text-amber-200/80 uppercase tracking-wider">Cơ bản</span></div>
+        <div class="bg-red-500/10 border border-red-400/30 rounded-xl py-2"><span id="cnt1" class="block text-xl font-black text-red-300">0</span><span class="text-[10.5px] font-bold text-red-200/80 uppercase tracking-wider">Chưa vững</span></div>
+      </div>
+
+      <div class="mt-4 bg-white/5 border border-white/10 rounded-xl p-3.5">
+        <p class="text-[11px] font-black uppercase tracking-wider text-red-300 mb-1.5"><i class="fa-solid fa-book-open-reader mr-1"></i>Tuần cần ôn lại trước Phase 2</p>
+        <p id="reviewSuggest" class="text-[13px] leading-relaxed text-slate-300">Hãy chấm các node trước — danh sách ôn tập sẽ hiện ở đây.</p>
+      </div>
+
+      <div class="mt-3 bg-white/5 border border-white/10 rounded-xl p-3.5">
+        <p class="text-[11px] font-black uppercase tracking-wider text-emerald-300 mb-1.5"><i class="fa-solid fa-wand-magic-sparkles mr-1"></i>Mini-project Phase 2 phù hợp với bạn</p>
+        <p id="projectSuggest" class="text-[13px] leading-relaxed text-slate-300">Gợi ý sẽ xuất hiện khi bạn chấm đủ nhiều node (dựa trên các khối mỗi project cần).</p>
+      </div>
+
+      <p class="mt-3 text-[11px] text-slate-500"><i class="fa-solid fa-circle-info mr-1"></i>Điểm: Vững = 2, Cơ bản = 1, Chưa vững / chưa chấm = 0. Readiness = tổng điểm / 22. Kết quả không lưu — chụp màn hình để giữ lại.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 7. ENGINEERING WORKFLOW ===================== -->
+<section id="workflow" class="py-12 border-t border-slate-200">
+  <div class="flex items-center gap-3 mb-6">
+    <span class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-timeline"></i></span>
+    <div>
+      <p class="text-[11px] font-bold uppercase tracking-widest text-primary">Section 7</p>
+      <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900">Engineering Workflow — Quy Trình Tự Học Phase 2</h2>
+    </div>
+  </div>
+
+  <p class="text-slate-600 max-w-3xl mb-6">
+    Phase 1 có mentor dẫn từng tuần. Phase 2 bạn <strong>tự lái</strong> theo đúng quy trình kỹ sư — vẫn là design flow
+    thu nhỏ của Tuần 2, nhưng lần này do bạn vận hành từ đầu đến cuối. Bảy bước, mỗi bước có sản phẩm đầu ra rõ ràng:
+  </p>
+
+  <div class="relative border-l-2 border-blue-200 ml-4 space-y-6">
+    <div class="relative pl-8">
+      <span class="absolute -left-[17px] top-0 w-8 h-8 rounded-full bg-primary text-white text-sm font-black flex items-center justify-center">1</span>
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4">
+        <div class="flex flex-wrap items-center gap-2"><h3 class="font-bold text-slate-800">Chọn project</h3><span class="text-[10.5px] font-bold bg-blue-50 text-primary border border-blue-200 rounded-full px-2 py-0.5">Output: 1 câu mô tả + độ khó</span></div>
+        <p class="text-sm text-slate-600 mt-1.5 leading-relaxed">Dựa vào <strong>skill tree Section 6</strong> và 4 đề xuất Section 13. Quy tắc vàng: project đầu tay nên dùng ≥ 70% khối đã học, chỉ ≤ 30% khối mới.</p>
+      </div>
+    </div>
+    <div class="relative pl-8">
+      <span class="absolute -left-[17px] top-0 w-8 h-8 rounded-full bg-primary text-white text-sm font-black flex items-center justify-center">2</span>
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4">
+        <div class="flex flex-wrap items-center gap-2"><h3 class="font-bold text-slate-800">Viết spec 1 trang</h3><span class="text-[10.5px] font-bold bg-blue-50 text-primary border border-blue-200 rounded-full px-2 py-0.5">Output: bảng I/O + tính năng + tiêu chí demo</span></div>
+        <p class="text-sm text-slate-600 mt-1.5 leading-relaxed">Như Tuần 2 đã dạy: input nào, output nào, hành vi ra sao, ràng buộc gì (clock 50 MHz, board nào, LED nào). Spec mơ hồ = code lạc đường.</p>
+      </div>
+    </div>
+    <div class="relative pl-8">
+      <span class="absolute -left-[17px] top-0 w-8 h-8 rounded-full bg-primary text-white text-sm font-black flex items-center justify-center">3</span>
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4">
+        <div class="flex flex-wrap items-center gap-2"><h3 class="font-bold text-slate-800">Design trên giấy</h3><span class="text-[10.5px] font-bold bg-blue-50 text-primary border border-blue-200 rounded-full px-2 py-0.5">Output: block diagram + state diagram / state table</span></div>
+        <p class="text-sm text-slate-600 mt-1.5 leading-relaxed">Vẽ các khối (T4), xác định khối nào tổ hợp / tuần tự (T5), vẽ FSM nếu có điều khiển (T6). <strong>Định luật 1: chưa có block diagram thì chưa được viết RTL.</strong></p>
+      </div>
+    </div>
+    <div class="relative pl-8">
+      <span class="absolute -left-[17px] top-0 w-8 h-8 rounded-full bg-primary text-white text-sm font-black flex items-center justify-center">4</span>
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4">
+        <div class="flex flex-wrap items-center gap-2"><h3 class="font-bold text-slate-800">RTL từng khối</h3><span class="text-[10.5px] font-bold bg-blue-50 text-primary border border-blue-200 rounded-full px-2 py-0.5">Output: mỗi khối một file .sv</span></div>
+        <p class="text-sm text-slate-600 mt-1.5 leading-relaxed">Viết theo template quen thuộc: FSM 3 khối, counter với enable, always_comb có default. Đặt tên tín hiệu rõ nghĩa (<span class="font-mono text-xs">tick_1s</span>, <span class="font-mono text-xs">btn_start_sync</span>).</p>
+      </div>
+    </div>
+    <div class="relative pl-8">
+      <span class="absolute -left-[17px] top-0 w-8 h-8 rounded-full bg-primary text-white text-sm font-black flex items-center justify-center">5</span>
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4">
+        <div class="flex flex-wrap items-center gap-2"><h3 class="font-bold text-slate-800">Testbench &amp; simulate</h3><span class="text-[10.5px] font-bold bg-blue-50 text-primary border border-blue-200 rounded-full px-2 py-0.5">Output: waveform từng khối + tích hợp</span></div>
+        <p class="text-sm text-slate-600 mt-1.5 leading-relaxed">Sim <em>từng khối riêng</em> trước, rồi mới ghép. Waveform là con mắt của bạn — trên board chỉ thấy LED, trong waveform thấy mọi tín hiệu. <strong>Định luật 2: sim chưa pass thì chưa lên board.</strong></p>
+      </div>
+    </div>
+    <div class="relative pl-8">
+      <span class="absolute -left-[17px] top-0 w-8 h-8 rounded-full bg-primary text-white text-sm font-black flex items-center justify-center">6</span>
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4">
+        <div class="flex flex-wrap items-center gap-2"><h3 class="font-bold text-slate-800">Lên FPGA</h3><span class="text-[10.5px] font-bold bg-blue-50 text-primary border border-blue-200 rounded-full px-2 py-0.5">Output: demo chạy trên board</span></div>
+        <p class="text-sm text-slate-600 mt-1.5 leading-relaxed">Gán chân (pin assignment), synthesis, nạp <strong>bitstream</strong> (= cấu hình FPGA — nạp lại bao nhiêu lần cũng được, khác hẳn tape-out). Debug trên board bằng LED phụ / nút bấm / UART in giá trị nội bộ (T11).</p>
+      </div>
+    </div>
+    <div class="relative pl-8">
+      <span class="absolute -left-[17px] top-0 w-8 h-8 rounded-full bg-accent text-white text-sm font-black flex items-center justify-center">7</span>
+      <div class="bg-white rounded-2xl shadow-sm border border-emerald-300 p-4">
+        <div class="flex flex-wrap items-center gap-2"><h3 class="font-bold text-slate-800">Demo + Writeup</h3><span class="text-[10.5px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full px-2 py-0.5">Output: video 1–2 phút + tài liệu 2–4 trang</span></div>
+        <p class="text-sm text-slate-600 mt-1.5 leading-relaxed">Writeup gồm: kiến trúc, waveform tiêu biểu, <em>3 bug đã gặp và cách sửa</em> (phần giá trị nhất!), hướng mở rộng. Đây là mục portfolio đầu tiên khi bạn ứng tuyển thực tập.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-8 bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+    <h3 class="font-bold text-slate-800 mb-3"><i class="fa-solid fa-calendar-days text-primary mr-2"></i>Ánh xạ vào 4 tuần Phase 2 (mỗi project)</h3>
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 text-sm">
+      <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5">
+        <p class="font-black text-primary text-xs uppercase tracking-wider">Tuần 1</p>
+        <p class="font-bold text-slate-800 mt-1">Bước 1–3</p>
+        <p class="text-[13px] text-slate-600 mt-1">Chọn project, spec 1 trang, block diagram + state diagram. Duyệt với mentor trước khi code.</p>
+      </div>
+      <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5">
+        <p class="font-black text-primary text-xs uppercase tracking-wider">Tuần 2</p>
+        <p class="font-bold text-slate-800 mt-1">Bước 4–5 (khối lõi)</p>
+        <p class="text-[13px] text-slate-600 mt-1">RTL + testbench cho 2–3 khối quan trọng nhất. Mỗi khối một waveform chứng minh chạy đúng.</p>
+      </div>
+      <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5">
+        <p class="font-black text-primary text-xs uppercase tracking-wider">Tuần 3</p>
+        <p class="font-bold text-slate-800 mt-1">Bước 4–5 (tích hợp)</p>
+        <p class="text-[13px] text-slate-600 mt-1">Ghép các khối ở top-level, sim tích hợp, sửa bug giao tiếp giữa khối (nơi 80% bug ẩn náu).</p>
+      </div>
+      <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3.5">
+        <p class="font-black text-emerald-700 text-xs uppercase tracking-wider">Tuần 4</p>
+        <p class="font-bold text-slate-800 mt-1">Bước 6–7</p>
+        <p class="text-[13px] text-slate-600 mt-1">Pin assignment, nạp bitstream, debug trên board, quay video demo, viết writeup, showcase.</p>
+      </div>
+    </div>
+    <p class="text-[13px] text-slate-500 mt-3"><i class="fa-solid fa-lightbulb text-secondary mr-1.5"></i>Nếu nhóm 2–3 người: chia theo <em>khối</em> chứ đừng chia theo <em>giai đoạn</em> — ai cũng phải được viết RTL và được sim, không ai chỉ "làm slide".</p>
+  </div>
+</section>
+<!-- ===================== 8. CODE RETROSPECTIVE ===================== -->
+<section id="code-rtl" class="py-12 border-t border-slate-200">
+  <div class="flex items-center gap-3 mb-6">
+    <span class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-code"></i></span>
+    <div>
+      <p class="text-[11px] font-bold uppercase tracking-widest text-primary">Section 8</p>
+      <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900">Code Retrospective — Đọc Lại Code Cũ Bằng Mắt Mới</h2>
+    </div>
+  </div>
+
+  <p class="text-slate-600 max-w-3xl mb-6">
+    Không có RTL mới tuần này. Thay vào đó, ta mở lại <strong>FSM đèn giao thông của Tuần 9</strong> — và phát hiện một điều thú vị:
+    một file chưa đầy 50 dòng chứa dấu vết của <strong>5 tuần học khác nhau</strong>. Mỗi chú thích <span class="anno">①</span>…<span class="anno">⑨</span>
+    trỏ về tuần bạn học khái niệm đó. Nếu đọc đến dòng nào mà không tự giải thích được — node tương ứng trên skill tree chưa thể màu xanh.
+  </p>
+
+  <div class="rounded-2xl overflow-hidden shadow-lg border border-slate-700 mb-6">
+    <div class="bg-slate-800 px-4 py-2.5 flex items-center justify-between">
+      <span class="text-xs font-mono text-slate-300"><i class="fa-solid fa-file-code mr-2 text-blue-400"></i>traffic_light.sv — phong cách Tuần 9, chú thích retrospective</span>
+      <button class="copy-btn text-xs font-bold text-slate-200 bg-slate-700 hover:bg-slate-600 border border-slate-600 rounded-lg px-3 py-1.5" data-target="codeRetro"><i class="fa-regular fa-copy mr-1"></i>Copy</button>
+    </div>
+<pre class="code" id="codeRetro"><span class="tc">// traffic_light.sv — FSM đèn giao thông (Tuần 9)</span>
+<span class="tc">// Chú thích <span class="anno">①</span>…<span class="anno">⑨</span>: khái niệm này bạn đã học ở tuần nào?</span>
+
+<span class="tk">module</span> traffic_light (                    <span class="tc">// <span class="anno">①</span> module + port list — Tuần 7</span>
+  <span class="tk">input</span>  <span class="tk">logic</span> clk,                       <span class="tc">// <span class="anno">②</span> clock 50 MHz, nhịp chung — Tuần 5</span>
+  <span class="tk">input</span>  <span class="tk">logic</span> rst_n,                     <span class="tc">// <span class="anno">②</span> reset active-low — Tuần 5</span>
+  <span class="tk">input</span>  <span class="tk">logic</span> tick_1s,                   <span class="tc">// <span class="anno">③</span> enable tick 1 s từ timer — Tuần 9</span>
+  <span class="tk">output</span> <span class="tk">logic</span> [<span class="tn">2</span>:<span class="tn">0</span>] lights               <span class="tc">// <span class="anno">①</span> 3 bit: {Đỏ, Vàng, Xanh}</span>
+);
+
+  <span class="tc">// <span class="anno">④</span> Mã hóa state bằng enum — Tuần 6</span>
+  <span class="tk">typedef enum</span> <span class="tk">logic</span> [<span class="tn">1</span>:<span class="tn">0</span>] {<span class="tp">S_RED</span>, <span class="tp">S_GREEN</span>, <span class="tp">S_YELLOW</span>} <span class="tp">state_t</span>;
+  <span class="tp">state_t</span> state, next_state;              <span class="tc">// <span class="anno">④</span> tách current / next — Tuần 6</span>
+
+  <span class="tk">logic</span> [<span class="tn">3</span>:<span class="tn">0</span>] sec_cnt;                    <span class="tc">// <span class="anno">⑤</span> counter 4 bit = 4 Flip-Flop — Tuần 5</span>
+
+  <span class="tc">// ---------- KHỐI 1: state register (tuần tự) ----------</span>
+  <span class="tk">always_ff</span> @(<span class="tk">posedge</span> clk <span class="tk">or</span> <span class="tk">negedge</span> rst_n) <span class="tk">begin</span>  <span class="tc">// <span class="anno">⑥</span> always_ff + &lt;= — Tuần 5, 7</span>
+    <span class="tk">if</span> (!rst_n)        state &lt;= <span class="tp">S_RED</span>;              <span class="tc">// <span class="anno">②</span> reset về trạng thái xác định</span>
+    <span class="tk">else if</span> (tick_1s)  state &lt;= next_state;         <span class="tc">// <span class="anno">③</span> đổi state mỗi giây, KHÔNG chế clock mới — Tuần 9</span>
+  <span class="tk">end</span>
+
+  <span class="tc">// ---------- DATAPATH: đếm số giây đã ở trong state hiện tại ----------</span>
+  <span class="tk">always_ff</span> @(<span class="tk">posedge</span> clk <span class="tk">or</span> <span class="tk">negedge</span> rst_n) <span class="tk">begin</span>
+    <span class="tk">if</span> (!rst_n)        sec_cnt &lt;= <span class="tn">'0</span>;
+    <span class="tk">else if</span> (tick_1s)  sec_cnt &lt;= (next_state != state) ? <span class="tn">'0</span> : sec_cnt + <span class="tn">4'd1</span>;  <span class="tc">// <span class="anno">⑨</span> controller ra lệnh, datapath đếm — Tuần 6, 9</span>
+  <span class="tk">end</span>
+
+  <span class="tc">// ---------- KHỐI 2: next-state logic (tổ hợp) ----------</span>
+  <span class="tk">always_comb</span> <span class="tk">begin</span>
+    next_state = state;                   <span class="tc">// <span class="anno">⑦</span> default assignment tránh latch — Tuần 7</span>
+    <span class="tk">case</span> (state)
+      <span class="tp">S_RED</span>:    <span class="tk">if</span> (sec_cnt == <span class="tn">4'd9</span>) next_state = <span class="tp">S_GREEN</span>;   <span class="tc">// <span class="anno">⑧</span> phép == là comparator — Tuần 4</span>
+      <span class="tp">S_GREEN</span>:  <span class="tk">if</span> (sec_cnt == <span class="tn">4'd7</span>) next_state = <span class="tp">S_YELLOW</span>;
+      <span class="tp">S_YELLOW</span>: <span class="tk">if</span> (sec_cnt == <span class="tn">4'd2</span>) next_state = <span class="tp">S_RED</span>;
+    <span class="tk">endcase</span>
+  <span class="tk">end</span>
+
+  <span class="tc">// ---------- KHỐI 3: output logic (Moore — output chỉ phụ thuộc state) ----------</span>
+  <span class="tk">always_comb</span> <span class="tk">begin</span>
+    lights = <span class="tn">3'b100</span>;                      <span class="tc">// <span class="anno">⑦</span> default: Đỏ — lựa chọn an toàn</span>
+    <span class="tk">case</span> (state)
+      <span class="tp">S_RED</span>:    lights = <span class="tn">3'b100</span>;
+      <span class="tp">S_GREEN</span>:  lights = <span class="tn">3'b001</span>;
+      <span class="tp">S_YELLOW</span>: lights = <span class="tn">3'b010</span>;
+    <span class="tk">endcase</span>
+  <span class="tk">end</span>
+
+<span class="tk">endmodule</span></pre>
+  </div>
+
+  <div class="grid md:grid-cols-2 gap-4">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+      <h3 class="font-bold text-slate-800 mb-3"><i class="fa-solid fa-map-pin text-primary mr-2"></i>Bảng tra chú thích — mỗi dòng code là một tuần học</h3>
+      <ul class="space-y-2 text-[13px] text-slate-700">
+        <li class="flex gap-2.5"><span class="anno shrink-0">①</span><span><strong>module, port list, khai báo I/O</strong> — Tuần 7 (Verilog là bản mô tả phần cứng, port = chân của khối).</span></li>
+        <li class="flex gap-2.5"><span class="anno shrink-0">②</span><span><strong>clk, rst_n, trạng thái ban đầu xác định</strong> — Tuần 5 (mọi FF cần nhịp và điểm xuất phát).</span></li>
+        <li class="flex gap-2.5"><span class="anno shrink-0">③</span><span><strong>tick_1s: enable tick thay vì chế clock mới</strong> — Tuần 9 (cả mạch chạy chung MỘT clock; tick chỉ là tín hiệu enable 1 chu kỳ).</span></li>
+        <li class="flex gap-2.5"><span class="anno shrink-0">④</span><span><strong>enum state, tách current/next</strong> — Tuần 6 (state diagram trên giấy trở thành 2 biến trong code).</span></li>
+        <li class="flex gap-2.5"><span class="anno shrink-0">⑤</span><span><strong>sec_cnt 4 bit = 4 Flip-Flop</strong> — Tuần 5 (mỗi FF lưu đúng 1 bit; đếm 0–9 cần 4 bit).</span></li>
+        <li class="flex gap-2.5"><span class="anno shrink-0">⑥</span><span><strong>always_ff với &lt;= (non-blocking)</strong> — Tuần 5, 7 (mạch tuần tự: mọi FF cập nhật đồng loạt tại cạnh lên).</span></li>
+        <li class="flex gap-2.5"><span class="anno shrink-0">⑦</span><span><strong>default assignment trong always_comb</strong> — Tuần 7 (nhánh nào cũng có giá trị → không sinh latch ngoài ý muốn).</span></li>
+        <li class="flex gap-2.5"><span class="anno shrink-0">⑧</span><span><strong>phép so sánh == </strong> — Tuần 4 (synthesis biến nó thành khối comparator tổ hợp).</span></li>
+        <li class="flex gap-2.5"><span class="anno shrink-0">⑨</span><span><strong>controller / datapath</strong> — Tuần 6, 9 (FSM ra lệnh; counter đếm — hai vai trò tách bạch).</span></li>
+      </ul>
+    </div>
+
+    <div class="space-y-4">
+      <div class="bg-slate-900 text-slate-200 rounded-2xl p-5">
+        <h3 class="font-bold text-white mb-2.5"><i class="fa-solid fa-microchip text-emerald-400 mr-2"></i>Synthesis sinh ra phần cứng gì từ file này?</h3>
+        <ul class="space-y-2 text-[13px]">
+          <li class="flex gap-2"><i class="fa-solid fa-square text-blue-400 text-[8px] mt-1.5"></i><span><strong class="text-white">Khối 1</strong> → <strong>2 Flip-Flop</strong> lưu state (2 bit đủ mã hóa 3 trạng thái).</span></li>
+          <li class="flex gap-2"><i class="fa-solid fa-square text-blue-400 text-[8px] mt-1.5"></i><span><strong class="text-white">Datapath</strong> → <strong>4 FF + bộ cộng + MUX</strong> cho sec_cnt.</span></li>
+          <li class="flex gap-2"><i class="fa-solid fa-square text-blue-400 text-[8px] mt-1.5"></i><span><strong class="text-white">Khối 2 + 3</strong> → thuần <strong>logic tổ hợp</strong> (comparator + gates; trên FPGA là các LUT), có propagation delay chứ không đổi "ngay lập tức".</span></li>
+        </ul>
+      </div>
+      <div class="bg-blue-50 border border-blue-200 rounded-2xl p-5">
+        <h3 class="font-bold text-slate-800 mb-1.5"><i class="fa-solid fa-graduation-cap text-primary mr-2"></i>Bài tập đọc-code cho buổi học</h3>
+        <p class="text-[13px] text-slate-700 leading-relaxed">Che cột chú thích, đọc code và tự gán số tuần cho từng dòng. Sau đó làm ngược lại với code <strong>của chính bạn</strong> (T10 hoặc T11).
+        Dòng nào bạn viết được nhưng không giải thích được là "nợ kỹ thuật" — ghi vào danh sách ôn tập trước Phase 2.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 9. TIMELINE RETROSPECTIVE ===================== -->
+<section id="waveform" class="py-12 border-t border-slate-200">
+  <div class="flex items-center gap-3 mb-6">
+    <span class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-wave-square"></i></span>
+    <div>
+      <p class="text-[11px] font-bold uppercase tracking-widest text-primary">Section 9</p>
+      <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900">Timeline 12 Tuần — Một "Waveform" Đặc Biệt</h2>
+    </div>
+  </div>
+
+  <p class="text-slate-600 max-w-3xl mb-5">
+    Tuần này không có waveform tín hiệu mới — thay vào đó là <strong>waveform của chính hành trình học</strong>:
+    12 chu kỳ, mỗi tuần một cạnh lên. Giống như D Flip-Flop chỉ "chốt" dữ liệu tại cạnh lên clock,
+    kiến thức chỉ được chốt vào trí nhớ dài hạn tại những "cạnh lên" của bạn: lúc làm bài tập, lúc debug project, lúc giải thích cho bạn cùng nhóm.
+  </p>
+
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 mb-6">
+    <p class="text-xs text-slate-500 mb-2">Kéo ngang để xem đủ 12 tuần.</p>
+    <div class="overflow-x-auto">
+      <svg viewBox="0 0 1150 330" class="min-w-[1080px] w-full h-auto" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Timeline 12 tuần dạng sóng vuông">
+        <text x="30" y="40" font-size="11" font-weight="700" fill="#64748b">clk_hành_trình — 12 chu kỳ = 12 tuần, mỗi cạnh lên "chốt" một lớp kiến thức</text>
+
+        <!-- Phase bands -->
+        <rect x="30" y="140" width="180" height="130" fill="#dbeafe" rx="8"/>
+        <rect x="210" y="140" width="180" height="130" fill="#ede9fe" rx="8"/>
+        <rect x="390" y="140" width="180" height="130" fill="#fef3c7" rx="8"/>
+        <rect x="570" y="140" width="180" height="130" fill="#e0f2fe" rx="8"/>
+        <rect x="750" y="140" width="270" height="130" fill="#d1fae5" rx="8"/>
+        <rect x="1020" y="140" width="90" height="130" fill="#f1f5f9" rx="8"/>
+
+        <text x="120" y="158" text-anchor="middle" font-size="10.5" font-weight="800" fill="#1d4ed8">FOUNDATION</text>
+        <text x="300" y="158" text-anchor="middle" font-size="10.5" font-weight="800" fill="#6d28d9">COMBINATIONAL</text>
+        <text x="480" y="158" text-anchor="middle" font-size="10.5" font-weight="800" fill="#b45309">SEQUENTIAL &amp; FSM</text>
+        <text x="660" y="158" text-anchor="middle" font-size="10.5" font-weight="800" fill="#0369a1">HDL &amp; PLATFORM</text>
+        <text x="885" y="158" text-anchor="middle" font-size="10.5" font-weight="800" fill="#047857">PROJECTS</text>
+        <text x="1065" y="158" text-anchor="middle" font-size="10.5" font-weight="800" fill="#475569">WRAP-UP</text>
+
+        <!-- Square wave: 12 periods, rising edge at start of each week -->
+        <path d="M30,120 L30,70 L75,70 L75,120 L120,120 L120,70 L165,70 L165,120 L210,120 L210,70 L255,70 L255,120 L300,120 L300,70 L345,70 L345,120 L390,120 L390,70 L435,70 L435,120 L480,120 L480,70 L525,70 L525,120 L570,120 L570,70 L615,70 L615,120 L660,120 L660,70 L705,70 L705,120 L750,120 L750,70 L795,70 L795,120 L840,120 L840,70 L885,70 L885,120 L930,120 L930,70 L975,70 L975,120 L1020,120 L1020,70 L1065,70 L1065,120 L1110,120"
+              fill="none" stroke="#2563eb" stroke-width="2.5"/>
+
+        <!-- Week labels on high segments -->
+        <text x="52" y="62" text-anchor="middle" font-size="10" font-weight="800" fill="#1d4ed8">T1</text>
+        <text x="142" y="62" text-anchor="middle" font-size="10" font-weight="800" fill="#1d4ed8">T2</text>
+        <text x="232" y="62" text-anchor="middle" font-size="10" font-weight="800" fill="#6d28d9">T3</text>
+        <text x="322" y="62" text-anchor="middle" font-size="10" font-weight="800" fill="#6d28d9">T4</text>
+        <text x="412" y="62" text-anchor="middle" font-size="10" font-weight="800" fill="#b45309">T5</text>
+        <text x="502" y="62" text-anchor="middle" font-size="10" font-weight="800" fill="#b45309">T6</text>
+        <text x="592" y="62" text-anchor="middle" font-size="10" font-weight="800" fill="#0369a1">T7</text>
+        <text x="682" y="62" text-anchor="middle" font-size="10" font-weight="800" fill="#0369a1">T8</text>
+        <text x="772" y="62" text-anchor="middle" font-size="10" font-weight="800" fill="#047857">T9</text>
+        <text x="862" y="62" text-anchor="middle" font-size="10" font-weight="800" fill="#047857">T10</text>
+        <text x="952" y="62" text-anchor="middle" font-size="10" font-weight="800" fill="#047857">T11</text>
+        <text x="1042" y="62" text-anchor="middle" font-size="10" font-weight="800" fill="#475569">T12</text>
+
+        <!-- Topic labels (two lines per week) -->
+        <text x="75" y="190" text-anchor="middle" font-size="10" fill="#334155">Semiconductor</text>
+        <text x="75" y="204" text-anchor="middle" font-size="10" fill="#64748b">IC, SoC</text>
+        <text x="165" y="190" text-anchor="middle" font-size="10" fill="#334155">Design Flow</text>
+        <text x="165" y="204" text-anchor="middle" font-size="10" fill="#64748b">idea → chip</text>
+        <text x="255" y="190" text-anchor="middle" font-size="10" fill="#334155">Logic Gates</text>
+        <text x="255" y="204" text-anchor="middle" font-size="10" fill="#64748b">truth table</text>
+        <text x="345" y="190" text-anchor="middle" font-size="10" fill="#334155">Khối tổ hợp</text>
+        <text x="345" y="204" text-anchor="middle" font-size="10" fill="#64748b">MUX, adder</text>
+        <text x="435" y="190" text-anchor="middle" font-size="10" fill="#334155">Flip-Flop</text>
+        <text x="435" y="204" text-anchor="middle" font-size="10" fill="#64748b">counter, clock</text>
+        <text x="525" y="190" text-anchor="middle" font-size="10" fill="#334155">FSM</text>
+        <text x="525" y="204" text-anchor="middle" font-size="10" fill="#64748b">Moore / Mealy</text>
+        <text x="615" y="190" text-anchor="middle" font-size="10" fill="#334155">Verilog</text>
+        <text x="615" y="204" text-anchor="middle" font-size="10" fill="#64748b">HDL song song</text>
+        <text x="705" y="190" text-anchor="middle" font-size="10" fill="#334155">FPGA vs ASIC</text>
+        <text x="705" y="204" text-anchor="middle" font-size="10" fill="#64748b">trade-off</text>
+        <text x="795" y="190" text-anchor="middle" font-size="10" fill="#334155">Traffic Light</text>
+        <text x="795" y="204" text-anchor="middle" font-size="10" fill="#64748b">FSM + timer</text>
+        <text x="885" y="190" text-anchor="middle" font-size="10" fill="#334155">Counter +</text>
+        <text x="885" y="204" text-anchor="middle" font-size="10" fill="#64748b">7-segment</text>
+        <text x="975" y="190" text-anchor="middle" font-size="10" fill="#334155">UART TX</text>
+        <text x="975" y="204" text-anchor="middle" font-size="10" fill="#64748b">frame, baud</text>
+        <text x="1065" y="190" text-anchor="middle" font-size="10" fill="#334155">Wrap-up</text>
+        <text x="1065" y="204" text-anchor="middle" font-size="10" fill="#64748b">→ Phase 2</text>
+
+        <!-- Milestones -->
+        <text x="255" y="240" text-anchor="middle" font-size="13" fill="#f59e0b">★</text>
+        <text x="255" y="256" text-anchor="middle" font-size="9.5" font-weight="700" fill="#b45309">Truth table đầu tiên</text>
+        <text x="615" y="240" text-anchor="middle" font-size="13" fill="#f59e0b">★</text>
+        <text x="615" y="256" text-anchor="middle" font-size="9.5" font-weight="700" fill="#b45309">Dòng RTL đầu tiên</text>
+        <text x="795" y="240" text-anchor="middle" font-size="13" fill="#f59e0b">★</text>
+        <text x="795" y="256" text-anchor="middle" font-size="9.5" font-weight="700" fill="#b45309">FPGA demo đầu tiên</text>
+        <text x="975" y="240" text-anchor="middle" font-size="13" fill="#f59e0b">★</text>
+        <text x="975" y="256" text-anchor="middle" font-size="9.5" font-weight="700" fill="#b45309">Byte đầu tiên tới PC</text>
+
+        <text x="570" y="310" text-anchor="middle" font-size="11" font-style="italic" fill="#64748b">Kiến thức không tự "chốt" theo thời gian — nó chốt tại cạnh lên: lúc bạn LÀM bài tập, debug project, giảng lại cho người khác.</text>
+      </svg>
+    </div>
+  </div>
+
+  <div class="grid md:grid-cols-3 gap-4">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4">
+      <p class="text-sm font-bold text-slate-800"><i class="fa-solid fa-layer-group text-primary mr-1.5"></i>Kiến thức xếp tầng</p>
+      <p class="text-[13px] text-slate-600 mt-1.5 leading-relaxed">Không tuần nào đứng một mình: FSM (T6) cần FF (T5); UART (T11) cần shift register (T5), FSM (T6), Verilog (T7), tick (T9). Vì thế lỗ hổng ở tầng dưới sẽ "dội" lên mọi tầng trên — hãy ôn từ node thấp nhất.</p>
+    </div>
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4">
+      <p class="text-sm font-bold text-slate-800"><i class="fa-solid fa-chart-pie text-secondary mr-1.5"></i>Tỷ lệ 8 : 3 : 1</p>
+      <p class="text-[13px] text-slate-600 mt-1.5 leading-relaxed">8 tuần nền tảng → 3 tuần project → 1 tuần nhìn lại. Phase 2 đảo tỷ lệ: ~1 tuần thiết kế trên giấy, ~3 tuần làm và debug. Từ "học để làm" chuyển sang "làm để học".</p>
+    </div>
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4">
+      <p class="text-sm font-bold text-slate-800"><i class="fa-solid fa-arrows-spin text-accent mr-1.5"></i>Vòng xoáy đi lên</p>
+      <p class="text-[13px] text-slate-600 mt-1.5 leading-relaxed">Phase 2 lặp lại đúng chu trình spec → design → RTL → sim → FPGA nhưng ở mức khó hơn. Nghề IC design là vòng xoáy này lặp cả sự nghiệp — mỗi vòng, chip phức tạp hơn một bậc.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 10. ACTIVE LEARNING 60' ===================== -->
+<section id="active-learning" class="py-12 border-t border-slate-200">
+  <div class="flex items-center gap-3 mb-6">
+    <span class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-users-rectangle"></i></span>
+    <div>
+      <p class="text-[11px] font-bold uppercase tracking-widest text-primary">Section 10</p>
+      <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900">Kịch Bản Buổi Tổng Kết — 60 Phút</h2>
+    </div>
+  </div>
+
+  <p class="text-slate-600 max-w-3xl mb-6">
+    Buổi cuối chạy theo format <strong>wrap-up</strong>: sinh viên nói là chính, mentor chỉ tổng kết và "đóng khung" lại bức tranh.
+    Năng lượng buổi này quyết định bao nhiêu người thật sự bước tiếp vào Phase 2.
+  </p>
+
+  <div class="space-y-3">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 flex gap-4">
+      <div class="shrink-0 w-16 text-center"><span class="block text-lg font-black text-primary">5'</span><span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">00–05</span></div>
+      <div>
+        <h3 class="font-bold text-slate-800">Check-in mở màn</h3>
+        <p class="text-sm text-slate-600 mt-1 leading-relaxed">Mỗi người nói đúng 2 thứ: <strong>% readiness</strong> từ skill tree (Section 6) và <strong>1 từ</strong> mô tả cảm xúc khi kết thúc Phase 1. Mentor ghi nhanh các con số lên bảng — đây là "ảnh chụp" của cả lớp.</p>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 flex gap-4">
+      <div class="shrink-0 w-16 text-center"><span class="block text-lg font-black text-primary">15'</span><span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">05–20</span></div>
+      <div>
+        <h3 class="font-bold text-slate-800">Showcase reflection — sinh viên trình bày</h3>
+        <p class="text-sm text-slate-600 mt-1 leading-relaxed">3 sinh viên (xung phong / chỉ định trước) × 5 phút theo khung: <em>topic thú vị nhất · topic khó nhất · điều quan trọng nhất học được · project muốn làm · 1 lời khuyên cho khóa sau</em>. Khuyến khích chiếu sản phẩm thật: waveform, video demo, terminal UART.</p>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 flex gap-4">
+      <div class="shrink-0 w-16 text-center"><span class="block text-lg font-black text-primary">10'</span><span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">20–30</span></div>
+      <div>
+        <h3 class="font-bold text-slate-800">Mentor tổng kết bức tranh 12 tuần</h3>
+        <p class="text-sm text-slate-600 mt-1 leading-relaxed">Vẽ lại System View (Section 5) lên bảng từ trí nhớ, chỉ vào từng khối và hỏi cả lớp "học tuần nào?". Sửa ngay 2–3 ngộ nhận nghe được trong phần showcase. Chốt bằng 5 ý của Final Summary.</p>
+      </div>
+    </div>
+    <div class="bg-blue-50 rounded-2xl border-2 border-primary/40 p-4 flex gap-4">
+      <div class="shrink-0 w-16 text-center"><span class="block text-lg font-black text-primary">15'</span><span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">30–45</span></div>
+      <div>
+        <h3 class="font-bold text-slate-800">Breakout — lập kế hoạch Phase 2 <span class="text-[10.5px] font-bold bg-primary text-white rounded-full px-2 py-0.5 ml-1">trọng tâm</span></h3>
+        <p class="text-sm text-slate-600 mt-1 leading-relaxed">Nhóm 3–4 người theo project định chọn. Thảo luận theo 5 câu hỏi Section 11 và điền <strong>mẫu proposal</strong>. Mentor đảo qua các phòng, mỗi phòng hỏi đúng 1 câu: <em>"Khối nào trong proposal các em CHƯA từng làm?"</em></p>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 flex gap-4">
+      <div class="shrink-0 w-16 text-center"><span class="block text-lg font-black text-primary">10'</span><span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">45–55</span></div>
+      <div>
+        <h3 class="font-bold text-slate-800">Nhóm chia sẻ proposal</h3>
+        <p class="text-sm text-slate-600 mt-1 leading-relaxed">Mỗi nhóm 2 phút: tên project → block diagram nháp → khối đã có / khối còn thiếu → timeline 4 tuần. Các nhóm khác được hỏi 1 câu "skeptic" (VD: "demo thất bại kiểu gì là dễ nhất?").</p>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl shadow-sm border border-emerald-300 p-4 flex gap-4">
+      <div class="shrink-0 w-16 text-center"><span class="block text-lg font-black text-accent">5'</span><span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">55–60</span></div>
+      <div>
+        <h3 class="font-bold text-slate-800">Closing — đóng Phase 1, mở Phase 2</h3>
+        <p class="text-sm text-slate-600 mt-1 leading-relaxed">Mỗi người 1 câu cam kết ("tuần tới tôi sẽ…"). Mentor chốt <strong>lịch kick-off Phase 2</strong> ngay tại chỗ (đừng để "hẹn sau"), chụp ảnh cả lớp với sản phẩm demo. Kết thúc đúng giờ, trên nốt cao.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- ===================== 11. BREAKOUT ROOM GUIDE ===================== -->
+<section id="breakout" class="py-12 border-t border-slate-200">
+  <div class="flex items-center gap-3 mb-6">
+    <span class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-people-group"></i></span>
+    <div>
+      <p class="text-[11px] font-bold uppercase tracking-widest text-primary">Section 11</p>
+      <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900">Breakout Room — Reflection &amp; Kế Hoạch Phase 2</h2>
+    </div>
+  </div>
+
+  <p class="text-slate-600 max-w-3xl mb-6">
+    Nhóm 3–4 người, 15–20 phút, <strong>ghép nhóm theo project định chọn</strong> (ai thích stopwatch vào một phòng, ai mê UART vào phòng khác).
+    Câu hỏi buộc phân tích — trả lời kiểu "em thấy khó" mà không nói <em>vì sao</em> thì Facilitator hỏi tiếp.
+  </p>
+
+  <div class="grid lg:grid-cols-2 gap-4 mb-6">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+      <h3 class="font-bold text-slate-800 mb-3"><i class="fa-solid fa-comments text-primary mr-2"></i>5 câu hỏi thảo luận</h3>
+      <ol class="space-y-3 text-sm text-slate-700 list-none">
+        <li class="flex gap-3"><span class="shrink-0 w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-xs font-bold flex items-center justify-center">1</span><span><strong>Tuần nào khó nhất với bạn — và vì sao?</strong> Khó ở <em>khái niệm</em> (không hình dung được) hay khó ở <em>công cụ</em> (tool báo lỗi)? Hai loại khó này cần hai cách khắc phục khác nhau.</span></li>
+        <li class="flex gap-3"><span class="shrink-0 w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-xs font-bold flex items-center justify-center">2</span><span><strong>Khái niệm nào thay đổi cách bạn nhìn máy tính / thiết bị điện tử?</strong> (VD: "hóa ra bên trong đồng hồ chỉ là counter + decoder"). Nêu một thiết bị quen thuộc và mô tả lại nó bằng ngôn ngữ Phase 1.</span></li>
+        <li class="flex gap-3"><span class="shrink-0 w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-xs font-bold flex items-center justify-center">3</span><span><strong>Nhóm chọn project Phase 2 nào? Cần những khối gì?</strong> Liệt kê từng khối, gắn tuần đã học; khối nào <em>chưa từng làm</em> — đó là rủi ro số 1 của proposal.</span></li>
+        <li class="flex gap-3"><span class="shrink-0 w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-xs font-bold flex items-center justify-center">4</span><span><strong>Lỗ hổng kiến thức nào nguy hiểm nhất nếu không lấp trước Phase 2?</strong> Đối chiếu skill tree của từng thành viên: node đỏ nào xuất hiện ở ≥ 2 người → cả nhóm lên lịch ôn chung.</span></li>
+        <li class="flex gap-3"><span class="shrink-0 w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-xs font-bold flex items-center justify-center">5</span><span><strong>Demo thất bại kiểu gì là dễ xảy ra nhất — và làm sao phát hiện sớm?</strong> (Gợi ý: khối mới chưa test, quên testbench, chọn phạm vi quá lớn…) Ghi thành mục "rủi ro" trong proposal.</span></li>
+      </ol>
+    </div>
+
+    <div class="space-y-4">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+        <h3 class="font-bold text-slate-800 mb-3"><i class="fa-solid fa-user-gear text-primary mr-2"></i>Vai trò trong nhóm</h3>
+        <div class="space-y-2.5 text-sm">
+          <div class="flex gap-3 items-start"><span class="shrink-0 text-[10.5px] font-black uppercase bg-blue-600 text-white rounded-lg px-2 py-1">Facilitator</span><p class="text-slate-600">Giữ nhịp 5 câu hỏi trong 15 phút, không cho nhóm sa đà vào 1 câu; hỏi "vì sao?" khi câu trả lời chỉ là cảm giác.</p></div>
+          <div class="flex gap-3 items-start"><span class="shrink-0 text-[10.5px] font-black uppercase bg-amber-500 text-white rounded-lg px-2 py-1">Note keeper</span><p class="text-slate-600">Điền trực tiếp vào mẫu proposal bên dưới trong lúc thảo luận — kết thúc breakout là proposal đã có hình hài.</p></div>
+          <div class="flex gap-3 items-start"><span class="shrink-0 text-[10.5px] font-black uppercase bg-emerald-600 text-white rounded-lg px-2 py-1">Reporter</span><p class="text-slate-600">Trình bày 2 phút trước lớp: tên project → block diagram → khối thiếu → timeline. Nói theo sơ đồ, không đọc văn bản.</p></div>
+        </div>
+      </div>
+
+      <div class="bg-slate-900 text-slate-200 rounded-2xl p-5">
+        <h3 class="font-bold text-white mb-3"><i class="fa-solid fa-file-signature text-emerald-400 mr-2"></i>Output nhóm nộp: Mini-Project Proposal (mẫu)</h3>
+        <ol class="space-y-2 text-[13px] list-none">
+          <li class="flex gap-2.5"><span class="text-emerald-400 font-black">1.</span><span><strong class="text-white">Tên project</strong> + 1 câu "elevator pitch" (VD: "Stopwatch 0,1 s có start/stop/reset trên board DE10-Lite").</span></li>
+          <li class="flex gap-2.5"><span class="text-emerald-400 font-black">2.</span><span><strong class="text-white">Mô tả 3–4 câu:</strong> làm gì, input/output nào, demo trông như thế nào khi thành công.</span></li>
+          <li class="flex gap-2.5"><span class="text-emerald-400 font-black">3.</span><span><strong class="text-white">Block diagram</strong> (vẽ tay chụp ảnh là đủ): các khối + mũi tên tín hiệu + đánh dấu clock/reset.</span></li>
+          <li class="flex gap-2.5"><span class="text-emerald-400 font-black">4.</span><span><strong class="text-white">Bảng khối:</strong> khối | chức năng | học ở tuần | đã làm bao giờ chưa? — khối "chưa" phải ≤ 30%.</span></li>
+          <li class="flex gap-2.5"><span class="text-emerald-400 font-black">5.</span><span><strong class="text-white">Timeline 4 tuần:</strong> tuần nào ra deliverable gì (theo Workflow Section 7), tuần 2–3 phải có mục "testbench + waveform".</span></li>
+          <li class="flex gap-2.5"><span class="text-emerald-400 font-black">6.</span><span><strong class="text-white">Rủi ro số 1</strong> + phương án B (VD: chưa có cảm biến → thay bằng switch giả lập giá trị).</span></li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 12. COMMON MISTAKES ===================== -->
+<section id="mistakes" class="py-12 border-t border-slate-200">
+  <div class="flex items-center gap-3 mb-6">
+    <span class="w-10 h-10 rounded-xl bg-danger/10 text-danger flex items-center justify-center"><i class="fa-solid fa-triangle-exclamation"></i></span>
+    <div>
+      <p class="text-[11px] font-bold uppercase tracking-widest text-danger">Section 12</p>
+      <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900">Lỗi Tư Duy Khi Kết Thúc Khóa Nhập Môn</h2>
+    </div>
+  </div>
+
+  <p class="text-slate-600 max-w-3xl mb-6">
+    Tuần cuối không còn lỗi syntax — chỉ còn lỗi <strong>tư duy</strong>. Sáu cái bẫy dưới đây đã "bắt" rất nhiều người
+    ngay tại vạch xuất phát của Phase 2:
+  </p>
+
+  <div class="grid md:grid-cols-2 gap-4">
+    <div class="bg-red-50 border border-red-200 rounded-2xl p-5">
+      <h3 class="font-bold text-red-800 flex items-center gap-2"><i class="fa-solid fa-xmark-circle"></i>"Mình đã biết Verilog rồi"</h3>
+      <p class="text-sm text-slate-700 mt-2 leading-relaxed"><strong>Vì sao nguy hiểm:</strong> 12 tuần nhập môn mới chạm bề mặt: bạn chưa học verification bài bản, timing closure, clock domain crossing, assertion… Ảo tưởng "đã biết" khiến bạn ngừng học đúng lúc cần tăng tốc — và sốc khi phỏng vấn thực tập.</p>
+      <p class="text-sm text-slate-700 mt-2 leading-relaxed"><strong class="text-emerald-700">Cách sửa:</strong> nói chính xác: "mình <em>đọc–viết được</em> RTL cơ bản và <em>biết mình chưa biết gì</em>". Skill tree Section 6 chính là câu trả lời trung thực đó.</p>
+    </div>
+
+    <div class="bg-red-50 border border-red-200 rounded-2xl p-5">
+      <h3 class="font-bold text-red-800 flex items-center gap-2"><i class="fa-solid fa-xmark-circle"></i>Bỏ qua testbench khi làm project</h3>
+      <p class="text-sm text-slate-700 mt-2 leading-relaxed"><strong>Vì sao nguy hiểm:</strong> "nạp lên board xem là biết" — nhưng board chỉ cho thấy LED sáng hay không, không cho thấy <em>vì sao</em>. Một bug FSM có thể tốn 3 buổi debug mù trên board, trong khi waveform chỉ ra nó trong 3 phút.</p>
+      <p class="text-sm text-slate-700 mt-2 leading-relaxed"><strong class="text-emerald-700">Cách sửa:</strong> luật sắt của Workflow Section 7: <em>sim chưa pass thì chưa lên board</em>. Trong timeline proposal phải có dòng "testbench + waveform" ở tuần 2–3.</p>
+    </div>
+
+    <div class="bg-red-50 border border-red-200 rounded-2xl p-5">
+      <h3 class="font-bold text-red-800 flex items-center gap-2"><i class="fa-solid fa-xmark-circle"></i>Chọn project quá lớn</h3>
+      <p class="text-sm text-slate-700 mt-2 leading-relaxed"><strong>Vì sao nguy hiểm:</strong> "làm CPU RISC-V", "làm game console" nghe rất oách — nhưng 4 tuần không ra demo, nhóm mất động lực và Phase 2 tan. Project thất bại vì phạm vi nhiều hơn vì kỹ thuật.</p>
+      <p class="text-sm text-slate-700 mt-2 leading-relaxed"><strong class="text-emerald-700">Cách sửa:</strong> quy tắc ≤ 6 khối, ≥ 70% khối đã học. Chọn project nhỏ chạy được rồi <em>mở rộng</em> (stopwatch → thêm lap time → thêm gửi kết quả qua UART) — mỗi lần mở rộng là một demo mới.</p>
+    </div>
+
+    <div class="bg-red-50 border border-red-200 rounded-2xl p-5">
+      <h3 class="font-bold text-red-800 flex items-center gap-2"><i class="fa-solid fa-xmark-circle"></i>Học tool mà quên nền tảng</h3>
+      <p class="text-sm text-slate-700 mt-2 leading-relaxed"><strong>Vì sao nguy hiểm:</strong> biết bấm Quartus/Vivado nhưng không giải thích được vì sao tool báo "inferred latch" — thì mỗi warning là một bức tường. Tool đổi theo công ty; nền tảng đi theo bạn cả sự nghiệp.</p>
+      <p class="text-sm text-slate-700 mt-2 leading-relaxed"><strong class="text-emerald-700">Cách sửa:</strong> mỗi lần tool báo warning, truy về khái niệm gốc: latch → default assignment (T7); timing → propagation delay (T3–T5). Warning là câu hỏi ôn tập miễn phí.</p>
+    </div>
+
+    <div class="bg-red-50 border border-red-200 rounded-2xl p-5">
+      <h3 class="font-bold text-red-800 flex items-center gap-2"><i class="fa-solid fa-xmark-circle"></i>Nghĩ FPGA demo = sản phẩm ASIC thương mại</h3>
+      <p class="text-sm text-slate-700 mt-2 leading-relaxed"><strong>Vì sao nguy hiểm:</strong> đèn LED chạy trên board mới chứng minh <em>chức năng logic</em>. Một chip thương mại còn cần verification khắt khe, DFT, timing/power sign-off, tape-out tốn hàng triệu USD, production test… Đánh đồng hai thứ là hiểu sai cả ngành (và trade-off của Tuần 8).</p>
+      <p class="text-sm text-slate-700 mt-2 leading-relaxed"><strong class="text-emerald-700">Cách sửa:</strong> gọi đúng tên: FPGA demo là <strong>prototype chứng minh chức năng</strong> — bước đầu tiên, rất giá trị, nhưng là 1 trong nhiều bước của design flow Tuần 2.</p>
+    </div>
+
+    <div class="bg-orange-50 border border-orange-200 rounded-2xl p-5">
+      <h3 class="font-bold text-orange-800 flex items-center gap-2"><i class="fa-solid fa-xmark-circle"></i>Nghỉ "xả hơi" quá dài trước Phase 2</h3>
+      <p class="text-sm text-slate-700 mt-2 leading-relaxed"><strong>Vì sao nguy hiểm:</strong> kỹ năng mới học giống tụ điện — không nạp lại là rò rỉ dần. Nghỉ 2 tháng, mở lại code T9 sẽ thấy như code của người lạ; động lực nhóm cũng nguội theo.</p>
+      <p class="text-sm text-slate-700 mt-2 leading-relaxed"><strong class="text-emerald-700">Cách sửa:</strong> chốt ngày kick-off Phase 2 ngay trong buổi tổng kết (≤ 2 tuần sau). Deliverable tuần đầu thật nhỏ: nộp spec 1 trang — đủ để "giữ nhiệt".</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 13. MINI-PROJECT CONNECTION: PHASE 2 PROPOSALS ===================== -->
+<section id="mini-project" class="py-12 border-t border-slate-200">
+  <div class="flex items-center gap-3 mb-6">
+    <span class="w-10 h-10 rounded-xl bg-accent/10 text-accent flex items-center justify-center"><i class="fa-solid fa-rocket"></i></span>
+    <div>
+      <p class="text-[11px] font-bold uppercase tracking-widest text-accent">Section 13</p>
+      <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900">4 Đề Xuất Mini-Project Phase 2</h2>
+    </div>
+  </div>
+
+  <p class="text-slate-600 max-w-3xl mb-6">
+    Bốn project được thiết kế để <strong>lắp từ các khối bạn đã học</strong> — mỗi cái chỉ thêm đúng một kỹ năng mới.
+    Độ khó chấm trên thang 5. Nhóm được đề xuất ý tưởng riêng nếu thỏa 3 điều kiện: ≤ 6 khối, ≥ 70% khối đã học, demo được trong 4 tuần.
+  </p>
+
+  <div class="grid md:grid-cols-2 gap-4">
+
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+      <div class="flex items-start justify-between gap-2">
+        <h3 class="font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-stopwatch text-primary"></i>1. Digital Stopwatch</h3>
+        <span class="flex gap-1 mt-1.5" title="Độ khó 2/5"><span class="w-2 h-2 rounded-full bg-secondary inline-block"></span><span class="w-2 h-2 rounded-full bg-secondary inline-block"></span><span class="w-2 h-2 rounded-full bg-slate-200 inline-block"></span><span class="w-2 h-2 rounded-full bg-slate-200 inline-block"></span><span class="w-2 h-2 rounded-full bg-slate-200 inline-block"></span></span>
+      </div>
+      <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">Độ khó 2/5 — khởi đầu an toàn nhất</p>
+      <p class="text-sm text-slate-600 mt-2 leading-relaxed">Bấm giờ 00.0 → 99.9 giây với 3 nút start / stop / reset, hiển thị trên 3 LED 7 đoạn. Bản chất là project T10 cộng thêm một FSM 2 trạng thái.</p>
+      <div class="font-mono text-[11.5px] bg-slate-50 border border-slate-200 rounded-lg p-2.5 mt-3 overflow-x-auto whitespace-nowrap">nút → debounce+sync → FSM RUN/STOP → tick 0,1s → BCD counter → decoder 7-seg → LED</div>
+      <div class="flex flex-wrap gap-1.5 mt-3 text-[11px] font-bold">
+        <span class="bg-blue-50 text-blue-700 border border-blue-200 rounded-full px-2 py-0.5">Tick generator · T9</span>
+        <span class="bg-blue-50 text-blue-700 border border-blue-200 rounded-full px-2 py-0.5">BCD counter · T5, T10</span>
+        <span class="bg-blue-50 text-blue-700 border border-blue-200 rounded-full px-2 py-0.5">Decoder 7-seg · T4, T10</span>
+        <span class="bg-blue-50 text-blue-700 border border-blue-200 rounded-full px-2 py-0.5">FSM start/stop · T6</span>
+        <span class="bg-amber-50 text-amber-700 border border-amber-300 rounded-full px-2 py-0.5">Debounce nút · MỚI (nhẹ)</span>
+      </div>
+      <p class="text-[13px] text-slate-600 mt-3"><strong class="text-slate-800">Deliverables:</strong> spec 1 trang · block diagram · RTL + testbench (counter, FSM) · video demo · writeup.</p>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+      <div class="flex items-start justify-between gap-2">
+        <h3 class="font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-clock text-primary"></i>2. Đồng Hồ Số (Digital Clock)</h3>
+        <span class="flex gap-1 mt-1.5" title="Độ khó 3/5"><span class="w-2 h-2 rounded-full bg-secondary inline-block"></span><span class="w-2 h-2 rounded-full bg-secondary inline-block"></span><span class="w-2 h-2 rounded-full bg-secondary inline-block"></span><span class="w-2 h-2 rounded-full bg-slate-200 inline-block"></span><span class="w-2 h-2 rounded-full bg-slate-200 inline-block"></span></span>
+      </div>
+      <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">Độ khó 3/5 — chuỗi counter nối tầng</p>
+      <p class="text-sm text-slate-600 mt-2 leading-relaxed">HH:MM:SS trên 6 LED 7 đoạn (hoặc HH:MM trên 4 LED), 2 nút chỉnh giờ / phút. Điểm mới: chuỗi counter 60→60→24 nối bằng <em>enable</em> (không chế clock mới!) và FSM chế độ NORMAL / SET_H / SET_M.</p>
+      <div class="font-mono text-[11.5px] bg-slate-50 border border-slate-200 rounded-lg p-2.5 mt-3 overflow-x-auto whitespace-nowrap">50MHz → tick 1s → cnt giây(60) →en→ cnt phút(60) →en→ cnt giờ(24) → decoder → quét LED; nút → FSM chỉnh giờ</div>
+      <div class="flex flex-wrap gap-1.5 mt-3 text-[11px] font-bold">
+        <span class="bg-blue-50 text-blue-700 border border-blue-200 rounded-full px-2 py-0.5">Tick 1 s · T9</span>
+        <span class="bg-blue-50 text-blue-700 border border-blue-200 rounded-full px-2 py-0.5">Counter + enable · T5, T10</span>
+        <span class="bg-blue-50 text-blue-700 border border-blue-200 rounded-full px-2 py-0.5">FSM chế độ chỉnh · T6</span>
+        <span class="bg-blue-50 text-blue-700 border border-blue-200 rounded-full px-2 py-0.5">Decoder + quét LED · T4, T10</span>
+        <span class="bg-amber-50 text-amber-700 border border-amber-300 rounded-full px-2 py-0.5">Debounce · MỚI (nhẹ)</span>
+      </div>
+      <p class="text-[13px] text-slate-600 mt-3"><strong class="text-slate-800">Deliverables:</strong> spec · state diagram chế độ chỉnh · RTL + testbench (chuỗi counter, FSM) · video demo · writeup.</p>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+      <div class="flex items-start justify-between gap-2">
+        <h3 class="font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-store text-primary"></i>3. Vending Machine FSM Mở Rộng</h3>
+        <span class="flex gap-1 mt-1.5" title="Độ khó 3/5"><span class="w-2 h-2 rounded-full bg-secondary inline-block"></span><span class="w-2 h-2 rounded-full bg-secondary inline-block"></span><span class="w-2 h-2 rounded-full bg-secondary inline-block"></span><span class="w-2 h-2 rounded-full bg-slate-200 inline-block"></span><span class="w-2 h-2 rounded-full bg-slate-200 inline-block"></span></span>
+      </div>
+      <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">Độ khó 3/5 — FSM là nhân vật chính</p>
+      <p class="text-sm text-slate-600 mt-2 leading-relaxed">Nâng cấp vending machine Tuần 6: nhận 3 mệnh giá (nút 1k / 2k / 5k), 2 sản phẩm giá khác nhau, trả tiền thừa, hiển thị số dư trên LED 7 đoạn. Tùy chọn: gửi log giao dịch qua UART về PC.</p>
+      <div class="font-mono text-[11.5px] bg-slate-50 border border-slate-200 rounded-lg p-2.5 mt-3 overflow-x-auto whitespace-nowrap">nút mệnh giá → debounce → FSM bán hàng → adder/sub số dư → decoder → LED; (option) → UART TX log → PC</div>
+      <div class="flex flex-wrap gap-1.5 mt-3 text-[11px] font-bold">
+        <span class="bg-blue-50 text-blue-700 border border-blue-200 rounded-full px-2 py-0.5">FSM nhiều state · T6</span>
+        <span class="bg-blue-50 text-blue-700 border border-blue-200 rounded-full px-2 py-0.5">Adder / Subtractor · T4</span>
+        <span class="bg-blue-50 text-blue-700 border border-blue-200 rounded-full px-2 py-0.5">Register số dư · T5</span>
+        <span class="bg-blue-50 text-blue-700 border border-blue-200 rounded-full px-2 py-0.5">Display · T10</span>
+        <span class="bg-emerald-50 text-emerald-700 border border-emerald-300 rounded-full px-2 py-0.5">UART log · T11 (tùy chọn)</span>
+      </div>
+      <p class="text-[13px] text-slate-600 mt-3"><strong class="text-slate-800">Deliverables:</strong> state diagram + transition table đầy đủ · RTL + testbench 3 ca (đủ tiền / thiếu tiền / tiền thừa) · demo · writeup.</p>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-sm border border-emerald-300 p-5">
+      <div class="flex items-start justify-between gap-2">
+        <h3 class="font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-temperature-half text-accent"></i>4. Đo Nhiệt Độ Gửi UART Về PC</h3>
+        <span class="flex gap-1 mt-1.5" title="Độ khó 4/5"><span class="w-2 h-2 rounded-full bg-secondary inline-block"></span><span class="w-2 h-2 rounded-full bg-secondary inline-block"></span><span class="w-2 h-2 rounded-full bg-secondary inline-block"></span><span class="w-2 h-2 rounded-full bg-secondary inline-block"></span><span class="w-2 h-2 rounded-full bg-slate-200 inline-block"></span></span>
+      </div>
+      <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">Độ khó 4/5 — datalogger đầu tay, gần đề tài thật nhất</p>
+      <p class="text-sm text-slate-600 mt-2 leading-relaxed">Mỗi giây đọc nhiệt độ (cảm biến/ADC trên board; <em>phương án B:</em> giả lập giá trị bằng switch để chạy toàn tuyến trước), chuyển thành chuỗi ASCII dạng <span class="font-mono text-xs">"T=25C"</span> và gửi qua UART 115200 lên Serial Terminal của PC.</p>
+      <div class="font-mono text-[11.5px] bg-slate-50 border border-slate-200 rounded-lg p-2.5 mt-3 overflow-x-auto whitespace-nowrap">cảm biến/switch → interface đọc → FSM đọc-đóng gói-gửi → binary→BCD/ASCII → UART TX → PC terminal</div>
+      <div class="flex flex-wrap gap-1.5 mt-3 text-[11px] font-bold">
+        <span class="bg-blue-50 text-blue-700 border border-blue-200 rounded-full px-2 py-0.5">UART TX · T11</span>
+        <span class="bg-blue-50 text-blue-700 border border-blue-200 rounded-full px-2 py-0.5">FSM điều khiển · T6, T9</span>
+        <span class="bg-blue-50 text-blue-700 border border-blue-200 rounded-full px-2 py-0.5">Timer định kỳ · T5, T9</span>
+        <span class="bg-blue-50 text-blue-700 border border-blue-200 rounded-full px-2 py-0.5">Binary→BCD/ASCII · T4, T10</span>
+        <span class="bg-amber-50 text-amber-700 border border-amber-300 rounded-full px-2 py-0.5">Interface cảm biến · MỚI (vừa)</span>
+      </div>
+      <p class="text-[13px] text-slate-600 mt-3"><strong class="text-slate-800">Deliverables:</strong> spec + định dạng frame · RTL + testbench (bắt buộc cho đường UART TX) · ảnh terminal nhận chuỗi · writeup.</p>
+    </div>
+  </div>
+
+  <div class="mt-6 bg-blue-50 border border-blue-200 rounded-2xl p-5 flex gap-3">
+    <i class="fa-solid fa-compass text-primary mt-0.5"></i>
+    <div class="text-sm text-slate-700 leading-relaxed">
+      <strong>Chọn thế nào?</strong> Để skill tree quyết định giúp bạn: node <em>FF/Counter + Display</em> xanh → Stopwatch hoặc Đồng hồ;
+      node <em>FSM</em> là điểm mạnh nhất → Vending machine; node <em>UART</em> xanh và bạn thích "nói chuyện với PC" → Đo nhiệt độ.
+      Còn nhiều node đỏ? Chọn Stopwatch và dành tuần đầu Phase 2 để ôn — <em>project dễ chạy được ăn đứt project khó bỏ dở.</em>
+    </div>
+  </div>
+</section>
+<!-- ===================== 14. QUIZ ===================== -->
+<section id="quiz" class="py-12 border-t border-slate-200">
+  <div class="flex items-center gap-3 mb-6">
+    <span class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-circle-question"></i></span>
+    <div>
+      <p class="text-[11px] font-bold uppercase tracking-widest text-primary">Section 14</p>
+      <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900">Quiz Tổng Hợp Toàn Khóa — 10 Câu</h2>
+    </div>
+  </div>
+  <p class="text-slate-600 mb-6">Mỗi câu chạm một tuần. Chọn đáp án — hệ thống chấm ngay và giải thích. Đạt ≥ 8/10 là nền tảng đủ chắc cho Phase 2.</p>
+
+  <div id="quizWrap" class="space-y-5">
+
+    <div class="quiz-q bg-white rounded-2xl shadow-sm border border-slate-200 p-5" data-answer="1">
+      <p class="font-bold text-slate-800">Câu 1 <span class="text-[10.5px] font-black text-slate-400 uppercase">(T1)</span>. SoC (System on Chip) là gì?</p>
+      <div class="grid sm:grid-cols-2 gap-2 mt-3 text-sm">
+        <div class="quiz-opt rounded-xl px-4 py-2.5">A. Một board mạch chứa nhiều IC riêng lẻ</div>
+        <div class="quiz-opt rounded-xl px-4 py-2.5">B. MỘT IC duy nhất tích hợp CPU, bộ nhớ, ngoại vi… trên cùng một chip</div>
+        <div class="quiz-opt rounded-xl px-4 py-2.5">C. Tên gọi khác của FPGA</div>
+        <div class="quiz-opt rounded-xl px-4 py-2.5">D. Chip chỉ chứa duy nhất một CPU</div>
+      </div>
+      <div class="quiz-exp hidden mt-3 text-sm bg-blue-50 border border-blue-200 rounded-xl p-3 text-slate-700"><strong>Đáp án B.</strong> Chữ "SoC" nghĩa đen là "hệ thống trên MỘT chip": nhiều khối chức năng (CPU, GPU, memory controller, ngoại vi…) tích hợp trên cùng một die silicon. "Board có nhiều IC" là hệ thống trên board (A — sai), và SoC không phải FPGA (C) hay chỉ là CPU (D).</div>
+    </div>
+
+    <div class="quiz-q bg-white rounded-2xl shadow-sm border border-slate-200 p-5" data-answer="2">
+      <p class="font-bold text-slate-800">Câu 2 <span class="text-[10.5px] font-black text-slate-400 uppercase">(T2, T8)</span>. Phát biểu nào đúng về nạp bitstream và tape-out?</p>
+      <div class="grid sm:grid-cols-1 gap-2 mt-3 text-sm">
+        <div class="quiz-opt rounded-xl px-4 py-2.5">A. Hai thuật ngữ đồng nghĩa, đều có nghĩa "sản xuất chip"</div>
+        <div class="quiz-opt rounded-xl px-4 py-2.5">B. Bitstream là file được gửi đến foundry để chế tạo chip</div>
+        <div class="quiz-opt rounded-xl px-4 py-2.5">C. Nạp bitstream = cấu hình FPGA, làm lại được vô số lần; tape-out = gửi layout ASIC đi sản xuất, sai là mất cả lô</div>
+        <div class="quiz-opt rounded-xl px-4 py-2.5">D. Tape-out dùng cho FPGA, còn bitstream dùng cho ASIC</div>
+      </div>
+      <div class="quiz-exp hidden mt-3 text-sm bg-blue-50 border border-blue-200 rounded-xl p-3 text-slate-700"><strong>Đáp án C.</strong> Đây là khác biệt sống còn: bitstream chỉ <em>cấu hình</em> các khối logic có sẵn trong FPGA (sửa và nạp lại thoải mái); tape-out là gửi layout ASIC đến foundry để <em>chế tạo vật lý</em> — chi phí hàng trăm nghìn đến hàng triệu USD và không sửa được sau khi sản xuất.</div>
+    </div>
+
+    <div class="quiz-q bg-white rounded-2xl shadow-sm border border-slate-200 p-5" data-answer="0">
+      <p class="font-bold text-slate-800">Câu 3 <span class="text-[10.5px] font-black text-slate-400 uppercase">(T5)</span>. Một register 8-bit cần bao nhiêu D Flip-Flop?</p>
+      <div class="grid sm:grid-cols-2 gap-2 mt-3 text-sm">
+        <div class="quiz-opt rounded-xl px-4 py-2.5">A. 8 — vì mỗi D Flip-Flop chỉ lưu đúng 1 bit</div>
+        <div class="quiz-opt rounded-xl px-4 py-2.5">B. 1 — một FF lưu được cả byte</div>
+        <div class="quiz-opt rounded-xl px-4 py-2.5">C. 256 — vì 8 bit có 256 giá trị</div>
+        <div class="quiz-opt rounded-xl px-4 py-2.5">D. Tùy tần số clock đang dùng</div>
+      </div>
+      <div class="quiz-exp hidden mt-3 text-sm bg-blue-50 border border-blue-200 rounded-xl p-3 text-slate-700"><strong>Đáp án A.</strong> D Flip-Flop là ô nhớ 1 bit — register n-bit ghép n FF chạy chung clock. 256 là số <em>giá trị</em> biểu diễn được (2⁸), không phải số FF; và số FF không liên quan tần số clock.</div>
+    </div>
+
+    <div class="quiz-q bg-white rounded-2xl shadow-sm border border-slate-200 p-5" data-answer="3">
+      <p class="font-bold text-slate-800">Câu 4 <span class="text-[10.5px] font-black text-slate-400 uppercase">(T7)</span>. Latch ngoài ý muốn (inferred latch) xuất hiện khi nào?</p>
+      <div class="grid sm:grid-cols-2 gap-2 mt-3 text-sm">
+        <div class="quiz-opt rounded-xl px-4 py-2.5">A. Khi dùng always_ff với phép gán &lt;=</div>
+        <div class="quiz-opt rounded-xl px-4 py-2.5">B. Khi dùng quá nhiều tín hiệu wire</div>
+        <div class="quiz-opt rounded-xl px-4 py-2.5">C. Khi khai báo kiểu logic thay vì reg</div>
+        <div class="quiz-opt rounded-xl px-4 py-2.5">D. Khi trong always_comb có nhánh if/case không gán giá trị cho tín hiệu (thiếu default / else)</div>
+      </div>
+      <div class="quiz-exp hidden mt-3 text-sm bg-blue-50 border border-blue-200 rounded-xl p-3 text-slate-700"><strong>Đáp án D.</strong> Mạch tổ hợp phải luôn có giá trị output với mọi tổ hợp input. Nếu một nhánh không gán, tool hiểu "giữ giá trị cũ" → phải sinh phần tử nhớ (latch) ngoài ý muốn. Thuốc giải: <em>default assignment</em> ngay đầu always_comb (như dòng <span class="font-mono text-xs">next_state = state;</span> ở Section 8).</div>
+    </div>
+
+    <div class="quiz-q bg-white rounded-2xl shadow-sm border border-slate-200 p-5" data-answer="1">
+      <p class="font-bold text-slate-800">Câu 5 <span class="text-[10.5px] font-black text-slate-400 uppercase">(T6)</span>. Khác biệt cốt lõi giữa FSM Moore và Mealy?</p>
+      <div class="grid sm:grid-cols-1 gap-2 mt-3 text-sm">
+        <div class="quiz-opt rounded-xl px-4 py-2.5">A. Moore: output phụ thuộc trực tiếp vào input hiện tại</div>
+        <div class="quiz-opt rounded-xl px-4 py-2.5">B. Moore: output chỉ phụ thuộc state; Mealy: output phụ thuộc state + input</div>
+        <div class="quiz-opt rounded-xl px-4 py-2.5">C. Mealy luôn tốt hơn Moore nên thực tế chỉ dùng Mealy</div>
+        <div class="quiz-opt rounded-xl px-4 py-2.5">D. Chúng khác nhau ở số lượng state tối đa cho phép</div>
+      </div>
+      <div class="quiz-exp hidden mt-3 text-sm bg-blue-50 border border-blue-200 rounded-xl p-3 text-slate-700"><strong>Đáp án B.</strong> Moore: output = f(state) — ổn định trong cả chu kỳ, như đèn giao thông T9. Mealy: output = f(state, input) — phản ứng nhanh hơn 1 nhịp nhưng output có thể thay đổi giữa chu kỳ. Là trade-off tùy bài toán, không ai "luôn tốt hơn".</div>
+    </div>
+
+    <div class="quiz-q bg-white rounded-2xl shadow-sm border border-slate-200 p-5" data-answer="0">
+      <p class="font-bold text-slate-800">Câu 6 <span class="text-[10.5px] font-black text-slate-400 uppercase">(T11)</span>. UART khung 8N1: sau khi đường truyền đang idle, bit ĐẦU TIÊN xuất hiện trên dây là gì?</p>
+      <div class="grid sm:grid-cols-2 gap-2 mt-3 text-sm">
+        <div class="quiz-opt rounded-xl px-4 py-2.5">A. Start bit mức 0 — tạo cạnh xuống làm mốc thời gian</div>
+        <div class="quiz-opt rounded-xl px-4 py-2.5">B. Bit LSB của byte dữ liệu</div>
+        <div class="quiz-opt rounded-xl px-4 py-2.5">C. Stop bit mức 1</div>
+        <div class="quiz-opt rounded-xl px-4 py-2.5">D. Parity bit</div>
+      </div>
+      <div class="quiz-exp hidden mt-3 text-sm bg-blue-50 border border-blue-200 rounded-xl p-3 text-slate-700"><strong>Đáp án A.</strong> Thứ tự khung 8N1: idle (mức 1) → <strong>start bit (0)</strong> → 8 data bits (LSB trước) → stop bit (1). Vì idle là mức 1, start bit 0 tạo cạnh xuống rõ ràng để RX bắt đầu căn thời gian lấy mẫu — LSB chỉ đến <em>sau</em> start bit; 8N1 không có parity.</div>
+    </div>
+
+    <div class="quiz-q bg-white rounded-2xl shadow-sm border border-slate-200 p-5" data-answer="2">
+      <p class="font-bold text-slate-800">Câu 7 <span class="text-[10.5px] font-black text-slate-400 uppercase">(T8)</span>. Trường hợp nào nên chọn FPGA thay vì ASIC?</p>
+      <div class="grid sm:grid-cols-1 gap-2 mt-3 text-sm">
+        <div class="quiz-opt rounded-xl px-4 py-2.5">A. Sản lượng hàng trăm triệu chip, cần unit cost thấp nhất</div>
+        <div class="quiz-opt rounded-xl px-4 py-2.5">B. Cần hiệu năng, diện tích, công suất (PPA) tối ưu tuyệt đối</div>
+        <div class="quiz-opt rounded-xl px-4 py-2.5">C. Sản lượng nhỏ, cần prototype / ra thị trường nhanh, muốn tránh chi phí NRE khổng lồ</div>
+        <div class="quiz-opt rounded-xl px-4 py-2.5">D. Mọi trường hợp — FPGA luôn rẻ hơn ASIC</div>
+      </div>
+      <div class="quiz-exp hidden mt-3 text-sm bg-blue-50 border border-blue-200 rounded-xl p-3 text-slate-700"><strong>Đáp án C.</strong> FPGA thắng khi: sản lượng nhỏ, cần sửa đổi, cần time-to-market. ASIC thắng khi: sản lượng lớn (NRE chia mỏng ra từng chip) và cần PPA tối ưu (A, B là lãnh địa của ASIC). D sai vì đây là <em>trade-off</em> — ở sản lượng lớn, unit cost FPGA đắt hơn nhiều.</div>
+    </div>
+
+    <div class="quiz-q bg-white rounded-2xl shadow-sm border border-slate-200 p-5" data-answer="1">
+      <p class="font-bold text-slate-800">Câu 8 <span class="text-[10.5px] font-black text-slate-400 uppercase">(T7)</span>. Khác biệt cốt lõi giữa Verilog và ngôn ngữ lập trình như C?</p>
+      <div class="grid sm:grid-cols-1 gap-2 mt-3 text-sm">
+        <div class="quiz-opt rounded-xl px-4 py-2.5">A. Verilog chạy nhanh hơn C</div>
+        <div class="quiz-opt rounded-xl px-4 py-2.5">B. Verilog MÔ TẢ phần cứng hoạt động song song — các khối always/assign tồn tại và "chạy" đồng thời, không phải thực thi tuần tự từng dòng</div>
+        <div class="quiz-opt rounded-xl px-4 py-2.5">C. Verilog chỉ là C bổ sung thư viện phần cứng</div>
+        <div class="quiz-opt rounded-xl px-4 py-2.5">D. Chúng chỉ khác nhau về cú pháp</div>
+      </div>
+      <div class="quiz-exp hidden mt-3 text-sm bg-blue-50 border border-blue-200 rounded-xl p-3 text-slate-700"><strong>Đáp án B.</strong> C mô tả <em>chuỗi lệnh</em> cho một CPU thực thi lần lượt; Verilog mô tả <em>cấu trúc mạch</em> — mọi khối phần cứng tồn tại cùng lúc và hoạt động song song. Vì thế thứ tự viết các always trong file không quyết định "cái nào chạy trước".</div>
+    </div>
+
+    <div class="quiz-q bg-white rounded-2xl shadow-sm border border-slate-200 p-5" data-answer="0">
+      <p class="font-bold text-slate-800">Câu 9 <span class="text-[10.5px] font-black text-slate-400 uppercase">(T6, T9)</span>. Trong FSM viết theo 3 khối, khối <span class="font-mono text-sm">always_ff @(posedge clk)</span> đảm nhiệm việc gì?</p>
+      <div class="grid sm:grid-cols-2 gap-2 mt-3 text-sm">
+        <div class="quiz-opt rounded-xl px-4 py-2.5">A. Cập nhật current_state theo cạnh clock (state register)</div>
+        <div class="quiz-opt rounded-xl px-4 py-2.5">B. Tính next_state từ state và input</div>
+        <div class="quiz-opt rounded-xl px-4 py-2.5">C. Tính output từ state</div>
+        <div class="quiz-opt rounded-xl px-4 py-2.5">D. Tạo ra tín hiệu clock cho FSM</div>
+      </div>
+      <div class="quiz-exp hidden mt-3 text-sm bg-blue-50 border border-blue-200 rounded-xl p-3 text-slate-700"><strong>Đáp án A.</strong> Kiến trúc 3 khối: <strong>①</strong> state register (always_ff, gán &lt;=) — phần tuần tự duy nhất; <strong>②</strong> next-state logic (always_comb); <strong>③</strong> output logic (always_comb). Clock không được "tạo" trong FSM — nó đến từ nguồn clock của hệ thống.</div>
+    </div>
+
+    <div class="quiz-q bg-white rounded-2xl shadow-sm border border-slate-200 p-5" data-answer="3">
+      <p class="font-bold text-slate-800">Câu 10 <span class="text-[10.5px] font-black text-slate-400 uppercase">(T1, T3)</span>. Phát biểu nào đúng về mức logic và độ trễ?</p>
+      <div class="grid sm:grid-cols-1 gap-2 mt-3 text-sm">
+        <div class="quiz-opt rounded-xl px-4 py-2.5">A. Logic 1 = "có điện", logic 0 = "mất điện" tuyệt đối</div>
+        <div class="quiz-opt rounded-xl px-4 py-2.5">B. Mạch tổ hợp đổi output ngay lập tức khi input đổi</div>
+        <div class="quiz-opt rounded-xl px-4 py-2.5">C. Mức logic chỉ tồn tại trong mô phỏng, không có trên mạch thật</div>
+        <div class="quiz-opt rounded-xl px-4 py-2.5">D. Logic 1/0 là các khoảng điện áp High/Low; output mạch tổ hợp chỉ ổn định sau propagation delay</div>
+      </div>
+      <div class="quiz-exp hidden mt-3 text-sm bg-blue-50 border border-blue-200 rounded-xl p-3 text-slate-700"><strong>Đáp án D.</strong> Hai sự thật vật lý học từ những tuần đầu: (1) mức logic là <em>khoảng</em> điện áp (VD với 3,3 V: dưới ~0,8 V là Low, trên ~2 V là High) — không phải "có/mất điện"; (2) tín hiệu lan truyền qua transistor mất thời gian thật (propagation delay) — chính nó giới hạn tần số clock tối đa của chip.</div>
+    </div>
+  </div>
+
+  <div class="mt-6 bg-white rounded-2xl shadow-sm border border-slate-200 p-5 flex flex-col sm:flex-row items-center justify-between gap-3">
+    <p id="quizScore" class="text-sm font-bold text-slate-700">Đã trả lời 0/10 — đúng 0</p>
+    <button id="quizReset" class="text-sm font-bold text-primary bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-xl px-4 py-2"><i class="fa-solid fa-rotate-left mr-1.5"></i>Làm lại quiz</button>
+  </div>
+</section>
+
+<!-- ===================== 15. HOMEWORK ===================== -->
+<section id="homework" class="py-12 border-t border-slate-200">
+  <div class="flex items-center gap-3 mb-6">
+    <span class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-pen-to-square"></i></span>
+    <div>
+      <p class="text-[11px] font-bold uppercase tracking-widest text-primary">Section 15</p>
+      <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900">Bài Tập Về Nhà — 3 Mức</h2>
+    </div>
+  </div>
+
+  <p class="text-slate-600 max-w-3xl mb-6">Tuần cuối, bài tập không phải RTL mới mà là <strong>3 tài liệu khép lại Phase 1 và mở Phase 2</strong>. Mức 3 chính là "vé vào cửa" buổi kick-off.</p>
+
+  <div class="space-y-4">
+    <div class="bg-white rounded-2xl shadow-sm border-l-4 border-primary border border-slate-200 p-5">
+      <div class="flex flex-wrap items-center gap-2 mb-2">
+        <span class="text-[10.5px] font-black uppercase bg-blue-100 text-blue-700 rounded-full px-2.5 py-1">Mức 1 — Nhận biết / Giải thích</span>
+        <span class="text-[10.5px] font-bold text-slate-400">~45 phút</span>
+      </div>
+      <h3 class="font-bold text-slate-800">Reflection 1 trang: "12 tuần của tôi"</h3>
+      <div class="grid md:grid-cols-3 gap-3 mt-3 text-[13px] text-slate-600">
+        <div class="bg-slate-50 rounded-xl p-3"><p class="font-bold text-slate-800 mb-1"><i class="fa-solid fa-inbox text-primary mr-1"></i>Nộp gì</p>File PDF/doc đúng 1 trang: (a) tóm tắt 5 nhánh kiến thức bằng lời của bạn, (b) tuần khó nhất + vì sao khó, (c) khái niệm tâm đắc nhất + nó thay đổi cách bạn nhìn thiết bị điện tử thế nào.</div>
+        <div class="bg-slate-50 rounded-xl p-3"><p class="font-bold text-slate-800 mb-1"><i class="fa-solid fa-lightbulb text-secondary mr-1"></i>Gợi ý</p>Nhìn Learning Map từng tuần + timeline Section 9. Viết như đang kể cho bạn cùng lớp — không chép định nghĩa từ slide.</div>
+        <div class="bg-slate-50 rounded-xl p-3"><p class="font-bold text-slate-800 mb-1"><i class="fa-solid fa-check-double text-accent mr-1"></i>Tiêu chí</p>Trung thực; có ví dụ cụ thể từ bài tập/project của chính bạn; nêu được ít nhất 1 liên kết giữa 2 tuần (VD: "UART cần shift register của T5").</div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-sm border-l-4 border-secondary border border-slate-200 p-5">
+      <div class="flex flex-wrap items-center gap-2 mb-2">
+        <span class="text-[10.5px] font-black uppercase bg-amber-100 text-amber-700 rounded-full px-2.5 py-1">Mức 2 — Phân tích / Lập kế hoạch</span>
+        <span class="text-[10.5px] font-bold text-slate-400">~60 phút</span>
+      </div>
+      <h3 class="font-bold text-slate-800">Skill tree hoàn chỉnh + kế hoạch ôn tập 2 tuần</h3>
+      <div class="grid md:grid-cols-3 gap-3 mt-3 text-[13px] text-slate-600">
+        <div class="bg-slate-50 rounded-xl p-3"><p class="font-bold text-slate-800 mb-1"><i class="fa-solid fa-inbox text-primary mr-1"></i>Nộp gì</p>Ảnh chụp panel tổng hợp skill tree (Section 6) + bảng kế hoạch: node đỏ/vàng | hành động ôn cụ thể | hạn chót.</div>
+        <div class="bg-slate-50 rounded-xl p-3"><p class="font-bold text-slate-800 mb-1"><i class="fa-solid fa-lightbulb text-secondary mr-1"></i>Gợi ý</p>Hành động phải đo được: "làm lại quiz T5 đạt ≥ 8/10", "viết lại counter 0–9 không nhìn tài liệu", "giải thích Moore/Mealy cho một bạn và trả lời được 2 câu hỏi ngược".</div>
+        <div class="bg-slate-50 rounded-xl p-3"><p class="font-bold text-slate-800 mb-1"><i class="fa-solid fa-check-double text-accent mr-1"></i>Tiêu chí</p>Chấm đủ 11 node; mỗi node yếu có ≥ 1 hành động đo được + deadline nằm trong 2 tuần trước kick-off Phase 2.</div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-sm border-l-4 border-accent border border-slate-200 p-5">
+      <div class="flex flex-wrap items-center gap-2 mb-2">
+        <span class="text-[10.5px] font-black uppercase bg-emerald-100 text-emerald-700 rounded-full px-2.5 py-1">Mức 3 — Mini-Project Proposal</span>
+        <span class="text-[10.5px] font-bold text-slate-400">~2–3 giờ (theo nhóm)</span>
+        <span class="text-[10.5px] font-black uppercase bg-emerald-600 text-white rounded-full px-2.5 py-1">Vé vào Phase 2</span>
+      </div>
+      <h3 class="font-bold text-slate-800">Proposal hoàn chỉnh cho mini-project Phase 2</h3>
+      <div class="grid md:grid-cols-3 gap-3 mt-3 text-[13px] text-slate-600">
+        <div class="bg-slate-50 rounded-xl p-3"><p class="font-bold text-slate-800 mb-1"><i class="fa-solid fa-inbox text-primary mr-1"></i>Nộp gì</p>Đủ 6 mục theo mẫu Section 11: tên + pitch, mô tả 3–4 câu, block diagram (có clock/reset), bảng khối gắn tuần đã học, timeline 4 tuần, rủi ro số 1 + plan B. Nộp <strong>trước buổi kick-off Phase 2</strong>.</div>
+        <div class="bg-slate-50 rounded-xl p-3"><p class="font-bold text-slate-800 mb-1"><i class="fa-solid fa-lightbulb text-secondary mr-1"></i>Gợi ý</p>Chọn theo gợi ý skill tree (Section 6) hoặc 4 đề xuất Section 13. Giới hạn ≤ 6 khối, ≤ 30% khối mới. Timeline tuần 2–3 bắt buộc có dòng "testbench + waveform". Hỏi mentor 1 vòng trước khi nộp bản cuối.</div>
+        <div class="bg-slate-50 rounded-xl p-3"><p class="font-bold text-slate-800 mb-1"><i class="fa-solid fa-check-double text-accent mr-1"></i>Tiêu chí</p>Đủ 6 mục; diagram rõ I/O + clock/reset; phạm vi vừa 4 tuần; có kế hoạch sim trước board; tiêu chí demo đo được ("LED hiển thị đúng 99.9 s", "terminal nhận chuỗi T=25C mỗi giây").</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 16. RUBRIC ===================== -->
+<section id="rubric" class="py-12 border-t border-slate-200">
+  <div class="flex items-center gap-3 mb-6">
+    <span class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-table-cells-large"></i></span>
+    <div>
+      <p class="text-[11px] font-bold uppercase tracking-widest text-primary">Section 16</p>
+      <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900">Rubric Tự Đánh Giá Tuần 12</h2>
+    </div>
+  </div>
+
+  <p class="text-slate-600 max-w-3xl mb-5">Bốn năng lực của tuần tổng kết. Tự xếp mình vào một cột cho mỗi hàng — cột "Tốt" là chuẩn của một người sẵn sàng dẫn dắt project Phase 2.</p>
+
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-[13px] min-w-[860px]">
+        <thead>
+          <tr class="bg-slate-900 text-left text-slate-200">
+            <th class="px-4 py-3 font-bold w-[18%]">Tiêu chí</th>
+            <th class="px-4 py-3 font-bold w-[20%] text-red-300">Chưa đạt</th>
+            <th class="px-4 py-3 font-bold w-[20%] text-amber-300">Đạt cơ bản</th>
+            <th class="px-4 py-3 font-bold w-[20%] text-sky-300">Khá</th>
+            <th class="px-4 py-3 font-bold w-[22%] text-emerald-300">Tốt</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 text-slate-700 align-top">
+          <tr>
+            <td class="px-4 py-3 font-bold text-slate-800">Tự đánh giá trung thực</td>
+            <td class="px-4 py-3">Chấm tất cả "Vững" (hoặc bỏ trống) — không có bằng chứng nào.</td>
+            <td class="px-4 py-3">Chấm đủ 11 node nhưng theo cảm giác, chưa nêu lý do.</td>
+            <td class="px-4 py-3">Chấm đủ, mỗi mức kèm lý do ngắn; chấp nhận có node đỏ.</td>
+            <td class="px-4 py-3">Mỗi node "Vững" có bằng chứng cụ thể (bài tập, code, waveform); node đỏ đi kèm kế hoạch ôn có deadline.</td>
+          </tr>
+          <tr>
+            <td class="px-4 py-3 font-bold text-slate-800">Tổng hợp kiến thức 12 tuần</td>
+            <td class="px-4 py-3">Kể lại 12 tuần như danh sách rời rạc, không thấy liên kết.</td>
+            <td class="px-4 py-3">Nhóm được các tuần thành 5 nhánh kiến thức.</td>
+            <td class="px-4 py-3">Chỉ ra ≥ 3 liên kết giữa các tuần (FSM cần FF, UART cần shift register…).</td>
+            <td class="px-4 py-3">Vẽ lại được System View từ trí nhớ, giải thích từng khối học tuần nào và dòng control/data chảy ra sao.</td>
+          </tr>
+          <tr>
+            <td class="px-4 py-3 font-bold text-slate-800">Chất lượng proposal</td>
+            <td class="px-4 py-3">Chỉ có tên project và mô tả một câu.</td>
+            <td class="px-4 py-3">Có mô tả + danh sách khối nhưng thiếu block diagram hoặc timeline.</td>
+            <td class="px-4 py-3">Đủ 6 mục; block diagram có I/O rõ ràng.</td>
+            <td class="px-4 py-3">Đủ 6 mục; diagram có clock/reset; bảng khối gắn tuần đã học; có rủi ro số 1 + plan B thuyết phục.</td>
+          </tr>
+          <tr>
+            <td class="px-4 py-3 font-bold text-slate-800">Kế hoạch khả thi</td>
+            <td class="px-4 py-3">Phạm vi vượt xa 4 tuần hoặc không có mốc thời gian.</td>
+            <td class="px-4 py-3">Có timeline 4 tuần nhưng dồn hầu hết việc vào tuần cuối.</td>
+            <td class="px-4 py-3">Mốc theo tuần hợp lý; có mục testbench trước khi lên board.</td>
+            <td class="px-4 py-3">Mỗi tuần một deliverable kiểm chứng được; sim trước board; có sẵn phương án cắt tính năng nếu trễ tiến độ.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+<!-- ===================== 17. MENTOR NOTES ===================== -->
+<section id="mentor-notes" class="py-12 border-t border-slate-200">
+  <div class="flex items-center gap-3 mb-6">
+    <span class="w-10 h-10 rounded-xl bg-dark text-emerald-400 flex items-center justify-center"><i class="fa-solid fa-chalkboard-user"></i></span>
+    <div>
+      <p class="text-[11px] font-bold uppercase tracking-widest text-slate-500">Section 17</p>
+      <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900">Mentor Notes — Chạy Buổi Tổng Kết Thế Nào</h2>
+    </div>
+  </div>
+
+  <div class="bg-dark text-slate-300 rounded-2xl shadow-xl p-6 md:p-8 space-y-6">
+    <div class="grid md:grid-cols-2 gap-6">
+      <div>
+        <h3 class="text-white font-bold flex items-center gap-2 mb-3"><i class="fa-solid fa-play text-emerald-400"></i>Vận hành buổi tổng kết</h3>
+        <ul class="space-y-2 text-sm leading-relaxed">
+          <li class="flex gap-2"><i class="fa-solid fa-angle-right text-emerald-400 mt-1"></i><span>Sinh viên nói <strong class="text-white">≥ 70% thời lượng</strong> — mentor chỉ mở màn, đóng khung và sửa ngộ nhận. Buổi này là sân khấu của họ.</span></li>
+          <li class="flex gap-2"><i class="fa-solid fa-angle-right text-emerald-400 mt-1"></i><span><strong class="text-white">Chỉ định trước 3 người showcase</strong> và gửi khung 5 mục trước 2 ngày — đừng đợi xung phong tại chỗ, sẽ mất 5 phút im lặng ngượng ngùng.</span></li>
+          <li class="flex gap-2"><i class="fa-solid fa-angle-right text-emerald-400 mt-1"></i><span>Giữ nhịp cứng: 5 phút mỗi showcase, hết giờ là chuyển. Công bằng và giữ năng lượng cả phòng.</span></li>
+          <li class="flex gap-2"><i class="fa-solid fa-angle-right text-emerald-400 mt-1"></i><span>Nghe được ngộ nhận trong lúc sinh viên trình bày? <strong class="text-white">Ghi lại, đừng ngắt lời</strong> — gom sửa một lần trong 10 phút tổng kết.</span></li>
+          <li class="flex gap-2"><i class="fa-solid fa-angle-right text-emerald-400 mt-1"></i><span>Chuẩn bị sẵn System View (Section 5): vẽ lại trên bảng và cho cả lớp "điền tuần" vào từng khối — khoảnh khắc "à, mình học được nhiều thật" nằm ở đây.</span></li>
+        </ul>
+      </div>
+      <div>
+        <h3 class="text-white font-bold flex items-center gap-2 mb-3"><i class="fa-solid fa-file-circle-check text-emerald-400"></i>Feedback proposal Phase 2</h3>
+        <ul class="space-y-2 text-sm leading-relaxed">
+          <li class="flex gap-2"><i class="fa-solid fa-angle-right text-emerald-400 mt-1"></i><span><strong class="text-white">Khen phạm vi hợp lý trước</strong>, góp ý kỹ thuật sau. Proposal đầu đời rất dễ tổn thương.</span></li>
+          <li class="flex gap-2"><i class="fa-solid fa-angle-right text-emerald-400 mt-1"></i><span>Phạm vi quá lớn? Đừng phán "quá lớn" — hỏi: <em>"khối nào cắt được mà demo vẫn có ý nghĩa?"</em> Để nhóm tự cắt, họ sẽ giữ cam kết hơn.</span></li>
+          <li class="flex gap-2"><i class="fa-solid fa-angle-right text-emerald-400 mt-1"></i><span>Timeline không có dòng <strong class="text-white">testbench + waveform</strong> ở tuần 2–3 → trả lại, không thương lượng.</span></li>
+          <li class="flex gap-2"><i class="fa-solid fa-angle-right text-emerald-400 mt-1"></i><span>Soi các bẫy quen thuộc trong diagram: gated clock, clock "chế" từ counter (→ đổi thành enable tick), nút nhấn không qua đồng bộ/debounce, always_comb thiếu default.</span></li>
+          <li class="flex gap-2"><i class="fa-solid fa-angle-right text-emerald-400 mt-1"></i><span>Mỗi proposal <strong class="text-white">tối đa 3 góp ý lớn</strong> — feedback dày đặc sẽ nhấn chìm động lực thay vì nâng chất lượng.</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="border-t border-white/10 pt-6">
+      <h3 class="text-white font-bold flex items-center gap-2 mb-4"><i class="fa-solid fa-microphone-lines text-emerald-400"></i>Câu vấn đáp nên hỏi — và câu trả lời kỳ vọng</h3>
+      <div class="grid md:grid-cols-3 gap-4 text-sm">
+        <div class="bg-white/5 border border-white/10 rounded-xl p-4">
+          <p class="font-bold text-emerald-300">"Nếu chỉ được giữ lại MỘT khái niệm của 12 tuần, em giữ gì? Vì sao?"</p>
+          <p class="mt-2 leading-relaxed text-slate-300"><strong class="text-white">Kỳ vọng:</strong> không có đáp án sai — chấm cách lập luận. Câu trả lời "chín": FF/clock hoặc FSM ("mọi điều khiển xây trên nó"), hoặc "tư duy phần cứng song song". Cờ đỏ: trả lời tên tool ("em giữ Quartus").</p>
+        </div>
+        <div class="bg-white/5 border border-white/10 rounded-xl p-4">
+          <p class="font-bold text-emerald-300">"Trong proposal của em, khối nào rủi ro nhất? Plan B là gì?"</p>
+          <p class="mt-2 leading-relaxed text-slate-300"><strong class="text-white">Kỳ vọng:</strong> chỉ đúng vào khối MỚI (debounce, interface cảm biến) chứ không phải khối đã học; plan B cụ thể ("chưa có cảm biến thì giả lập giá trị bằng switch, toàn tuyến vẫn demo được").</p>
+        </div>
+        <div class="bg-white/5 border border-white/10 rounded-xl p-4">
+          <p class="font-bold text-emerald-300">"FPGA demo chạy rồi — đã thành chip thương mại chưa? Còn thiếu gì?"</p>
+          <p class="mt-2 leading-relaxed text-slate-300"><strong class="text-white">Kỳ vọng:</strong> "Chưa — mới chứng minh chức năng. Còn verification sâu, timing/power sign-off, DFT, tape-out tốn hàng triệu USD, production test." Ai trả lời được câu này là đã hiểu trade-off Tuần 8 và design flow Tuần 2.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="border-t border-white/10 pt-6">
+      <h3 class="text-white font-bold flex items-center gap-2 mb-3"><i class="fa-solid fa-fire-flame-curved text-emerald-400"></i>Giữ lửa sang Phase 2 (việc quan trọng nhất của buổi này)</h3>
+      <div class="grid md:grid-cols-2 gap-x-6 gap-y-2 text-sm">
+        <p class="flex gap-2"><i class="fa-solid fa-calendar-check text-emerald-400 mt-1"></i><span><strong class="text-white">Chốt lịch kick-off ngay trong buổi</strong> (≤ 2 tuần sau). "Hẹn sắp xếp sau" = mất 1/3 số người.</span></p>
+        <p class="flex gap-2"><i class="fa-solid fa-people-group text-emerald-400 mt-1"></i><span>Ghép nhóm theo project và <strong class="text-white">tạo kênh chat từng nhóm ngay tại chỗ</strong> — nhóm có kênh riêng thì cuối tuần vẫn còn sống.</span></p>
+        <p class="flex gap-2"><i class="fa-solid fa-egg text-emerald-400 mt-1"></i><span>Deliverable tuần 1 thật nhỏ (spec 1 trang) — ai cũng thắng ván đầu, đà tâm lý quan trọng hơn tiến độ.</span></p>
+        <p class="flex gap-2"><i class="fa-solid fa-camera-retro text-emerald-400 mt-1"></i><span>Celebrate tử tế: ảnh tập thể với board FPGA, "chứng nhận hoàn thành Phase 1", mời một cựu học viên/kỹ sư nói 5 phút về chặng đường tiếp theo.</span></p>
+        <p class="flex gap-2"><i class="fa-solid fa-headset text-emerald-400 mt-1"></i><span>Phase 2: mỗi nhóm một mentor, check-in 15 phút/tuần theo đúng timeline proposal — hỏi "tuần này deliverable đâu?", không hỏi "có khó khăn gì không?".</span></p>
+        <p class="flex gap-2"><i class="fa-solid fa-door-open text-emerald-400 mt-1"></i><span>Mở đường dài hạn: giới thiệu cộng đồng, cuộc thi thiết kế số, học bổng/thực tập — cho thấy Phase 2 nằm trên một con đường có thật.</span></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 18. KEY VOCABULARY ===================== -->
+<section id="vocabulary" class="py-12 border-t border-slate-200">
+  <div class="flex items-center gap-3 mb-6">
+    <span class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-book"></i></span>
+    <div>
+      <p class="text-[11px] font-bold uppercase tracking-widest text-primary">Section 18</p>
+      <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900">12 Thuật Ngữ Quan Trọng Nhất Toàn Khóa</h2>
+    </div>
+  </div>
+
+  <p class="text-slate-600 max-w-3xl mb-5">Ôn lại "bộ từ vựng sống còn" — đây cũng là những từ chắc chắn xuất hiện khi bạn phỏng vấn thực tập IC design.</p>
+
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-[13px] min-w-[880px]">
+        <thead>
+          <tr class="bg-slate-50 text-left text-xs uppercase tracking-wider text-slate-500">
+            <th class="px-4 py-3 font-bold">English term</th>
+            <th class="px-4 py-3 font-bold">Nghĩa tiếng Việt</th>
+            <th class="px-4 py-3 font-bold">Giải thích kỹ thuật</th>
+            <th class="px-4 py-3 font-bold">Câu ví dụ</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 text-slate-700 align-top">
+          <tr><td class="px-4 py-3 font-bold text-primary">Integrated Circuit (IC)</td><td class="px-4 py-3">Vi mạch tích hợp</td><td class="px-4 py-3">Hàng triệu đến hàng tỷ transistor chế tạo trên một miếng silicon, đóng gói thành "con chip".</td><td class="px-4 py-3 italic">Một chiếc điện thoại chứa hàng chục IC, lớn nhất là SoC.</td></tr>
+          <tr><td class="px-4 py-3 font-bold text-primary">SoC (System on Chip)</td><td class="px-4 py-3">Hệ thống trên một chip</td><td class="px-4 py-3">MỘT IC duy nhất tích hợp CPU, bộ nhớ, ngoại vi, khối xử lý tín hiệu… trên cùng một die.</td><td class="px-4 py-3 italic">Snapdragon là một SoC tiêu biểu trong smartphone Android.</td></tr>
+          <tr><td class="px-4 py-3 font-bold text-primary">RTL (Register Transfer Level)</td><td class="px-4 py-3">Mức truyền thanh ghi</td><td class="px-4 py-3">Cách mô tả mạch theo dòng dữ liệu chuyển giữa các register qua logic tổ hợp — chính là code Verilog bạn viết.</td><td class="px-4 py-3 italic">Kỹ sư front-end dành phần lớn thời gian viết và kiểm chứng RTL.</td></tr>
+          <tr><td class="px-4 py-3 font-bold text-primary">Synthesis</td><td class="px-4 py-3">Tổng hợp logic</td><td class="px-4 py-3">Tool đọc RTL và sinh ra netlist các gate/FF thật (trên FPGA: LUT + FF).</td><td class="px-4 py-3 italic">Sau synthesis, tool báo design dùng 120 LUT và 34 Flip-Flop.</td></tr>
+          <tr><td class="px-4 py-3 font-bold text-primary">Tape-out</td><td class="px-4 py-3">Gửi sản xuất ASIC</td><td class="px-4 py-3">Gửi layout hoàn chỉnh đến foundry để chế tạo. Sau tape-out không sửa được — lỗi là mất cả lô wafer.</td><td class="px-4 py-3 italic">Cả team kiểm tra chéo suốt tuần cuối trước ngày tape-out.</td></tr>
+          <tr><td class="px-4 py-3 font-bold text-primary">Bitstream</td><td class="px-4 py-3">File cấu hình FPGA</td><td class="px-4 py-3">File nhị phân cấu hình LUT, FF và kết nối bên trong FPGA — nạp lại được vô số lần, khác hẳn tape-out.</td><td class="px-4 py-3 italic">Nạp bitstream mới chỉ mất vài giây, cứ thoải mái thử phiên bản khác.</td></tr>
+          <tr><td class="px-4 py-3 font-bold text-primary">Flip-Flop (D FF)</td><td class="px-4 py-3">Phần tử nhớ 1 bit</td><td class="px-4 py-3">Lấy mẫu đầu vào D tại cạnh lên clock và giữ giá trị đó đến cạnh lên kế tiếp. Register n-bit = n FF.</td><td class="px-4 py-3 italic">Register 32 bit trong CPU được ghép từ 32 Flip-Flop.</td></tr>
+          <tr><td class="px-4 py-3 font-bold text-primary">FSM (Finite State Machine)</td><td class="px-4 py-3">Máy trạng thái hữu hạn</td><td class="px-4 py-3">Mô hình điều khiển: state + input quyết định next state và output; hiện thực bằng 3 khối always.</td><td class="px-4 py-3 italic">FSM của UART TX gồm các state idle, start, data, stop.</td></tr>
+          <tr><td class="px-4 py-3 font-bold text-primary">Testbench</td><td class="px-4 py-3">Môi trường kiểm tra</td><td class="px-4 py-3">Code mô phỏng cấp input và kiểm tra output cho khối thiết kế (DUT); không tổng hợp thành phần cứng.</td><td class="px-4 py-3 italic">Testbench bắt được bug của counter trước khi nạp lên board.</td></tr>
+          <tr><td class="px-4 py-3 font-bold text-primary">Propagation delay</td><td class="px-4 py-3">Độ trễ lan truyền</td><td class="px-4 py-3">Thời gian để tín hiệu đi qua mạch tổ hợp — output không đổi "ngay lập tức"; delay lớn nhất giới hạn tần số clock.</td><td class="px-4 py-3 italic">Bộ cộng 32 bit có propagation delay lớn hơn bộ cộng 4 bit.</td></tr>
+          <tr><td class="px-4 py-3 font-bold text-primary">Baud rate</td><td class="px-4 py-3">Tốc độ truyền UART</td><td class="px-4 py-3">Số bit truyền mỗi giây trên đường UART; hai đầu phải cài giống nhau vì không có dây clock chung.</td><td class="px-4 py-3 italic">Cài sai baud rate là Serial Terminal hiện toàn ký tự lạ.</td></tr>
+          <tr><td class="px-4 py-3 font-bold text-primary">Trade-off</td><td class="px-4 py-3">Sự đánh đổi</td><td class="px-4 py-3">Không có lựa chọn tốt mọi mặt: FPGA vs ASIC (NRE, unit cost, PPA, time-to-market), Moore vs Mealy, tốc độ vs diện tích.</td><td class="px-4 py-3 italic">Chọn FPGA hay ASIC là bài toán trade-off theo sản lượng và thời gian.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 19. FINAL SUMMARY ===================== -->
+<section id="summary" class="py-12 border-t border-slate-200">
+  <div class="flex items-center gap-3 mb-6">
+    <span class="w-10 h-10 rounded-xl bg-accent/10 text-accent flex items-center justify-center"><i class="fa-solid fa-flag-checkered"></i></span>
+    <div>
+      <p class="text-[11px] font-bold uppercase tracking-widest text-accent">Section 19</p>
+      <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900">Tổng Kết — Khép Phase 1, Mở Phase 2</h2>
+    </div>
+  </div>
+
+  <div class="grid md:grid-cols-2 gap-4 mb-6">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+      <h3 class="font-bold text-slate-800 mb-3"><i class="fa-solid fa-star text-secondary mr-2"></i>5 điều mang theo từ toàn khóa</h3>
+      <ol class="space-y-2.5 text-sm text-slate-700 list-none">
+        <li class="flex gap-3"><span class="shrink-0 w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold flex items-center justify-center">1</span><span><strong>Chip = hàng tỷ transistor-công tắc trên silicon.</strong> SoC là MỘT IC tích hợp nhiều khối; mức logic 1/0 là khoảng điện áp High/Low.</span></li>
+        <li class="flex gap-3"><span class="shrink-0 w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold flex items-center justify-center">2</span><span><strong>Mọi mạch số = tổ hợp + tuần tự.</strong> Tổ hợp tính (có propagation delay); tuần tự nhớ theo cạnh clock. D FF lưu 1 bit — register, counter, shift register đều xây từ nó.</span></li>
+        <li class="flex gap-3"><span class="shrink-0 w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold flex items-center justify-center">3</span><span><strong>FSM là bộ não điều khiển:</strong> tách controller / datapath, viết 3 khối (state register, next-state, output) — mẫu thiết kế dùng cả sự nghiệp.</span></li>
+        <li class="flex gap-3"><span class="shrink-0 w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold flex items-center justify-center">4</span><span><strong>Verilog mô tả phần cứng song song, không phải chương trình tuần tự.</strong> Luật làm việc: block diagram trước RTL, testbench + waveform trước board.</span></li>
+        <li class="flex gap-3"><span class="shrink-0 w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold flex items-center justify-center">5</span><span><strong>FPGA vs ASIC là trade-off.</strong> Bitstream = cấu hình lại được; tape-out = sản xuất thật. Giá trị của bạn nằm ở tư duy thiết kế — tool chỉ là phương tiện.</span></li>
+      </ol>
+    </div>
+
+    <div class="space-y-4">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+        <h3 class="font-bold text-slate-800 mb-3"><i class="fa-solid fa-person-circle-question text-primary mr-2"></i>3 câu tự phản tỉnh</h3>
+        <ul class="space-y-2.5 text-sm text-slate-700">
+          <li class="flex gap-2"><i class="fa-regular fa-circle-question text-primary mt-0.5"></i><span>Tôi có vẽ lại được System View (clock/reset → FSM → datapath → I/O) từ trí nhớ và nói mỗi khối học ở tuần nào không?</span></li>
+          <li class="flex gap-2"><i class="fa-regular fa-circle-question text-primary mt-0.5"></i><span>Node đỏ nào trên skill tree tôi sẽ ôn <em>đầu tiên</em> — bằng hành động cụ thể gì, hoàn thành trước ngày nào?</span></li>
+          <li class="flex gap-2"><i class="fa-regular fa-circle-question text-primary mt-0.5"></i><span>Project Phase 2 của tôi sẽ demo được điều gì mà "tôi của Tuần 1" không tưởng tượng nổi mình làm được?</span></li>
+        </ul>
+      </div>
+
+      <blockquote class="bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 text-white rounded-2xl p-6 relative">
+        <i class="fa-solid fa-quote-left absolute top-4 left-4 text-white/15 text-3xl"></i>
+        <p class="text-sm leading-relaxed relative">Mười hai tuần trước, chip là một chiếc hộp đen. Hôm nay bạn nhìn thấy flip-flop trong chiếc đồng hồ, FSM trong máy bán nước, UART sau cổng USB.
+        Phase 2 không phải là khóa học tiếp theo — nó là <strong>dự án đầu tiên trong sự nghiệp thiết kế của bạn</strong>. Hãy đến buổi kick-off với proposal trên tay.</p>
+        <p class="mt-3 text-xs font-bold text-blue-300 relative">— Mentor, buổi tổng kết Phase 1</p>
+      </blockquote>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-2xl shadow-sm border border-emerald-300 p-5">
+    <div class="flex items-center justify-between flex-wrap gap-2 mb-3">
+      <h3 class="font-bold text-slate-800"><i class="fa-solid fa-clipboard-check text-accent mr-2"></i>Checklist năng lực đầu ra — "Sau khóa học, tôi có thể…"</h3>
+      <span class="text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full px-2.5 py-1">Đã tick <span id="sumCount">0/9</span></span>
+    </div>
+    <div id="sumChecklist" class="grid md:grid-cols-2 gap-x-6 gap-y-2.5 text-sm text-slate-700">
+      <label class="flex gap-3 items-start cursor-pointer"><input type="checkbox" class="chk mt-0.5"><span>Giải thích chip / IC / SoC là gì và kỹ sư IC design làm công việc gì.</span></label>
+      <label class="flex gap-3 items-start cursor-pointer"><input type="checkbox" class="chk mt-0.5"><span>Kể lại design flow từ spec đến tape-out, phân biệt front-end / back-end.</span></label>
+      <label class="flex gap-3 items-start cursor-pointer"><input type="checkbox" class="chk mt-0.5"><span>Lập truth table và chọn gate phù hợp cho một bài toán logic đời thường.</span></label>
+      <label class="flex gap-3 items-start cursor-pointer"><input type="checkbox" class="chk mt-0.5"><span>Mô tả MUX / decoder / adder / comparator theo bộ ba input–output–function và ghép chúng thành khối lớn.</span></label>
+      <label class="flex gap-3 items-start cursor-pointer"><input type="checkbox" class="chk mt-0.5"><span>Giải thích D FF lưu 1 bit, register n-bit = n FF, counter, vai trò clock và reset.</span></label>
+      <label class="flex gap-3 items-start cursor-pointer"><input type="checkbox" class="chk mt-0.5"><span>Vẽ state diagram và viết FSM 3 khối bằng SystemVerilog không sinh latch.</span></label>
+      <label class="flex gap-3 items-start cursor-pointer"><input type="checkbox" class="chk mt-0.5"><span>Viết module + testbench đơn giản và đọc waveform để bắt bug.</span></label>
+      <label class="flex gap-3 items-start cursor-pointer"><input type="checkbox" class="chk mt-0.5"><span>Trình bày trade-off FPGA vs ASIC và giải thích vì sao bitstream khác tape-out.</span></label>
+      <label class="flex gap-3 items-start cursor-pointer"><input type="checkbox" class="chk mt-0.5"><span>Viết mini-project proposal Phase 2 hoàn chỉnh (6 mục) và bảo vệ được trước nhóm.</span></label>
+    </div>
+    <p class="text-[13px] text-slate-500 mt-4"><i class="fa-solid fa-trophy text-secondary mr-1.5"></i>Tick được 7/9 trở lên (một cách trung thực) — bạn đã sẵn sàng cho Phase 2. Chưa tới? Skill tree Section 6 cho bạn biết chính xác cần ôn gì. Hẹn gặp ở buổi kick-off!</p>
+  </div>
+</section>
+
+</main>
+
+<!-- ===================== FOOTER ===================== -->
+<footer class="mt-8 bg-dark text-slate-300">
+  <div class="max-w-6xl mx-auto px-4 py-10">
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+      <a href="Week11.html" class="group flex items-center gap-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl px-4 py-3">
+        <i class="fa-solid fa-arrow-left text-blue-300 group-hover:-translate-x-0.5 transition"></i>
+        <span class="text-sm"><span class="block text-[11px] uppercase tracking-wider text-slate-500">Tuần trước</span><strong class="text-white">Tuần 11 — UART Communication Basics</strong></span>
+      </a>
+      <div class="text-center">
+        <p class="text-xs text-slate-500">Chương trình Mentoring Thiết kế Vi mạch số — 12 tuần</p>
+        <p class="text-[11px] text-slate-600 mt-1">Tuần 12: Course Wrap-up &amp; Next Steps — hoàn thành Phase 1 🎓</p>
+        <p class="text-[11px] text-slate-600 mt-1">Bản quyền © Khoa Điện - Điện tử, Trường Kỹ thuật Phenikaa, Đại học Phenikaa · Giảng viên: ThS. Đinh Văn Nam</p>
+      </div>
+      <span class="flex items-center gap-3 bg-emerald-500/10 border border-emerald-400/30 rounded-xl px-4 py-3">
+        <span class="text-sm text-right"><span class="block text-[11px] uppercase tracking-wider text-emerald-500/70">Tiếp theo</span><strong class="text-emerald-300">Phase 2 — Mini-Project theo nhóm</strong></span>
+        <i class="fa-solid fa-rocket text-emerald-300"></i>
+      </span>
+    </div>
+  </div>
+</footer>
+
+<script>
+// ============================================================
+// Helpers
+// ============================================================
+function $id(x){ return document.getElementById(x); }
+
+// ---------- Checklist counters ----------
+function bindChecklist(boxId, countId){
+  var boxes = document.querySelectorAll('#' + boxId + ' input[type="checkbox"]');
+  var out = $id(countId);
+  function upd(){
+    var n = 0;
+    boxes.forEach(function(b){ if (b.checked) n++; });
+    out.textContent = n + '/' + boxes.length;
+  }
+  boxes.forEach(function(b){ b.addEventListener('change', upd); });
+  upd();
+}
+bindChecklist('prepChecklist', 'prepCount');
+bindChecklist('sumChecklist', 'sumCount');
+
+// ---------- Copy buttons ----------
+document.querySelectorAll('.copy-btn').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    var src = $id(btn.dataset.target);
+    var text = src ? src.innerText : '';
+    function done(){
+      var old = btn.innerHTML;
+      btn.innerHTML = '<i class="fa-solid fa-check mr-1"></i>Đã copy!';
+      setTimeout(function(){ btn.innerHTML = old; }, 1600);
+    }
+    function fallback(){
+      var ta = document.createElement('textarea');
+      ta.value = text; document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); } catch(e) {}
+      document.body.removeChild(ta); done();
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(done).catch(fallback);
+    } else { fallback(); }
+  });
+});
+
+// ============================================================
+// Skill tree — tự đánh giá (in-memory, reload là reset)
+// ============================================================
+var TREE = {
+  n1:  { week: 'Tuần 1',  name: 'Semiconductor, transistor, IC, SoC' },
+  n2:  { week: 'Tuần 2',  name: 'Design flow: Spec → Tape-out' },
+  n3:  { week: 'Tuần 3',  name: 'Logic gates & truth table' },
+  n4:  { week: 'Tuần 4',  name: 'MUX, Decoder, Adder, Comparator' },
+  n5:  { week: 'Tuần 5',  name: 'Flip-Flop, register, counter, reset' },
+  n6:  { week: 'Tuần 6',  name: 'FSM: state diagram, Moore/Mealy' },
+  n7:  { week: 'Tuần 7',  name: 'Verilog: module, always, tư duy song song' },
+  n8:  { week: 'Tuần 8',  name: 'FPGA vs ASIC trade-off' },
+  n9:  { week: 'Tuần 9',  name: 'Traffic light: FSM + timer + tick' },
+  n10: { week: 'Tuần 10', name: 'Counter + decoder + LED 7 đoạn' },
+  n11: { week: 'Tuần 11', name: 'UART TX: frame, baud rate, shift register' }
+};
+var NODE_IDS = Object.keys(TREE);
+var PROJECTS = [
+  { name: 'Digital Stopwatch',            diff: '2/5', needs: ['n5','n6','n10'],       why: 'counter + FSM start/stop + LED 7 đoạn' },
+  { name: 'Đồng hồ số (Digital Clock)',   diff: '3/5', needs: ['n5','n6','n9','n10'],  why: 'tick 1 s + chuỗi counter + FSM chỉnh giờ' },
+  { name: 'Vending machine mở rộng',      diff: '3/5', needs: ['n4','n5','n6','n9'],   why: 'FSM nhiều state + datapath cộng/trừ tiền' },
+  { name: 'Đo nhiệt độ + UART về PC',     diff: '4/5', needs: ['n4','n5','n6','n11'],  why: 'UART TX + FSM điều khiển + đổi binary sang ASCII' }
+];
+var levels = {};          // nodeId -> 1 | 2 | 3
+var selectedNode = null;
+var LVL_TXT = { 1: 'Chưa vững', 2: 'Cơ bản', 3: 'Vững' };
+
+function nodeBtn(id){ return document.querySelector('.skill-node[data-node="' + id + '"]'); }
+
+document.querySelectorAll('.skill-node').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    selectedNode = btn.dataset.node;
+    document.querySelectorAll('.skill-node').forEach(function(b){ b.classList.remove('sel'); });
+    btn.classList.add('sel');
+    $id('assessTitle').textContent = TREE[selectedNode].week + ' — ' + TREE[selectedNode].name;
+    $id('assessHint').textContent = levels[selectedNode]
+      ? 'Đang chấm: ' + LVL_TXT[levels[selectedNode]] + '. Chọn mức khác nếu muốn đổi.'
+      : 'Chọn một trong ba mức bên dưới (theo tiêu chí, không theo cảm giác).';
+  });
+});
+
+document.querySelectorAll('.assess-btn').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    if (!selectedNode){
+      $id('assessHint').textContent = 'Hãy bấm chọn một node trên cây kỹ năng trước đã!';
+      return;
+    }
+    var lvl = parseInt(btn.dataset.level, 10);
+    levels[selectedNode] = lvl;
+    var el = nodeBtn(selectedNode);
+    el.classList.remove('st-0', 'st-1', 'st-2', 'st-3');
+    el.classList.add('st-' + lvl);
+    el.querySelector('.node-status').textContent = LVL_TXT[lvl];
+    $id('assessHint').textContent = 'Đã chấm "' + LVL_TXT[lvl] + '". Bấm node khác để tiếp tục.';
+    updateTree();
+  });
+});
+
+function projScore(p){
+  var s = 0;
+  p.needs.forEach(function(n){
+    var l = levels[n] || 0;
+    s += (l === 3 ? 2 : l === 2 ? 1 : 0);
+  });
+  return s / (2 * p.needs.length);
+}
+
+function updateTree(){
+  var c1 = 0, c2 = 0, c3 = 0, pts = 0, rated = 0;
+  NODE_IDS.forEach(function(id){
+    var l = levels[id] || 0;
+    if (l) rated++;
+    if (l === 1) c1++;
+    else if (l === 2){ c2++; pts += 1; }
+    else if (l === 3){ c3++; pts += 2; }
+  });
+  var pct = Math.round(100 * pts / (2 * NODE_IDS.length));
+  $id('readinessPct').textContent = pct + '%';
+  $id('readinessBar').style.width = pct + '%';
+  $id('ratedCount').textContent = 'Đã chấm ' + rated + '/' + NODE_IDS.length;
+  $id('cnt3').textContent = c3;
+  $id('cnt2').textContent = c2;
+  $id('cnt1').textContent = c1;
+
+  // Gợi ý ôn tập
+  var red = NODE_IDS.filter(function(id){ return levels[id] === 1; });
+  var yellow = NODE_IDS.filter(function(id){ return levels[id] === 2; });
+  var rv;
+  if (!rated){
+    rv = 'Hãy chấm các node trước — danh sách ôn tập sẽ hiện ở đây.';
+  } else if (red.length){
+    rv = 'Ưu tiên ôn ngay: ' + red.map(function(id){ return TREE[id].week + ' (' + TREE[id].name + ')'; }).join(' · ')
+       + '. Ôn từ tuần nhỏ nhất trước — kiến thức xếp tầng, hổng tầng dưới là lung lay tầng trên.';
+  } else if (yellow.length){
+    rv = 'Không có node đỏ — tốt! Lướt nhanh lại: ' + yellow.map(function(id){ return TREE[id].week; }).join(', ')
+       + ' (mỗi tuần ~30 phút: đọc lại Final Summary của tuần đó + làm lại quiz).';
+  } else if (rated === NODE_IDS.length){
+    rv = 'Cả 11 node đều Vững — không cần ôn, vào thẳng Phase 2. Nhưng hãy chắc rằng mỗi ô xanh đều có bằng chứng thật nhé!';
+  } else {
+    rv = 'Các node đã chấm đều ổn. Chấm nốt ' + (NODE_IDS.length - rated) + ' node còn lại để có bức tranh đầy đủ.';
+  }
+  $id('reviewSuggest').textContent = rv;
+
+  // Gợi ý project Phase 2
+  var ps;
+  if (rated < 4){
+    ps = 'Chấm ít nhất 4 node để nhận gợi ý (gợi ý dựa trên mức vững của các khối mà từng project cần dùng).';
+  } else {
+    var ranked = PROJECTS.slice().sort(function(a, b){ return projScore(b) - projScore(a); });
+    var best = ranked[0];
+    var fit = Math.round(projScore(best) * 100);
+    if (fit >= 75){
+      ps = 'Gợi ý số 1: ' + best.name + ' (độ khó ' + best.diff + ') — các khối nó cần (' + best.why
+         + ') đang là thế mạnh của bạn (độ khớp ' + fit + '%). Lựa chọn dự phòng: ' + ranked[1].name + '.';
+    } else if (fit >= 40){
+      var weak = best.needs.filter(function(n){ return (levels[n] || 0) < 3; })
+                           .map(function(n){ return TREE[n].week; });
+      ps = 'Hướng tới: ' + best.name + ' (độ khó ' + best.diff + ', độ khớp ' + fit + '%) — nhưng hãy ôn '
+         + weak.join(', ') + ' trong tuần đầu Phase 2 trước khi viết RTL.';
+    } else {
+      ps = 'Các khối nền cho mọi project còn yếu (độ khớp cao nhất chỉ ' + fit
+         + '%). Khởi đầu an toàn: Digital Stopwatch (độ khó 2/5), dành tuần đầu Phase 2 ôn hết các node đỏ rồi mới viết RTL.';
+    }
+  }
+  $id('projectSuggest').textContent = ps;
+}
+
+$id('treeReset').addEventListener('click', function(){
+  levels = {};
+  selectedNode = null;
+  document.querySelectorAll('.skill-node').forEach(function(b){
+    b.classList.remove('sel', 'st-1', 'st-2', 'st-3');
+    b.classList.add('st-0');
+    b.querySelector('.node-status').textContent = 'Chưa đánh giá';
+  });
+  $id('assessTitle').textContent = 'Chưa chọn node nào';
+  $id('assessHint').textContent = 'Bấm vào một node phía trên để bắt đầu tự đánh giá.';
+  updateTree();
+});
+
+// ---------- Quiz ----------
+var quizTotal = document.querySelectorAll('#quizWrap .quiz-q').length;
+var quizAnswered = 0, quizCorrect = 0;
+function updQuizScore(){
+  $id('quizScore').textContent = 'Đã trả lời ' + quizAnswered + '/' + quizTotal + ' — đúng ' + quizCorrect +
+    (quizAnswered === quizTotal ? ' → ' + quizCorrect + '/' + quizTotal + ' điểm' + (quizCorrect >= 8 ? ' — nền tảng vững, sẵn sàng Phase 2!' : quizCorrect >= 5 ? ' — khá! Đọc lại giải thích các câu sai và ôn tuần tương ứng.' : ' — nên ôn lại theo skill tree (Section 6) trước khi vào Phase 2.') : '');
+}
+document.querySelectorAll('#quizWrap .quiz-q').forEach(function(q){
+  var opts = q.querySelectorAll('.quiz-opt');
+  opts.forEach(function(o, idx){
+    o.addEventListener('click', function(){
+      if (q.dataset.done) return;
+      q.dataset.done = '1';
+      var corr = parseInt(q.dataset.answer, 10);
+      opts.forEach(function(el, i){
+        el.classList.add('locked');
+        if (i === corr) el.classList.add('correct');
+      });
+      if (idx === corr){ quizCorrect++; } else { o.classList.add('wrong'); }
+      var exp = q.querySelector('.quiz-exp');
+      if (exp) exp.classList.remove('hidden');
+      quizAnswered++;
+      updQuizScore();
+    });
+  });
+});
+$id('quizReset').addEventListener('click', function(){
+  quizAnswered = 0; quizCorrect = 0;
+  document.querySelectorAll('#quizWrap .quiz-q').forEach(function(q){
+    delete q.dataset.done;
+    q.querySelectorAll('.quiz-opt').forEach(function(el){ el.classList.remove('locked', 'correct', 'wrong'); });
+    var exp = q.querySelector('.quiz-exp');
+    if (exp) exp.classList.add('hidden');
+  });
+  updQuizScore();
+});
+
+// ---------- Khởi tạo ----------
+updateTree();
+updQuizScore();
+</script>
+</body>
+</html>

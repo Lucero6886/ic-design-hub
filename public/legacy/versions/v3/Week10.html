@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="Giảng Viên Đinh Văn Nam">
+<meta name="copyright" content="© 2026 · Bản quyền thuộc về Giảng Viên Đinh Văn Nam, Khoa Điện-Điện Tử, Trường Kỹ Thuật, Đại học Phenikaa">
+<meta name="description" content="IC Design Mentoring — Version 3, Phase 1 (12 tuần). Khoa Điện – Điện tử · Trường Kỹ thuật · Đại học Phenikaa. Biên soạn: Giảng Viên Đinh Văn Nam.">
+<title>Tuần 10 — Project B: Counter &amp; 7-Segment Display | IC Design Mentoring v3</title>
+<link rel="stylesheet" href="css/style.css">
+<script src="js/app.js" defer></script>
+</head>
+<body data-week="10">
+
+<!-- ================= TOP BAR ================= -->
+<header class="topbar">
+  <div class="topbar-in">
+    <a class="brand" href="index.html"><span class="logo">IC</span>
+      <span>IC Design Mentoring<small>Tuần 10/12 · Project B: 7-Segment Display</small></span></a>
+    <nav class="layer-chips">
+      <a class="chip" href="../../index.html" title="Learning Hub — cổng ba phiên bản giáo trình; đây là V3, bản hiện hành được khuyến nghị">⌂ Hub · V3</a>
+      <a class="chip chip-a" href="#layer-a"><span class="dot"></span>A · Trước buổi</a>
+      <a class="chip chip-b" href="#layer-b"><span class="dot"></span>B · Buổi học 60′</a>
+      <a class="chip chip-c" href="#layer-c"><span class="dot"></span>C · Lab</a>
+      <a class="chip chip-d" href="#layer-d"><span class="dot"></span>D · Sau buổi</a>
+      <a class="chip" href="index.html">Mục lục</a>
+    </nav>
+    <span class="mentor-sw" title="Hiện/ẩn nội dung dành riêng cho mentor"><span class="tr"></span> Mentor</span>
+  </div>
+  <div class="scrollbar"><div></div></div>
+</header>
+
+<!-- ================= HERO ================= -->
+<section class="hero">
+  <div class="wrap">
+    <div class="pill-row">
+      <span class="pill">Tuần 10 / 12</span>
+      <span class="pill acc">Project tích hợp · tuần 2/3</span>
+      <span class="pill">Khoa Điện – Điện tử · ĐH Phenikaa</span>
+    </div>
+    <h1>Project B: Counter &amp; 7-Segment Display</h1>
+    <p class="sub">Nối tầng hiển thị vào hệ đèn giao thông — tuần giữa của project 3 tuần</p>
+    <p>Tuần 9, hệ của bạn đã chạy đúng: <code>tick_gen</code> tạo nhịp 1 Hz, <code>traffic_ctrl</code> đổi pha an toàn. Nhưng nó "câm" — người qua đường không biết còn bao nhiêu giây. Tuần này bạn <b>không làm lại từ đầu</b>: giữ nguyên module cũ, nối thêm tầng hiển thị — <code>seg7_decoder</code> dịch <code>time_left</code> thành số trên LED 7 đoạn. Bài học trung tâm của nghề: <b>ghép module qua interface đã cố định</b>.</p>
+    <div class="outcomes">
+      <div class="outcome"><b>Mục tiêu 1.</b> Giải thích seg7_decoder là mạch tổ hợp thuần (decoder T4 trở lại), phần cứng suy ra: mạng LUT, 0 flip-flop.</div>
+      <div class="outcome"><b>Mục tiêu 2.</b> Vẽ block diagram hệ tích hợp, phân biệt module CŨ / khối MỚI; gọi đúng tên interface: <code>tick</code>, <code>time_left[3:0]</code>, <code>seg[6:0]</code>.</div>
+      <div class="outcome"><b>Mục tiêu 3.</b> Ghép seg7_decoder vào hệ T9 của chính mình, không sửa module cũ; dự đoán rồi kiểm chứng waveform tại giây chuyển pha.</div>
+      <div class="outcome"><b>Mục tiêu 4.</b> Giải thích multiplexing 2 digit (display_mux) và lập luận vì sao quét ~1 kHz.</div>
+    </div>
+    <div class="pos">
+      <div><b>Tuần trước — T9.</b> Project A: dựng lõi — tick_gen + traffic_ctrl (FSM 4 pha + timer). Hệ chạy đúng nhưng chưa hiển thị gì.</div>
+      <div><b>Tuần này — T10.</b> Nối tầng hiển thị qua interface có sẵn: time_left → seg7_decoder → LED 7 đoạn. Module cũ không đổi.</div>
+      <div><b>Tuần sau — T11.</b> Cho hệ "nói": uart_tx gửi trạng thái về PC — hoàn tất project 3 tuần.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= LAYER A ================= -->
+<section id="layer-a" class="layer layer-a">
+  <div class="wrap layer-head">
+    <div class="band">
+      <span class="layer-badge">A</span>
+      <h2>Trước buổi học</h2>
+      <span class="time">⏱ 15–25 phút · chỉ cần đọc phần này</span>
+    </div>
+    <p class="lead">Bạn KHÔNG cần đọc Layer C trước buổi học. Chuẩn bị đủ ở đây là bạn sẵn sàng thảo luận. Layer C dành cho lúc thực hành sau buổi.</p>
+  </div>
+  <div class="wrap layer-body">
+    <div class="grid2">
+      <div class="card">
+        <h3>Vì sao tuần này quan trọng</h3>
+        <p>Hệ T9 chạy đúng nhưng <b>"câm"</b>: bằng chứng duy nhất là waveform. Tuần này thêm <b>datapath hiển thị</b> — và học kỹ năng chiếm phần lớn thời gian của kỹ sư thật: <b>ghép module qua interface có sẵn</b> (integration), module cũ giữ nguyên, chỉ nối dây.</p>
+        <p class="small muted"><b>Điều kiện tiên quyết:</b> hệ T9 (tick_gen + traffic_ctrl) chạy được trong mô phỏng; ôn decoder T4, counter T5.</p>
+      </div>
+      <div class="card">
+        <h3>Hoạt động chuẩn bị (10′)</h3>
+        <p>Tìm một <b>đồng hồ đếm ngược ở đèn giao thông thật</b> (hoặc ảnh/video). Ghi 2 dòng ra giấy: (1) đúng lúc chuyển pha, con số hiển thị gì? (2) số có nhảy "0 → 9" tức thời không, hay có khoảnh khắc lạ? Mang 2 dòng này đến lớp.</p>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Khái niệm thiết yếu — đọc chậm, 5 ý</h3>
+      <ul>
+        <li><b>LED 7 đoạn</b> = 7 LED xếp hình số 8 (a–g). Nó không "biết" số — chỉ sáng theo tổ hợp bật/tắt 7 chân.</li>
+        <li><b>seg7 decoder</b> = mạch <b>tổ hợp</b> thuần dịch <code>bcd[3:0]</code> → <code>seg[6:0]</code>: decoder T4 trong vai trò thật — bảng chân lý 10 hàng, không clock, không FF.</li>
+        <li><b>Nhị phân là "ngôn ngữ chung" giữa module</b>: <code>time_left[3:0]</code> chỉ là 4 sợi dây chạy từ traffic_ctrl sang decoder — không ai "gửi con số", chỉ có 4 mức điện áp.</li>
+        <li><b>Multiplexing hiển thị</b>: nhiều digit dùng chung 1 bộ dây seg, quét luân phiên ~kHz; mắt người chậm nên thấy sáng đồng thời.</li>
+        <li><b>Tách datapath hiển thị khỏi controller</b>: thêm màn hình <b>không đụng</b> FSM đã kiểm chứng — sức mạnh của interface.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>2 câu hỏi tự chẩn đoán</h3>
+      <p class="small muted">Trả lời trong đầu trước, rồi mới mở đáp án. Nếu sai cũng không sao — buổi học sẽ xử lý đúng chỗ này.</p>
+      <details class="reveal"><summary>1. seg7_decoder là mạch tổ hợp hay tuần tự? Làm sao biết chắc?</summary>
+        <div class="rv-body">Tổ hợp. Output chỉ phụ thuộc <code>bcd</code> <em>ngay lúc này</em> — không cần nhớ quá khứ, nên không clock, không FF; viết bằng <code>always_comb</code>. Muốn thêm clock vào decoder là dấu hiệu cần ôn T4.</div>
+      </details>
+      <details class="reveal"><summary>2. Muốn hiện 2 chữ số mà chỉ có 1 bộ dây <code>seg[6:0]</code> thì làm sao?</summary>
+        <div class="rv-body">Quét luân phiên: MUX chọn digit <em>theo thời gian</em> + tín hiệu <code>an</code> chọn đèn đang được cấp. Đổi đủ nhanh (~kHz) thì mắt thấy cả hai cùng sáng. Bản chất: MUX (T4) + counter (T5) ghép khéo.</div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ================= LAYER B ================= -->
+<section id="layer-b" class="layer layer-b">
+  <div class="wrap layer-head">
+    <div class="band">
+      <span class="layer-badge">B</span>
+      <h2>Buổi mentoring 60 phút</h2>
+      <span class="time">🗺 Mentor Session Guide</span>
+    </div>
+    <p class="lead">Kịch bản buổi học — mentor điều phối theo timeline này, không cần đọc hết Layer C để đứng lớp. Học viên nhìn vào đây để biết mình sẽ làm gì.</p>
+  </div>
+  <div class="wrap layer-body">
+    <div class="card">
+      <div class="timeline">
+        <div class="tl-row">
+          <span class="tl-time">0–5′</span>
+          <h4>Retrieval — kiểm tra tuần 9</h4>
+          <ul>
+            <li><code>tick</code> trong hệ T9 là clock hay enable? Vì sao khác biệt này sống còn?</li>
+            <li>Vì sao tách FSM (controller) khỏi timer (datapath)?</li>
+            <li>Invariant an toàn của đèn giao thông là gì?</li>
+          </ul>
+        </div>
+        <div class="tl-row">
+          <span class="tl-time">5–15′</span>
+          <h4>Học viên giải thích</h4>
+          <p>1–2 học viên vẽ lại kiến trúc T9 <em>từ trí nhớ</em> (khối, mũi tên, tên tín hiệu), rồi đọc quan sát đèn đếm ngược từ bài chuẩn bị. Cả lớp bổ sung; mentor chưa sửa vội.</p>
+        </div>
+        <div class="tl-row">
+          <span class="tl-time">15–25′</span>
+          <h4>Mentor sửa &amp; giảng sâu</h4>
+          <p>Chốt 3 điều bắt buộc đúng: (1) decoder là <b>tổ hợp thuần</b> — bảng chân lý 10 hàng, 0 FF; (2) ghép hệ = <b>nối dây qua interface có sẵn</b>, module T9 giữ nguyên từng ký tự; (3) thứ tự tại giây chuyển pha: tick → <code>time_left</code> (t<sub>CQ</sub>) → <code>seg</code> (thêm t<sub>pd</sub>) — seg không bao giờ đổi <em>trước</em> time_left.</p>
+        </div>
+        <div class="tl-row">
+          <span class="tl-time">25–45′</span>
+          <h4>Active design — predict &amp; design (nhóm 2–3 người)</h4>
+          <p><b>Đề bài 3 phần:</b></p>
+          <ul>
+            <li><b>Tự lập</b> bảng giải mã 0–9 → <code>seg[6:0]</code> quy ước {g,f,e,d,c,b,a} active-high, chưa nhìn tài liệu; xong mới đối chiếu bảng C2 (predict-before-check).</li>
+            <li>Vẽ block diagram hệ <em>sau khi</em> nối display, tô 2 màu: interface/khối <b>có sẵn</b> vs khối <b>mới</b>.</li>
+            <li>Dự đoán: tại giây chuyển GREEN→YELLOW, <code>time_left</code> và <code>seg</code> đổi ở cạnh clock nào — cái nào trước?</li>
+          </ul>
+          <p class="small muted">Artifact nhóm: bảng giải mã + block diagram 2 màu + 1 câu dự đoán.</p>
+        </div>
+        <div class="tl-row">
+          <span class="tl-time">45–55′</span>
+          <h4>Chia sẻ &amp; tranh luận kỹ thuật</h4>
+          <p>So bảng giải mã giữa các nhóm: số <b>6</b> và <b>9</b> thường lệch nhau (có/không thanh a, d). Ai đúng? — Cả hai, <em>nếu quy ước được viết ra</em>: đúng tinh thần interface. Câu ép suy nghĩ: vì sao không sửa traffic_ctrl xuất thẳng <code>seg[6:0]</code> "cho tiện"?</p>
+        </div>
+        <div class="tl-row">
+          <span class="tl-time">55–60′</span>
+          <h4>Chốt &amp; giao việc</h4>
+          <ul>
+            <li><b>Nhớ:</b> decoder = bảng chân lý; module cũ giữ nguyên, chỉ nối dây; seg đổi <em>sau</em> time_left.</li>
+            <li><b>Tránh:</b> sửa traffic_ctrl "cho tiện"; lấy tín hiệu chậm (sel, tick) làm clock.</li>
+            <li><b>Artifact sau buổi:</b> ghép seg7_decoder vào hệ T9 của mình + waveform 1 lần chuyển pha có chú thích (Layer D).</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <p class="mentor-hint">💡 Bật công tắc <b>Mentor</b> trên thanh tiêu đề để xem ghi chú dành riêng cho mentor (đáp án kỳ vọng, câu hỏi cứu nguy, mở rộng cho học viên giỏi).</p>
+
+    <div class="mentor-only">
+      <div class="mentor-box">
+        <span class="mtag">Mentor only · Tuần 10</span>
+        <h3>Ghi chú vận hành buổi học</h3>
+        <div class="grid2">
+          <div>
+            <h4>Mục tiêu mentor cần chốt được</h4>
+            <ul class="small">
+              <li><b>Ghép module</b> là kỹ năng riêng, khác "viết module": interface cố định thì chỉ nối dây.</li>
+              <li>Đọc được chuỗi trễ tick → time_left (t<sub>CQ</sub>) → seg (t<sub>pd</sub>) trên waveform.</li>
+              <li>Quy ước hiển thị (thứ tự bit, cực tính) phải được <b>viết ra</b>, không "hiểu ngầm".</li>
+            </ul>
+            <h4>Hiểu sai kinh điển (chờ sẵn)</h4>
+            <ul class="small">
+              <li>"Decoder <em>biết</em> số thập phân" — không, chỉ là truth table 10 hàng; "số" là quy ước của người đọc.</li>
+              <li>"Nối module = code lại từ đầu" — không; interface đã cố định, chỉ thêm dây và 1 instance.</li>
+              <li>"seg đổi <em>trước</em> time_left" — ngược chuỗi nhân quả; decoder chỉ phản ứng theo input.</li>
+              <li>"tick là clock" — tái phát từ T9; bắt và sửa ngay khi nghe thấy.</li>
+            </ul>
+          </div>
+          <div>
+            <h4>Câu hỏi chẩn đoán → đáp án tốt → hỏi tiếp</h4>
+            <p class="small"><b>Hỏi:</b> "Vì sao giữ time_left là nhị phân mà không bắt traffic_ctrl xuất thẳng 7 đoạn?"<br>
+            <b>Đáp tốt:</b> tách trách nhiệm — controller nói "còn bao nhiêu giây", không cần biết màn hình là gì; đổi màn hình không đổi FSM đã kiểm chứng.<br>
+            <b>Hỏi tiếp (nếu đúng):</b> "Tuần sau UART cũng cần trạng thái hệ — kiến trúc này lợi gì?" → một nguồn, nhiều consumer; FSM không đổi.</p>
+            <p class="small"><b>Cứu nguy (nếu bí):</b> decoder là "người phiên dịch" giữa số và đèn: người nói (controller) không cần biết tiếng của người nghe (LED). Thay phiên dịch, người nói vẫn nói như cũ.</p>
+            <p class="small"><b>Mở rộng học viên giỏi:</b> vì sao quét ~1 kHz mà không phải 10 Hz hay 10 MHz? → 10 Hz: mắt thấy nháy; 10 MHz: tốn công suất chuyển mạch, dễ ghosting. ~kHz là vùng "đủ nhanh cho mắt, đủ chậm cho đèn".</p>
+          </div>
+        </div>
+        <div class="co co-warn small"><b>Nhịp buổi học.</b> Phần 25–45′ là lõi: ép các nhóm <em>làm</em> bảng trước khi <em>nhìn</em> bảng chuẩn — lệch vài ô chính là vàng để thảo luận quy ước. Đi từng nhóm hỏi "ô này vì sao 1?". Nhóm nhanh: giao câu display_mux 27 MHz (Layer D nâng cao).</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= LAYER C ================= -->
+<section id="layer-c" class="layer layer-c">
+  <div class="wrap layer-head">
+    <div class="band">
+      <span class="layer-badge">C</span>
+      <h2>Technical Lab — Deep Dive</h2>
+      <span class="time">🔬 Tự học sâu · sau buổi hoặc khi thực hành</span>
+    </div>
+    <p class="lead">Toàn bộ kỹ thuật chi tiết nằm ở đây, chia thành mục gập/mở. Không bắt buộc đọc hết một lần — đi theo thứ tự khi làm bài tập.</p>
+  </div>
+  <div class="wrap layer-body">
+    <div class="dd-tools"><button data-dd="open">Mở tất cả</button><button data-dd="close">Đóng tất cả</button></div>
+
+    <!-- C1 -->
+    <details class="dd" open>
+      <summary><span class="no">C1</span> Hệ T9 + tầng hiển thị mới — kiến trúc tích hợp <span class="est">~7′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <div class="co co-info"><b>Tuần giữa của project 3 tuần.</b> Interface T9 đã cố định, module cũ đã chạy đúng — tuần này chỉ <b>thêm khối mới và nối dây</b>. Thấy mình đang mở traffic_ctrl.sv để sửa? Dừng lại, đọc lại mục này.</div>
+        <p><b>Interface đã cố định từ T9</b> (bạn đã có, không đổi):</p>
+<pre class="code standalone"><code>module traffic_ctrl #(parameter int unsigned GREEN_TICKS = 10, YELLOW_TICKS = 3)(
+  input  logic clk, rst_n, tick,
+  output logic [2:0] ns_light, ew_light,   // {đỏ, vàng, xanh}
+  output logic [1:0] phase,                // mã pha hiện tại
+  output logic [3:0] time_left             // số giây còn lại của pha
+);</code></pre>
+        <p><b>Kiến trúc sau tuần này:</b></p>
+<pre class="code standalone"><code>clk, rst_n ─┬─► [tick_gen] ─tick─► [traffic_ctrl] ─ns_light/ew_light─► LED (T9, giữ nguyên)
+            │                            │
+            └────────────────────────────┘   ← clk/rst_n đi tới MỌI khối tuần tự
+                                         │
+                                         └─time_left[3:0]─► [seg7_decoder] ─seg[6:0]─► LED 7 đoạn  ◄ MỚI
+                                                            (tổ hợp thuần — KHÔNG có clk)</code></pre>
+        <p><b>Nguyên tắc:</b> tick_gen và traffic_ctrl <b>giữ nguyên</b> (nhịp chậm vẫn là clock-enable, không phải clock); mọi thứ mới — seg7_decoder (C2), display_mux tùy chọn (C4) — đứng <em>sau</em> interface <code>time_left</code>. Hiển thị sai thì lỗi chắc chắn ở tầng mới: hệ cũ đã có bằng chứng mô phỏng từ T9 — đúng cách SoC thật được lắp.</p>
+      </div>
+    </details>
+
+    <!-- C2 -->
+    <details class="dd">
+      <summary><span class="no">C2</span> seg7_decoder — bảng giải mã thành mạch tổ hợp <span class="est">~12′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <p>Decoder T4 trong vai trò thật. Đặc tả là <b>bảng chân lý 10 hàng</b>. Quy ước của khóa: <code>seg[6:0]</code> = {g,f,e,d,c,b,a}, bit 0 = thanh a, <b>active-high</b> (1 = sáng).</p>
+        <div class="tblwrap">
+        <table class="tbl mono">
+          <tr><th>Số</th><th>bcd</th><th>seg (gfedcba)</th><th>Số</th><th>bcd</th><th>seg (gfedcba)</th></tr>
+          <tr><td>0</td><td>0000</td><td>0111111</td><td>5</td><td>0101</td><td>1101101</td></tr>
+          <tr><td>1</td><td>0001</td><td>0000110</td><td>6</td><td>0110</td><td>1111101</td></tr>
+          <tr><td>2</td><td>0010</td><td>1011011</td><td>7</td><td>0111</td><td>0000111</td></tr>
+          <tr><td>3</td><td>0011</td><td>1001111</td><td>8</td><td>1000</td><td>1111111</td></tr>
+          <tr><td>4</td><td>0100</td><td>1100110</td><td>9</td><td>1001</td><td>1101111</td></tr>
+          <tr><td colspan="3">10–15 → default</td><td colspan="3">1000000 — chỉ g, hiện "-"</td></tr>
+        </table>
+        </div>
+        <p class="small muted">Board <b>common-anode</b>: đoạn sáng ở mức 0 — đảo cực ở <b>đúng một nơi, bên trong <code>seg7_decoder</code></b> (đổi bảng sang active-low), để cổng <code>seg[6:0]</code> của top và bảng liên kết trong PROJECT_GUIDE §2.4 không phải đổi. Đây chính là bài học interface: thay board chỉ sửa một module. Tài liệu khác có thể xếp {a…g} ngược — bảng nào cũng "đúng" <em>nếu quy ước được viết ra</em>.</p>
+        <div class="widget" data-widget="seg7">
+          <div class="wtitle">Bấm để xem từng số → tổ hợp seg[6:0]</div>
+          <div class="wnote">Bấm "bcd + 1" và đối chiếu bảng trên: mỗi số là một hàng truth table. Chú ý số 6 và 9 — hai số hay bị lập lệch nhất giữa các nhóm.</div>
+        </div>
+        <div class="rtl-frame">
+          <div class="rtl-head"><span class="ftag ftag-rtl">RTL</span><span class="fname">seg7_decoder.sv</span><span class="muted">· module MỚI bắt buộc duy nhất</span></div>
+<pre class="code"><code>module seg7_decoder (
+  input  logic [3:0] bcd,     // 0..9
+  output logic [6:0] seg      // {g,f,e,d,c,b,a}, 1 = sáng (đổi cực theo board)
+);
+  always_comb begin
+    unique case (bcd)
+      4'd0: seg = 7'b0111111;  4'd1: seg = 7'b0000110;
+      4'd2: seg = 7'b1011011;  4'd3: seg = 7'b1001111;
+      4'd4: seg = 7'b1100110;  4'd5: seg = 7'b1101101;
+      4'd6: seg = 7'b1111101;  4'd7: seg = 7'b0000111;
+      4'd8: seg = 7'b1111111;  4'd9: seg = 7'b1101111;
+      default: seg = 7'b1000000; // gạch giữa "-" báo giá trị ngoài 0-9
+    endcase
+  end
+endmodule</code></pre>
+          <div class="rtl-meta">
+            <div><b>1 · Mục đích</b>Dịch <code>time_left</code> (0..9) thành mẫu 7 đoạn — tầng "phiên dịch" của datapath hiển thị.</div>
+            <div><b>2 · Interface</b><code>bcd[3:0]</code> vào (nối <code>time_left</code>); <code>seg[6:0]</code> ra — quy ước {g,f,e,d,c,b,a} active-high ghi trong comment.</div>
+            <div><b>3 · Phần cứng suy ra</b>Mạng LUT/cổng tổ hợp: 7 output, mỗi output một hàm Boolean của 4 input. <b>Không FF, không clock.</b></div>
+            <div><b>4 · Chiến lược test</b>Quét đủ 16 input 0–15 (kể cả 6 mã ngoài 0–9), đối chiếu bảng — decoder nhỏ nên test <em>vét cạn</em> được.</div>
+            <div><b>5 · Waveform kỳ vọng</b><code>seg</code> bám theo <code>bcd</code> sau trễ tổ hợp vài ns — không chờ cạnh clock nào.</div>
+            <div><b>6 · Bug kinh điển</b>Thiếu <code>default</code> → latch 7 bit; nhầm thứ tự bit seg so với board; tưởng <code>unique</code> thay được default.</div>
+          </div>
+        </div>
+        <div class="co co-danger"><b><code>default</code> là bắt buộc — <code>unique</code> không cứu được bạn.</b> Case chỉ liệt kê 0–9 thì sáu tổ hợp 10–15 không được gán → tool phải "giữ giá trị cũ" → <b>latch 7 bit</b> (lỗi thiếu default của T4). <code>unique</code> chỉ khai "các nhánh loại trừ nhau", không định nghĩa output cho input thiếu. Default hiện "-" còn là <b>thiết kế phòng thủ</b>: nhìn màn hình biết ngay hệ chạy ngoài spec.</div>
+      </div>
+    </details>
+
+    <!-- C3 -->
+    <details class="dd">
+      <summary><span class="no">C3</span> Nối hệ: một dòng instance, không sửa module cũ <span class="est">~12′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <p>Toàn bộ việc "tích hợp": thêm cổng <code>seg[6:0]</code> vào top, khai báo dây, và <b>một instance mới</b>. Hai instance cũ chép nguyên từ T9.</p>
+        <div class="rtl-frame">
+          <div class="rtl-head"><span class="ftag ftag-rtl">RTL</span><span class="fname">traffic_top.sv — phần thân</span><span class="muted">· hai instance của T9 + đúng 1 dòng mới</span></div>
+<pre class="code"><code>  // == CŨ: hai instance của T9, giữ nguyên interface, không sửa RTL ==
+  // DIV là parameter của top để testbench thu nhỏ nhịp giây mà không phải sửa RTL:
+  //   module traffic_top #(parameter int unsigned DIV = 50_000_000) (...);
+  tick_gen #(.DIV(DIV)) u_tick (.clk, .rst_n, .tick);
+  traffic_ctrl #(.GREEN_TICKS(10), .YELLOW_TICKS(3)) u_ctrl
+    (.clk, .rst_n, .tick, .ns_light, .ew_light, .phase, .time_left);
+
+  // == MỚI: tầng hiển thị, nối vào interface time_left ==
+  seg7_decoder u_seg (.bcd(time_left), .seg);</code></pre>
+          <div class="rtl-meta">
+            <div><b>1 · Mục đích</b>Top T9 mở rộng: thêm cổng ra <code>seg[6:0]</code> + một instance decoder. Đèn ns/ew vẫn ra LED như T9.</div>
+            <div><b>2 · Điểm mấu chốt</b>Diff so với top T9: 1 cổng, 1 instance. <code>time_left</code> từ chỗ để debug nay thành interface nuôi tầng hiển thị.</div>
+            <div><b>3 · Phần cứng thêm</b>Chỉ mạng tổ hợp của decoder — <b>0 FF mới</b>; số FF toàn hệ không đổi.</div>
+            <div><b>4 · Chiến lược test</b>Mô phỏng top với DIV thu nhỏ (thủ thuật T9), soi 1 lần chuyển pha: time_left nạp lại, seg đổi theo — C5.</div>
+          </div>
+        </div>
+        <div class="widget" data-widget="traffic" data-green="6" data-yellow="2" data-seg="1">
+          <div class="wtitle">Hệ T9 + màn hình T10</div>
+          <div class="wnote">Bấm "tick (1 giây)": số trên LED 7 đoạn đổi <b>cùng tick</b> với time_left — seg chỉ là hàm tổ hợp của time_left. (Rút gọn GREEN=6, YELLOW=2 để xem nhanh vòng 4 pha.)</div>
+        </div>
+        <p><b>Waveform tại giây chuyển pha</b> — cuối pha vàng (YELLOW_TICKS=3: đếm 2→1→0) rồi sang pha xanh hướng kia, nạp lại 9 = GREEN_TICKS−1. <b>Chú ý cách vẽ <code>tick</code>:</b> gai hẹp chứ không phải xung vuông 50% — vì <code>tick</code> rộng <b>đúng 1 chu kỳ clk</b>. Vẽ nó rộng bằng cả giây là vẽ sai bản chất: nó là <em>clock-enable</em>, không phải một clock chậm.</p>
+        <div class="wavebox">
+          <svg viewBox="0 0 680 212" width="680" height="212">
+            <g transform="translate(84,12)">
+<line class="wv-grid" x1="0" y1="0" x2="0" y2="168"/>
+<line class="wv-mark" x1="120" y1="0" x2="120" y2="168"/>
+<line class="wv-mark" x1="280" y1="0" x2="280" y2="168"/>
+<line class="wv-mark" x1="440" y1="0" x2="440" y2="168"/>
+<polyline class="wv-sig3" points="0,44 112,44 112,24 120,24 120,44 272,44 272,24 280,24 280,44 432,44 432,24 440,24 440,44 560,44"/>
+<polyline class="wv-sig2" points="0,72 122,72 126,87 122,102 0,102"/>
+<polyline class="wv-sig2" points="126,87 130,72 282,72 286,87 282,102 130,102 126,87"/>
+<polyline class="wv-sig2" points="286,87 290,72 442,72 446,87 442,102 290,102 286,87"/>
+<polyline class="wv-sig2" points="560,72 450,72 446,87 450,102 560,102"/>
+<text class="wv-val" x="55" y="91">2</text>
+<text class="wv-val" x="200" y="91">1</text>
+<text class="wv-val" x="360" y="91">0</text>
+<text class="wv-val" x="498" y="91">9</text>
+<polyline class="wv-sig" points="0,126 128,126 132,141 128,156 0,156"/>
+<polyline class="wv-sig" points="132,141 136,126 288,126 292,141 288,156 136,156 132,141"/>
+<polyline class="wv-sig" points="292,141 296,126 448,126 452,141 448,156 296,156 292,141"/>
+<polyline class="wv-sig" points="560,126 456,126 452,141 456,156 560,156"/>
+<text class="wv-val" x="38" y="145">1011011 "2"</text>
+<text class="wv-val" x="178" y="145">0000110 "1"</text>
+<text class="wv-val" x="338" y="145">0111111 "0"</text>
+<text class="wv-val" x="474" y="145">1101111 "9"</text>
+<text class="wv-note" x="130" y="14">vạch đỏ = cạnh lên clk có tick=1 → cập nhật time_left</text>
+<text class="wv-note" x="352" y="66">chuyển pha: nạp lại 9 = GREEN_TICKS−1</text>
+<text class="wv-note" x="130" y="180">seg đổi SAU time_left: t_CQ + t_pd — nhỏ nhưng không bằng 0</text>
+            </g>
+            <text class="wv-lab" x="6" y="50">tick</text>
+            <text class="wv-lab" x="6" y="103">time_left</text>
+            <text class="wv-lab" x="6" y="157">seg</text>
+          </svg>
+        </div>
+        <p class="small muted">Đọc waveform: tại vạch đỏ (cạnh lên clk có tick=1), time_left đổi sau t<sub>CQ</sub>; seg đổi <em>muộn hơn chút nữa</em> — lan truyền qua mạng tổ hợp của decoder (t<sub>pd</sub>, T4). Ở nhịp 1 giây, vài ns này vô hại; nhưng thứ tự nhân quả <b>time_left trước, seg sau</b> không bao giờ đảo.</p>
+      </div>
+    </details>
+
+    <!-- C4 -->
+    <details class="dd">
+      <summary><span class="no">C4</span> Nâng cao: display_mux — quét 2 digit chung 1 bộ dây <span class="est">~12′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <p>Pha dài hơn 9 giây thì 1 digit không đủ. Thay vì tốn 14 chân (2×7), ta <b>quét</b>: 1 bộ dây <code>seg</code> chung, <code>an</code> chọn digit đang sáng, đổi ~1 kHz. Nhìn kỹ: chỉ là <b>counter (T5) + MUX (T4)</b> + decoder C2 dùng lại.</p>
+        <div class="rtl-frame">
+          <div class="rtl-head"><span class="ftag ftag-rtl">RTL</span><span class="fname">display_mux.sv</span><span class="muted">· synthesizable · tùy chọn nâng cao</span></div>
+<pre class="code"><code>module display_mux #(
+  parameter int unsigned REFRESH_DIV = 50_000   // 50 MHz / 50k -> nhịp đổi digit 1 kHz — mỗi digit được làm tươi 500 Hz với khung 2 digit
+)(
+  input  logic       clk, rst_n,
+  input  logic [3:0] digit1, digit0,   // hàng chục, hàng đơn vị
+  output logic [6:0] seg,
+  output logic [1:0] an                // an[i]=1: digit i đang được quét
+);
+  logic [$clog2(REFRESH_DIV)-1:0] cnt;
+  logic sel;
+  always_ff @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin cnt &lt;= '0; sel &lt;= 1'b0; end
+    else if (cnt == REFRESH_DIV-1) begin cnt &lt;= '0; sel &lt;= ~sel; end
+    else cnt &lt;= cnt + 1'b1;
+  end
+  logic [3:0] bcd;
+  assign bcd = sel ? digit1 : digit0;
+  assign an  = sel ? 2'b10 : 2'b01;
+  seg7_decoder u_dec (.bcd, .seg);
+endmodule</code></pre>
+          <div class="rtl-meta">
+            <div><b>1 · Mục đích</b>Hiển thị 2 chữ số bằng 7 dây seg + 2 dây an — MUX <em>theo thời gian</em> thay vì nhân đôi phần cứng.</div>
+            <div><b>2 · Interface</b><code>digit1/digit0</code> vào (BCD từng hàng); <code>seg</code>, <code>an</code> ra. Tách <code>time_left</code> thành chục/đơn vị bằng một khối tổ hợp nhỏ (<code>time_left &gt;= 10</code>).</div>
+            <div><b>3 · Phần cứng suy ra</b>Counter cnt (⌈log₂50 000⌉ = 16 FF) + 1 FF sel + MUX 4 bit + decoder C2 tái sử dụng nguyên vẹn.</div>
+            <div><b>4 · Vì sao ~1 kHz</b>Chậm quá (10 Hz): mắt thấy nháy. Nhanh quá (MHz): tốn công suất chuyển mạch, dễ <b>ghosting</b>. Với GREEN_TICKS mặc định ≤ 10, digit1 luôn = 0 — khối này chỉ có nghĩa khi pha dài hơn 9 giây.</div>
+            <div><b>5 · Bug kinh điển</b>Lấy <code>sel</code> làm clock (derived clock — <b>cấm</b>, T9 đã dạy); REFRESH_DIV sai một bậc 10 → nháy hoặc ghosting.</div>
+          </div>
+        </div>
+        <div class="co co-warn"><b>Vẫn một clock duy nhất.</b> <code>sel</code> là <em>dữ liệu chọn kênh</em>, không phải clock: mọi FF ăn <code>clk</code> 50 MHz, nhịp chậm sinh bằng đếm + so sánh — nguyên tắc clock-enable từ T5/T9. Thấy <code>always_ff @(posedge sel)</code> là sai ngay từ kiến trúc.</div>
+      </div>
+    </details>
+
+    <!-- C5 -->
+    <details class="dd">
+      <summary><span class="no">C5</span> Test hệ nhiều module — self-check seg theo bảng <span class="est">~10′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <p>Hệ nhiều module thì <b>không dò mắt từng mẫu seg</b>. Viết lại bảng giải mã trong testbench thành một <code>function</code> — "trọng tài" độc lập — và để máy so sánh mỗi chu kỳ: self-check kiểu T9, nâng lên mức hệ.</p>
+        <div class="rtl-frame">
+          <div class="rtl-head"><span class="ftag ftag-tb">TESTBENCH</span><span class="fname">tb_traffic_top.sv</span><span class="muted">· chỉ để mô phỏng</span></div>
+<pre class="code"><code>module tb_traffic_top;
+  logic clk = 1'b0, rst_n;
+  logic [2:0] ns_light, ew_light;
+  logic [6:0] seg;
+
+  // DIV=10: 1 "giây" = 10 chu kỳ — thủ thuật thu nhỏ của T9
+  traffic_top #(.DIV(10)) dut (.clk, .rst_n, .ns_light, .ew_light, .seg);
+
+  always #5 clk = ~clk;
+
+  // Trọng tài độc lập: bảng C2 viết lại trong TB
+  // BẠN PHẢI CHÉP ĐỦ 10 HÀNG trước khi chạy — 2 hàng dưới chỉ là mẫu.
+  function automatic logic [6:0] exp_seg(input logic [3:0] b);
+    case (b)
+      4'd0: exp_seg = 7'b0111111; 4'd1: exp_seg = 7'b0000110;
+      // … 4'd2 → 4'd9: chép nốt 8 hàng theo bảng C2 …
+      default: begin
+        exp_seg = 7'bx;                       // KHÔNG trả về mẫu "trông giống thật"
+        $error("bảng tham chiếu thiếu hàng %0d", b);
+      end
+    endcase
+  endfunction
+
+  // Self-check ở cạnh xuống: giữa chu kỳ, mọi trễ tổ hợp đã lắng
+  always @(negedge clk) if (rst_n)
+    if (seg !== exp_seg(dut.time_left))
+      $error("seg=%b nhưng time_left=%0d", seg, dut.time_left);
+
+  initial begin
+    rst_n = 0; repeat (2) @(posedge clk); rst_n = 1;
+    repeat (400) @(posedge clk);   // đủ qua vài lần chuyển pha
+    $finish;
+  end
+endmodule</code></pre>
+          <div class="rtl-meta">
+            <div><b>Test plan</b>Reset ➊ → chạy qua ≥2 lần chuyển pha ➋ → self-check canh <em>mọi</em> chu kỳ, đặc biệt edge case nạp lại 0 → GREEN_TICKS−1 ➌.</div>
+            <div><b>Vì sao <code>default</code> lại tự báo lỗi</b>Trọng tài mà "đoán" thì hết là trọng tài. Nếu <code>default</code> trả về một mẫu 7 bit trông hợp lệ, bảng chép thiếu sẽ biến thành hàng loạt <code>$error</code> đổ lỗi cho RTL — trong khi lỗi nằm ở testbench. Cho <code>default</code> trả <code>x</code> kèm thông báo riêng thì thông điệp chỉ đúng chỗ hỏng. Khuôn chung: <b>mô hình tham chiếu phải hỏng ồn ào, không hỏng lặng lẽ.</b></div>
+            <div><b>Điểm học</b><code>dut.time_left</code>: tham chiếu phân cấp — TB "chọc" vào dây nội bộ, không cần thêm cổng. Lấy mẫu ở <code>negedge</code>: lúc mọi tín hiệu đã ổn định trong chu kỳ.</div>
+          </div>
+        </div>
+        <div class="co co-ok"><b>Predict-before-simulate.</b> Trước khi chạy, viết ra giấy: tại cạnh nạp lại, seg đổi từ mẫu nào sang mẫu nào? (0111111 "0" → 1101111 "9" nếu vào pha xanh.) $error nổ đúng lúc chuyển pha? Đừng sửa decoder vội — thường do bảng trong TB và trong RTL lệch quy ước: bạn vừa <em>tự chứng minh</em> vì sao quy ước phải viết ra.</div>
+      </div>
+    </details>
+
+    <!-- C6 vocab -->
+    <details class="dd">
+      <summary><span class="no">C6</span> Từ vựng kỹ thuật tuần 10 <span class="est">~5′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <div class="tblwrap">
+        <table class="tbl vocab">
+          <tr><th>Thuật ngữ</th><th>Nghĩa</th><th>Câu ví dụ (EN)</th></tr>
+          <tr><td>Seven-segment display</td><td>LED 7 đoạn a–g xếp hình số 8</td><td class="en">The time left is shown on a seven-segment display.</td></tr>
+          <tr><td>Decoder</td><td>Mạch tổ hợp ánh xạ mã vào → mẫu ra theo truth table</td><td class="en">The decoder converts BCD into segment signals.</td></tr>
+          <tr><td>BCD</td><td>Binary-Coded Decimal — chữ số thập phân mã hóa 4 bit</td><td class="en">Codes 1010 to 1111 are unused in BCD.</td></tr>
+          <tr><td>Multiplexed display</td><td>Nhiều digit dùng chung dây seg, quét luân phiên</td><td class="en">A multiplexed display saves FPGA pins.</td></tr>
+          <tr><td>Refresh rate</td><td>Tần số quét/đổi digit của màn hình ghép kênh</td><td class="en">A 1 kHz refresh rate looks flicker-free.</td></tr>
+          <tr><td>Common anode/cathode</td><td>Kiểu nối chân chung của LED — quyết định active-low/high</td><td class="en">Common-anode boards need inverted outputs.</td></tr>
+          <tr><td>Ghosting</td><td>Bóng mờ digit bên cạnh khi quét quá nhanh/chồng lấn</td><td class="en">Ghosting appears when digits overlap during scanning.</td></tr>
+          <tr><td>Datapath</td><td>Đường dữ liệu — chuỗi khối tạo/biến đổi giá trị</td><td class="en">The display datapath sits after the controller.</td></tr>
+          <tr><td>Interface</td><td>Giao kèo tín hiệu giữa module (tên, độ rộng, ý nghĩa)</td><td class="en">The traffic_ctrl interface was frozen last week.</td></tr>
+          <tr><td>Integration</td><td>Tích hợp — ghép các module đã kiểm chứng thành hệ</td><td class="en">Integration was easy because the interface was stable.</td></tr>
+        </table>
+        </div>
+      </div>
+    </details>
+  </div>
+</section>
+
+<!-- ================= LAYER D ================= -->
+<section id="layer-d" class="layer layer-d">
+  <div class="wrap layer-head">
+    <div class="band">
+      <span class="layer-badge">D</span>
+      <h2>Sau buổi học</h2>
+      <span class="time">📝 Quiz 5 câu · bài tập · phản tư</span>
+    </div>
+  </div>
+  <div class="wrap layer-body">
+
+    <div class="card">
+      <h3>Quiz tự kiểm tra — 5 câu</h3>
+      <p class="small muted">Chọn đáp án; chấm ngay và hiện giải thích. Câu hỏi kiểu dự đoán/suy luận — nếu sai, quay lại đúng mục Layer C được ghi trong giải thích.</p>
+      <div class="quiz" id="quiz">
+        <div class="qz-item" data-answer="C">
+          <p class="qz-q">1. Nhìn code <code>seg7_decoder</code> (C2): synthesis sẽ suy ra phần cứng gì?</p>
+          <button class="qz-opt" data-key="A">Một ROM 10 ô, cần clock để đọc từng hàng</button>
+          <button class="qz-opt" data-key="B">7 flip-flop lưu mẫu 7 đoạn của số hiện tại</button>
+          <button class="qz-opt" data-key="C">Mạng LUT/cổng tổ hợp tính 7 output thẳng từ 4 input — 0 flip-flop, không clock</button>
+          <button class="qz-opt" data-key="D">Một FSM 10 trạng thái, mỗi trạng thái một chữ số</button>
+          <div class="qz-expl"><b>Giải thích:</b> decoder là tổ hợp thuần — mỗi bit seg là một hàm Boolean của <code>bcd[3:0]</code>, trên FPGA thành vài LUT. "Case 10 hàng" chỉ là cách liệt kê bảng chân lý, không phải 10 trạng thái hay ô nhớ. Xem C2.</div>
+        </div>
+        <div class="qz-item" data-answer="A">
+          <p class="qz-q">2. Xóa nhánh <code>default</code> khỏi case của decoder. Điều gì xảy ra — vì sao nguy hiểm dù time_left chỉ chạy 0–9?</p>
+          <button class="qz-opt" data-key="A">Tool suy ra latch 7 bit; nguy hiểm vì decoder là module độc lập — không được "tin" người gọi chỉ đưa 0–9</button>
+          <button class="qz-opt" data-key="B">Không sao — <code>unique case</code> đã bảo đảm mọi giá trị được xử lý</button>
+          <button class="qz-opt" data-key="C">Compiler báo lỗi cú pháp, không dịch được</button>
+          <button class="qz-opt" data-key="D">seg tự động về 0 với mọi input ngoài 0–9</button>
+          <div class="qz-expl"><b>Giải thích:</b> 6 tổ hợp 10–15 không được gán → "giữ giá trị cũ" → latch. <code>unique</code> chỉ khai các nhánh loại trừ nhau cho tool kiểm tra — không định nghĩa output cho input thiếu. Cú pháp vẫn hợp lệ nên compiler không cứu bạn. Xem C2.</div>
+        </div>
+        <div class="qz-item" data-answer="D">
+          <p class="qz-q">3. Vì sao truyền <code>time_left</code> (4 bit nhị phân) sang decoder, thay vì sửa traffic_ctrl để xuất thẳng <code>seg[6:0]</code>?</p>
+          <button class="qz-opt" data-key="A">Vì 4 dây rẻ hơn 7 dây — tiết kiệm dây là lý do duy nhất</button>
+          <button class="qz-opt" data-key="B">Vì FSM về nguyên tắc không thể có output rộng 7 bit</button>
+          <button class="qz-opt" data-key="C">Vì gán seg bên trong always_ff sẽ không synthesis được</button>
+          <button class="qz-opt" data-key="D">Tách trách nhiệm: controller chỉ nói "còn bao nhiêu giây" — cách vẽ là việc của tầng hiển thị; đổi/thêm màn hình (hay UART T11) không đụng FSM</button>
+          <div class="qz-expl"><b>Giải thích:</b> interface hẹp, đúng mức trừu tượng — tiết kiệm dây chỉ là hệ quả phụ; B, C sai kỹ thuật. T11 hưởng lợi ngay: uart_tx cũng đọc time_left/phase — một nguồn, nhiều consumer, FSM không đổi. Xem C1, C3.</div>
+        </div>
+        <div class="qz-item" data-answer="B">
+          <p class="qz-q">4. Trong <code>display_mux</code>, <code>sel</code> đổi mỗi REFRESH_DIV chu kỳ (~1 kHz). Mắt thấy 2 số đứng yên — thực tế phần cứng đang làm gì?</p>
+          <button class="qz-opt" data-key="A">Cả hai digit sáng đồng thời nhờ hai bộ dây seg riêng</button>
+          <button class="qz-opt" data-key="B">Mỗi thời điểm chỉ MỘT digit thật sự sáng; luân phiên ~1 kHz nhanh hơn mắt người nên não "trộn" thành hai số cùng sáng</button>
+          <button class="qz-opt" data-key="C">Hai digit thay nhau sáng mỗi nửa giây — nhìn kỹ sẽ thấy nháy rõ</button>
+          <button class="qz-opt" data-key="D">digit0 sáng liên tục, digit1 chỉ chớp lên khi giá trị thay đổi</button>
+          <div class="qz-expl"><b>Giải thích:</b> multiplexing theo thời gian — 1 bộ dây seg + <code>an</code> chọn digit. ~1 kHz là vùng cân bằng: đủ nhanh để không nháy (mắt nhạy ~vài chục Hz), đủ chậm để không tốn công suất chuyển mạch, không ghosting. Xem C4.</div>
+        </div>
+        <div class="qz-item" data-answer="A">
+          <p class="qz-q">5. Dự đoán: bạn nâng GREEN_TICKS = 12 nhưng vẫn dùng 1 digit. Đầu pha xanh, <code>time_left</code> = 11 rồi 10 — LED hiện gì?</p>
+          <button class="qz-opt" data-key="A">Gạch giữa "-" trong hai giây đó — default bắt giá trị ngoài 0–9: hệ tự "khai" chạy ngoài spec thay vì hiện số sai</button>
+          <button class="qz-opt" data-key="B">Số 11 rồi 10, tự tràn sang digit bên cạnh</button>
+          <button class="qz-opt" data-key="C">LED tắt hẳn và giữ như vậy đến hết pha</button>
+          <button class="qz-opt" data-key="D">Hiện lại "9" vì decoder tự kẹp (clamp) giá trị lớn về 9</button>
+          <div class="qz-expl"><b>Giải thích:</b> 4'd10, 4'd11 rơi vào default → 7'b1000000 = chỉ thanh g = "-". Không có phần cứng "tràn digit" hay "clamp" nào nếu bạn không thiết kế nó. Hiện "-" là thiết kế phòng thủ: biết ngay có vấn đề — và biết cần display_mux. Xem C2, C5.</div>
+        </div>
+        <div class="qz-bar"><span class="qz-score"></span><span class="qz-verdict"></span><button class="qz-reset">Làm lại</button></div>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <h3>Bài tập bắt buộc <span class="badge badge-req">nộp trước buổi 11</span></h3>
+        <p><b>Ghép seg7_decoder vào hệ T9 của CHÍNH BẠN</b> — không dùng hệ mẫu; module T9 giữ nguyên.</p>
+        <ul class="small">
+          <li>Thêm cổng <code>seg[6:0]</code> + instance <code>u_seg</code> vào top (theo C3).</li>
+          <li>Mô phỏng với DIV thu nhỏ; dùng self-check C5 (bảng viết lại trong TB).</li>
+          <li>Chụp waveform, <b>chú thích tay 1 lần chuyển pha</b>: time_left nạp lại, seg đổi theo.</li>
+        </ul>
+        <p class="small"><b>Nộp (deliverable):</b> top .sv + testbench + ảnh waveform có chú thích + 3 dòng "tôi phải sửa gì để ghép chạy" (không phải sửa gì thì ghi rõ — cũng là một kết quả).</p>
+      </div>
+      <div class="card">
+        <h3>Thử thách nâng cao <span class="badge badge-opt">tự chọn</span></h3>
+        <p><b>2 digit:</b> thêm <code>display_mux</code>, đặt GREEN_TICKS = 15, tách chục/đơn vị từ time_left bằng khối tổ hợp nhỏ, mô phỏng digit hàng chục. Câu hỏi kèm: board clock 27 MHz — chọn REFRESH_DIV bao nhiêu để giữ ~1 kHz? (≈13 500 tính cho cả khung 2 digit, ≈27 000 tính cho nhịp đổi digit — quanh đó đều được, miễn <em>viết ra lập luận và quy ước</em>.)</p>
+        <div class="eqrq">
+          <div class="eq"><b>Câu hỏi kỹ thuật</b>Chọn tần số quét bao nhiêu cho màn hình ghép kênh?</div>
+          <div class="arr">→</div>
+          <div class="rq"><b>Câu hỏi nghiên cứu</b>Tần số quét đánh đổi thế nào giữa công suất chuyển mạch, độ sáng cảm nhận và ghosting? Đo thế nào cho công bằng — so ở cùng độ sáng cảm nhận?</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Rubric tuần 10</h3>
+      <div class="tblwrap">
+      <table class="tbl rubric">
+        <tr><th>Tiêu chí</th><th>Trọng số</th><th>Đạt khi…</th></tr>
+        <tr><td>Hiểu khái niệm</td><td class="pct">25%</td><td>Giải thích được vì sao decoder là tổ hợp thuần (0 FF) và vì sao interface time_left nhị phân giúp thêm màn hình mà không đụng FSM.</td></tr>
+        <tr><td>Kiến trúc</td><td class="pct">20%</td><td>Block diagram phân biệt rõ module CŨ/khối MỚI; interface đúng tên và độ rộng: tick, time_left[3:0], seg[6:0].</td></tr>
+        <tr><td>RTL đúng</td><td class="pct">20%</td><td>Decoder có default (0 latch trong log synthesis); module T9 không bị sửa; không derived clock (sel/tick không làm clock).</td></tr>
+        <tr><td>Verification</td><td class="pct">20%</td><td>Self-check so seg với bảng độc lập trong TB; chạy qua ≥2 lần chuyển pha; chú thích edge case nạp lại 0→9 trên waveform.</td></tr>
+        <tr><td>Giao tiếp kỹ thuật</td><td class="pct">15%</td><td>3 dòng "tôi phải sửa gì để ghép chạy" cụ thể, thành thật; nói được quy ước bảng giải mã của mình bằng một câu.</td></tr>
+      </table>
+      </div>
+      <p class="small muted">Code chạy được chưa phải điểm tối đa — phải giải thích được vì sao nó đúng.</p>
+    </div>
+
+    <div class="card">
+      <h3>Tổng kết tuần 10</h3>
+      <div class="ican">
+        <div><b>I can explain</b>① Vì sao seg7_decoder là tổ hợp thuần, phần cứng suy ra là LUT, 0 FF. ② Vì sao interface time_left nhị phân cho phép thêm/đổi màn hình không đụng FSM. ③ Chuỗi trễ tick → time_left (t<sub>CQ</sub>) → seg (t<sub>pd</sub>) tại giây chuyển pha.</div>
+        <div><b>I can design</b>Lập bảng giải mã 7 đoạn theo quy ước viết rõ; nối tầng hiển thị vào hệ có sẵn qua interface — kể cả display_mux 2 digit khi pha dài hơn 9 giây.</div>
+        <div><b>I can verify</b>Testbench top với DIV thu nhỏ + self-check seg khớp "trọng tài" độc lập, soi đúng edge case nạp lại 0 → GREEN_TICKS−1.</div>
+        <div><b>I can connect</b>Project 3 tuần: T9 cho hệ <b>chạy đúng</b>, T10 cho hệ <b>được nhìn thấy</b>, T11 cho nó <b>nói</b> — uart_tx chỉ là thêm một consumer nữa sau cùng interface đó.</div>
+        <div class="unsure"><b>I am still unsure about…</b><textarea class="reflect" id="unsure10" placeholder="Điều tôi giải thích được tuần này mà tuần trước chưa giải thích được là… / Điều tôi còn mơ hồ là… (tự động lưu trên máy bạn)"></textarea></div>
+        <div class="nextwk"><b>Next week</b>Hệ đã nhìn được — T11 cho nó nói: UART gửi phase/time_left về PC. Bạn sẽ gặp lại tick_gen trong vai baud generator, và lần đầu chạm tín hiệu <em>bất đồng bộ</em> đi vào hệ đồng bộ.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="weeknav">
+      <a href="Week09.html"><small>← Tuần trước</small><b>T9 · Project A — FSM Traffic Controller</b></a>
+      <a class="next" href="Week11.html"><small>Tuần sau →</small><b>T11 · Project C — UART Status Communication</b></a>
+    </div>
+    <div class="footer">
+      <b>IC Design Mentoring — Version 3 · Phase 1</b>
+      <span class="org">Khoa Điện – Điện tử · Trường Kỹ thuật · Đại học Phenikaa</span>
+      <span>Biên soạn: <b style="display:inline">Giảng Viên Đinh Văn Nam</b></span>
+      <span class="cr">© 2026 · Bản quyền thuộc về Giảng Viên Đinh Văn Nam, Khoa Điện-Điện Tử, Trường Kỹ Thuật, Đại học Phenikaa. Tài liệu phục vụ đào tạo — vui lòng giữ nguyên thông tin tác giả khi chia sẻ.</span>
+      <span class="cr">Hoạt động offline — không cần Internet.</span>
+    </div>
+  </div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Hỏi đáp IC Design / RTL / FPGA (Discussions)
+    url: https://github.com/USERNAME/ic-design-hub/discussions
+    about: Câu hỏi học tập và thảo luận dùng Discussions — Issues chỉ dành cho việc có thể hành động (lỗi, đề xuất cụ thể).

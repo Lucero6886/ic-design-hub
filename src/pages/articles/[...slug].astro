@@ -1,0 +1,58 @@
+---
+import EntryLayout from "~/layouts/EntryLayout.astro";
+import { render } from "astro:content";
+import { href, readingTime } from "~/utils/url";
+import { getPublished, label } from "~/utils/content";
+
+export async function getStaticPaths() {
+  const articles = await getPublished("articles");
+  return articles.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+const d = entry.data;
+const minutes = readingTime(entry.body);
+---
+
+<EntryLayout
+  title={d.title}
+  summary={d.summary}
+  path={`articles/${entry.id}/`}
+  crumbs={[
+    { label: "Trang chủ", url: href("") },
+    { label: "Bài viết", url: href("articles/") },
+    { label: d.title },
+  ]}
+  date={d.date}
+  updated={d.updated}
+  author={d.author}
+  lang={d.lang}
+  minutes={minutes}
+  track={d.track}
+  tags={d.tags}
+  badges={[
+    { text: label(d.category), tone: "acc" },
+    ...(d.difficulty ? [{ text: label(d.difficulty), tone: "gray" as const }] : []),
+    ...(d.status === "archived" ? [{ text: "Lưu trữ", tone: "warn" as const }] : []),
+  ]}
+  attribution={d.attribution}
+  references={d.references}
+  relatedArticles={d.relatedArticles}
+  relatedProjects={d.relatedProjects}
+  relatedResearch={d.relatedResearch}
+>
+  <div slot="before-body">
+    {(d.prerequisites.length > 0 || d.outcomes.length > 0) && (
+      <div class="co info">
+        {d.prerequisites.length > 0 && (
+          <p style="margin:0"><b>Cần biết trước:</b> {d.prerequisites.join(" · ")}</p>
+        )}
+        {d.outcomes.length > 0 && (
+          <p style="margin:6px 0 0"><b>Đọc xong bạn sẽ:</b> {d.outcomes.join(" · ")}</p>
+        )}
+      </div>
+    )}
+  </div>
+  <Content />
+</EntryLayout>

@@ -1,0 +1,1214 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tuần 8 — FPGA vs ASIC | IC Design Mentoring</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: { extend: {
+    colors: { primary:'#2563eb', secondary:'#f59e0b', accent:'#10b981', danger:'#ef4444', dark:'#0f172a', light:'#f8fafc' },
+    fontFamily: { sans:['Inter','system-ui','sans-serif'], mono:['"JetBrains Mono"','Consolas','monospace'] }
+  } }
+};
+</script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  html{scroll-behavior:smooth}
+  body{font-family:'Inter',system-ui,sans-serif}
+  .code-body{background:#0f172a;color:#e2e8f0;font-family:'JetBrains Mono',Consolas,monospace;font-size:.8rem;line-height:1.65;padding:1rem 1.25rem;overflow-x:auto;border-radius:0 0 .75rem .75rem;margin:0}
+  .tok-kw{color:#c084fc;font-weight:600}
+  .tok-type{color:#67e8f9}
+  .tok-num{color:#fbbf24}
+  .tok-cmt{color:#7c8fa6;font-style:italic}
+  .tok-fn{color:#7dd3fc;font-weight:600}
+  .tok-sig{color:#93c5fd}
+  .code-head{display:flex;justify-content:space-between;align-items:center;background:#1e293b;color:#cbd5e1;font-size:.75rem;padding:.45rem 1rem;border-radius:.75rem .75rem 0 0;font-family:'JetBrains Mono',monospace}
+  .copy-btn{background:#334155;color:#e2e8f0;border:none;padding:.25rem .7rem;border-radius:.4rem;font-size:.72rem;cursor:pointer}
+  .copy-btn:hover{background:#2563eb}
+  .quiz-opt{display:flex;gap:.6rem;align-items:flex-start;width:100%;text-align:left;padding:.65rem .9rem;border:2px solid #e2e8f0;border-radius:.65rem;background:#fff;cursor:pointer;font-size:.92rem;transition:all .15s;margin-bottom:.5rem}
+  .quiz-opt:hover{border-color:#93c5fd;background:#eff6ff}
+  .quiz-opt.sel{border-color:#2563eb;background:#dbeafe}
+  .quiz-opt.correct{border-color:#10b981;background:#d1fae5}
+  .quiz-opt.wrong{border-color:#ef4444;background:#fee2e2}
+  .quiz-expl{display:none;margin-top:.5rem;padding:.75rem 1rem;border-radius:.6rem;background:#f1f5f9;border-left:4px solid #2563eb;font-size:.88rem}
+  .quiz-expl.show{display:block}
+  .chk-item{display:flex;gap:.7rem;align-items:flex-start;padding:.55rem .8rem;border-radius:.6rem;background:#fff;border:1px solid #e2e8f0;cursor:pointer}
+  .chk-item input{margin-top:.25rem;accent-color:#2563eb;width:1rem;height:1rem;flex-shrink:0}
+  .layer-chip{display:inline-flex;align-items:center;gap:.35rem;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.03em;padding:.15rem .55rem;border-radius:9999px;white-space:nowrap}
+  table.vtable td, table.vtable th{padding:.55rem .75rem;border:1px solid #e2e8f0;font-size:.85rem;vertical-align:top}
+  table.vtable th{background:#eff6ff;color:#1e40af;text-align:left}
+  input[type=range]{accent-color:#2563eb}
+  ::-webkit-scrollbar{height:8px;width:8px}
+  ::-webkit-scrollbar-thumb{background:#94a3b8;border-radius:4px}
+</style>
+</head>
+<body class="bg-slate-100 text-slate-800">
+<div id="lichub-nav-top" data-lichub="v2" role="navigation" aria-label="Điều hướng Learning Hub (bổ sung, không thuộc trang gốc)" style="background:#0f172a;color:#e2e8f0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:13.5px;line-height:1.6;padding:8px 16px;display:flex;flex-wrap:wrap;gap:4px 16px;align-items:center;border-bottom:3px solid #38bdf8"><a href="../../index.html" style="color:#7dd3fc;text-decoration:none;font-weight:600">⌂ Learning Hub</a><span style="font-size:11px;font-weight:700;letter-spacing:.04em;color:#38bdf8;border:1px solid #38bdf8;border-radius:6px;padding:1px 7px;white-space:nowrap">V2 · BẢN MỞ RỘNG</span><a href="index.html" style="color:#cbd5e1;text-decoration:none">Mục lục V2</a><span style="flex:1"></span><a href="Week7.html" style="color:#7dd3fc;text-decoration:none" title="What Is Verilog?">← Tuần 7</a><a href="Week9.html" style="color:#7dd3fc;text-decoration:none" title="Traffic Light Controller">Tuần 9 →</a><span aria-hidden="true" style="color:#475569">|</span><span style="display:inline-flex;gap:8px;align-items:center"><span style="color:#94a3b8">Chuyển bản:</span> <a href="../v1/index.html" style="color:#cbd5e1;text-decoration:none">V1</a> <b aria-current="true" style="color:#38bdf8">V2</b> <a href="../v3/index.html" style="color:#cbd5e1;text-decoration:none">V3</a></span></div>
+
+
+<!-- ============ STICKY NAV ============ -->
+<nav class="sticky top-0 z-50 bg-dark/95 backdrop-blur text-white shadow-lg">
+  <div class="max-w-6xl mx-auto px-4 py-2.5 flex items-center gap-4">
+    <div class="flex items-center gap-2 shrink-0">
+      <i class="fa-solid fa-microchip text-primary"></i>
+      <span class="font-bold text-sm hidden sm:inline">IC Design Mentoring</span>
+    </div>
+    <div class="shrink-0 flex items-center gap-2">
+      <span class="text-xs font-bold bg-primary px-2 py-1 rounded-md">Tuần 8/12</span>
+      <div class="w-20 h-1.5 bg-slate-700 rounded-full hidden md:block"><div class="h-1.5 bg-primary rounded-full" style="width:67%"></div></div>
+    </div>
+    <div class="flex-1 overflow-x-auto whitespace-nowrap text-xs font-medium text-slate-300 flex gap-4 py-1">
+      <a href="#hero" class="hover:text-white">Mục tiêu</a>
+      <a href="#core-concepts" class="hover:text-white">Khái niệm</a>
+      <a href="#demo" class="hover:text-white">Demo</a>
+      <a href="#code-rtl" class="hover:text-white">Code</a>
+      <a href="#waveform" class="hover:text-white">Timeline</a>
+      <a href="#mistakes" class="hover:text-white">Lỗi thường gặp</a>
+      <a href="#quiz" class="hover:text-white">Quiz</a>
+      <a href="#homework" class="hover:text-white">Bài tập</a>
+      <a href="#summary" class="hover:text-white">Tổng kết</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ============ 1. HERO ============ -->
+<header id="hero" class="bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 text-white">
+  <div class="max-w-6xl mx-auto px-4 py-14 md:py-20">
+    <span class="inline-flex items-center gap-2 bg-primary/20 border border-primary/50 text-blue-200 text-xs font-bold px-3 py-1.5 rounded-full uppercase tracking-wider mb-5"><i class="fa-solid fa-scale-balanced"></i> Tuần 8 / 12 — Technical Talk</span>
+    <h1 class="text-3xl md:text-5xl font-extrabold leading-tight">FPGA vs ASIC</h1>
+    <p class="text-xl md:text-2xl font-semibold text-blue-200 mt-2">FPGA và ASIC khác nhau như thế nào — và khi nào dùng gì?</p>
+    <p class="mt-5 max-w-3xl text-slate-300 leading-relaxed">
+      Tuần 7 bạn đã viết những dòng RTL đầu tiên. Nhưng RTL chỉ là bản mô tả — nó phải "hạ cánh" xuống silicon thật.
+      Có hai đích đến: <strong class="text-white">FPGA (Field-Programmable Gate Array — mảng cổng logic lập trình được)</strong>,
+      con chip "đất trống có sẵn hạ tầng" mà bạn cấu hình lại bao nhiêu lần cũng được, và
+      <strong class="text-white">ASIC (Application-Specific Integrated Circuit — vi mạch chuyên dụng)</strong>,
+      con chip đúc cứng cho đúng một nhiệm vụ, tối ưu đến từng micromet vuông.
+      <em class="text-yellow-300">Không có bên nào "tốt hơn tuyệt đối" — chỉ có bên phù hợp hơn với bài toán, sản lượng và túi tiền của bạn.</em>
+      Tư duy trade-off (đánh đổi) này là tư duy của một kỹ sư trưởng thành, và là nội dung chính của tuần này.
+    </p>
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
+      <div class="bg-white/10 border border-white/15 rounded-xl p-4">
+        <i class="fa-solid fa-shapes text-secondary text-xl"></i>
+        <p class="font-bold mt-2 text-sm">Mục tiêu 1</p>
+        <p class="text-xs text-slate-300 mt-1">Định nghĩa đúng FPGA và ASIC; giải thích LUT/FF/BRAM/DSP và standard cell là gì.</p>
+      </div>
+      <div class="bg-white/10 border border-white/15 rounded-xl p-4">
+        <i class="fa-solid fa-coins text-secondary text-xl"></i>
+        <p class="font-bold mt-2 text-sm">Mục tiêu 2</p>
+        <p class="text-xs text-slate-300 mt-1">Phân tích bài toán chi phí NRE vs unit cost, tự tính điểm hòa vốn theo sản lượng.</p>
+      </div>
+      <div class="bg-white/10 border border-white/15 rounded-xl p-4">
+        <i class="fa-solid fa-scale-balanced text-secondary text-xl"></i>
+        <p class="font-bold mt-2 text-sm">Mục tiêu 3</p>
+        <p class="text-xs text-slate-300 mt-1">So sánh hai nền tảng theo PPA, tính linh hoạt, time-to-market và rủi ro — như một trade-off.</p>
+      </div>
+      <div class="bg-white/10 border border-white/15 rounded-xl p-4">
+        <i class="fa-solid fa-route text-secondary text-xl"></i>
+        <p class="font-bold mt-2 text-sm">Mục tiêu 4</p>
+        <p class="text-xs text-slate-300 mt-1">Giải thích chiến lược "prototype trên FPGA → sản xuất ASIC" và vì sao FPGA là bệ phóng học IC design.</p>
+      </div>
+    </div>
+    <div class="flex flex-wrap gap-3 mt-8 text-xs">
+      <span class="bg-white/10 px-3 py-1.5 rounded-full"><i class="fa-solid fa-backward text-slate-400 mr-1"></i> Tuần 7: Verilog — ngôn ngữ mô tả phần cứng</span>
+      <span class="bg-secondary/20 border border-secondary/50 px-3 py-1.5 rounded-full text-yellow-200"><i class="fa-solid fa-star mr-1"></i> Tuần 8: RTL đó sẽ chạy trên nền tảng nào?</span>
+      <span class="bg-white/10 px-3 py-1.5 rounded-full"><i class="fa-solid fa-forward text-slate-400 mr-1"></i> Tuần 9: Mini-project đèn giao thông chạy trên FPGA</span>
+    </div>
+  </div>
+</header>
+
+<!-- ============ 2. LEARNING MAP ============ -->
+<section id="learning-map" class="max-w-6xl mx-auto px-4 py-12">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-map-location-dot"></i></div>
+    <div>
+      <p class="text-xs font-bold uppercase tracking-wider text-primary">Section 02</p>
+      <h2 class="text-2xl md:text-3xl font-extrabold text-dark">Bản đồ học tập — Chọn "sân bay" cho RTL của bạn</h2>
+    </div>
+  </div>
+  <div class="grid md:grid-cols-3 gap-4">
+    <div class="bg-white rounded-2xl shadow-sm p-5 border-t-4 border-slate-300">
+      <p class="text-xs font-bold text-slate-500 uppercase">Tuần 7 — đã học</p>
+      <p class="font-extrabold text-lg mt-1 text-dark">Verilog / SystemVerilog</p>
+      <p class="text-sm text-slate-600 mt-2">Bạn đã biết mô tả mạch bằng module, assign, always_comb, always_ff — tức là đã có "bản thiết kế" RTL trong tay.</p>
+      <p class="text-xs mt-3 bg-slate-100 rounded-lg p-2"><i class="fa-solid fa-key text-slate-500 mr-1"></i> Cần nắm trước: RTL là bản mô tả phần cứng, chưa phải phần cứng.</p>
+    </div>
+    <div class="bg-white rounded-2xl shadow-sm p-5 border-t-4 border-primary ring-2 ring-primary/20">
+      <p class="text-xs font-bold text-primary uppercase">Tuần 8 — tuần này</p>
+      <p class="font-extrabold text-lg mt-1 text-dark">FPGA vs ASIC</p>
+      <p class="text-sm text-slate-600 mt-2">Cùng một RTL có hai đích đến: cấu hình lên FPGA bằng bitstream, hoặc tổng hợp thành standard cell rồi tape-out thành ASIC. Học cách chọn bằng phân tích trade-off.</p>
+      <p class="text-xs mt-3 bg-blue-50 rounded-lg p-2"><i class="fa-solid fa-lightbulb text-primary mr-1"></i> Từ khóa: NRE, unit cost, PPA, time-to-market, prototype.</p>
+    </div>
+    <div class="bg-white rounded-2xl shadow-sm p-5 border-t-4 border-accent">
+      <p class="text-xs font-bold text-emerald-600 uppercase">Tuần 9–11 — sắp tới</p>
+      <p class="font-extrabold text-lg mt-1 text-dark">Chuỗi mini-project trên FPGA</p>
+      <p class="text-sm text-slate-600 mt-2">Đèn giao thông (T9), counter + LED 7 đoạn (T10), UART (T11) — tất cả sẽ chạy trên FPGA. Tuần này bạn hiểu vì sao FPGA là lựa chọn đúng cho giai đoạn đó.</p>
+      <p class="text-xs mt-3 bg-emerald-50 rounded-lg p-2"><i class="fa-solid fa-arrow-trend-up text-emerald-600 mr-1"></i> Dùng sau: mọi quyết định nền tảng trong sự nghiệp thiết kế số.</p>
+    </div>
+  </div>
+  <div class="mt-4 bg-white rounded-2xl shadow-sm p-5 text-sm text-slate-600 flex items-start gap-3">
+    <i class="fa-solid fa-circle-info text-primary mt-0.5"></i>
+    <p>Hãy nhớ lại <strong>Tuần 2 (From Idea to Chip)</strong>: phần front-end (spec → RTL → verification) của FPGA và ASIC gần như giống nhau. Điểm rẽ nhánh nằm ở back-end: một bên kết thúc bằng <em>nạp bitstream</em>, một bên kết thúc bằng <em>tape-out</em> gửi nhà máy (foundry). Hai điểm kết thúc này <strong>không phải là một</strong> — ta sẽ nhấn mạnh nhiều lần trong bài.</p>
+  </div>
+</section>
+
+<!-- ============ 3. BEFORE SESSION ============ -->
+<section id="before-session" class="bg-white py-12">
+  <div class="max-w-6xl mx-auto px-4">
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-clipboard-check"></i></div>
+      <div>
+        <p class="text-xs font-bold uppercase tracking-wider text-primary">Section 03</p>
+        <h2 class="text-2xl md:text-3xl font-extrabold text-dark">Chuẩn bị trước buổi học</h2>
+      </div>
+    </div>
+    <p class="text-slate-600 max-w-3xl mb-6">Buổi này ít code, nhiều <strong>tư duy kỹ thuật – kinh tế</strong>. Bạn sẽ tranh luận "chọn nền tảng nào" như một kỹ sư hệ thống thật sự. Muốn tranh luận có căn cứ, hãy chuẩn bị các mục sau (tick vào khi xong):</p>
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="bg-slate-50 rounded-2xl p-5">
+        <div class="flex items-center justify-between mb-3">
+          <p class="font-bold text-dark"><i class="fa-solid fa-list-check text-primary mr-2"></i>Checklist chuẩn bị</p>
+          <span class="text-xs font-bold bg-primary/10 text-primary px-2 py-1 rounded-full"><span id="before-count">0</span>/5 mục</span>
+        </div>
+        <div class="space-y-2">
+          <label class="chk-item"><input type="checkbox" class="before-chk"><span class="text-sm">Xem lại module counter 4-bit Tuần 7 — tuần này ta hỏi tiếp: "nó thành phần cứng gì trên FPGA? trên ASIC?"</span></label>
+          <label class="chk-item"><input type="checkbox" class="before-chk"><span class="text-sm">Đọc lại sơ đồ design flow Tuần 2, đánh dấu vị trí của <em>synthesis</em> và <em>tape-out</em>.</span></label>
+          <label class="chk-item"><input type="checkbox" class="before-chk"><span class="text-sm">Tra nhanh giá 1 board FPGA học tập (Basys 3, DE10-Lite, Tang Nano…) — ghi lại con số.</span></label>
+          <label class="chk-item"><input type="checkbox" class="before-chk"><span class="text-sm">Tra nhanh cụm từ "mask set cost 28nm" hoặc "NRE cost ASIC" — chỉ cần cảm nhận độ lớn con số.</span></label>
+          <label class="chk-item"><input type="checkbox" class="before-chk"><span class="text-sm">Chọn sẵn 1 sản phẩm điện tử bạn thích (tai nghe, router, ô tô, vệ tinh…) để phân tích "FPGA hay ASIC?" trong breakout room.</span></label>
+        </div>
+      </div>
+      <div class="space-y-4">
+        <div class="bg-blue-50 border border-blue-200 rounded-2xl p-5">
+          <p class="font-bold text-dark mb-2"><i class="fa-solid fa-fire text-secondary mr-2"></i>3 câu hỏi khởi động</p>
+          <ol class="list-decimal list-inside text-sm text-slate-700 space-y-2">
+            <li>Vì sao một chiếc iPhone bán 100 triệu máy lại dùng chip ASIC (A-series), còn phòng lab vũ trụ chỉ cần 5 thiết bị lại hay dùng FPGA?</li>
+            <li>Nếu phát hiện bug <em>sau khi</em> chip đã sản xuất: FPGA sửa thế nào, ASIC sửa thế nào? Bên nào "đau ví" hơn?</li>
+            <li>Bạn đoán: cùng một bộ RTL, chạy trên ASIC thường nhanh hơn hay chậm hơn trên FPGA? Vì sao?</li>
+          </ol>
+        </div>
+        <div class="bg-amber-50 border border-amber-200 rounded-2xl p-5">
+          <p class="font-bold text-dark mb-1"><i class="fa-solid fa-stopwatch text-secondary mr-2"></i>Nhiệm vụ nhỏ (5–10 phút)</p>
+          <p class="text-sm text-slate-700">Lập một bảng 2 cột trên giấy: cột A ghi giá board FPGA bạn vừa tra (ví dụ ~150 USD), cột B ghi chi phí NRE làm một ASIC (hàng trăm nghìn đến hàng triệu USD). Viết một câu trả lời cho: <em>"Với 5 sản phẩm mẫu, tôi chọn gì? Với 10 triệu sản phẩm, tôi chọn gì?"</em> — mang theo đến buổi học, demo tương tác sẽ kiểm chứng trực giác của bạn.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- ============ 4. CORE CONCEPTS ============ -->
+<section id="core-concepts" class="max-w-6xl mx-auto px-4 py-12">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-brain"></i></div>
+    <div>
+      <p class="text-xs font-bold uppercase tracking-wider text-primary">Section 04</p>
+      <h2 class="text-2xl md:text-3xl font-extrabold text-dark">Khái niệm cốt lõi</h2>
+    </div>
+  </div>
+
+  <!-- Concept 1: FPGA -->
+  <div class="bg-white rounded-2xl shadow-sm p-6 mb-5">
+    <div class="flex items-center gap-2 mb-3"><span class="layer-chip bg-blue-100 text-blue-700"><i class="fa-solid fa-shapes"></i> Khái niệm 1</span><h3 class="font-extrabold text-lg text-dark">FPGA — Field-Programmable Gate Array (mảng cổng logic lập trình được)</h3></div>
+    <div class="grid md:grid-cols-2 gap-4 text-sm">
+      <div class="space-y-3">
+        <p><span class="font-bold text-primary">Định nghĩa dễ hiểu:</span> FPGA là một con chip được sản xuất sẵn, bên trong chứa hàng chục nghìn đến hàng triệu "viên gạch logic" chưa nối với nhau. Bạn dùng RTL để bảo công cụ nối các viên gạch đó thành mạch của mình — và có thể xóa đi nối lại <em>vô số lần</em>.</p>
+        <p><span class="font-bold text-primary">Bản chất kỹ thuật:</span> fabric (kết cấu) của FPGA gồm: <strong>LUT (Look-Up Table — bảng tra)</strong> thực hiện mọi hàm logic tổ hợp nhỏ; <strong>FF (Flip-Flop)</strong> đi kèm từng LUT để làm phần tuần tự; <strong>BRAM (Block RAM)</strong> — các khối nhớ dựng sẵn; <strong>DSP block</strong> — khối nhân-cộng cứng cho xử lý tín hiệu; và một <strong>ma trận kết nối lập trình được</strong> (routing) nối tất cả lại. Toàn bộ cấu hình được nạp bằng một file gọi là <strong>bitstream (chuỗi bit cấu hình)</strong>.</p>
+      </div>
+      <div class="space-y-3">
+        <p><span class="font-bold text-emerald-600">Ví dụ đời sống:</span> FPGA giống bộ LEGO khổng lồ: các viên gạch đúc sẵn, bạn lắp thành lâu đài hôm nay, tháo ra lắp thành tàu vũ trụ ngày mai. Lắp nhanh, đổi thoải mái — nhưng mô hình LEGO nặng hơn, to hơn và đắt hơn một món đồ đúc nguyên khối cùng hình dạng.</p>
+        <p><span class="font-bold text-emerald-600">Trong kỹ nghệ IC:</span> FPGA dùng cho máy đo, thiết bị viễn thông sản lượng nhỏ, thiết bị hàng không - quốc phòng, bộ tăng tốc thuật toán thay đổi nhanh, và đặc biệt: <strong>prototype (mẫu thử)</strong> để kiểm chứng RTL trước khi làm ASIC.</p>
+        <p class="bg-red-50 border-l-4 border-danger rounded-r-lg p-3"><span class="font-bold text-danger"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Hiểu sai phổ biến:</span> "FPGA là con CPU chạy code Verilog". Sai — FPGA không <em>chạy</em> code như máy tính chạy phần mềm. Bitstream <em>cấu hình</em> phần cứng: sau khi nạp, mạch của bạn tồn tại vật lý trong fabric và mọi khối hoạt động song song.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Concept 2: ASIC -->
+  <div class="bg-white rounded-2xl shadow-sm p-6 mb-5">
+    <div class="flex items-center gap-2 mb-3"><span class="layer-chip bg-purple-100 text-purple-700"><i class="fa-solid fa-microchip"></i> Khái niệm 2</span><h3 class="font-extrabold text-lg text-dark">ASIC — Application-Specific Integrated Circuit (vi mạch chuyên dụng)</h3></div>
+    <div class="grid md:grid-cols-2 gap-4 text-sm">
+      <div class="space-y-3">
+        <p><span class="font-bold text-primary">Định nghĩa dễ hiểu:</span> ASIC là con chip được thiết kế và sản xuất cho <em>đúng một ứng dụng</em>. Mạch của bạn được "đúc" thẳng vào silicon — sau khi ra khỏi nhà máy, logic bên trong <strong>không thể thay đổi được nữa</strong>.</p>
+        <p><span class="font-bold text-primary">Bản chất kỹ thuật:</span> công cụ synthesis ánh xạ RTL thành <strong>standard cell (ô logic chuẩn)</strong> — thư viện các cổng NAND/NOR/INV/DFF… đã được foundry (nhà máy) đặc tả sẵn. Sau place &amp; route và kiểm tra signoff, layout cuối cùng được <strong>tape-out (gửi dữ liệu layout đi sản xuất)</strong>; foundry chế tạo bộ <strong>mask (mặt nạ quang khắc)</strong> rồi in mạch lên wafer. Bộ mask ở công nghệ tiên tiến trị giá hàng trăm nghìn đến hàng triệu USD — trả một lần, gọi là một phần của chi phí NRE.</p>
+      </div>
+      <div class="space-y-3">
+        <p><span class="font-bold text-emerald-600">Ví dụ đời sống:</span> ASIC giống khuôn ép nhựa công nghiệp: làm khuôn rất đắt và lâu, nhưng khi đã có khuôn, mỗi sản phẩm ép ra chỉ tốn vài xu và đẹp hơn, gọn hơn mọi mô hình LEGO cùng chức năng.</p>
+        <p><span class="font-bold text-emerald-600">Trong kỹ nghệ IC:</span> chip điện thoại (Apple A-series, Snapdragon), chip Wi-Fi/Bluetooth, controller SSD, chip ô tô sản lượng lớn — tất cả là ASIC (nhiều con trong số đó là SoC — <em>một IC</em> tích hợp nhiều khối chức năng trên cùng một chip).</p>
+        <p class="bg-red-50 border-l-4 border-danger rounded-r-lg p-3"><span class="font-bold text-danger"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Hiểu sai phổ biến:</span> "ASIC luôn tốt hơn FPGA, FPGA chỉ là đồ chơi". Sai — ASIC chỉ "thắng" khi sản lượng đủ lớn và spec đã ổn định. Với sản lượng nhỏ hoặc yêu cầu thay đổi liên tục, chọn ASIC là quyết định tồi cả về tiền lẫn rủi ro.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Concept 3: NRE vs unit cost -->
+  <div class="bg-white rounded-2xl shadow-sm p-6 mb-5">
+    <div class="flex items-center gap-2 mb-3"><span class="layer-chip bg-amber-100 text-amber-700"><i class="fa-solid fa-coins"></i> Khái niệm 3</span><h3 class="font-extrabold text-lg text-dark">NRE cost vs Unit cost — bài toán kinh tế của con chip</h3></div>
+    <div class="grid md:grid-cols-2 gap-4 text-sm">
+      <div class="space-y-3">
+        <p><span class="font-bold text-primary">Định nghĩa dễ hiểu:</span> <strong>NRE (Non-Recurring Engineering — chi phí kỹ thuật một lần)</strong> là mọi khoản trả <em>một lần duy nhất</em> bất kể bán bao nhiêu chip: lương đội thiết kế, license công cụ EDA, mask, tape-out, kiểm thử mẫu đầu. <strong>Unit cost (chi phí mỗi đơn vị)</strong> là tiền cho <em>từng con chip</em>: silicon, đóng gói, test.</p>
+        <p><span class="font-bold text-primary">Bản chất kỹ thuật:</span> tổng chi phí = NRE + unit cost × sản lượng. FPGA: NRE ≈ 0 (chip đã có sẵn, chỉ mua về) nhưng unit cost cao (ví dụ 50 USD/chip). ASIC: NRE khổng lồ (ví dụ 2 triệu USD) nhưng unit cost rất thấp (ví dụ 2 USD/chip). Hai đường thẳng này cắt nhau tại <strong>điểm hòa vốn (break-even / crossover point)</strong>: V* = NRE ÷ (chênh lệch unit cost).</p>
+      </div>
+      <div class="space-y-3">
+        <p><span class="font-bold text-emerald-600">Ví dụ đời sống:</span> in 10 tấm thiệp cưới thì ra tiệm in lẻ (đắt mỗi tờ, không tốn phí khuôn); in 100.000 tờ rơi thì làm khuôn in offset (khuôn đắt, mỗi tờ rẻ như cho). Không ai nói "in offset luôn tốt hơn" — tất cả phụ thuộc số lượng.</p>
+        <p><span class="font-bold text-emerald-600">Trong kỹ nghệ IC:</span> với số liệu ví dụ trên, điểm hòa vốn ≈ 2.000.000 ÷ (50 − 2) ≈ <strong>41.700 chip</strong>. Dưới mức đó FPGA rẻ hơn, trên mức đó ASIC rẻ hơn — bạn sẽ tự kéo slider kiểm chứng trong phần Demo.</p>
+        <p class="bg-red-50 border-l-4 border-danger rounded-r-lg p-3"><span class="font-bold text-danger"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Hiểu sai phổ biến:</span> chỉ so sánh giá một con chip ("ASIC 2 USD rẻ hơn FPGA 50 USD") mà quên cộng NRE — với 1.000 sản phẩm, phương án "chip 2 USD" thực chất tốn 2.002.000 USD, đắt gấp 40 lần phương án FPGA.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Concept 4: PPA -->
+  <div class="bg-white rounded-2xl shadow-sm p-6 mb-5">
+    <div class="flex items-center gap-2 mb-3"><span class="layer-chip bg-emerald-100 text-emerald-700"><i class="fa-solid fa-gauge-high"></i> Khái niệm 4</span><h3 class="font-extrabold text-lg text-dark">PPA — Performance, Power, Area (hiệu năng, công suất, diện tích)</h3></div>
+    <div class="grid md:grid-cols-2 gap-4 text-sm">
+      <div class="space-y-3">
+        <p><span class="font-bold text-primary">Định nghĩa dễ hiểu:</span> PPA là "bộ ba thước đo" chất lượng của một thiết kế số: chạy nhanh cỡ nào (performance), tốn bao nhiêu điện (power), chiếm bao nhiêu silicon (area).</p>
+        <p><span class="font-bold text-primary">Bản chất kỹ thuật:</span> cùng một RTL, bản ASIC thường đạt tần số cao hơn (thường gấp 3–5 lần), tiết kiệm điện hơn (thường vài lần đến hàng chục lần) và nhỏ hơn nhiều lần so với bản FPGA. Lý do: trên FPGA, tín hiệu phải đi qua ma trận routing lập trình được và LUT tổng quát — mềm dẻo nhưng "cồng kềnh"; trên ASIC, dây nối và cổng được tối ưu cố định cho đúng mạch của bạn.</p>
+      </div>
+      <div class="space-y-3">
+        <p><span class="font-bold text-emerald-600">Ví dụ đời sống:</span> bộ vest may đo (ASIC) luôn vừa vặn, nhẹ và đẹp hơn bộ đồ chỉnh được size bằng dây rút (FPGA) — nhưng may đo đắt, lâu, và lỡ tăng cân là phải may lại.</p>
+        <p><span class="font-bold text-emerald-600">Trong kỹ nghệ IC:</span> PPA là ngôn ngữ hằng ngày của kỹ sư: mọi quyết định kiến trúc, synthesis, layout đều được đánh giá bằng "được gì mất gì trên ba trục PPA".</p>
+        <p class="bg-red-50 border-l-4 border-danger rounded-r-lg p-3"><span class="font-bold text-danger"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Hiểu sai phổ biến:</span> "PPA tốt hơn nghĩa là lựa chọn tốt hơn". Chưa đủ — PPA chỉ là một trục. Một startup cần ra mắt sau 3 tháng thì time-to-market và rủi ro quan trọng hơn 30% hiệu năng.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Concept 5: TTM/flex/risk + prototype strategy -->
+  <div class="bg-white rounded-2xl shadow-sm p-6">
+    <div class="flex items-center gap-2 mb-3"><span class="layer-chip bg-rose-100 text-rose-700"><i class="fa-solid fa-rocket"></i> Khái niệm 5</span><h3 class="font-extrabold text-lg text-dark">Time-to-market, Flexibility, Risk — và chiến lược "FPGA trước, ASIC sau"</h3></div>
+    <div class="grid md:grid-cols-2 gap-4 text-sm">
+      <div class="space-y-3">
+        <p><span class="font-bold text-primary">Định nghĩa dễ hiểu:</span> <strong>Time-to-market (thời gian ra thị trường)</strong>: từ ý tưởng đến sản phẩm đến tay khách. <strong>Flexibility (tính linh hoạt)</strong>: khả năng sửa đổi sau khi đã "ra lò". <strong>Risk (rủi ro)</strong>: cái giá phải trả nếu thiết kế có lỗi.</p>
+        <p><span class="font-bold text-primary">Bản chất kỹ thuật:</span> FPGA: ý tưởng → bitstream trong vài ngày–vài tuần; sửa lỗi = sửa RTL, tổng hợp lại, nạp lại — mất vài giờ. ASIC: 6–18 tháng đến khi có chip; lỗi sau tape-out = <strong>respin (làm lại vòng chế tạo)</strong> — tốn thêm bộ mask mới và nhiều tháng chờ. Vì vậy quy trình chuyên nghiệp thường là: <strong>kiểm chứng thiết kế trên FPGA (prototype) → khi spec ổn định và sản lượng đủ lớn → chuyển sang ASIC (production)</strong>.</p>
+      </div>
+      <div class="space-y-3">
+        <p><span class="font-bold text-emerald-600">Ví dụ đời sống:</span> nhà hàng thử món mới bằng suất bán chạy thử ở quầy nhỏ (FPGA); khi món được thị trường xác nhận mới đầu tư dây chuyền chế biến hàng loạt (ASIC). Không ai xây nhà máy cho một công thức chưa ai nếm.</p>
+        <p><span class="font-bold text-emerald-600">Trong kỹ nghệ IC:</span> các công ty lớn dùng cả "farm" FPGA để mô phỏng/emulate SoC trước tape-out. Với các bạn: <em>mọi kỹ năng RTL, simulation, timing, debug luyện trên FPGA đều là kỹ năng front-end ASIC thực thụ.</em></p>
+        <p class="bg-red-50 border-l-4 border-danger rounded-r-lg p-3"><span class="font-bold text-danger"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Hiểu sai phổ biến:</span> "Học FPGA không liên quan gì đến IC design". Ngược lại — FPGA chính là phòng gym của kỹ sư IC: cùng Verilog, cùng tư duy timing, cùng quy trình kiểm chứng.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 5. SYSTEM VIEW ============ -->
+<section id="system-view" class="bg-white py-12">
+  <div class="max-w-6xl mx-auto px-4">
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-sitemap"></i></div>
+      <div>
+        <p class="text-xs font-bold uppercase tracking-wider text-primary">Section 05</p>
+        <h2 class="text-2xl md:text-3xl font-extrabold text-dark">Góc nhìn hệ thống — Một RTL, hai đích đến</h2>
+      </div>
+    </div>
+    <div class="grid md:grid-cols-3 gap-4 mb-6 text-sm">
+      <div class="bg-slate-50 rounded-2xl p-5 border border-slate-200">
+        <p class="font-bold text-dark mb-1"><i class="fa-solid fa-file-code text-primary mr-2"></i>Đầu vào chung</p>
+        <p class="text-slate-600">RTL Verilog/SystemVerilog (tổ hợp + tuần tự), testbench, ràng buộc clock. Front-end của hai con đường gần như trùng nhau.</p>
+      </div>
+      <div class="bg-blue-50 rounded-2xl p-5 border border-blue-200">
+        <p class="font-bold text-dark mb-1"><i class="fa-solid fa-shapes text-primary mr-2"></i>Đích 1: FPGA</p>
+        <p class="text-slate-600">Synthesis ánh xạ RTL → LUT + FF + BRAM + DSP có sẵn trong fabric; place &amp; route chọn vị trí và đường nối; xuất <strong>bitstream</strong> nạp vào chip. Cần clock? Có — từ oscillator trên board. Cần reset? Có.</p>
+      </div>
+      <div class="bg-purple-50 rounded-2xl p-5 border border-purple-200">
+        <p class="font-bold text-dark mb-1"><i class="fa-solid fa-microchip text-purple-600 mr-2"></i>Đích 2: ASIC</p>
+        <p class="text-slate-600">Synthesis ánh xạ RTL → netlist <strong>standard cell</strong>; place &amp; route vẽ layout thật; signoff timing/power/DRC; <strong>tape-out</strong> gửi foundry làm mask và sản xuất wafer.</p>
+      </div>
+    </div>
+    <div class="overflow-x-auto bg-slate-50 rounded-2xl p-4">
+      <table class="vtable w-full bg-white rounded-xl overflow-hidden">
+        <thead><tr><th class="w-40">Tiêu chí</th><th>FPGA</th><th>ASIC</th></tr></thead>
+        <tbody>
+          <tr><td class="font-semibold">Phần tử logic</td><td>LUT (bảng tra) + FF gắn sẵn trong fabric</td><td>Standard cell (NAND, NOR, INV, DFF…) từ thư viện foundry</td></tr>
+          <tr><td class="font-semibold">Kết nối</td><td>Ma trận routing lập trình được (switch + config bit)</td><td>Dây kim loại cố định, tối ưu cho đúng mạch này</td></tr>
+          <tr><td class="font-semibold">Bộ nhớ</td><td>BRAM/LUTRAM dựng sẵn, dung lượng cố định theo chip</td><td>SRAM macro biên dịch theo đúng nhu cầu</td></tr>
+          <tr><td class="font-semibold">"Xuất xưởng" nghĩa là</td><td>Nạp bitstream = <em>cấu hình</em> chip có sẵn (làm lại được)</td><td>Tape-out = gửi layout đi <em>sản xuất</em> (không sửa được sau đó)</td></tr>
+          <tr><td class="font-semibold">NRE</td><td>≈ 0 (mua chip/board thương mại)</td><td>Rất cao: đội thiết kế, EDA, mask, kiểm thử mẫu</td></tr>
+          <tr><td class="font-semibold">Unit cost</td><td>Cao (trả cho sự linh hoạt của fabric)</td><td>Thấp khi sản lượng lớn</td></tr>
+          <tr><td class="font-semibold">Tần số điển hình</td><td>Hàng chục – vài trăm MHz</td><td>Hàng trăm MHz – vài GHz (cùng RTL thường nhanh hơn 3–5 lần)</td></tr>
+          <tr><td class="font-semibold">Sửa lỗi thiết kế</td><td>Sửa RTL → tổng hợp lại → nạp lại (giờ/ngày)</td><td>Respin: mask mới + nhiều tháng + rất nhiều tiền</td></tr>
+          <tr><td class="font-semibold">Phù hợp khi</td><td>Prototype, sản lượng nhỏ, spec còn thay đổi, cần ra hàng nhanh</td><td>Sản lượng lớn, spec ổn định, cần PPA tối ưu</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="text-xs text-slate-500 mt-3"><i class="fa-solid fa-circle-info mr-1"></i>Ghi chú: bảng nêu xu hướng điển hình để xây trực giác; con số thực tế phụ thuộc dòng chip, công nghệ và thiết kế cụ thể.</p>
+  </div>
+</section>
+<!-- ============ 6. INTERACTIVE DEMO ============ -->
+<section id="demo" class="max-w-6xl mx-auto px-4 py-12">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-sliders"></i></div>
+    <div>
+      <p class="text-xs font-bold uppercase tracking-wider text-primary">Section 06</p>
+      <h2 class="text-2xl md:text-3xl font-extrabold text-dark">Demo tương tác — Bảng điều khiển trade-off FPGA vs ASIC</h2>
+    </div>
+  </div>
+  <p class="text-slate-600 max-w-3xl mb-6">Kéo slider <strong>sản lượng</strong> (thang logarit, từ 1 đến 10.000.000 chip) và quan sát tổng chi phí hai phương án. Đường cong nào thấp hơn tại sản lượng của bạn — phương án đó rẻ hơn <em>về chi phí</em>. Các giả định được hiển thị công khai và có thể chỉnh để thử kịch bản khác.</p>
+
+  <div class="bg-white rounded-2xl shadow-sm p-5 md:p-6">
+    <!-- assumptions -->
+    <div class="grid sm:grid-cols-2 gap-4 mb-5 text-sm">
+      <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
+        <p class="font-bold text-blue-800 mb-2"><i class="fa-solid fa-shapes mr-1"></i>Giả định FPGA</p>
+        <p class="text-slate-700 mb-2">NRE ≈ <strong>0 USD</strong> (chip thương mại có sẵn, chỉ mua về dùng)</p>
+        <label class="flex items-center justify-between gap-2 text-slate-700">Unit cost (USD/chip)
+          <input id="w8-uf" type="number" value="50" min="1" step="1" class="w-24 border border-blue-300 rounded-lg px-2 py-1 text-right font-mono"></label>
+      </div>
+      <div class="bg-purple-50 border border-purple-200 rounded-xl p-4">
+        <p class="font-bold text-purple-800 mb-2"><i class="fa-solid fa-microchip mr-1"></i>Giả định ASIC</p>
+        <label class="flex items-center justify-between gap-2 text-slate-700 mb-2">NRE (USD, trả 1 lần)
+          <input id="w8-nrea" type="number" value="2000000" min="0" step="100000" class="w-32 border border-purple-300 rounded-lg px-2 py-1 text-right font-mono"></label>
+        <label class="flex items-center justify-between gap-2 text-slate-700">Unit cost (USD/chip)
+          <input id="w8-ua" type="number" value="2" min="0" step="1" class="w-24 border border-purple-300 rounded-lg px-2 py-1 text-right font-mono"></label>
+      </div>
+    </div>
+
+    <!-- slider -->
+    <div class="mb-4">
+      <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
+        <label for="w8-vol" class="font-bold text-dark text-sm"><i class="fa-solid fa-industry text-primary mr-1"></i>Sản lượng dự kiến</label>
+        <span class="font-mono font-bold text-primary text-lg" id="w8-vol-label">10.000</span>
+      </div>
+      <input id="w8-vol" type="range" min="0" max="700" value="400" step="1" class="w-full">
+      <div class="flex justify-between text-[10px] text-slate-400 font-mono"><span>1</span><span>10</span><span>100</span><span>1K</span><span>10K</span><span>100K</span><span>1M</span><span>10M</span></div>
+    </div>
+
+    <!-- chart -->
+    <div class="bg-slate-50 rounded-xl p-2 md:p-4 overflow-x-auto">
+      <svg id="w8-chart" viewBox="0 0 720 400" xmlns="http://www.w3.org/2000/svg" class="w-full min-w-[520px]" role="img" aria-label="Đồ thị tổng chi phí FPGA và ASIC theo sản lượng">
+        <g id="w8-grid" stroke="#e2e8f0" stroke-width="1"></g>
+        <g id="w8-xlabels" fill="#64748b" font-size="11" text-anchor="middle" font-family="monospace"></g>
+        <g id="w8-ylabels" fill="#64748b" font-size="11" text-anchor="end" font-family="monospace"></g>
+        <line x1="70" y1="355" x2="700" y2="355" stroke="#94a3b8" stroke-width="1.5"/>
+        <line x1="70" y1="20" x2="70" y2="355" stroke="#94a3b8" stroke-width="1.5"/>
+        <path id="w8-fpga-curve" fill="none" stroke="#2563eb" stroke-width="3" stroke-linecap="round"/>
+        <path id="w8-asic-curve" fill="none" stroke="#9333ea" stroke-width="3" stroke-linecap="round"/>
+        <line id="w8-cross-line" x1="0" y1="20" x2="0" y2="355" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="5 4"/>
+        <circle id="w8-cross-dot" cx="0" cy="0" r="6" fill="#f59e0b" stroke="#fff" stroke-width="2"/>
+        <text id="w8-cross-label" x="0" y="0" fill="#b45309" font-size="12" font-weight="bold" text-anchor="middle"></text>
+        <line id="w8-cur-line" x1="0" y1="20" x2="0" y2="355" stroke="#0f172a" stroke-width="1" stroke-dasharray="3 3"/>
+        <circle id="w8-cur-fpga" cx="0" cy="0" r="5" fill="#2563eb" stroke="#fff" stroke-width="2"/>
+        <circle id="w8-cur-asic" cx="0" cy="0" r="5" fill="#9333ea" stroke="#fff" stroke-width="2"/>
+        <text x="385" y="393" fill="#475569" font-size="12" text-anchor="middle" font-weight="bold">Sản lượng (chip, thang log)</text>
+        <text x="16" y="190" fill="#475569" font-size="12" text-anchor="middle" font-weight="bold" transform="rotate(-90 16 190)">Tổng chi phí (USD, thang log)</text>
+        <g font-size="12" font-weight="bold"><rect x="90" y="28" width="12" height="4" fill="#2563eb"/><text x="108" y="34" fill="#1e40af">FPGA</text><rect x="160" y="28" width="12" height="4" fill="#9333ea"/><text x="178" y="34" fill="#7e22ce">ASIC</text></g>
+      </svg>
+    </div>
+
+    <!-- readouts -->
+    <div class="grid sm:grid-cols-3 gap-3 mt-4 text-sm">
+      <div class="bg-blue-50 rounded-xl p-3 text-center"><p class="text-xs text-slate-500">Tổng chi phí FPGA</p><p id="w8-cost-fpga" class="font-mono font-extrabold text-blue-700 text-lg">—</p></div>
+      <div class="bg-purple-50 rounded-xl p-3 text-center"><p class="text-xs text-slate-500">Tổng chi phí ASIC</p><p id="w8-cost-asic" class="font-mono font-extrabold text-purple-700 text-lg">—</p></div>
+      <div class="bg-amber-50 rounded-xl p-3 text-center"><p class="text-xs text-slate-500">Điểm hòa vốn (crossover)</p><p id="w8-cross-text" class="font-mono font-extrabold text-amber-700 text-lg">—</p></div>
+    </div>
+    <div id="w8-verdict" class="mt-4 rounded-xl p-4 font-semibold text-sm border-2 border-slate-200 bg-slate-50 text-slate-700" aria-live="polite">—</div>
+    <p class="text-xs text-slate-500 mt-3"><i class="fa-solid fa-scale-balanced mr-1"></i><strong>Nhắc lại quan trọng:</strong> đồ thị này chỉ nói về <em>chi phí</em>. Quyết định thật còn cân thêm PPA, time-to-market, độ ổn định spec và rủi ro — xem 4 thẻ dưới đây. Không tồn tại kết luận "ASIC luôn tốt hơn" hay "FPGA luôn tốt hơn".</p>
+  </div>
+
+  <!-- side-by-side trade-off cards -->
+  <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mt-6 text-sm">
+    <div class="bg-white rounded-2xl shadow-sm p-4 border-t-4 border-emerald-400">
+      <p class="font-extrabold text-dark mb-2"><i class="fa-solid fa-gauge-high text-emerald-500 mr-1"></i>PPA</p>
+      <p class="mb-1"><span class="font-bold text-blue-700">FPGA:</span> chậm hơn, tốn điện hơn, "to" hơn — trả giá cho fabric tổng quát.</p>
+      <p><span class="font-bold text-purple-700">ASIC:</span> thường thắng cả 3 trục cho cùng chức năng — logic và dây nối được tối ưu cố định.</p>
+    </div>
+    <div class="bg-white rounded-2xl shadow-sm p-4 border-t-4 border-blue-400">
+      <p class="font-extrabold text-dark mb-2"><i class="fa-solid fa-rotate text-blue-500 mr-1"></i>Flexibility</p>
+      <p class="mb-1"><span class="font-bold text-blue-700">FPGA:</span> cấu hình lại vô hạn lần; đổi cả chức năng chip sau khi xuất xưởng.</p>
+      <p><span class="font-bold text-purple-700">ASIC:</span> đông cứng sau tape-out; đổi logic = làm chip mới.</p>
+    </div>
+    <div class="bg-white rounded-2xl shadow-sm p-4 border-t-4 border-amber-400">
+      <p class="font-extrabold text-dark mb-2"><i class="fa-solid fa-stopwatch text-amber-500 mr-1"></i>Time-to-market</p>
+      <p class="mb-1"><span class="font-bold text-blue-700">FPGA:</span> ý tưởng → bitstream: vài ngày đến vài tuần.</p>
+      <p><span class="font-bold text-purple-700">ASIC:</span> 6–18 tháng: thiết kế, signoff, chế tạo, đóng gói, kiểm thử.</p>
+    </div>
+    <div class="bg-white rounded-2xl shadow-sm p-4 border-t-4 border-rose-400">
+      <p class="font-extrabold text-dark mb-2"><i class="fa-solid fa-triangle-exclamation text-rose-500 mr-1"></i>Risk</p>
+      <p class="mb-1"><span class="font-bold text-blue-700">FPGA:</span> bug? Sửa RTL, nạp lại — mất vài giờ, gần như miễn phí.</p>
+      <p><span class="font-bold text-purple-700">ASIC:</span> bug sau tape-out = respin: bộ mask mới + nhiều tháng + có thể lỡ cả thị trường.</p>
+    </div>
+  </div>
+  <div class="mt-5 bg-emerald-50 border border-emerald-200 rounded-2xl p-5 text-sm text-slate-700">
+    <p class="font-bold text-emerald-700 mb-1"><i class="fa-solid fa-route mr-1"></i>Chiến lược kinh điển: prototype trên FPGA → sản xuất bằng ASIC</p>
+    <p>Giai đoạn 1: dựng và kiểm chứng RTL trên FPGA — sửa nhanh, rủi ro thấp, có sản phẩm demo sớm. Giai đoạn 2: khi spec ổn định và dự báo sản lượng vượt điểm hòa vốn, chuyển cùng bộ RTL đó (điều chỉnh phần phụ thuộc nền tảng như BRAM/DSP primitive) sang flow ASIC để tối ưu PPA và unit cost. Đây chính là con đường mà khóa học mô phỏng: học và làm project trên FPGA, tư duy viết RTL "sẵn sàng cho ASIC".</p>
+  </div>
+</section>
+
+<!-- ============ 7. ENGINEERING WORKFLOW ============ -->
+<section id="workflow" class="bg-white py-12">
+  <div class="max-w-6xl mx-auto px-4">
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-diagram-project"></i></div>
+      <div>
+        <p class="text-xs font-bold uppercase tracking-wider text-primary">Section 07</p>
+        <h2 class="text-2xl md:text-3xl font-extrabold text-dark">Quy trình kỹ thuật — chung một gốc, rẽ hai nhánh</h2>
+      </div>
+    </div>
+    <div class="bg-slate-50 rounded-2xl p-5 mb-6">
+      <p class="font-bold text-dark mb-3 text-sm"><i class="fa-solid fa-code-branch text-primary mr-1"></i>Phần thân chung (front-end) — giống nhau cho cả hai đích</p>
+      <div class="flex flex-wrap items-center gap-2 text-xs font-semibold">
+        <span class="bg-white border border-slate-300 rounded-full px-3 py-1.5">1. Requirement / Spec</span><i class="fa-solid fa-arrow-right text-slate-400"></i>
+        <span class="bg-white border border-slate-300 rounded-full px-3 py-1.5">2. Xác định I/O &amp; block diagram</span><i class="fa-solid fa-arrow-right text-slate-400"></i>
+        <span class="bg-white border border-slate-300 rounded-full px-3 py-1.5">3. Viết RTL</span><i class="fa-solid fa-arrow-right text-slate-400"></i>
+        <span class="bg-white border border-slate-300 rounded-full px-3 py-1.5">4. Testbench &amp; simulation</span><i class="fa-solid fa-arrow-right text-slate-400"></i>
+        <span class="bg-primary text-white rounded-full px-3 py-1.5">5. Synthesis — điểm rẽ nhánh</span>
+      </div>
+      <p class="text-xs text-slate-500 mt-3">Đây là lý do kỹ năng bạn luyện trong khóa này (RTL + testbench + waveform) dùng được cho cả hai thế giới.</p>
+    </div>
+    <div class="grid md:grid-cols-2 gap-5">
+      <div class="rounded-2xl border-2 border-blue-200 overflow-hidden">
+        <div class="bg-blue-600 text-white px-5 py-3 font-bold text-sm"><i class="fa-solid fa-shapes mr-2"></i>Nhánh FPGA — kết thúc bằng BITSTREAM (cấu hình)</div>
+        <ol class="p-5 space-y-3 text-sm bg-blue-50/40">
+          <li class="flex gap-3"><span class="w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center shrink-0">6</span><span><strong>FPGA synthesis:</strong> ánh xạ RTL vào LUT/FF/BRAM/DSP của dòng chip đã chọn.</span></li>
+          <li class="flex gap-3"><span class="w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center shrink-0">7</span><span><strong>Place &amp; route trên fabric:</strong> chọn ô logic và đường nối lập trình được; kiểm tra timing (đạt tần số yêu cầu?).</span></li>
+          <li class="flex gap-3"><span class="w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center shrink-0">8</span><span><strong>Sinh bitstream</strong> — file cấu hình toàn bộ LUT, FF, routing.</span></li>
+          <li class="flex gap-3"><span class="w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center shrink-0">9</span><span><strong>Nạp xuống board, chạy thật.</strong> Sai? Sửa RTL, lặp lại từ bước 6 — chỉ mất vài giờ.</span></li>
+        </ol>
+      </div>
+      <div class="rounded-2xl border-2 border-purple-200 overflow-hidden">
+        <div class="bg-purple-600 text-white px-5 py-3 font-bold text-sm"><i class="fa-solid fa-microchip mr-2"></i>Nhánh ASIC — kết thúc bằng TAPE-OUT (sản xuất)</div>
+        <ol class="p-5 space-y-3 text-sm bg-purple-50/40">
+          <li class="flex gap-3"><span class="w-6 h-6 rounded-full bg-purple-600 text-white text-xs font-bold flex items-center justify-center shrink-0">6</span><span><strong>ASIC synthesis:</strong> ánh xạ RTL vào thư viện standard cell của foundry + chèn DFT (mạch phục vụ test).</span></li>
+          <li class="flex gap-3"><span class="w-6 h-6 rounded-full bg-purple-600 text-white text-xs font-bold flex items-center justify-center shrink-0">7</span><span><strong>Physical design:</strong> floorplan, place &amp; route, clock tree — vẽ layout kim loại thật.</span></li>
+          <li class="flex gap-3"><span class="w-6 h-6 rounded-full bg-purple-600 text-white text-xs font-bold flex items-center justify-center shrink-0">8</span><span><strong>Signoff:</strong> kiểm timing/power/DRC/LVS — vì sau bước tiếp theo sẽ KHÔNG sửa được nữa.</span></li>
+          <li class="flex gap-3"><span class="w-6 h-6 rounded-full bg-purple-600 text-white text-xs font-bold flex items-center justify-center shrink-0">9</span><span><strong>Tape-out → foundry:</strong> làm mask, chế tạo wafer, cắt, đóng gói, test — nhiều tháng. Sai? Respin cực đắt.</span></li>
+        </ol>
+      </div>
+    </div>
+    <div class="mt-5 bg-amber-50 border-l-4 border-secondary rounded-r-2xl p-4 text-sm text-slate-700">
+      <p><i class="fa-solid fa-triangle-exclamation text-secondary mr-2"></i><strong>Đừng nhầm hai điểm kết thúc:</strong> nạp <strong>bitstream</strong> là <em>cấu hình</em> một con chip FPGA đã sản xuất sẵn — làm sai nạp lại thoải mái. <strong>Tape-out</strong> là <em>gửi layout ASIC đi sản xuất vật lý</em> — một quyết định "một đi khó trở lại". Nói "nạp bitstream tức là tape-out lên FPGA" là sai kỹ thuật.</p>
+    </div>
+  </div>
+</section>
+<!-- ============ 8. CODE / RTL ============ -->
+<section id="code-rtl" class="max-w-6xl mx-auto px-4 py-12">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-code"></i></div>
+    <div>
+      <p class="text-xs font-bold uppercase tracking-wider text-primary">Section 08</p>
+      <h2 class="text-2xl md:text-3xl font-extrabold text-dark">Code RTL — một module, hai "số phận" phần cứng</h2>
+    </div>
+  </div>
+  <p class="text-slate-600 max-w-3xl mb-5">Điều đẹp nhất của HDL: <strong>cùng một RTL</strong> có thể tổng hợp cho cả FPGA lẫn ASIC. Dưới đây là bộ đếm quen thuộc của Tuần 7, mở rộng lên 8-bit (mạch tuần tự, viết bằng always_ff với gán non-blocking) — hãy xem synthesis "dịch" nó ra hai loại phần cứng khác nhau như thế nào.</p>
+
+  <div class="rounded-xl overflow-hidden shadow-sm mb-6">
+    <div class="code-head"><span><i class="fa-solid fa-file-code mr-2"></i>counter8.sv — bộ đếm 8-bit có reset và enable</span><button class="copy-btn" data-copy="code-counter8">Copy</button></div>
+    <pre class="code-body" id="code-counter8"><span class="tok-kw">module</span> <span class="tok-fn">counter8</span> (
+  <span class="tok-kw">input</span>  <span class="tok-type">logic</span>       clk,     <span class="tok-cmt">// xung nhịp hệ thống</span>
+  <span class="tok-kw">input</span>  <span class="tok-type">logic</span>       rst_n,   <span class="tok-cmt">// reset bất đồng bộ, tích cực mức thấp</span>
+  <span class="tok-kw">input</span>  <span class="tok-type">logic</span>       en,      <span class="tok-cmt">// enable: chỉ đếm khi en = 1</span>
+  <span class="tok-kw">output</span> <span class="tok-type">logic</span> [<span class="tok-num">7</span>:<span class="tok-num">0</span>] count    <span class="tok-cmt">// giá trị đếm: 8 bit = 8 flip-flop</span>
+);
+
+  <span class="tok-cmt">// Mạch TUẦN TỰ: always_ff + gán non-blocking &lt;=</span>
+  <span class="tok-kw">always_ff</span> @(<span class="tok-kw">posedge</span> clk <span class="tok-kw">or</span> <span class="tok-kw">negedge</span> rst_n) <span class="tok-kw">begin</span>
+    <span class="tok-kw">if</span> (!rst_n)
+      count &lt;= <span class="tok-num">8'd0</span>;          <span class="tok-cmt">// reset: về 0</span>
+    <span class="tok-kw">else if</span> (en)
+      count &lt;= count + <span class="tok-num">8'd1</span>;  <span class="tok-cmt">// mỗi cạnh lên clk: +1</span>
+  <span class="tok-kw">end</span>
+
+<span class="tok-kw">endmodule</span></pre>
+  </div>
+
+  <div class="grid md:grid-cols-2 gap-5 text-sm">
+    <div class="bg-blue-50 border border-blue-200 rounded-2xl p-5">
+      <p class="font-extrabold text-blue-800 mb-2"><i class="fa-solid fa-shapes mr-1"></i>Synthesis cho FPGA → LUT / FF / (BRAM / DSP)</p>
+      <ul class="space-y-2 text-slate-700 list-disc list-inside">
+        <li><strong>8 flip-flop</strong> trong các logic cell của fabric lưu <span class="font-mono">count[7:0]</span> — mỗi FF lưu đúng 1 bit.</li>
+        <li>Phép <span class="font-mono">count + 1</span> → <strong>LUT + chuỗi carry</strong> (carry chain) dựng sẵn cạnh các LUT.</li>
+        <li><span class="font-mono">en</span> nối vào chân <strong>clock-enable (CE)</strong> có sẵn của FF — không ai "cắt" clock cả.</li>
+        <li>Module này nhỏ nên không đụng đến BRAM/DSP; thiết kế lớn hơn (bộ nhớ, nhân) mới dùng.</li>
+        <li>Kết quả cuối: các bit cấu hình trong <strong>bitstream</strong> — nạp lại được vô số lần.</li>
+      </ul>
+    </div>
+    <div class="bg-purple-50 border border-purple-200 rounded-2xl p-5">
+      <p class="font-extrabold text-purple-800 mb-2"><i class="fa-solid fa-microchip mr-1"></i>Synthesis cho ASIC → standard cells</p>
+      <ul class="space-y-2 text-slate-700 list-disc list-inside">
+        <li><strong>8 ô DFF</strong> (standard cell flip-flop, có biến thể reset bất đồng bộ) từ thư viện foundry.</li>
+        <li>Bộ cộng +1 → lưới cổng <strong>HA/XOR/AND</strong> hoặc cell cộng chuyên dụng, tối ưu diện tích/tốc độ.</li>
+        <li><span class="font-mono">en</span> → cell <strong>MUX/enable-DFF</strong>; công cụ chọn cell tối ưu nhất.</li>
+        <li>Sau place &amp; route: từng cổng có tọa độ, dây kim loại thật trên layout.</li>
+        <li>Kết quả cuối: một phần của layout đi <strong>tape-out</strong> — sau sản xuất là cố định vĩnh viễn.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="mt-5 bg-slate-800 text-slate-200 rounded-2xl p-5 text-sm">
+    <p class="font-bold text-white mb-1"><i class="fa-solid fa-lightbulb text-secondary mr-2"></i>Thông điệp của section này</p>
+    <p>RTL không "biết" nó sẽ thành LUT hay standard cell — vì thế hãy viết RTL sạch, đồng bộ, không phụ thuộc mẹo riêng của nền tảng. Đó gọi là <strong>ASIC-ready RTL</strong>: học trên FPGA hôm nay, mang nguyên kỹ năng sang công ty thiết kế ASIC ngày mai. (Lưu ý nhỏ: các primitive đặc thù như BRAM/DSP/PLL khi chuyển nền tảng cần thay thế tương đương — thêm lý do để mô tả hành vi bằng RTL chuẩn thay vì gọi thẳng primitive khi chưa cần.)</p>
+  </div>
+</section>
+
+<!-- ============ 9. TIMING / TIMELINE ============ -->
+<section id="waveform" class="bg-white py-12">
+  <div class="max-w-6xl mx-auto px-4">
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-timeline"></i></div>
+      <div>
+        <p class="text-xs font-bold uppercase tracking-wider text-primary">Section 09</p>
+        <h2 class="text-2xl md:text-3xl font-extrabold text-dark">Tư duy thời gian — timeline phát triển &amp; tốc độ mạch</h2>
+      </div>
+    </div>
+    <p class="text-slate-600 max-w-3xl mb-5">Tuần này không có waveform theo clock (chủ đề không phải một mạch cụ thể) — thay vào đó là hai trục thời gian mà kỹ sư phải cân nhắc: <strong>thời gian phát triển</strong> (lịch dự án) và <strong>thời gian lan truyền</strong> (tốc độ mạch).</p>
+
+    <div class="bg-slate-50 rounded-2xl p-5 overflow-x-auto mb-5">
+      <svg viewBox="0 0 760 240" xmlns="http://www.w3.org/2000/svg" class="w-full min-w-[600px]" role="img" aria-label="So sánh timeline phát triển FPGA và ASIC">
+        <text x="10" y="20" font-size="13" font-weight="bold" fill="#1e40af">FPGA: ý tưởng → bitstream trong vài ngày–vài tuần</text>
+        <line x1="10" y1="60" x2="750" y2="60" stroke="#cbd5e1" stroke-width="2"/>
+        <rect x="10" y="40" width="120" height="26" rx="6" fill="#dbeafe" stroke="#2563eb"/><text x="70" y="57" font-size="11" text-anchor="middle" fill="#1e40af" font-weight="bold">RTL + sim</text>
+        <rect x="140" y="40" width="110" height="26" rx="6" fill="#dbeafe" stroke="#2563eb"/><text x="195" y="57" font-size="11" text-anchor="middle" fill="#1e40af" font-weight="bold">Synth + P&amp;R</text>
+        <rect x="260" y="40" width="90" height="26" rx="6" fill="#2563eb"/><text x="305" y="57" font-size="11" text-anchor="middle" fill="#fff" font-weight="bold">Bitstream</text>
+        <rect x="360" y="40" width="100" height="26" rx="6" fill="#10b981"/><text x="410" y="57" font-size="11" text-anchor="middle" fill="#fff" font-weight="bold">Chạy trên board</text>
+        <path d="M 470 53 C 520 53 520 20 305 20 C 200 20 195 32 195 38" fill="none" stroke="#f59e0b" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#w8arrow)"/>
+        <text x="480" y="30" font-size="11" fill="#b45309" font-weight="bold">Respin = sửa RTL + tổng hợp lại (vài giờ)</text>
+        <defs><marker id="w8arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 z" fill="#f59e0b"/></marker></defs>
+
+        <text x="10" y="120" font-size="13" font-weight="bold" fill="#7e22ce">ASIC: ý tưởng → chip trong tay sau 6–18 tháng</text>
+        <line x1="10" y1="165" x2="750" y2="165" stroke="#cbd5e1" stroke-width="2"/>
+        <rect x="10" y="145" width="130" height="26" rx="6" fill="#f3e8ff" stroke="#9333ea"/><text x="75" y="162" font-size="11" text-anchor="middle" fill="#6b21a8" font-weight="bold">RTL + verification</text>
+        <rect x="150" y="145" width="130" height="26" rx="6" fill="#f3e8ff" stroke="#9333ea"/><text x="215" y="162" font-size="11" text-anchor="middle" fill="#6b21a8" font-weight="bold">Synth + P&amp;R + signoff</text>
+        <rect x="290" y="145" width="90" height="26" rx="6" fill="#9333ea"/><text x="335" y="162" font-size="11" text-anchor="middle" fill="#fff" font-weight="bold">TAPE-OUT</text>
+        <rect x="390" y="145" width="170" height="26" rx="6" fill="#f3e8ff" stroke="#9333ea"/><text x="475" y="162" font-size="11" text-anchor="middle" fill="#6b21a8" font-weight="bold">Fab: mask → wafer (nhiều tháng)</text>
+        <rect x="570" y="145" width="120" height="26" rx="6" fill="#f3e8ff" stroke="#9333ea"/><text x="630" y="162" font-size="11" text-anchor="middle" fill="#6b21a8" font-weight="bold">Đóng gói + test</text>
+        <path d="M 690 172 C 740 200 400 210 335 178" fill="none" stroke="#ef4444" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#w8arrow2)"/>
+        <text x="380" y="212" font-size="11" fill="#b91c1c" font-weight="bold">Respin = bộ mask MỚI + nhiều tháng chờ + rất nhiều tiền</text>
+        <defs><marker id="w8arrow2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 z" fill="#ef4444"/></marker></defs>
+      </svg>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-4 text-sm">
+      <div class="bg-slate-50 rounded-2xl p-5">
+        <p class="font-bold text-dark mb-2"><i class="fa-solid fa-bolt text-secondary mr-1"></i>Trục thứ hai: propagation delay &amp; critical path</p>
+        <p class="text-slate-700">Nhớ từ các tuần trước: mọi cổng đều có <strong>propagation delay (độ trễ lan truyền)</strong> — tín hiệu không đổi "ngay lập tức". Tần số tối đa của mạch do <strong>critical path (đường trễ dài nhất giữa hai flip-flop)</strong> quyết định. Trên FPGA, tín hiệu còn phải xuyên qua các switch routing lập trình được → đường trễ dài hơn → cùng RTL nhưng tần số tối đa thấp hơn ASIC đáng kể.</p>
+      </div>
+      <div class="bg-slate-50 rounded-2xl p-5">
+        <p class="font-bold text-dark mb-2"><i class="fa-solid fa-clock text-primary mr-1"></i>Con số để xây trực giác</p>
+        <ul class="text-slate-700 space-y-1.5 list-disc list-inside">
+          <li>Thiết kế học tập trên FPGA: thoải mái ở 50–100 MHz.</li>
+          <li>FPGA đẩy khéo: vài trăm MHz.</li>
+          <li>Cùng RTL trên ASIC hiện đại: hàng trăm MHz đến vài GHz.</li>
+          <li>Đổi lại: mỗi vòng "sửa – thử" FPGA tính bằng giờ; ASIC tính bằng tháng.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 10. ACTIVE LEARNING ============ -->
+<section id="active-learning" class="max-w-6xl mx-auto px-4 py-12">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-people-group"></i></div>
+    <div>
+      <p class="text-xs font-bold uppercase tracking-wider text-primary">Section 10</p>
+      <h2 class="text-2xl md:text-3xl font-extrabold text-dark">Kịch bản buổi học 60 phút</h2>
+    </div>
+  </div>
+  <div class="space-y-3">
+    <div class="bg-white rounded-2xl shadow-sm p-4 flex gap-4 items-start"><span class="shrink-0 w-16 text-center bg-primary/10 text-primary font-extrabold rounded-xl py-2 text-sm">5'</span><div><p class="font-bold text-dark">Quick check-in</p><p class="text-sm text-slate-600">Mỗi bạn nói 1 con số đã tra được (giá board FPGA hoặc chi phí mask) — cả lớp cảm nhận độ chênh lệch cỡ 4–5 bậc độ lớn.</p></div></div>
+    <div class="bg-white rounded-2xl shadow-sm p-4 flex gap-4 items-start"><span class="shrink-0 w-16 text-center bg-primary/10 text-primary font-extrabold rounded-xl py-2 text-sm">10'</span><div><p class="font-bold text-dark">Student presentation</p><p class="text-sm text-slate-600">Nhóm được phân công trình bày: FPGA là gì, ASIC là gì, bảng so sánh 5 tiêu chí (linh hoạt, chi phí, tốc độ, điện năng, thời gian phát triển).</p></div></div>
+    <div class="bg-white rounded-2xl shadow-sm p-4 flex gap-4 items-start"><span class="shrink-0 w-16 text-center bg-secondary/20 text-amber-700 font-extrabold rounded-xl py-2 text-sm">10'</span><div><p class="font-bold text-dark">Mentor correction</p><p class="text-sm text-slate-600">Mentor chỉnh các điểm hay sai: bitstream ≠ tape-out; NRE vs unit cost; "ASIC luôn tốt hơn" là sai; mở dashboard demo kéo slider minh họa điểm hòa vốn.</p></div></div>
+    <div class="bg-white rounded-2xl shadow-sm p-4 flex gap-4 items-start"><span class="shrink-0 w-16 text-center bg-accent/20 text-emerald-700 font-extrabold rounded-xl py-2 text-sm">15–20'</span><div><p class="font-bold text-dark">Breakout room</p><p class="text-sm text-slate-600">Mỗi nhóm nhận 1 tình huống sản phẩm và ra quyết định nền tảng theo mẫu Platform Decision Card (xem section 11).</p></div></div>
+    <div class="bg-white rounded-2xl shadow-sm p-4 flex gap-4 items-start"><span class="shrink-0 w-16 text-center bg-accent/20 text-emerald-700 font-extrabold rounded-xl py-2 text-sm">10'</span><div><p class="font-bold text-dark">Group sharing</p><p class="text-sm text-slate-600">Reporter mỗi nhóm trình bày quyết định + 3 lý do; các nhóm khác được quyền "phản biện bằng một câu hỏi".</p></div></div>
+    <div class="bg-white rounded-2xl shadow-sm p-4 flex gap-4 items-start"><span class="shrink-0 w-16 text-center bg-primary/10 text-primary font-extrabold rounded-xl py-2 text-sm">5'</span><div><p class="font-bold text-dark">Wrap-up</p><p class="text-sm text-slate-600">Chốt thông điệp: trade-off, không có đáp án tuyệt đối; tuần sau bắt đầu mini-project đèn giao thông trên FPGA.</p></div></div>
+  </div>
+</section>
+
+<!-- ============ 11. BREAKOUT ROOM ============ -->
+<section id="breakout" class="bg-white py-12">
+  <div class="max-w-6xl mx-auto px-4">
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-comments"></i></div>
+      <div>
+        <p class="text-xs font-bold uppercase tracking-wider text-primary">Section 11</p>
+        <h2 class="text-2xl md:text-3xl font-extrabold text-dark">Breakout room — Hội đồng quyết định nền tảng</h2>
+      </div>
+    </div>
+    <div class="grid md:grid-cols-2 gap-5">
+      <div class="bg-slate-50 rounded-2xl p-5">
+        <p class="font-bold text-dark mb-3"><i class="fa-solid fa-circle-question text-primary mr-2"></i>Câu hỏi thảo luận (phân tích, không học vẹt)</p>
+        <ol class="list-decimal list-inside text-sm text-slate-700 space-y-2.5">
+          <li>Cần một mẫu thử hoạt động trong 3 tuần để gọi vốn — FPGA hay ASIC? Điều gì xảy ra nếu chọn ngược lại?</li>
+          <li>Sản phẩm bán 10 triệu chiếc/năm, mỗi xu unit cost đều quan trọng — chọn gì? NRE được "chia" cho mỗi chip là bao nhiêu?</li>
+          <li>Thiết bị trạm gốc 5G cần cập nhật thuật toán theo chuẩn mới mỗi năm, sản lượng vài chục nghìn — vì sao nhiều hãng vẫn dùng FPGA dù unit cost cao?</li>
+          <li>Startup của bạn dự báo bán 30.000 sản phẩm — đúng vùng lân cận điểm hòa vốn. Ngoài chi phí, những yếu tố nào sẽ quyết định (rủi ro spec đổi, vốn ban đầu, thời gian, đội ngũ)?</li>
+          <li>Sinh viên học FPGA thì được gì khi xin việc ở công ty làm ASIC? Kỹ năng nào chuyển giao nguyên vẹn, kỹ năng nào phải học thêm?</li>
+        </ol>
+      </div>
+      <div class="space-y-4">
+        <div class="bg-slate-50 rounded-2xl p-5">
+          <p class="font-bold text-dark mb-3"><i class="fa-solid fa-user-group text-primary mr-2"></i>Vai trò trong nhóm</p>
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <div class="bg-white rounded-xl p-3 border border-slate-200"><p class="font-bold text-primary">Facilitator</p><p class="text-slate-600 mt-1">Điều phối, giữ nhịp thời gian, mời từng người nói.</p></div>
+            <div class="bg-white rounded-xl p-3 border border-slate-200"><p class="font-bold text-primary">Note keeper</p><p class="text-slate-600 mt-1">Ghi bảng quyết định, chốt con số dùng trong lập luận.</p></div>
+            <div class="bg-white rounded-xl p-3 border border-slate-200"><p class="font-bold text-primary">Reporter</p><p class="text-slate-600 mt-1">Trình bày Platform Decision Card trong 2 phút.</p></div>
+            <div class="bg-white rounded-xl p-3 border border-slate-200"><p class="font-bold text-primary">Skeptic / Checker</p><p class="text-slate-600 mt-1">Chuyên hỏi "nếu sản lượng x10 thì sao? nếu spec đổi thì sao?"</p></div>
+          </div>
+        </div>
+        <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-5 text-sm">
+          <p class="font-bold text-emerald-700 mb-2"><i class="fa-solid fa-file-signature mr-2"></i>Sản phẩm nhóm phải nộp: Platform Decision Card</p>
+          <ul class="list-disc list-inside text-slate-700 space-y-1">
+            <li><strong>Ứng dụng:</strong> tên + mô tả 1 câu + sản lượng dự kiến.</li>
+            <li><strong>I/O chính:</strong> 3–5 tín hiệu vào/ra của khối số.</li>
+            <li><strong>Quyết định:</strong> FPGA / ASIC / "FPGA trước, ASIC sau".</li>
+            <li><strong>3 lý do</strong> theo các trục: chi phí (NRE/unit/crossover), PPA, time-to-market, flexibility, risk.</li>
+            <li><strong>Một rủi ro</strong> của quyết định và cách giảm thiểu.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- ============ 12. COMMON MISTAKES ============ -->
+<section id="mistakes" class="max-w-6xl mx-auto px-4 py-12">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-danger/10 text-danger flex items-center justify-center"><i class="fa-solid fa-bug"></i></div>
+    <div>
+      <p class="text-xs font-bold uppercase tracking-wider text-danger">Section 12</p>
+      <h2 class="text-2xl md:text-3xl font-extrabold text-dark">Lỗi hiểu sai thường gặp</h2>
+    </div>
+  </div>
+  <div class="grid md:grid-cols-2 gap-4 text-sm">
+    <div class="bg-red-50 border border-red-200 rounded-2xl p-5">
+      <p class="font-extrabold text-danger mb-1"><i class="fa-solid fa-xmark-circle mr-1"></i>Lỗi 1: "ASIC luôn tốt hơn FPGA"</p>
+      <p class="text-slate-700 mb-2"><strong>Vì sao sai:</strong> ASIC chỉ thắng về PPA và unit cost; nó thua nặng về NRE, time-to-market, flexibility và rủi ro. Với 1.000 sản phẩm, "phương án tốt hơn" ASIC đắt gấp hàng chục lần.</p>
+      <p class="text-emerald-700"><strong>Sửa đúng:</strong> luôn trả lời bằng ngữ cảnh: sản lượng bao nhiêu? spec ổn chưa? deadline khi nào? — rồi mới chọn.</p>
+    </div>
+    <div class="bg-red-50 border border-red-200 rounded-2xl p-5">
+      <p class="font-extrabold text-danger mb-1"><i class="fa-solid fa-xmark-circle mr-1"></i>Lỗi 2: Đồng nhất "nạp bitstream" với "tape-out"</p>
+      <p class="text-slate-700 mb-2"><strong>Vì sao sai/nguy hiểm:</strong> hai hành động khác bản chất — bitstream <em>cấu hình</em> chip FPGA có sẵn (đảo ngược được); tape-out <em>gửi layout đi sản xuất vật lý</em> (không đảo ngược). Nhầm lẫn này làm bạn đánh giá sai hoàn toàn chi phí và rủi ro.</p>
+      <p class="text-emerald-700"><strong>Sửa đúng:</strong> bitstream = cấu hình; tape-out = sản xuất. Nói tách bạch trong mọi bài trình bày.</p>
+    </div>
+    <div class="bg-red-50 border border-red-200 rounded-2xl p-5">
+      <p class="font-extrabold text-danger mb-1"><i class="fa-solid fa-xmark-circle mr-1"></i>Lỗi 3: "FPGA không liên quan đến IC design"</p>
+      <p class="text-slate-700 mb-2"><strong>Vì sao sai:</strong> front-end (RTL, testbench, simulation, timing) của FPGA và ASIC gần như trùng nhau; công ty ASIC còn dùng FPGA để prototype chính con chip của họ.</p>
+      <p class="text-emerald-700"><strong>Sửa đúng:</strong> xem FPGA là phòng tập của kỹ sư IC: mọi giờ luyện RTL/debug trên FPGA là giờ luyện nghề thiết kế vi mạch thật.</p>
+    </div>
+    <div class="bg-red-50 border border-red-200 rounded-2xl p-5">
+      <p class="font-extrabold text-danger mb-1"><i class="fa-solid fa-xmark-circle mr-1"></i>Lỗi 4: So sánh giá mà quên NRE (hoặc quên unit cost)</p>
+      <p class="text-slate-700 mb-2"><strong>Vì sao sai:</strong> "chip ASIC 2 USD rẻ hơn FPGA 50 USD" bỏ quên 2 triệu USD NRE; ngược lại "FPGA rẻ vì khỏi NRE" bỏ quên unit cost x25 khi bán hàng triệu chiếc.</p>
+      <p class="text-emerald-700"><strong>Sửa đúng:</strong> luôn tính <span class="font-mono">Tổng = NRE + unit × sản_lượng</span> và tìm điểm hòa vốn V* = NRE ÷ Δunit trước khi kết luận.</p>
+    </div>
+    <div class="bg-red-50 border border-red-200 rounded-2xl p-5">
+      <p class="font-extrabold text-danger mb-1"><i class="fa-solid fa-xmark-circle mr-1"></i>Lỗi 5: "FPGA chạy code Verilog như CPU chạy chương trình"</p>
+      <p class="text-slate-700 mb-2"><strong>Vì sao sai:</strong> không có bộ xử lý nào "đọc từng dòng Verilog" trong FPGA. RTL được tổng hợp thành cấu hình LUT/FF/routing; sau khi nạp, mạch tồn tại vật lý và mọi khối chạy song song (bài học tuần 7).</p>
+      <p class="text-emerald-700"><strong>Sửa đúng:</strong> dùng động từ chính xác: FPGA được <em>cấu hình</em> theo RTL, không <em>thực thi</em> RTL.</p>
+    </div>
+    <div class="bg-red-50 border border-red-200 rounded-2xl p-5">
+      <p class="font-extrabold text-danger mb-1"><i class="fa-solid fa-xmark-circle mr-1"></i>Lỗi 6: Chọn ASIC khi spec còn thay đổi</p>
+      <p class="text-slate-700 mb-2"><strong>Vì sao nguy hiểm:</strong> mỗi thay đổi sau tape-out = respin = bộ mask mới + nhiều tháng + hàng trăm nghìn đến hàng triệu USD. Nhiều startup phá sản vì "đúc" quá sớm một spec chưa được thị trường xác nhận.</p>
+      <p class="text-emerald-700"><strong>Sửa đúng:</strong> đóng băng spec + kiểm chứng trên FPGA/emulation trước; chỉ tape-out khi verification đã bao phủ và sản lượng biện minh được NRE.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 13. MINI-PROJECT CONNECTION ============ -->
+<section id="mini-project" class="bg-white py-12">
+  <div class="max-w-6xl mx-auto px-4">
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-10 h-10 rounded-xl bg-accent/10 text-accent flex items-center justify-center"><i class="fa-solid fa-flask"></i></div>
+      <div>
+        <p class="text-xs font-bold uppercase tracking-wider text-emerald-600">Section 13</p>
+        <h2 class="text-2xl md:text-3xl font-extrabold text-dark">Kết nối mini-project — chọn nền tảng cho chính khóa học</h2>
+      </div>
+    </div>
+    <p class="text-slate-600 max-w-3xl mb-5">Ba tuần tới bạn sẽ làm ba project thật: <strong>đèn giao thông (T9)</strong>, <strong>counter + LED 7 đoạn (T10)</strong>, <strong>UART (T11)</strong>. Hãy áp dụng ngay tư duy hôm nay: các project này nên chạy trên nền tảng nào?</p>
+    <div class="overflow-x-auto bg-slate-50 rounded-2xl p-4 mb-5">
+      <table class="vtable w-full bg-white rounded-xl overflow-hidden">
+        <thead><tr><th>Tiêu chí của giai đoạn học</th><th>FPGA đáp ứng thế nào?</th><th>Nếu chọn ASIC thì sao?</th></tr></thead>
+        <tbody>
+          <tr><td class="font-semibold">Sản lượng = 1 board/nhóm</td><td>Mua board ~100–200 USD, dùng cho cả 3 project và nhiều khóa sau</td><td>NRE hàng trăm nghìn USD cho... 1 sản phẩm — vô nghĩa</td></tr>
+          <tr><td class="font-semibold">Sửa sai liên tục (bản chất của việc học)</td><td>Sai → sửa RTL → nạp lại trong vài phút; mỗi lỗi là một bài học rẻ</td><td>Mỗi lỗi = respin nhiều tháng — không thể học kiểu này</td></tr>
+          <tr><td class="font-semibold">Cần thấy kết quả ngay để có động lực</td><td>Đèn LED sáng, UART gửi chữ về PC ngay trong buổi lab</td><td>Chờ 6–18 tháng mới thấy chip</td></tr>
+          <tr><td class="font-semibold">Mục tiêu dài hạn: nghề IC design</td><td>Luyện đúng kỹ năng front-end ASIC: RTL, testbench, waveform, timing</td><td>(Đây vẫn là đích đến tương lai — sau khi thành thạo)</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="grid md:grid-cols-3 gap-4 text-sm">
+      <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-4"><p class="font-bold text-emerald-700"><i class="fa-solid fa-traffic-light mr-1"></i>T9 — Traffic light</p><p class="text-slate-700 mt-1">FSM + timer nạp lên FPGA: chỉnh thời gian đèn, thêm chế độ — nạp lại là xong. Nếu sản xuất 1 triệu bộ điều khiển thương mại? Khi đó mới tính chuyện ASIC.</p></div>
+      <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-4"><p class="font-bold text-emerald-700"><i class="fa-solid fa-7 mr-1"></i>T10 — Counter + 7-segment</p><p class="text-slate-700 mt-1">Dùng ngay LED 7 đoạn có sẵn trên board FPGA — không tốn thêm linh kiện, thấy số nhảy theo clock bằng mắt thường.</p></div>
+      <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-4"><p class="font-bold text-emerald-700"><i class="fa-solid fa-right-left mr-1"></i>T11 — UART</p><p class="text-slate-700 mt-1">FPGA nói chuyện với PC qua cáp USB-UART; đổi baud rate, thêm tính năng — tự do thử nghiệm không rủi ro.</p></div>
+    </div>
+    <div class="mt-5 bg-blue-50 border-l-4 border-primary rounded-r-2xl p-4 text-sm text-slate-700"><i class="fa-solid fa-graduation-cap text-primary mr-2"></i><strong>Kết luận cho người học:</strong> FPGA phù hợp giai đoạn học không phải vì nó "dễ hơn" hay "kém sang hơn" ASIC, mà vì đặc tính trade-off của nó (NRE ≈ 0, vòng lặp sửa-thử tính bằng phút, rủi ro ≈ 0) khớp hoàn hảo với nhu cầu của người học — trong khi kỹ năng thu được lại chính là kỹ năng front-end của ASIC.</div>
+  </div>
+</section>
+
+<!-- ============ 14. QUIZ ============ -->
+<section id="quiz" class="max-w-6xl mx-auto px-4 py-12">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-circle-question"></i></div>
+    <div>
+      <p class="text-xs font-bold uppercase tracking-wider text-primary">Section 14</p>
+      <h2 class="text-2xl md:text-3xl font-extrabold text-dark">Quiz kiểm tra nhanh — 10 câu</h2>
+    </div>
+  </div>
+  <p class="text-slate-600 mb-6 text-sm">Chọn đáp án cho từng câu — kết quả và lời giải hiện ngay. Cuối bài bấm <strong>"Chấm điểm"</strong> để xem tổng kết.</p>
+  <div id="quiz-container" class="space-y-5"></div>
+  <div class="mt-6 flex flex-wrap items-center gap-4">
+    <button id="quiz-grade-btn" class="bg-primary hover:bg-blue-700 text-white font-bold px-6 py-3 rounded-xl text-sm"><i class="fa-solid fa-clipboard-check mr-2"></i>Chấm điểm</button>
+    <p id="quiz-score" class="font-bold text-dark text-sm"></p>
+  </div>
+</section>
+<!-- ============ 15. HOMEWORK ============ -->
+<section id="homework" class="bg-white py-12">
+  <div class="max-w-6xl mx-auto px-4">
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-pen-ruler"></i></div>
+      <div>
+        <p class="text-xs font-bold uppercase tracking-wider text-primary">Section 15</p>
+        <h2 class="text-2xl md:text-3xl font-extrabold text-dark">Bài tập về nhà — 3 mức độ</h2>
+      </div>
+    </div>
+    <div class="grid md:grid-cols-3 gap-4 text-sm">
+      <div class="bg-slate-50 rounded-2xl p-5 border-t-4 border-slate-400">
+        <p class="font-extrabold text-dark mb-2"><span class="layer-chip bg-slate-200 text-slate-700 mr-1">Mức 1</span> Nhận biết &amp; giải thích</p>
+        <p class="text-slate-700 mb-2"><strong>Yêu cầu:</strong> viết bằng lời của bạn (nửa trang): FPGA là gì, ASIC là gì, NRE vs unit cost, PPA; trả lời 2 câu: (a) vì sao FPGA có time-to-market ngắn? (b) vì sao ASIC rẻ hơn khi sản lượng lớn?</p>
+        <p class="text-slate-600 mb-2"><strong>Gợi ý:</strong> dùng ẩn dụ LEGO/khuôn ép và công thức Tổng = NRE + unit × V.</p>
+        <p class="text-xs bg-white rounded-lg p-2 border border-slate-200"><strong>Nộp:</strong> file text/ảnh chụp vở. <strong>Tiêu chí:</strong> định nghĩa đúng, không nói "ASIC luôn tốt hơn", có ví dụ riêng.</p>
+      </div>
+      <div class="bg-slate-50 rounded-2xl p-5 border-t-4 border-secondary">
+        <p class="font-extrabold text-dark mb-2"><span class="layer-chip bg-amber-100 text-amber-700 mr-1">Mức 2</span> Phân tích chi phí</p>
+        <p class="text-slate-700 mb-2"><strong>Yêu cầu:</strong> với FPGA 40 USD/chip (NRE ≈ 0) và ASIC NRE 1,5 triệu USD + 3 USD/chip: (a) tính tổng chi phí hai phương án tại 1.000 / 30.000 / 100.000 / 5.000.000 chip; (b) tính điểm hòa vốn; (c) vẽ phác hai đường chi phí và đánh dấu crossover.</p>
+        <p class="text-slate-600 mb-2"><strong>Gợi ý:</strong> V* = 1.500.000 ÷ (40 − 3). Kiểm chứng lại bằng dashboard demo.</p>
+        <p class="text-xs bg-white rounded-lg p-2 border border-slate-200"><strong>Nộp:</strong> bảng số + hình vẽ. <strong>Tiêu chí:</strong> tính đúng (V* ≈ 40.541), kết luận đúng theo từng mốc sản lượng.</p>
+      </div>
+      <div class="bg-slate-50 rounded-2xl p-5 border-t-4 border-accent">
+        <p class="font-extrabold text-dark mb-2"><span class="layer-chip bg-emerald-100 text-emerald-700 mr-1">Mức 3</span> Quyết định kỹ thuật</p>
+        <p class="text-slate-700 mb-2"><strong>Yêu cầu:</strong> lập <em>Platform Decision Card</em> cho 1 ứng dụng tự chọn (theo mẫu breakout): ứng dụng, sản lượng, I/O, quyết định FPGA/ASIC/kết hợp, 3 lý do, 1 rủi ro. Kèm theo: lấy module counter8 của bài, mô tả nó sẽ thành phần cứng gì trên FPGA (LUT/FF/carry) và trên ASIC (standard cell).</p>
+        <p class="text-slate-600 mb-2"><strong>Gợi ý:</strong> chọn ứng dụng bạn thật sự thích — drone, máy đo, thiết bị y tế…</p>
+        <p class="text-xs bg-white rounded-lg p-2 border border-slate-200"><strong>Nộp:</strong> 1 trang quyết định + đoạn mô tả mapping. <strong>Tiêu chí:</strong> lập luận đa trục (cost + PPA + TTM + risk), mapping phần cứng đúng.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 16. RUBRIC ============ -->
+<section id="rubric" class="max-w-6xl mx-auto px-4 py-12">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-table-list"></i></div>
+    <div>
+      <p class="text-xs font-bold uppercase tracking-wider text-primary">Section 16</p>
+      <h2 class="text-2xl md:text-3xl font-extrabold text-dark">Rubric tự đánh giá năng lực</h2>
+    </div>
+  </div>
+  <div class="overflow-x-auto bg-white rounded-2xl shadow-sm p-4">
+    <table class="vtable w-full">
+      <thead><tr><th class="w-44">Tiêu chí</th><th>Chưa đạt</th><th>Đạt cơ bản</th><th>Khá</th><th>Tốt</th></tr></thead>
+      <tbody>
+        <tr><td class="font-semibold">Khái niệm FPGA/ASIC</td><td>Nhầm FPGA với CPU; nghĩ ASIC là "chip xịn hơn"</td><td>Định nghĩa đúng 2 khái niệm</td><td>Giải thích được LUT/FF/BRAM/DSP và standard cell</td><td>Giải thích được vì sao fabric lập trình được làm FPGA chậm/tốn điện hơn</td></tr>
+        <tr><td class="font-semibold">Phân tích chi phí</td><td>Chỉ so giá 1 chip</td><td>Biết công thức Tổng = NRE + unit × V</td><td>Tự tính điểm hòa vốn cho số liệu bất kỳ</td><td>Phân tích độ nhạy: NRE/unit đổi thì crossover dịch thế nào</td></tr>
+        <tr><td class="font-semibold">Tư duy trade-off</td><td>Trả lời "cái nào tốt hơn?" bằng một đáp án tuyệt đối</td><td>Nêu được 2–3 trục đánh đổi</td><td>So sánh đủ PPA, TTM, flexibility, risk có ví dụ</td><td>Ra quyết định nền tảng có điều kiện, nêu được khi nào quyết định đảo chiều</td></tr>
+        <tr><td class="font-semibold">Quy trình &amp; thuật ngữ</td><td>Nói "nạp bitstream = tape-out"</td><td>Phân biệt bitstream vs tape-out</td><td>Vẽ được 2 nhánh flow từ điểm rẽ synthesis</td><td>Giải thích respin, signoff, vì sao ASIC phải "đóng băng" spec</td></tr>
+        <tr><td class="font-semibold">Liên hệ lộ trình học</td><td>Nghĩ FPGA không liên quan IC design</td><td>Nêu được FPGA để prototype</td><td>Giải thích chiến lược FPGA-trước-ASIC-sau bằng ví dụ</td><td>Chỉ ra kỹ năng nào trên FPGA chuyển thẳng sang nghề ASIC front-end</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============ 17. MENTOR NOTES ============ -->
+<section id="mentor-notes" class="bg-dark text-slate-200 py-12">
+  <div class="max-w-6xl mx-auto px-4">
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-10 h-10 rounded-xl bg-secondary/20 text-secondary flex items-center justify-center"><i class="fa-solid fa-chalkboard-user"></i></div>
+      <div>
+        <p class="text-xs font-bold uppercase tracking-wider text-secondary">Section 17</p>
+        <h2 class="text-2xl md:text-3xl font-extrabold text-white">Ghi chú dành cho Mentor</h2>
+      </div>
+    </div>
+    <div class="grid md:grid-cols-2 gap-5 text-sm">
+      <div class="bg-white/5 border border-white/10 rounded-2xl p-5">
+        <p class="font-bold text-secondary mb-2"><i class="fa-solid fa-bullseye mr-2"></i>Nhấn mạnh gì</p>
+        <ul class="space-y-2 list-disc list-inside text-slate-300">
+          <li>3 từ khóa của tuần: <strong class="text-white">Flexibility — Prototype — Production</strong>.</li>
+          <li>Đóng đinh công thức Tổng = NRE + unit × V và điểm hòa vốn bằng demo slider — cho sinh viên đoán trước rồi mới kéo.</li>
+          <li>Mọi câu trả lời "chọn gì" phải bắt đầu bằng "tùy vào…" — luyện phản xạ trade-off.</li>
+          <li>Ví dụ xuyên suốt: đèn giao thông T9 — thử trên FPGA, nếu sản xuất hàng loạt mới thành ASIC.</li>
+        </ul>
+      </div>
+      <div class="bg-white/5 border border-white/10 rounded-2xl p-5">
+        <p class="font-bold text-secondary mb-2"><i class="fa-solid fa-heart-crack mr-2"></i>Sinh viên hay vấp ở đâu</p>
+        <ul class="space-y-2 list-disc list-inside text-slate-300">
+          <li>Nghĩ FPGA là "board Arduino xịn" — nhấn mạnh FPGA là fabric phần cứng, không chạy code tuần tự.</li>
+          <li>Nghĩ học FPGA là rẽ ngang khỏi IC design — vẽ lại flow T2, chỉ rõ phần front-end chung.</li>
+          <li>Choáng vì thuật ngữ tiền bạc (NRE, mask, respin) — dùng ẩn dụ khuôn ép nhựa/in offset.</li>
+          <li>Trả lời quiz đúng nhưng breakout vẫn nói "ASIC tốt hơn" — yêu cầu Skeptic trong nhóm truy đến cùng.</li>
+        </ul>
+      </div>
+      <div class="bg-white/5 border border-white/10 rounded-2xl p-5">
+        <p class="font-bold text-secondary mb-2"><i class="fa-solid fa-comments mr-2"></i>Câu hỏi vấn đáp nên dùng</p>
+        <ul class="space-y-2.5 text-slate-300">
+          <li><strong class="text-white">"Chip A18 của iPhone là FPGA hay ASIC? Vì sao?"</strong> — Kỳ vọng: ASIC (SoC); sản lượng trăm triệu chia NRE thành không đáng kể, cần PPA tối đa.</li>
+          <li><strong class="text-white">"Startup 5 người, sản phẩm đầu tay, nên bắt đầu thế nào?"</strong> — Kỳ vọng: FPGA prototype; spec chưa ổn định, vốn mỏng, cần demo nhanh.</li>
+          <li><strong class="text-white">"Nạp bitstream có phải tape-out không?"</strong> — Kỳ vọng: không; cấu hình vs sản xuất, đảo ngược được vs không.</li>
+          <li><strong class="text-white">"Cùng RTL, vì sao bản FPGA chậm hơn?"</strong> — Kỳ vọng: routing lập trình được + LUT tổng quát → critical path dài hơn.</li>
+        </ul>
+      </div>
+      <div class="bg-white/5 border border-white/10 rounded-2xl p-5">
+        <p class="font-bold text-secondary mb-2"><i class="fa-solid fa-arrow-right-to-bracket mr-2"></i>Nối sang tuần 9</p>
+        <p class="text-slate-300">Chốt buổi bằng câu: <em class="text-white">"Chúng ta đã chọn xong sân chơi — FPGA. Tuần sau, cả lớp xây công trình đầu tiên trên sân đó: bộ điều khiển đèn giao thông, dùng đúng FSM tuần 6 và Verilog tuần 7."</em> Nhắc sinh viên ôn lại state diagram Moore và cấu trúc 3 khối always trước buổi học.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 18. KEY VOCABULARY ============ -->
+<section id="vocabulary" class="max-w-6xl mx-auto px-4 py-12">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-book"></i></div>
+    <div>
+      <p class="text-xs font-bold uppercase tracking-wider text-primary">Section 18</p>
+      <h2 class="text-2xl md:text-3xl font-extrabold text-dark">Từ vựng chuyên ngành</h2>
+    </div>
+  </div>
+  <div class="overflow-x-auto bg-white rounded-2xl shadow-sm p-4">
+    <table class="vtable w-full">
+      <thead><tr><th>English term</th><th>Nghĩa tiếng Việt</th><th>Giải thích kỹ thuật</th><th>Câu ví dụ</th></tr></thead>
+      <tbody>
+        <tr><td class="font-semibold">FPGA</td><td>Mảng cổng logic lập trình được</td><td>IC chứa LUT/FF/BRAM/DSP + routing cấu hình lại được bằng bitstream</td><td>"We validated the design on an FPGA before committing to silicon."</td></tr>
+        <tr><td class="font-semibold">ASIC</td><td>Vi mạch chuyên dụng</td><td>IC thiết kế cho một ứng dụng, logic cố định sau sản xuất</td><td>"At ten million units, an ASIC is far cheaper per chip."</td></tr>
+        <tr><td class="font-semibold">LUT (Look-Up Table)</td><td>Bảng tra</td><td>Phần tử FPGA thực hiện hàm logic tổ hợp bằng cách tra bảng chân trị đã nạp</td><td>"This design uses 3,200 LUTs and 1,800 flip-flops."</td></tr>
+        <tr><td class="font-semibold">Bitstream</td><td>Chuỗi bit cấu hình</td><td>File cấu hình toàn bộ LUT/FF/routing của FPGA; nạp lại được nhiều lần</td><td>"Loading a new bitstream takes only seconds."</td></tr>
+        <tr><td class="font-semibold">Standard cell</td><td>Ô logic chuẩn</td><td>Cổng/FF dựng sẵn trong thư viện foundry, dùng làm "viên gạch" của ASIC</td><td>"The synthesizer mapped the RTL to a 7nm standard-cell library."</td></tr>
+        <tr><td class="font-semibold">Tape-out</td><td>Gửi layout đi sản xuất</td><td>Bàn giao dữ liệu layout cuối cùng cho foundry để làm mask và chế tạo</td><td>"After tape-out, no logic change is possible."</td></tr>
+        <tr><td class="font-semibold">NRE cost</td><td>Chi phí kỹ thuật một lần</td><td>Chi phí thiết kế/mask/tape-out trả một lần, không phụ thuộc sản lượng</td><td>"The NRE for this node exceeds two million dollars."</td></tr>
+        <tr><td class="font-semibold">Unit cost</td><td>Chi phí mỗi chip</td><td>Chi phí silicon + đóng gói + test cho từng con chip xuất xưởng</td><td>"High volume drives the unit cost down to two dollars."</td></tr>
+        <tr><td class="font-semibold">Time-to-market</td><td>Thời gian ra thị trường</td><td>Thời gian từ ý tưởng đến khi sản phẩm đến tay khách hàng</td><td>"FPGA-based products enjoy a much shorter time-to-market."</td></tr>
+        <tr><td class="font-semibold">PPA</td><td>Hiệu năng – Công suất – Diện tích</td><td>Bộ ba thước đo chất lượng thiết kế: Performance, Power, Area</td><td>"The ASIC version wins on all three PPA metrics."</td></tr>
+        <tr><td class="font-semibold">Prototype</td><td>Mẫu thử</td><td>Phiên bản kiểm chứng ý tưởng/RTL trước khi sản xuất hàng loạt</td><td>"The FPGA prototype caught two protocol bugs early."</td></tr>
+        <tr><td class="font-semibold">Respin</td><td>Làm lại vòng chế tạo</td><td>Sửa lỗi sau tape-out: sửa thiết kế + mask mới + chế tạo lại</td><td>"A single respin cost the team four months and a new mask set."</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============ 19. FINAL SUMMARY ============ -->
+<section id="summary" class="bg-white py-12">
+  <div class="max-w-6xl mx-auto px-4">
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-10 h-10 rounded-xl bg-accent/10 text-accent flex items-center justify-center"><i class="fa-solid fa-flag-checkered"></i></div>
+      <div>
+        <p class="text-xs font-bold uppercase tracking-wider text-emerald-600">Section 19</p>
+        <h2 class="text-2xl md:text-3xl font-extrabold text-dark">Tổng kết tuần 8</h2>
+      </div>
+    </div>
+    <div class="grid md:grid-cols-2 gap-5">
+      <div class="bg-slate-50 rounded-2xl p-5">
+        <p class="font-bold text-dark mb-3"><i class="fa-solid fa-star text-secondary mr-2"></i>5 ý chính cần nhớ</p>
+        <ol class="list-decimal list-inside text-sm text-slate-700 space-y-2">
+          <li>FPGA = fabric LUT/FF/BRAM/DSP cấu hình bằng <strong>bitstream</strong>, đổi được vô hạn lần; ASIC = standard cell đúc cứng qua <strong>tape-out</strong>, không đổi được.</li>
+          <li>Tổng chi phí = NRE + unit cost × sản lượng → tồn tại <strong>điểm hòa vốn</strong>: dưới đó FPGA rẻ hơn, trên đó ASIC rẻ hơn.</li>
+          <li>ASIC thường thắng về <strong>PPA</strong>; FPGA thắng về <strong>flexibility, time-to-market, rủi ro</strong> — là trade-off, không có bên thắng tuyệt đối.</li>
+          <li>Chiến lược chuyên nghiệp: <strong>prototype trên FPGA → sản xuất ASIC</strong> khi spec ổn định và sản lượng đủ lớn.</li>
+          <li>Kỹ năng front-end (RTL, testbench, waveform) dùng chung cho cả hai — học FPGA chính là học IC design.</li>
+        </ol>
+      </div>
+      <div class="space-y-4">
+        <div class="bg-slate-50 rounded-2xl p-5">
+          <p class="font-bold text-dark mb-2"><i class="fa-solid fa-person-circle-question text-primary mr-2"></i>3 câu tự phản tỉnh</p>
+          <ul class="text-sm text-slate-700 space-y-1.5 list-disc list-inside">
+            <li>Tôi có tự tính được điểm hòa vốn với bộ số liệu mới không?</li>
+            <li>Nếu bạn cùng lớp nói "ASIC xịn hơn FPGA", tôi phản biện bằng lập luận nào?</li>
+            <li>Tôi giải thích được vì sao khóa học chọn FPGA cho các mini-project chưa?</li>
+          </ul>
+        </div>
+        <div class="bg-gradient-to-br from-slate-900 to-blue-900 text-white rounded-2xl p-5">
+          <p class="text-sm italic leading-relaxed"><i class="fa-solid fa-quote-left text-secondary mr-2"></i>Kỹ sư giỏi không hỏi "công nghệ nào tốt nhất?", họ hỏi "công nghệ nào đúng nhất cho bài toán này, tại thời điểm này, với ngân sách này?". Trả lời được câu đó — bạn đã tư duy như một system architect.</p>
+          <p class="text-xs text-slate-300 mt-2">— Mentor note, Week 8</p>
+        </div>
+        <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-5">
+          <div class="flex items-center justify-between mb-2">
+            <p class="font-bold text-emerald-700"><i class="fa-solid fa-list-check mr-2"></i>Sau buổi học, tôi có thể…</p>
+            <span class="text-xs font-bold bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full"><span id="after-count">0</span>/5</span>
+          </div>
+          <div class="space-y-2 text-sm">
+            <label class="chk-item"><input type="checkbox" class="after-chk"><span>Định nghĩa FPGA và ASIC đúng kỹ thuật, kèm LUT/standard cell.</span></label>
+            <label class="chk-item"><input type="checkbox" class="after-chk"><span>Tính tổng chi phí và điểm hòa vốn cho một bộ số liệu bất kỳ.</span></label>
+            <label class="chk-item"><input type="checkbox" class="after-chk"><span>So sánh hai nền tảng trên 5 trục: cost, PPA, TTM, flexibility, risk.</span></label>
+            <label class="chk-item"><input type="checkbox" class="after-chk"><span>Phân biệt rành mạch nạp bitstream và tape-out.</span></label>
+            <label class="chk-item"><input type="checkbox" class="after-chk"><span>Bảo vệ lựa chọn FPGA cho mini-project tuần 9–11 bằng lập luận trade-off.</span></label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer class="bg-dark text-slate-300 py-8">
+  <div class="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm">
+    <a href="Week7.html" class="hover:text-white font-semibold"><i class="fa-solid fa-arrow-left mr-2"></i>Tuần 7 — What Is Verilog?</a>
+    <p class="text-xs text-slate-400 text-center">Chương trình Mentoring Thiết kế Vi mạch số — 12 tuần<br>Tuần 8: FPGA vs ASIC<br>Bản quyền © Khoa Điện - Điện tử, Trường Kỹ thuật Phenikaa, Đại học Phenikaa · Giảng viên: ThS. Đinh Văn Nam</p>
+    <a href="Week9.html" class="hover:text-white font-semibold">Tuần 9 — Traffic Light Controller<i class="fa-solid fa-arrow-right ml-2"></i></a>
+  </div>
+</footer>
+<script>
+/* ===================== Copy buttons ===================== */
+document.querySelectorAll('.copy-btn').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    var el = document.getElementById(btn.getAttribute('data-copy'));
+    var txt = el ? el.textContent : '';
+    function done(){ var old = btn.textContent; btn.textContent = 'Đã copy!'; setTimeout(function(){ btn.textContent = old; }, 1500); }
+    function fallback(){
+      var ta = document.createElement('textarea'); ta.value = txt; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); } catch(e) {}
+      document.body.removeChild(ta); done();
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(txt).then(done).catch(fallback); } else { fallback(); }
+  });
+});
+
+/* ===================== Checklist counters ===================== */
+function bindCounter(cls, outId){
+  var boxes = document.querySelectorAll('.' + cls);
+  var out = document.getElementById(outId);
+  if (!out || !boxes.length) return;
+  boxes.forEach(function(b){
+    b.addEventListener('change', function(){
+      var n = 0; boxes.forEach(function(x){ if (x.checked) n++; });
+      out.textContent = n;
+    });
+  });
+}
+bindCounter('before-chk', 'before-count');
+bindCounter('after-chk', 'after-count');
+
+/* ===================== Trade-off dashboard ===================== */
+(function(){
+  var X0 = 70, X1 = 700, Y0 = 355, Y1 = 20;     // vùng vẽ
+  var EXP_MAX = 7;                               // sản lượng 10^0 .. 10^7
+  var LC_MIN = 1, LC_MAX = 9;                    // chi phí 10^1 .. 10^9 USD (thang log)
+  var slider = document.getElementById('w8-vol');
+  var inUf = document.getElementById('w8-uf'), inNre = document.getElementById('w8-nrea'), inUa = document.getElementById('w8-ua');
+  if (!slider) return;
+
+  function xOf(v){ return X0 + (Math.log10(v) / EXP_MAX) * (X1 - X0); }
+  function yOf(c){
+    var lc = Math.log10(Math.max(c, 1));
+    var y = Y0 - ((lc - LC_MIN) / (LC_MAX - LC_MIN)) * (Y0 - Y1);
+    return Math.max(Y1, Math.min(Y0, y));
+  }
+  function fmtUSD(x){
+    if (x >= 1e9) return '$' + (x / 1e9).toFixed(2) + 'B';
+    if (x >= 1e6) return '$' + (x / 1e6).toFixed(2) + 'M';
+    if (x >= 1e3) return '$' + (x / 1e3).toFixed(1) + 'K';
+    return '$' + Math.round(x);
+  }
+  function fmtVol(v){ return Math.round(v).toLocaleString('vi-VN'); }
+
+  // lưới + nhãn trục (tạo 1 lần)
+  var grid = document.getElementById('w8-grid');
+  var xl = document.getElementById('w8-xlabels'), yl = document.getElementById('w8-ylabels');
+  var xNames = ['1','10','100','1K','10K','100K','1M','10M'];
+  for (var e = 0; e <= EXP_MAX; e++){
+    var gx = xOf(Math.pow(10, e));
+    grid.innerHTML += '<line x1="' + gx + '" y1="' + Y1 + '" x2="' + gx + '" y2="' + Y0 + '"/>';
+    xl.innerHTML += '<text x="' + gx + '" y="' + (Y0 + 16) + '">' + xNames[e] + '</text>';
+  }
+  var yNames = ['$10','$100','$1K','$10K','$100K','$1M','$10M','$100M','$1B'];
+  for (var k = LC_MIN; k <= LC_MAX; k++){
+    var gy = yOf(Math.pow(10, k));
+    grid.innerHTML += '<line x1="' + X0 + '" y1="' + gy + '" x2="' + X1 + '" y2="' + gy + '"/>';
+    yl.innerHTML += '<text x="' + (X0 - 6) + '" y="' + (gy + 4) + '">' + yNames[k - LC_MIN] + '</text>';
+  }
+
+  function readParams(){
+    var uf = parseFloat(inUf.value), nre = parseFloat(inNre.value), ua = parseFloat(inUa.value);
+    if (!(uf > 0)) uf = 50;
+    if (!(nre >= 0)) nre = 2000000;
+    if (!(ua >= 0)) ua = 2;
+    return { uf: uf, nre: nre, ua: ua };
+  }
+
+  function pathFor(costFn){
+    var d = '';
+    for (var e = 0; e <= EXP_MAX + 0.001; e += 0.05){
+      var v = Math.pow(10, e);
+      d += (d ? ' L ' : 'M ') + xOf(v).toFixed(1) + ',' + yOf(costFn(v)).toFixed(1);
+    }
+    return d;
+  }
+
+  function render(){
+    var p = readParams();
+    var vol = Math.round(Math.pow(10, slider.value / 100));
+    var costF = p.uf * vol;                 // FPGA: NRE ≈ 0
+    var costA = p.nre + p.ua * vol;         // ASIC: NRE + unit × V
+
+    document.getElementById('w8-vol-label').textContent = fmtVol(vol) + ' chip';
+    document.getElementById('w8-fpga-curve').setAttribute('d', pathFor(function(v){ return Math.max(p.uf * v, 1); }));
+    document.getElementById('w8-asic-curve').setAttribute('d', pathFor(function(v){ return p.nre + p.ua * v; }));
+
+    // điểm hòa vốn
+    var crossLine = document.getElementById('w8-cross-line'), crossDot = document.getElementById('w8-cross-dot'), crossLabel = document.getElementById('w8-cross-label');
+    var crossText = document.getElementById('w8-cross-text');
+    var vStar = null;
+    if (p.uf > p.ua && p.nre > 0) vStar = p.nre / (p.uf - p.ua);
+    if (vStar && vStar >= 1 && vStar <= Math.pow(10, EXP_MAX)){
+      var cx = xOf(vStar), cy = yOf(p.uf * vStar);
+      crossLine.setAttribute('x1', cx); crossLine.setAttribute('x2', cx); crossLine.style.display = '';
+      crossDot.setAttribute('cx', cx); crossDot.setAttribute('cy', cy); crossDot.style.display = '';
+      crossLabel.setAttribute('x', Math.min(Math.max(cx, 140), 620));
+      crossLabel.setAttribute('y', Math.max(cy - 14, 34));
+      crossLabel.textContent = 'Hòa vốn ≈ ' + fmtVol(vStar) + ' chip';
+      crossLabel.style.display = '';
+      crossText.textContent = '≈ ' + fmtVol(vStar) + ' chip';
+    } else {
+      crossLine.style.display = 'none'; crossDot.style.display = 'none'; crossLabel.style.display = 'none';
+      crossText.textContent = vStar ? 'ngoài vùng đồ thị' : 'không tồn tại';
+    }
+
+    // marker sản lượng hiện tại
+    var mx = xOf(vol);
+    var curLine = document.getElementById('w8-cur-line');
+    curLine.setAttribute('x1', mx); curLine.setAttribute('x2', mx);
+    var df = document.getElementById('w8-cur-fpga'), da = document.getElementById('w8-cur-asic');
+    df.setAttribute('cx', mx); df.setAttribute('cy', yOf(costF));
+    da.setAttribute('cx', mx); da.setAttribute('cy', yOf(costA));
+
+    document.getElementById('w8-cost-fpga').textContent = fmtUSD(costF);
+    document.getElementById('w8-cost-asic').textContent = fmtUSD(costA);
+
+    // verdict
+    var verdict = document.getElementById('w8-verdict');
+    var base = 'mt-4 rounded-xl p-4 font-semibold text-sm border-2 ';
+    var ratio = costA > 0 ? costF / costA : 999;
+    if (ratio > 0.98 && ratio < 1.02){
+      verdict.className = base + 'border-amber-300 bg-amber-50 text-amber-800';
+      verdict.innerHTML = '<i class="fa-solid fa-scale-balanced mr-2"></i>Ở sản lượng ' + fmtVol(vol) + ' chip, hai phương án tốn xấp xỉ nhau (FPGA ' + fmtUSD(costF) + ' vs ASIC ' + fmtUSD(costA) + ') — đây là vùng hòa vốn. Quyết định lúc này phụ thuộc các trục khác: PPA, time-to-market, độ ổn định spec, rủi ro.';
+    } else if (costF < costA){
+      verdict.className = base + 'border-blue-300 bg-blue-50 text-blue-800';
+      verdict.innerHTML = '<i class="fa-solid fa-shapes mr-2"></i>Ở sản lượng ' + fmtVol(vol) + ' chip, <u>FPGA rẻ hơn</u>: ' + fmtUSD(costF) + ' so với ' + fmtUSD(costA) + ' của ASIC (tiết kiệm ' + fmtUSD(costA - costF) + '). NRE của ASIC chưa được sản lượng "gánh" hết. Nhưng nhớ: chi phí chỉ là một trục của trade-off.';
+    } else {
+      verdict.className = base + 'border-purple-300 bg-purple-50 text-purple-800';
+      verdict.innerHTML = '<i class="fa-solid fa-microchip mr-2"></i>Ở sản lượng ' + fmtVol(vol) + ' chip, <u>ASIC rẻ hơn</u>: ' + fmtUSD(costA) + ' so với ' + fmtUSD(costF) + ' của FPGA (tiết kiệm ' + fmtUSD(costF - costA) + '). Sản lượng lớn đã chia nhỏ NRE trên từng chip. Nhưng chỉ nên "đúc" khi spec đã ổn định — kẻo trả giá respin.';
+    }
+  }
+
+  slider.addEventListener('input', render);
+  [inUf, inNre, inUa].forEach(function(inp){ inp.addEventListener('input', render); });
+  render();
+})();
+
+/* ===================== Quiz ===================== */
+(function(){
+  var quizData = [
+    { q: 'Về bản chất, FPGA là gì?',
+      opts: ['Một vi điều khiển đọc và thực thi code Verilog từng dòng',
+             'IC sản xuất sẵn chứa mảng LUT/FF/BRAM/DSP với kết nối lập trình được, cấu hình bằng bitstream',
+             'Một loại bộ nhớ flash dung lượng lớn',
+             'Một board mạch in có sẵn nhiều linh kiện'],
+      ans: 1,
+      expl: 'FPGA là một IC thật, đã được sản xuất sẵn, chứa "kho vật liệu" LUT/FF/BRAM/DSP và ma trận routing. Bitstream chỉ CẤU HÌNH các phần tử đó thành mạch của bạn — không có bộ xử lý nào "chạy" Verilog cả.' },
+    { q: 'ASIC là gì?',
+      opts: ['Chip có thể nạp lại logic sau khi sản xuất',
+             'IC được thiết kế cho một ứng dụng cụ thể; sau khi sản xuất, logic bên trong cố định',
+             'Tên một công cụ EDA',
+             'Chuẩn giao tiếp giữa chip và PC'],
+      ans: 1,
+      expl: 'ASIC (Application-Specific Integrated Circuit) được tổng hợp thành standard cell và chế tạo tại foundry. Sau tape-out và sản xuất, logic không thể thay đổi — muốn sửa phải respin.' },
+    { q: 'NRE (Non-Recurring Engineering) cost là gì?',
+      opts: ['Chi phí sản xuất từng con chip',
+             'Chi phí điện năng khi chip hoạt động',
+             'Chi phí trả MỘT LẦN cho thiết kế, mask, tape-out — không phụ thuộc số chip bán ra',
+             'Chi phí thuê board FPGA theo tháng'],
+      ans: 2,
+      expl: 'NRE là khoản "một lần duy nhất": lương đội thiết kế, license EDA, bộ mask, chi phí tape-out. Bán 1 chip hay 100 triệu chip thì NRE vẫn thế — vì vậy sản lượng càng lớn, NRE chia cho mỗi chip càng nhỏ.' },
+    { q: 'FPGA giá 50 USD/chip (NRE ≈ 0); ASIC có NRE 2 triệu USD + 2 USD/chip. Điểm hòa vốn gần với con số nào nhất?',
+      opts: ['Khoảng 4.000 chip', 'Khoảng 42.000 chip', 'Khoảng 400.000 chip', 'Khoảng 4.000.000 chip'],
+      ans: 1,
+      expl: 'V* = NRE ÷ (chênh lệch unit cost) = 2.000.000 ÷ (50 − 2) ≈ 41.667 chip. Dưới mức này FPGA rẻ hơn, trên mức này ASIC rẻ hơn — đúng như dashboard demo.' },
+    { q: 'Công ty bán 10 triệu thiết bị/năm, spec đã ổn định nhiều năm. Nền tảng hợp lý cho chip trong sản phẩm là?',
+      opts: ['FPGA, vì linh hoạt luôn tốt hơn',
+             'FPGA, vì không tốn NRE',
+             'ASIC, vì sản lượng lớn chia nhỏ NRE, unit cost thấp và PPA tối ưu',
+             'Không thể dùng chip số cho sản lượng lớn'],
+      ans: 2,
+      expl: 'Ở 10 triệu chip, NRE 2 triệu USD chỉ còn 0,2 USD/chip; unit cost thấp và PPA tốt của ASIC thắng áp đảo. Đây là vùng mà ASIC là lựa chọn đúng — với điều kiện spec ổn định.' },
+    { q: 'Startup cần bản demo hoạt động sau 3 tuần, thuật toán còn thay đổi hằng tuần. Chọn gì?',
+      opts: ['FPGA — nạp bitstream trong ngày, sửa thoải mái, không tốn NRE',
+             'ASIC — vì demo cần hiệu năng cao nhất',
+             'Chờ 12 tháng làm ASIC rồi demo luôn thể',
+             'Không nền tảng nào làm được demo trong 3 tuần'],
+      ans: 0,
+      expl: 'Đây là tình huống điển hình của FPGA: time-to-market ngắn, flexibility cao, rủi ro thấp. Chọn ASIC lúc spec chưa ổn định là rủi ro respin rất lớn.' },
+    { q: 'Phát biểu nào ĐÚNG về bitstream và tape-out?',
+      opts: ['Cả hai đều là cách "ghi chương trình" vào chip nên như nhau',
+             'Tape-out là nạp bitstream phiên bản cuối cùng lên FPGA',
+             'Bitstream cấu hình FPGA và làm lại được nhiều lần; tape-out gửi layout ASIC đi sản xuất và không đảo ngược được',
+             'Bitstream chỉ dùng một lần, tape-out dùng nhiều lần'],
+      ans: 2,
+      expl: 'Bitstream = file cấu hình cho chip FPGA có sẵn (đảo ngược, lặp lại vô số lần). Tape-out = bàn giao layout cho foundry chế tạo vật lý (một đi không trở lại). Đồng nhất hai khái niệm là lỗi kỹ thuật nghiêm trọng.' },
+    { q: 'Vì sao cùng một RTL, phiên bản ASIC thường chạy nhanh hơn và tiết kiệm điện hơn phiên bản FPGA?',
+      opts: ['Vì ASIC dùng điện áp cao hơn',
+             'Vì logic và dây nối của ASIC được tối ưu cố định cho đúng mạch đó, còn FPGA phải đi qua LUT tổng quát và ma trận routing lập trình được',
+             'Vì ASIC không có flip-flop',
+             'Vì FPGA luôn dùng công nghệ cũ hơn 20 năm'],
+      ans: 1,
+      expl: 'Tính lập trình được của FPGA có giá của nó: mỗi tín hiệu xuyên qua switch routing và LUT tổng quát làm critical path dài hơn, tụ ký sinh lớn hơn → chậm hơn và tốn điện hơn. ASIC "đúc cứng" nên tối ưu cả ba trục PPA.' },
+    { q: 'Chiến lược "prototype trên FPGA rồi mới làm ASIC" hợp lý vì:',
+      opts: ['Kiểm chứng RTL với chi phí thấp và vòng sửa lỗi tính bằng giờ, trước khi trả NRE khổng lồ và "đóng băng" thiết kế',
+             'FPGA và ASIC dùng hai ngôn ngữ HDL hoàn toàn khác nhau',
+             'Vì luật bắt buộc phải có FPGA trước',
+             'Vì bitstream của FPGA nạp thẳng được vào ASIC'],
+      ans: 0,
+      expl: 'FPGA cho phép chạy thiết kế thật, bắt bug sớm, chỉnh spec — tất cả trước khi cam kết hàng triệu USD NRE. Khi spec ổn định và sản lượng vượt điểm hòa vốn, cùng bộ RTL đó (điều chỉnh phần primitive đặc thù) đi tiếp flow ASIC.' },
+    { q: 'Học FPGA giúp gì cho định hướng nghề IC design (ASIC)?',
+      opts: ['Không giúp gì vì FPGA là lĩnh vực khác hẳn',
+             'Chỉ giúp học cách hàn mạch',
+             'Luyện đúng bộ kỹ năng front-end dùng chung: viết RTL, testbench, đọc waveform, tư duy timing và debug',
+             'Giúp khỏi phải học Verilog'],
+      ans: 2,
+      expl: 'Front-end của hai con đường trùng nhau: spec → RTL → verification → synthesis. Mọi giờ luyện trên FPGA là luyện kỹ năng ASIC thật — chỉ khác đích đến ở back-end.' }
+  ];
+
+  var container = document.getElementById('quiz-container');
+  if (!container) return;
+  var answered = new Array(quizData.length).fill(null);
+
+  quizData.forEach(function(item, qi){
+    var card = document.createElement('div');
+    card.className = 'bg-white rounded-2xl shadow-sm p-5';
+    var head = '<p class="font-bold text-dark mb-3"><span class="text-primary mr-1">Câu ' + (qi + 1) + '.</span> ' + item.q + '</p>';
+    var letters = ['A', 'B', 'C', 'D'];
+    var opts = item.opts.map(function(o, oi){
+      return '<button type="button" class="quiz-opt" data-q="' + qi + '" data-o="' + oi + '"><span class="font-bold text-primary shrink-0">' + letters[oi] + '.</span><span>' + o + '</span></button>';
+    }).join('');
+    card.innerHTML = head + opts + '<div class="quiz-expl" id="expl-' + qi + '"><strong>Giải thích:</strong> ' + item.expl + '</div>';
+    container.appendChild(card);
+  });
+
+  container.addEventListener('click', function(ev){
+    var btn = ev.target.closest('.quiz-opt');
+    if (!btn) return;
+    var qi = parseInt(btn.getAttribute('data-q'), 10);
+    var oi = parseInt(btn.getAttribute('data-o'), 10);
+    if (answered[qi] !== null) return;   // đã trả lời — khóa câu này
+    answered[qi] = oi;
+    var item = quizData[qi];
+    container.querySelectorAll('.quiz-opt[data-q="' + qi + '"]').forEach(function(b){
+      var o = parseInt(b.getAttribute('data-o'), 10);
+      if (o === item.ans) b.classList.add('correct');
+      else if (o === oi) b.classList.add('wrong');
+      b.disabled = true;
+    });
+    document.getElementById('expl-' + qi).classList.add('show');
+  });
+
+  document.getElementById('quiz-grade-btn').addEventListener('click', function(){
+    var done = 0, correct = 0;
+    answered.forEach(function(a, i){ if (a !== null){ done++; if (a === quizData[i].ans) correct++; } });
+    var out = document.getElementById('quiz-score');
+    if (done < quizData.length){
+      out.textContent = 'Bạn mới trả lời ' + done + '/' + quizData.length + ' câu — hãy hoàn thành trước khi chấm điểm.';
+      out.className = 'font-bold text-secondary text-sm';
+      return;
+    }
+    var msg;
+    if (correct >= 9) msg = 'Xuất sắc! Bạn đã sẵn sàng làm "hội đồng quyết định nền tảng".';
+    else if (correct >= 7) msg = 'Tốt! Xem lại phần giải thích các câu sai để chắc kiến thức.';
+    else if (correct >= 5) msg = 'Đạt mức cơ bản — nên đọc lại Core Concepts và chơi thêm với dashboard.';
+    else msg = 'Hãy đọc lại bài và làm lại quiz — chú ý NRE/unit cost và bitstream vs tape-out.';
+    out.textContent = 'Kết quả: ' + correct + '/' + quizData.length + ' câu đúng. ' + msg;
+    out.className = correct >= 7 ? 'font-bold text-accent text-sm' : 'font-bold text-secondary text-sm';
+  });
+})();
+</script>
+</body>
+</html>

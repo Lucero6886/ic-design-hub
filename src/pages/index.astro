@@ -1,0 +1,228 @@
+---
+import BaseLayout from "~/layouts/BaseLayout.astro";
+import EntryList from "~/components/EntryList.astro";
+import { SITE, AUTHOR, LEGACY, COMMUNITY } from "~/config/site";
+import { href, fmtDate } from "~/utils/url";
+import { getPublished, label } from "~/utils/content";
+import versionsManifest from "../../public/legacy/data/versions.json";
+
+const articles = (await getPublished("articles")).slice(0, 4);
+const research = (await getPublished("research")).slice(0, 3);
+const projects = (await getPublished("projects")).slice(0, 3);
+const paths = await getPublished("learning-paths");
+const announcements = (await getPublished("announcements")).slice(0, 4);
+
+const current = versionsManifest.versions.find((v) => v.status === "current");
+const historical = versionsManifest.versions.filter((v) => v.status === "historical");
+---
+
+<BaseLayout title={SITE.title} path="">
+  <section class="hero">
+    <div class="wrap">
+      <div class="kicker">IC Design · RTL · FPGA · ASIC · Research</div>
+      <h1>IC Design Learning &amp; Research Community</h1>
+      <p class="sub">
+        Tài nguyên học tập, mentoring và nghiên cứu thiết kế vi mạch bằng tiếng Việt —
+        từ nền tảng số, qua project kỹ thuật, tới nghiên cứu độc lập.
+      </p>
+      <div class="btn-row">
+        <a class="btn primary" href={href("learn/")}>Bắt đầu học</a>
+        <a class="btn" href={href("projects/")}>Khám phá project</a>
+        <a class="btn" href={href("research/")}>Nghiên cứu</a>
+        <a class="btn" href={href("community/")}>Tham gia cộng đồng</a>
+      </div>
+      <div class="pill-row">
+        <span class="pill">{AUTHOR.affiliationDisplay}</span>
+        <span class="pill">Phụ trách: {AUTHOR.name}</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="goals-h">
+    <div class="wrap">
+      <h2 id="goals-h" class="sec">Bạn đang cần gì?</h2>
+      <p class="sec-sub">Chọn đúng lối vào — mỗi mục tiêu có một đường đi rõ ràng.</p>
+      <div class="goal-tiles">
+        <a href={href("learn/")}><span class="q">Tôi mới bắt đầu học IC Design — bắt đầu ở đâu?</span><span class="arrow">→</span></a>
+        <a href={href("learn/#paths")}><span class="q">Tôi muốn học RTL / FPGA — đi đường nào?</span><span class="arrow">→</span></a>
+        <a href={href("projects/")}><span class="q">Tôi đang làm project — xem project nào?</span><span class="arrow">→</span></a>
+        <a href={href("research/")}><span class="q">Tôi muốn bắt đầu nghiên cứu — đọc gì trước?</span><span class="arrow">→</span></a>
+        <a href={href("search/")}><span class="q">Tôi cần tìm tài liệu theo chủ đề — tìm ở đâu?</span><span class="arrow">→</span></a>
+        <a href={href("community/")}><span class="q">Tôi muốn hỏi cộng đồng — hỏi thế nào?</span><span class="arrow">→</span></a>
+        <a href={href("community/#contribute")}><span class="q">Tôi muốn đóng góp nội dung — làm thế nào?</span><span class="arrow">→</span></a>
+        <a href={href("mentoring/")}><span class="q">Tôi là mentor / giảng viên — công cụ ở đâu?</span><span class="arrow">→</span></a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="curriculum-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <h2 id="curriculum-h" class="sec">Giáo trình IC Design Foundations</h2>
+        <a class="more" href={href("learn/")}>Khu vực Học →</a>
+      </div>
+      <p class="sec-sub">
+        Giáo trình mentoring 12 tuần có phiên bản hóa — bản hiện hành V3 kèm toàn bộ lịch sử phát triển V1 → V3.
+      </p>
+      <div class="grid cols-3">
+        {current && (
+          <div class="card" style="border-color: var(--acc2)">
+            <span><span class="badge green">HIỆN HÀNH · KHUYẾN NGHỊ</span></span>
+            <h3><a href={href(LEGACY.v3)}>{current.titleVi}</a></h3>
+            <p>{current.description}</p>
+            <div class="meta">
+              <span>{current.weekCount} tuần</span>
+              <span>· phát hành {current.packaged}</span>
+              <span>· offline hoàn toàn</span>
+            </div>
+          </div>
+        )}
+        <div class="card">
+          <span><span class="badge acc">LỘ TRÌNH</span></span>
+          <h3><a href={href("learn/#paths")}>Lộ trình học có hướng dẫn</a></h3>
+          <p>Đi theo thứ tự được thiết kế sẵn: trước buổi → buổi mentoring 60′ → lab → tự đánh giá, tuần tự 12 tuần.</p>
+          <div class="meta"><span>{paths.length} lộ trình đang mở</span></div>
+        </div>
+        <div class="card">
+          <span><span class="badge gray">LỊCH SỬ</span></span>
+          <h3><a href={href("learn/evolution/")}>Tiến hóa giáo trình V1 → V3</a></h3>
+          <p>
+            {historical.length} phiên bản lưu trữ bất biến + trang so sánh 11 phương diện. Giáo trình
+            trưởng thành thế nào — có dẫn chứng, không suy diễn.
+          </p>
+          <div class="meta"><span>V1 · V2 duyệt được nguyên trạng</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="articles-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <h2 id="articles-h" class="sec">Bài viết kỹ thuật</h2>
+        <a class="more" href={href("articles/")}>Tất cả bài viết →</a>
+      </div>
+      <EntryList
+        items={articles.map((a) => ({
+          url: href(`articles/${a.id}/`),
+          title: a.data.title,
+          summary: a.data.summary,
+          date: a.data.date,
+          updated: a.data.updated,
+          track: a.data.track,
+          tags: a.data.tags,
+          badges: [{ text: label(a.data.category), tone: "acc" }],
+        }))}
+        emptyText="Chưa có bài viết — khu vực này sẽ đầy dần theo thời gian. Xem hướng dẫn viết bài trong docs/AUTHORING_GUIDE.md."
+      />
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="research-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <h2 id="research-h" class="sec">Hướng nghiên cứu &amp; ghi chú</h2>
+        <a class="more" href={href("research/")}>Khu vực Nghiên cứu →</a>
+      </div>
+      <EntryList
+        items={research.map((r) => ({
+          url: href(`research/${r.id}/`),
+          title: r.data.title,
+          summary: r.data.summary,
+          date: r.data.date,
+          track: r.data.track,
+          badges: [
+            { text: label(r.data.kind), tone: "acc" },
+            { text: label(r.data.status), tone: "gray" },
+          ],
+        }))}
+        emptyText="Chưa có ghi chú nghiên cứu công bố."
+      />
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="projects-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <h2 id="projects-h" class="sec">Project sinh viên &amp; nghiên cứu</h2>
+        <a class="more" href={href("projects/")}>Tất cả project →</a>
+      </div>
+      <EntryList
+        items={projects.map((p) => ({
+          url: href(`projects/${p.id}/`),
+          title: p.data.title,
+          summary: p.data.summary,
+          track: p.data.track,
+          badges: [
+            { text: label(p.data.kind), tone: "acc" },
+            { text: label(p.data.status), tone: p.data.status === "completed" ? "green" : "gray" },
+          ],
+        }))}
+        emptyText="Chưa có project công bố."
+      />
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="updates-h">
+    <div class="wrap">
+      <div class="grid cols-2">
+        <div>
+          <h2 id="updates-h" class="sec">Cập nhật mới</h2>
+          {announcements.length === 0 ? (
+            <p class="muted">Chưa có thông báo.</p>
+          ) : (
+            <ul class="entry-list">
+              {announcements.map((n) => (
+                <li>
+                  <div class="title">
+                    {n.data.linkUrl ? <a href={n.data.linkUrl.startsWith("http") ? n.data.linkUrl : href(n.data.linkUrl)}>{n.data.title}</a> : n.data.title}
+                  </div>
+                  <p class="summary">{n.data.summary}</p>
+                  <div class="meta"><span>{fmtDate(n.data.date)}</span></div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+        <div>
+          <h2 class="sec">Góc mentor</h2>
+          <div class="card flat">
+            <p>
+              Chương trình vận hành theo triết lý: <b>mentor điều phối để học viên tự giải thích
+              và tự thiết kế</b> — không giảng lại giáo trình. Khung 60 phút, kỹ thuật chẩn đoán
+              hiểu sai, và cầu nối từ câu hỏi kỹ thuật sang câu hỏi nghiên cứu (EQ→RQ) đều có
+              tài liệu vận hành đầy đủ.
+            </p>
+            <div class="btn-row" style="margin-top:8px">
+              <a class="btn" href={href("mentoring/")}>Khu vực Mentoring</a>
+              <a class="btn" href={href(LEGACY.v3MentorGuide)}>Mentor Guide (V3)</a>
+            </div>
+          </div>
+          <h2 class="sec" style="margin-top:22px">Cộng đồng</h2>
+          <div class="card flat">
+            <p>
+              Hỏi đáp IC Design, RTL/SystemVerilog, FPGA/toolchain và thảo luận nghiên cứu diễn ra
+              trên GitHub Discussions của repo này. Đóng góp nội dung qua Pull Request.
+            </p>
+            <div class="btn-row" style="margin-top:8px">
+              <a class="btn" href={COMMUNITY.discussionsUrl()}>Vào Discussions</a>
+              <a class="btn" href={href("community/")}>Cách tham gia</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="about-h" style="padding-bottom:28px">
+    <div class="wrap">
+      <h2 id="about-h" class="sec">Về sáng kiến này</h2>
+      <p style="max-width:76ch">
+        Hub này được xây để dẫn sinh viên đi trọn con đường <b>học nền tảng → thực hành kỹ thuật →
+        nghiên cứu độc lập</b> trong thiết kế vi mạch. Nội dung được phiên bản hóa có kỷ luật,
+        thuật ngữ được kiểm định kỹ thuật, và mọi tuyên bố kỹ thuật đều truy nguyên được về
+        nguồn. <a href={href("about/")}>Đọc thêm về hub và người phụ trách →</a>
+      </p>
+    </div>
+  </section>
+</BaseLayout>

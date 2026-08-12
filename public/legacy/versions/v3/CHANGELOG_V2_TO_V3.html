@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="Giảng Viên Đinh Văn Nam">
+<meta name="copyright" content="© 2026 · Bản quyền thuộc về Giảng Viên Đinh Văn Nam, Khoa Điện-Điện Tử, Trường Kỹ Thuật, Đại học Phenikaa">
+<meta name="description" content="Nhật ký thay đổi Version 2 → Version 3 — IC Design Mentoring Version 3. Khoa Điện – Điện tử · Trường Kỹ thuật · Đại học Phenikaa. Biên soạn: Giảng Viên Đinh Văn Nam.">
+<title>Nhật ký thay đổi Version 2 → Version 3 | IC Design Mentoring v3</title>
+<link rel="stylesheet" href="css/style.css">
+<script src="js/app.js" defer></script>
+</head>
+<body data-week="doc">
+
+<header class="topbar">
+  <div class="topbar-in">
+    <a class="brand" href="index.html"><span class="logo">IC</span>
+      <span>IC Design Mentoring<small>Tài liệu vận hành · Version 3</small></span></a>
+    <nav class="layer-chips">
+      <a class="chip" href="../../index.html" title="Learning Hub — cổng ba phiên bản giáo trình; đây là V3, bản hiện hành được khuyến nghị">⌂ Hub · V3</a>
+      <a class="chip" href="README.html">README</a>
+      <a class="chip" href="CURRICULUM_MAP.html">Curriculum Map</a>
+      <a class="chip" href="MENTOR_GUIDE.html">Mentor Guide</a>
+      <a class="chip" href="PROJECT_GUIDE.html">Project Guide</a>
+      <a class="chip" href="TECHNICAL_AUDIT.html">Technical Audit</a>
+      <span class="chip active">Changelog</span>
+      <a class="chip" href="VALIDATION_REPORT.html">Validation</a>
+      <a class="chip" href="implementation-notes.html">Implementation Notes</a>
+      <a class="chip" href="index.html">← Mục lục</a>
+    </nav>
+  </div>
+  <div class="scrollbar"><div></div></div>
+</header>
+
+<section class="doc-hero">
+  <div class="wrap">
+    <div class="pill-row">
+      <span class="pill">Tài liệu vận hành</span>
+      <span class="pill acc">Changelog</span>
+      <span class="pill">Khoa Điện – Điện tử · ĐH Phenikaa</span>
+    </div>
+    <h1>Nhật ký thay đổi Version 2 → Version 3</h1>
+    <p class="sub">Thay đổi có ý nghĩa, nhóm theo 7 hạng mục</p>
+    <p class="src">Bản văn bản gốc: <b>CHANGELOG_V2_TO_V3.md</b> · cùng thư mục</p>
+  </div>
+</section>
+
+<main class="wrap doc-main">
+<nav class="doc-toc"><b>Nội dung tài liệu</b><ul class="plain"><li><a href="#m-1-curriculum-chuong-trinh">1. Curriculum (chương trình)</a></li><li><a href="#m-2-pedagogy-su-pham">2. Pedagogy (sư phạm)</a></li><li><a href="#m-3-technical-correctness-chinh-xac-ky-thuat">3. Technical correctness (chính xác kỹ thuật)</a></li><li><a href="#m-4-project-integration-tich-hop-project">4. Project integration (tích hợp project)</a></li><li><a href="#m-5-mentor-usability-kha-dung-cho-mentor">5. Mentor usability (khả dụng cho mentor)</a></li><li><a href="#m-6-interface-giao-dien-amp-ha-tang">6. Interface (giao diện &amp; hạ tầng)</a></li><li><a href="#m-7-assessment-danh-gia">7. Assessment (đánh giá)</a></li><li><a href="#m-8-ra-soat-hoc-thuat-sau-phat-hanh-08082026">8. Rà soát học thuật sau phát hành (08/08/2026)</a></li></ul></nav>
+<article class="doc-body">
+<p>Chỉ ghi các thay đổi có ý nghĩa, nhóm theo 7 hạng mục của đặc tả. Chi tiết hiệu chỉnh kỹ thuật: xem <a href="TECHNICAL_AUDIT.html" title="Mở TECHNICAL_AUDIT.html"><code>TECHNICAL_AUDIT.md</code></a>. Chi tiết quyết định triển khai: xem <a href="implementation-notes.html" title="Mở implementation-notes.html"><code>implementation-notes.md</code></a>.</p>
+<h2 id="m-1-curriculum-chuong-trinh">1. Curriculum (chương trình)</h2>
+<ul>
+<li>Giữ khung 12 tuần và trình tự chủ đề của v2 (đã hợp lý), với 2 thay đổi lớn:<ul>
+<li><strong>Tuần 7 đổi tên và đổi vai</strong>: &quot;What Is Verilog?&quot; → <strong>&quot;Writing Clean RTL in SystemVerilog&quot;</strong>. T1–T6 được thiết kế lại thành <em>guided exposure</em> (RTL peek T1–T3, RTL guided T4–T6) để T7 là tuần <strong>hệ thống hóa kỷ luật viết RTL</strong>, không phải lần đầu gặp HDL.</li>
+<li><strong>Tuần 9–11 hợp nhất thành MỘT project tích hợp</strong> &quot;Smart Traffic Controller FPGA System&quot; (v2 là 3 bài rời): T9 FSM+timer → T10 nối display → T11 nối UART, trên một hợp đồng interface cố định (<code>phase</code>, <code>time_left</code> xuất sẵn từ T9). Tuần 12 bảo vệ chính hệ này.</li>
+</ul>
+</li>
+<li><strong>Tuần 12 đổi bản chất</strong>: từ trang ôn tập lý thuyết dài nhất khóa (v2: 178 KB) thành tuần capstone ngắn nhất (~34 KB): mini-defense, portfolio 12 mục, phiếu bảo vệ, 5 track Phase 2, chu trình nghiên cứu.</li>
+<li>Chuẩn đầu ra Phase 1 được phát biểu nguyên văn, nhất quán ở index, Week12 và CURRICULUM_MAP; loại bỏ mọi tuyên bố &quot;đủ 100%&quot;.</li>
+<li>Thêm <a href="CURRICULUM_MAP.html" title="Mở CURRICULUM_MAP.html"><code>CURRICULUM_MAP.md</code></a>: bảng 12 tuần × (câu hỏi cốt lõi, khái niệm, kỹ năng, artifact, đóng góp project, kết nối nghiên cứu, tiên quyết, phụ thuộc tuần sau) + 6 vòng xoáy học tập.</li>
+</ul>
+<h2 id="m-2-pedagogy-su-pham">2. Pedagogy (sư phạm)</h2>
+<ul>
+<li><strong>Kiến trúc 4 lớp</strong> thay cho trang một-mạch-dài của v2: A Trước buổi (15–25′, không yêu cầu đọc cả bài) · B Buổi mentoring 60′ (timeline 6 bước cố định 0-5/5-15/15-25/25-45/45-55/55-60) · C Technical Lab (deep dive gập/mở — toàn bộ chiều sâu kỹ thuật dồn về đây) · D Sau buổi (quiz 5 câu, bài tập bắt buộc + nâng cao, rubric, phản tư).</li>
+<li>Nguyên tắc áp dụng xuyên suốt: <strong>predict-before-simulate</strong> (widget/wr ở mọi tuần), <strong>learn-by-explaining</strong> (phần 5–15′ tuần nào cũng là học viên trình bày), <strong>debug-before-answers</strong> (bài &quot;săn bug&quot; cài lỗi chủ đích ở W4, W5, W7, W9), <strong>design-before-code</strong> (breakout thiết kế giấy trước khi chạm code — đặc biệt W6, W9), <strong>hardware thinking</strong> (chuỗi &quot;phần cứng nào được suy ra?&quot; ở mọi RTL frame + drill riêng W7).</li>
+<li><strong>Tổng kết tuần chuẩn hóa đúng 6 ô</strong>: I can explain / I can design / I can verify / I can connect / I am still unsure (ô nhập tự lưu) / Next week.</li>
+<li><strong>Câu hỏi quiz đổi chất</strong>: 5 câu/tuần thiên về dự đoán–suy luận–&quot;điều gì đổi nếu&quot;, mỗi câu có giải thích trỏ về đúng mục Layer C; bỏ kiểu 10 câu nhớ định nghĩa của v2.</li>
+<li><strong>Cầu nối nghiên cứu</strong> đưa vào có lộ trình: EQ→RQ từ T6; giải phẫu paper T7; bài đọc abstract+diagram đầu tiên T8; research question từ chính project T9–T11; chu trình observation→…→conclusion + 5 track ở T12. (v2 không có tuyến này.)</li>
+</ul>
+<h2 id="m-3-technical-correctness-chinh-xac-ky-thuat">3. Technical correctness (chính xác kỹ thuật)</h2>
+<ul>
+<li>8 nhóm hiệu chỉnh 5.1–5.8 thực hiện đầy đủ, đánh dấu bằng callout &quot;Hiệu chỉnh kỹ thuật so với v2&quot; ngay trong bài: khởi tạo FF theo công nghệ &amp; reset là quyết định kiến trúc (5.1); mã hóa FSM thuộc quyền công cụ (5.2); wire/reg/logic chính xác (5.3); synthesis = netlist tương đương đã tối ưu (5.4); kinh tế FPGA/ASIC không còn &quot;NRE = 0&quot;/&quot;vài xu&quot;, mọi số dán nhãn minh họa (5.5); synchronizer giảm xác suất, không triệt tiêu metastability (5.6); &quot;2%&quot; chuyển thành guideline kèm các yếu tố phụ thuộc (5.7); bỏ &quot;100% mảnh ghép&quot;, thêm danh sách chủ đề nâng cao phía trước (5.8). Chi tiết từng trích dẫn gốc: <a href="TECHNICAL_AUDIT.html" title="Mở TECHNICAL_AUDIT.html"><code>TECHNICAL_AUDIT.md</code></a>.</li>
+<li>Nhất quán hóa reset toàn khóa: <code>rst_n</code> bất đồng bộ mức thấp (v2 lẫn <code>rst</code> đồngng bộ ở W7).</li>
+</ul>
+<h2 id="m-4-project-integration-tich-hop-project">4. Project integration (tích hợp project)</h2>
+<ul>
+<li>Interface hợp đồng cố định công bố từ W9: <code>traffic_ctrl(clk, rst_n, tick → ns_light, ew_light, phase, time_left)</code>; W10/W11 chỉ nối thêm, không sửa module cũ.</li>
+<li>RTL mới cho tuyến tích hợp: <code>traffic_ctrl</code> (mở rộng từ v2, thêm <code>phase</code>/<code>time_left</code>), <code>seg7_decoder</code>, <code>display_mux</code> (W10), <code>uart_tx</code>, <code>status_tx</code>, <code>traffic_system_top</code> (W11). Toàn hệ MỘT clock; mọi nhịp chậm là clock-enable.</li>
+<li>Verification leo thang theo tuần: testbench đầu tiên (T5) → invariant an toàn chạy mọi cạnh (T9) → self-check seg vs bảng giải mã (T10) → đo start bit bằng đếm chu kỳ + test race start/busy (T11).</li>
+<li><a href="PROJECT_GUIDE.html" title="Mở PROJECT_GUIDE.html"><code>PROJECT_GUIDE.md</code></a> mới: spec hệ thống, kiến trúc, interface từng module, milestone 3 tuần, verification plan, rubric.</li>
+</ul>
+<h2 id="m-5-mentor-usability-kha-dung-cho-mentor">5. Mentor usability (khả dụng cho mentor)</h2>
+<ul>
+<li>Mỗi tuần có <strong>Mentor Session Guide</strong> hiển thị công khai (timeline 60′) + <strong>khối mentor-only</strong> bật bằng công tắc &quot;Mentor&quot; (lưu lựa chọn), đủ 6 phần theo đặc tả: mục tiêu, hiểu sai kinh điển, câu chẩn đoán → đáp án tốt → hỏi tiếp, cứu nguy, mở rộng học viên giỏi, ghi chú nhịp buổi học.</li>
+<li><a href="MENTOR_GUIDE.html" title="Mở MENTOR_GUIDE.html"><code>MENTOR_GUIDE.md</code></a> mới: cách chuẩn bị, cách dùng khung 60′, kỹ thuật chẩn đoán hiểu sai, tránh giảng một chiều, xử lý lớp lệch trình độ, đánh giá tiến độ project, chuyển dần sang mentoring nghiên cứu.</li>
+</ul>
+<h2 id="m-6-interface-giao-dien-amp-ha-tang">6. Interface (giao diện &amp; hạ tầng)</h2>
+<ul>
+<li><strong>Bỏ toàn bộ phụ thuộc CDN</strong> (v2 cần Tailwind Play CDN + FontAwesome + Google Fonts — mất mạng là vỡ trang): v3 dùng <code>css/style.css</code> + <code>js/app.js</code> cục bộ, font hệ thống, icon emoji/SVG inline. Mở file là chạy, offline hoàn toàn.</li>
+<li><strong>Một engine quiz duy nhất</strong> (v2 có ≥5 biến thể khác nhau giữa các tuần) + <strong>lưu tiến độ localStorage</strong> (checklist, điểm quiz, ô phản tư, chế độ mentor) — v2 mất trắng khi tải lại trang.</li>
+<li>Thêm <strong>index.html</strong> làm hub 12 tuần kèm tiến độ quiz mỗi tuần (v2 không có mục lục).</li>
+<li>Widget tương tác chuẩn hóa thành thư viện dùng chung: counter stepper, 7-segment, FSM stepper (config JSON), traffic phase stepper, truth-table điền ô, predict-reveal, bug hunt, UART frame builder. Mỗi widget gắn với đúng một khái niệm cần dạy.</li>
+<li><strong>Sơ đồ kiến trúc vẽ bằng SVG</strong> thay cho ASCII art: hai hình (<code>fig-system-top</code>, <code>fig-controller-datapath</code>) vẽ đúng theo netlist RTL, có chú giải quy ước đọc sơ đồ (chiều mũi tên, độ rộng bit, chấm nối/không nối, đường phản hồi), kèm <strong>bảng liên kết tín hiệu</strong> làm đặc tả chuẩn. Dùng lại ở PROJECT_GUIDE §2, Week09 và Week11.</li>
+<li>Kích thước trang giảm mạnh: v2 ≈ 111–178 KB/tuần; v3 ≈ 33–47 KB/tuần (chưa kể css/js dùng chung tải một lần) — chiều sâu kỹ thuật giữ trong Layer C dạng gập/mở.</li>
+</ul>
+<h2 id="m-7-assessment-danh-gia">7. Assessment (đánh giá)</h2>
+<ul>
+<li><strong>Rubric thống nhất 5 tiêu chí × trọng số cố định</strong>: Hiểu khái niệm 25% · Kiến trúc 20% · RTL đúng 20% · Verification 20% · Giao tiếp kỹ thuật 15% (tuần 1–3 điều chỉnh nhãn cho phù hợp artifact không-code); kèm nguyên tắc &quot;code chạy được chưa phải điểm tối đa&quot;.</li>
+<li>Mọi bài tập có <strong>deliverable liệt kê tường minh</strong> (file gì, ảnh gì, mấy dòng giải thích) — loại bỏ dạng &quot;tìm hiểu thêm về X&quot;.</li>
+<li>Tuần 12: rubric bảo vệ + ngân hàng 10 câu vấn đáp công khai trước + portfolio 12 mục + format trình bày 10 slide.</li>
+</ul>
+<h2 id="m-8-ra-soat-hoc-thuat-sau-phat-hanh-08082026">8. Rà soát học thuật sau phát hành (08/08/2026)</h2>
+<p>Sau khi v3 hoàn tất, người dùng yêu cầu rà soát lại <strong>toàn bộ</strong> nội dung theo tiêu chí &quot;chuẩn học thuật, dễ hiểu, nắm bản chất, chính xác — tránh lỗi học thuật và rườm rà&quot;. Đợt này sinh <strong>40 hiệu chỉnh</strong>, chi tiết từng mục ghi ở <a href="VALIDATION_REPORT.html" title="Mở VALIDATION_REPORT.html"><code>VALIDATION_REPORT.md</code></a> §6b. Bốn nhóm chính:</p>
+<ol>
+<li><strong>Khẳng định sai về ngôn ngữ</strong> — chủ yếu quanh luật độ rộng bit và tính tổng hợp được. Ví dụ nặng nhất: W5 mô tả hậu quả của <code>count == 4&#39;d16</code> <strong>ngược hẳn</strong> thực tế (hằng bị cắt thành 0 nên counter đứng yên tại 0, chứ không chạy tự do 0…15). Mọi khẳng định loại này giờ đều có mô phỏng đối chứng bằng iverilog.</li>
+<li><strong>Sơ đồ/waveform lệch RTL</strong> — tiếp nối lỗi người dùng phát hiện ở đợt trước. Đã quét lại <strong>toàn bộ</strong> hình trong khóa, không chỉ ba hình bị báo: waveform W9 vẽ pha xanh dài 7 nhịp trong khi hàng <code>time_left</code> ngay trên đọc 6; sơ đồ W10 §C1 và hình ASCII trong <code>CURRICULUM_MAP</code> vẫn thiếu nhánh. Hình ASCII trong <code>CURRICULUM_MAP</code> bị <strong>bỏ hẳn</strong> và thay bằng bảng netlist mỗi dòng một dây — cùng lý do người dùng nêu ban đầu: hình ASCII dễ nuốt mất nhánh rẽ mà người đọc không thấy.</li>
+<li><strong>Mô hình kinh tế và quy trình</strong> — bảng chi phí FPGA/ASIC phát biểu bằng <strong>tỉ số</strong>, nhưng tỉ số không bất biến với phần NRE chung đã bỏ khỏi phép tính (hiệu số thì bất biến). Đổi sang hiệu số và giải thích tại chỗ vì sao. Thêm: &quot;physical implementation và STA chỉ ASIC mới có&quot; là sai — FPGA cũng có, chỉ <strong>DFT</strong> là mới.</li>
+<li><strong>Tài liệu tự mâu thuẫn</strong> — <code>uart_tx</code> được ba nơi mô tả là &quot;đúng khuôn FSM 3 khối&quot; trong khi RTL cố ý gộp một khối; invariant an toàn bị phát biểu yếu đi ở W2/W8 so với thứ testbench thật kiểm; <code>PROJECT_GUIDE</code> giải thích cơ chế bắt tay <strong>ngược chiều nhân quả</strong>; <code>MENTOR_GUIDE</code> chỉ mentor tìm RTL ở tài liệu không chứa RTL.</li>
+</ol>
+<p><strong>Ghi chú phương pháp — điểm đáng lưu lại nhất của đợt này:</strong> vòng rà soát thứ hai (kiểm chính các đoạn vừa viết lại ở vòng một) phát hiện thêm 15 lỗi, <strong>trong đó 5 lỗi nằm ngay trong bản sửa của vòng một</strong>. Bản sửa không tự động đúng hơn bản gốc. Quy trình đề nghị cho mọi lần cập nhật sau: sửa → kiểm ngược chính bản sửa → chứng minh bằng công cụ (mô phỏng/script) chứ không bằng lập luận.</p>
+</article>
+
+<div class="doc-foot-nav">
+      <a class="home" href="index.html">← Mục lục chương trình</a>
+      <a href="README.html">README</a>
+      <a href="CURRICULUM_MAP.html">Curriculum Map</a>
+      <a href="MENTOR_GUIDE.html">Mentor Guide</a>
+      <a href="PROJECT_GUIDE.html">Project Guide</a>
+      <a href="TECHNICAL_AUDIT.html">Technical Audit</a>
+      <a href="VALIDATION_REPORT.html">Validation</a>
+      <a href="implementation-notes.html">Implementation Notes</a>
+</div>
+
+<div class="footer">
+      <b>IC Design Mentoring — Version 3 · Phase 1</b>
+      <span class="org">Khoa Điện – Điện tử · Trường Kỹ thuật · Đại học Phenikaa</span>
+      <span>Biên soạn: <b style="display:inline">Giảng Viên Đinh Văn Nam</b></span>
+      <span class="cr">© 2026 · Bản quyền thuộc về Giảng Viên Đinh Văn Nam, Khoa Điện-Điện Tử, Trường Kỹ Thuật, Đại học Phenikaa. Tài liệu phục vụ đào tạo — vui lòng giữ nguyên thông tin tác giả khi chia sẻ.</span>
+      <span class="cr">Hoạt động offline — không cần Internet.</span>
+    </div>
+</main>
+</body>
+</html>

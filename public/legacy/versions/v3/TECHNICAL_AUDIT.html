@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="Giảng Viên Đinh Văn Nam">
+<meta name="copyright" content="© 2026 · Bản quyền thuộc về Giảng Viên Đinh Văn Nam, Khoa Điện-Điện Tử, Trường Kỹ Thuật, Đại học Phenikaa">
+<meta name="description" content="Hiệu chỉnh kỹ thuật v2 → v3 — IC Design Mentoring Version 3. Khoa Điện – Điện tử · Trường Kỹ thuật · Đại học Phenikaa. Biên soạn: Giảng Viên Đinh Văn Nam.">
+<title>Hiệu chỉnh kỹ thuật v2 → v3 | IC Design Mentoring v3</title>
+<link rel="stylesheet" href="css/style.css">
+<script src="js/app.js" defer></script>
+</head>
+<body data-week="doc">
+
+<header class="topbar">
+  <div class="topbar-in">
+    <a class="brand" href="index.html"><span class="logo">IC</span>
+      <span>IC Design Mentoring<small>Tài liệu vận hành · Version 3</small></span></a>
+    <nav class="layer-chips">
+      <a class="chip" href="../../index.html" title="Learning Hub — cổng ba phiên bản giáo trình; đây là V3, bản hiện hành được khuyến nghị">⌂ Hub · V3</a>
+      <a class="chip" href="README.html">README</a>
+      <a class="chip" href="CURRICULUM_MAP.html">Curriculum Map</a>
+      <a class="chip" href="MENTOR_GUIDE.html">Mentor Guide</a>
+      <a class="chip" href="PROJECT_GUIDE.html">Project Guide</a>
+      <span class="chip active">Technical Audit</span>
+      <a class="chip" href="CHANGELOG_V2_TO_V3.html">Changelog</a>
+      <a class="chip" href="VALIDATION_REPORT.html">Validation</a>
+      <a class="chip" href="implementation-notes.html">Implementation Notes</a>
+      <a class="chip" href="index.html">← Mục lục</a>
+    </nav>
+  </div>
+  <div class="scrollbar"><div></div></div>
+</header>
+
+<section class="doc-hero">
+  <div class="wrap">
+    <div class="pill-row">
+      <span class="pill">Tài liệu vận hành</span>
+      <span class="pill acc">Technical Audit</span>
+      <span class="pill">Khoa Điện – Điện tử · ĐH Phenikaa</span>
+    </div>
+    <h1>Hiệu chỉnh kỹ thuật v2 → v3</h1>
+    <p class="sub">Từng phát biểu sai của Version 2 và bản đúng đã dùng trong Version 3</p>
+    <p class="src">Bản văn bản gốc: <b>TECHNICAL_AUDIT.md</b> · cùng thư mục</p>
+  </div>
+</section>
+
+<main class="wrap doc-main">
+<nav class="doc-toc"><b>Nội dung tài liệu</b><ul class="plain"><li><a href="#m-51-trang-thai-flip-flop-khi-bat-nguon-amp-vai-">5.1 — Trạng thái flip-flop khi bật nguồn &amp; vai trò reset</a></li><li><a href="#m-52-ma-hoa-fsm-sau-synthesis">5.2 — Mã hóa FSM sau synthesis</a></li><li><a href="#m-53-wire-reg-logic">5.3 — wire / reg / logic</a></li><li><a href="#m-54-synthesis-khong-phai-quotdich-1-1-ra-congqu">5.4 — Synthesis không phải &quot;dịch 1-1 ra cổng&quot;</a></li><li><a href="#m-55-kinh-te-fpga-vs-asic">5.5 — Kinh tế FPGA vs ASIC</a></li><li><a href="#m-56-synchronizer-va-metastability">5.6 — Synchronizer và metastability</a></li><li><a href="#m-57-quotnguong-2quot-cua-sai-so-baud-uart">5.7 — &quot;Ngưỡng 2%&quot; của sai số baud UART</a></li><li><a href="#m-58-tuyen-bo-muc-do-hoan-chinh-cua-khoa-hoc">5.8 — Tuyên bố mức độ hoàn chỉnh của khóa học</a></li><li><a href="#m-cac-hieu-chinhnhat-quan-hoa-nho-khac">Các hiệu chỉnh/nhất quán hóa nhỏ khác</a></li></ul></nav>
+<article class="doc-body">
+<p>Tài liệu này ghi lại <strong>các hiệu chỉnh kỹ thuật đã rà và sửa có chủ đích</strong> so với Version 2 (danh sách không tuyên bố là đầy đủ — phát hiện mới xin bổ sung vào cuối tài liệu kèm ngày), theo khung: file/tuần → phát biểu gốc → vấn đề → cách hiểu đúng → thay đổi đã thực hiện. Đánh số theo mục 5.x của đặc tả Version 3. Các trích dẫn &quot;v2&quot; là nguyên văn (đã rút gọn) từ file HTML v2.</p>
+<hr>
+<h2 id="m-51-trang-thai-flip-flop-khi-bat-nguon-amp-vai-">5.1 — Trạng thái flip-flop khi bật nguồn &amp; vai trò reset</h2>
+<p><strong>Vị trí trong v2:</strong> Week5 (&quot;Khi bật nguồn, FF có giá trị ngẫu nhiên&quot;; &quot;khi bật nguồn, FF mang giá trị ngẫu nhiên (mô phỏng hiện X)… Sửa đúng: mọi thanh ghi trạng thái quan trọng phải có nhánh reset&quot;), Week6 (&quot;RESET LÀ BẮT BUỘC: sau bật nguồn FF có giá trị ngẫu nhiên&quot;; &quot;mỗi FF mang giá trị ngẫu nhiên → FSM khởi động ở state bất kỳ&quot;), Week9 (mistake #4 tương tự).</p>
+<p><strong>Vấn đề:</strong> phát biểu tuyệt đối hóa. Hành vi khởi động <strong>phụ thuộc công nghệ hiện thực</strong>, không phải &quot;luôn ngẫu nhiên&quot;; và &quot;mọi thanh ghi phải reset&quot; không phải quy tắc phổ quát — đó là quyết định kiến trúc.</p>
+<p><strong>Cách hiểu đúng (đã dùng trong v3):</strong></p>
+<ul>
+<li>FPGA: quá trình nạp cấu hình thường đưa FF về giá trị khởi tạo xác định (nhiều tool hỗ trợ khai báo giá trị init). <strong>Nhưng init lúc nạp cấu hình chỉ có hiệu lực tại đúng thời điểm nạp cấu hình</strong> (mỗi lần bật nguồn hoặc nạp lại bitstream đều nạp lại giá trị đó, nhưng khi mạch đang chạy thì không có cách nào áp lại) — muốn khởi động lại hệ khi đang chạy, khôi phục sau lỗi, hay chuyển thiết kế sang ASIC thì vẫn phải có tín hiệu reset chức năng. Vì vậy khóa này bắt buộc <code>rst_n</code> ở mọi khối tuần tự, kể cả trên FPGA.</li>
+<li>ASIC: trạng thái sau power-up không được đảm bảo — kiến trúc phải chủ động (mạch reset, power-on-reset, trình tự khởi động).</li>
+<li>Mô phỏng: FF chưa gán hiện <code>X</code> — mô hình của &quot;chưa biết&quot;, không phải &quot;chắc chắn ngẫu nhiên&quot;.</li>
+<li>Thanh ghi <strong>trạng thái điều khiển</strong> cần khởi tạo xác định; <strong>không phải mọi thanh ghi datapath</strong> đều cần reset (chi phí diện tích/routing/timing). Chiến lược reset là quyết định kiến trúc.</li>
+</ul>
+<p><strong>Thay đổi:</strong> Week05 §C6 (mục riêng, có callout hiệu chỉnh), Week05 quiz câu 4, Week06 §C5 (comment code + co-fix), Week07 §C5 (chiến lược reset), Week09 (cách nói &quot;khởi tạo xác định&quot;), Week07 EQ→RQ về chiến lược reset (EQ→RQ của Week09 là độ rộng timer).</p>
+<hr>
+<h2 id="m-52-ma-hoa-fsm-sau-synthesis">5.2 — Mã hóa FSM sau synthesis</h2>
+<p><strong>Vị trí trong v2:</strong> Week6 (&quot;4 state → 2 bit → 2 FF&quot;; &quot;Khối 1 synthesis ra gì? 2 Flip-Flop (state 2 bit, mã hóa nhị phân)&quot; — v2 có nhắc one-hot nhưng phần comment code vẫn khẳng định 2 FF), Week9 (&quot;Mã hóa trạng thái: 4 state → 2 bit → 2 flip-flop&quot;, lặp nhiều lần), Week12 (&quot;Khối 1 → 2 Flip-Flop lưu state&quot;).</p>
+<p><strong>Vấn đề:</strong> RTL viết <code>logic [1:0] state</code> là <strong>biểu diễn</strong>, không phải cam kết số FF vật lý.</p>
+<p><strong>Cách hiểu đúng:</strong> &quot;RTL biểu diễn state bằng 2 bit. Công cụ synthesis có thể giữ nguyên hoặc mã hóa lại FSM (ví dụ one-hot trên FPGA) tùy tool và cài đặt tối ưu.&quot;</p>
+<p><strong>Thay đổi:</strong> Week06 §C5 (comment code + co-fix + ô meta), Week09 §C3 (co-fix + meta + quiz câu 5), Week12 §C2 (co-fix). Câu đúng này đồng thời trở thành đáp án một câu quiz ở W9.</p>
+<hr>
+<h2 id="m-53-wire-reg-logic">5.3 — wire / reg / logic</h2>
+<p><strong>Vị trí trong v2:</strong> Week7 — nội dung về <code>reg</code> của v2 nhìn chung đúng (&quot;reg chỉ là luật cú pháp… SystemVerilog thay bằng logic&quot;), nhưng cách nói gọn &quot;logic thay cho wire và reg&quot; dễ bị đọc thành &quot;ba từ là một&quot;.</p>
+<p><strong>Cách hiểu đúng:</strong> <code>wire</code> là <strong>net</strong> (kết nối, không lưu); <code>reg</code> là <strong>kiểu biến</strong> Verilog lịch sử cho phép gán trong khối thủ tục — không đồng nghĩa thanh ghi vật lý; <code>logic</code> là kiểu biến SystemVerilog thay hầu hết chỗ dùng <code>reg</code> của người mới và dùng được nơi cần wire 1 driver — nhưng <strong>không có nghĩa net và biến là một khái niệm</strong>.</p>
+<p><strong>Thay đổi:</strong> Week07 §C2 (mục riêng + co-fix), quiz câu 2 tuần 7.</p>
+<hr>
+<h2 id="m-54-synthesis-khong-phai-quotdich-1-1-ra-congqu">5.4 — Synthesis không phải &quot;dịch 1-1 ra cổng&quot;</h2>
+<p><strong>Vị trí trong v2:</strong> Week7 (&quot;được synthesis tool dịch thành netlist (danh sách cổng logic + dây nối) — tức là phần cứng thật&quot; — thiếu ý &quot;tương đương/tối ưu&quot;), Week6 (&quot;state diagram dịch 1-1 thành code Verilog&quot;), Week3 (mô tả assign → đúng các cổng như viết).</p>
+<p><strong>Cách hiểu đúng:</strong> synthesis sinh <strong>mạng cổng/LUT tương đương đã tối ưu</strong> — có thể rút gọn biểu thức, factor logic, biến đổi Boole, map sang LUT (FPGA) hoặc standard cell (ASIC). <strong>Tương đương chức năng</strong> (cùng truth table cho mọi input hợp lệ, cùng quan hệ theo chu kỳ clock) được giữ trong phạm vi synthesizable subset — với hai lưu ý: công cụ được tự do gán giá trị don&#39;t-care, và mô phỏng RTL với mô phỏng netlist vẫn có thể lệch quanh giá trị X. <strong>Timing thì KHÔNG được &quot;giữ&quot;</strong>: nó là ràng buộc phải kiểm chứng lại bằng STA sau implementation và có thể không đạt — đó chính là lý do tồn tại của timing closure. Cấu trúc cụ thể thuộc quyền công cụ.</p>
+<p><strong>Thay đổi:</strong> Week02 §C4 (co-fix — nơi định nghĩa synthesis lần đầu), Week03 §C5 (ghi chú ở RTL peek), Week07 (mọi ô &quot;Phần cứng suy ra&quot; dùng cách nói &quot;suy ra/tương đương&quot;).</p>
+<hr>
+<h2 id="m-55-kinh-te-fpga-vs-asic">5.5 — Kinh tế FPGA vs ASIC</h2>
+<p><strong>Vị trí trong v2:</strong> Week12 (&quot;FPGA cấu hình lại được bằng bitstream, <strong>NRE ≈ 0</strong>&quot;), Week8 (&quot;khi đã có khuôn, mỗi sản phẩm ép ra <strong>chỉ tốn vài xu</strong>&quot; — ví von ASIC), Week8 bảng break-even có chữ &quot;Giả định&quot; nhưng chưa nhất quán nhãn &quot;minh họa&quot;.</p>
+<p><strong>Vấn đề:</strong> &quot;NRE = 0&quot; sai (bỏ qua chi phí kỹ sư/IP/tool/board/verification); &quot;vài xu&quot; là khái quát hóa đơn giá không có điều kiện; số break-even không nhãn rõ dễ bị đọc như giá thị trường.</p>
+<p><strong>Cách hiểu đúng:</strong> &quot;FPGA <strong>tránh được NRE mask/fabrication của ASIC</strong>, nhưng chi phí kỹ sư, IP, tool, board, verification, tích hợp vẫn tồn tại.&quot; Đơn giá ASIC phụ thuộc quy trình, die size, <strong>đóng gói (package) và test</strong>, sản lượng, yield — &quot;vài xu&quot; chỉ đúng với die rất nhỏ, sản lượng rất lớn, và thường đã bỏ quên chi phí package/test. Lưu ý thuật ngữ: NRE = Non-Recurring <strong>Engineering</strong>, nên chi phí kỹ sư/IP/tool CHÍNH LÀ một phần NRE — FPGA chỉ loại bỏ phần NRE mask/fabrication, không phải toàn bộ NRE. Mọi con số break-even là <strong>ví dụ minh họa để học cách tính</strong>.</p>
+<p><strong>Thay đổi:</strong> Week08 §C3 (co-fix + 18 nhãn &quot;minh họa&quot; phủ mọi con số), quiz câu NRE tuần 8 và tuần 12, Week12 §C3 (sửa câu NRE ≈ 0).</p>
+<hr>
+<h2 id="m-56-synchronizer-va-metastability">5.6 — Synchronizer và metastability</h2>
+<p><strong>Vị trí trong v2:</strong> Week11 (&quot;Đồng bộ hóa rx qua 2 flip-flop trước khi dùng (tín hiệu ngoài không theo clk → <strong>tránh</strong> metastability)&quot;), Week12 (&quot;Đồng bộ 2 FF <strong>chống</strong> metastability&quot;).</p>
+<p><strong>Vấn đề:</strong> &quot;tránh/chống&quot; ngụ ý loại bỏ hoàn toàn. Metastability không thể triệt tiêu về nguyên lý.</p>
+<p><strong>Cách hiểu đúng:</strong> &quot;Synchronizer <strong>giảm xác suất metastability lan truyền vào logic đồng bộ phía sau</strong> (MTBF tăng theo hàm mũ của <strong>thời gian ổn định khả dụng</strong> ≈ (N−1)×chu kỳ clock — nên cả số tầng lẫn tần số clock đều quyết định), nhưng không thể loại bỏ về mặt toán học/vật lý. Hai giới hạn phải nói kèm: synchronizer <strong>không</strong> cho biết giá trị lấy được là cũ hay mới, và <strong>chỉ dùng cho tín hiệu 1 bit</strong> — bus nhiều bit phải dùng handshake, mã Gray hoặc FIFO (Phase 2).&quot;</p>
+<p><strong>Thay đổi:</strong> Week11 §C5 (mục riêng + co-fix), quiz câu 5 tuần 11, ghi chú mentor W11.</p>
+<hr>
+<h2 id="m-57-quotnguong-2quot-cua-sai-so-baud-uart">5.7 — &quot;Ngưỡng 2%&quot; của sai số baud UART</h2>
+<p><strong>Vị trí trong v2:</strong> Week11 (&quot;ngưỡng an toàn tổng sai số hai bên thường lấy ≈ 2%&quot;; &quot;Quy tắc thực dụng: tổng sai lệch hai bên nên ≤ 2%&quot;) — v2 đã có chữ &quot;thường/thực dụng&quot; nhưng chưa nêu các yếu tố phụ thuộc.</p>
+<p><strong>Cách hiểu đúng:</strong> &quot;vài phần trăm&quot; là <strong>guideline kinh nghiệm</strong>, không phải đặc tả phổ quát; ngưỡng thực tế phụ thuộc: sai số clock của cả hai phía, độ dài khung, phương pháp lấy mẫu, mức oversampling, hiện thực bên nhận. Điều luôn đúng: sai số <strong>tích lũy theo từng bit</strong>. Với <code>k</code> là chỉ số bit dữ liệu (0…7) và <code>e</code> là <strong>tổng</strong> sai lệch tương đối của cả hai phía, tâm điểm lấy mẫu bit k trôi ≈ (k+1,5)·e bit-time; điểm xấu nhất của khung 8N1 là <strong>stop bit</strong> ở ≈ 9,5·e — vượt nửa bit-time ở đó sinh framing error. Các guideline 1–2% chính là biên an toàn đặt dưới ngưỡng lý thuyết đó.</p>
+<p><strong>Thay đổi:</strong> Week11 §C2 (co-fix nêu đủ các yếu tố phụ thuộc), quiz câu 3 tuần 11.</p>
+<hr>
+<h2 id="m-58-tuyen-bo-muc-do-hoan-chinh-cua-khoa-hoc">5.8 — Tuyên bố mức độ hoàn chỉnh của khóa học</h2>
+<p><strong>Vị trí trong v2:</strong> Week12 (&quot;bạn đã học đủ <strong>100% mảnh ghép của một design FPGA tiêu chuẩn</strong>&quot;).</p>
+<p><strong>Vấn đề:</strong> phóng đại phạm vi — gây ngộ nhận nguy hiểm cho người học.</p>
+<p><strong>Cách hiểu đúng:</strong> &quot;Học viên đã có <strong>các mảnh nền tảng để xây một thiết kế FPGA đồng bộ nhỏ</strong>.&quot; Phía trước còn: timing constraints, STA, CDC, reset-domain, BRAM, PLL/MMCM, synthesis report, resource utilization, timing closure, physical implementation, formal verification, DFT, on-chip debugging.</p>
+<p><strong>Thay đổi:</strong> Week12 §C2 (co-fix + danh sách chủ đề phía trước), Week08 §C4 (cùng danh sách ở nơi so sánh nền tảng), chuẩn đầu ra nguyên văn đặt ở index.html + Week12 + CURRICULUM_MAP.md.</p>
+<hr>
+<h2 id="m-cac-hieu-chinhnhat-quan-hoa-nho-khac">Các hiệu chỉnh/nhất quán hóa nhỏ khác</h2>
+<div class="tblwrap"><table class="tbl">
+<thead>
+<tr>
+<th>#</th>
+<th>Vị trí</th>
+<th>Nội dung</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>a</td>
+<td>Toàn khóa</td>
+<td>Week 7 đổi tên &quot;What Is Verilog?&quot; → &quot;Writing Clean RTL in SystemVerilog&quot;; T1–T6 được định danh rõ là <em>guided exposure</em> RTL (RTL peek T1–T3, RTL guided T4–T6) để T7 là tuần hệ thống hóa, không phải lần đầu gặp.</td>
+</tr>
+<tr>
+<td>b</td>
+<td>Toàn khóa</td>
+<td>Chuẩn hóa tín hiệu: <code>clk</code>, <code>rst_n</code> (bất đồng bộ mức thấp — v2 lẫn lộn <code>rst</code> đồng bộ ở W7 và <code>rst_n</code> ở W9/W11), <code>enable</code>, <code>tick</code>, <code>state</code>, <code>next_state</code>, <code>count</code>.</td>
+</tr>
+<tr>
+<td>c</td>
+<td>W4 v2</td>
+<td>Ví dụ nhỏ trong chỉ thị nội bộ nói &quot;MUX 2:1 quét đủ 4 tổ hợp&quot; — thực tế 3 input (a,b,sel) → 8 tổ hợp; v3 dùng 8.</td>
+</tr>
+<tr>
+<td>d</td>
+<td>W10 v2</td>
+<td>Ghi chú &quot;propagation delay nhỏ nhưng không phải bằng 0&quot; của v2 được giữ và nối vào khung t_pd/t_CQ của W5.</td>
+</tr>
+<tr>
+<td>e</td>
+<td>W11 v2</td>
+<td>Sơ đồ LSB-first cho 0x41 của v2 vốn đúng — giữ nguyên trong v3 (C1/C4).</td>
+</tr>
+<tr>
+<td>f</td>
+<td>Toàn khóa</td>
+<td>Mọi phát biểu &quot;cấm derived clock&quot; của v2 (vốn đúng và rất tốt) được giữ nguyên và lặp có chủ đích ở W9/W10/W11.</td>
+</tr>
+</tbody></table></div>
+</article>
+
+<div class="doc-foot-nav">
+      <a class="home" href="index.html">← Mục lục chương trình</a>
+      <a href="README.html">README</a>
+      <a href="CURRICULUM_MAP.html">Curriculum Map</a>
+      <a href="MENTOR_GUIDE.html">Mentor Guide</a>
+      <a href="PROJECT_GUIDE.html">Project Guide</a>
+      <a href="CHANGELOG_V2_TO_V3.html">Changelog</a>
+      <a href="VALIDATION_REPORT.html">Validation</a>
+      <a href="implementation-notes.html">Implementation Notes</a>
+</div>
+
+<div class="footer">
+      <b>IC Design Mentoring — Version 3 · Phase 1</b>
+      <span class="org">Khoa Điện – Điện tử · Trường Kỹ thuật · Đại học Phenikaa</span>
+      <span>Biên soạn: <b style="display:inline">Giảng Viên Đinh Văn Nam</b></span>
+      <span class="cr">© 2026 · Bản quyền thuộc về Giảng Viên Đinh Văn Nam, Khoa Điện-Điện Tử, Trường Kỹ Thuật, Đại học Phenikaa. Tài liệu phục vụ đào tạo — vui lòng giữ nguyên thông tin tác giả khi chia sẻ.</span>
+      <span class="cr">Hoạt động offline — không cần Internet.</span>
+    </div>
+</main>
+</body>
+</html>

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="Giảng Viên Đinh Văn Nam">
+<meta name="copyright" content="© 2026 · Bản quyền thuộc về Giảng Viên Đinh Văn Nam, Khoa Điện-Điện Tử, Trường Kỹ Thuật, Đại học Phenikaa">
+<meta name="description" content="Cẩm nang vận hành cho mentor — IC Design Mentoring Version 3. Khoa Điện – Điện tử · Trường Kỹ thuật · Đại học Phenikaa. Biên soạn: Giảng Viên Đinh Văn Nam.">
+<title>Cẩm nang vận hành cho mentor | IC Design Mentoring v3</title>
+<link rel="stylesheet" href="css/style.css">
+<script src="js/app.js" defer></script>
+</head>
+<body data-week="doc">
+
+<header class="topbar">
+  <div class="topbar-in">
+    <a class="brand" href="index.html"><span class="logo">IC</span>
+      <span>IC Design Mentoring<small>Tài liệu vận hành · Version 3</small></span></a>
+    <nav class="layer-chips">
+      <a class="chip" href="../../index.html" title="Learning Hub — cổng ba phiên bản giáo trình; đây là V3, bản hiện hành được khuyến nghị">⌂ Hub · V3</a>
+      <a class="chip" href="README.html">README</a>
+      <a class="chip" href="CURRICULUM_MAP.html">Curriculum Map</a>
+      <span class="chip active">Mentor Guide</span>
+      <a class="chip" href="PROJECT_GUIDE.html">Project Guide</a>
+      <a class="chip" href="TECHNICAL_AUDIT.html">Technical Audit</a>
+      <a class="chip" href="CHANGELOG_V2_TO_V3.html">Changelog</a>
+      <a class="chip" href="VALIDATION_REPORT.html">Validation</a>
+      <a class="chip" href="implementation-notes.html">Implementation Notes</a>
+      <a class="chip" href="index.html">← Mục lục</a>
+    </nav>
+  </div>
+  <div class="scrollbar"><div></div></div>
+</header>
+
+<section class="doc-hero">
+  <div class="wrap">
+    <div class="pill-row">
+      <span class="pill">Tài liệu vận hành</span>
+      <span class="pill acc">Mentor Guide</span>
+      <span class="pill">Khoa Điện – Điện tử · ĐH Phenikaa</span>
+    </div>
+    <h1>Cẩm nang vận hành cho mentor</h1>
+    <p class="sub">Chuẩn bị · khung 60 phút · chẩn đoán hiểu sai · đánh giá · mentoring nghiên cứu</p>
+    <p class="src">Bản văn bản gốc: <b>MENTOR_GUIDE.md</b> · cùng thư mục</p>
+  </div>
+</section>
+
+<main class="wrap doc-main">
+<nav class="doc-toc"><b>Nội dung tài liệu</b><ul class="plain"><li><a href="#m-1-chuan-bi-moi-tuan-2030-phut-cho-t1t8-6090-ph">1. Chuẩn bị mỗi tuần (20–30 phút cho T1–T8; 60–90 phút cho T9–T11 vì phải chạy trước mô phỏng)</a></li><li><a href="#m-2-cach-dung-khung-60-phut">2. Cách dùng khung 60 phút</a></li><li><a href="#m-3-chan-doan-hieu-sai-ky-thuat-cot-loi">3. Chẩn đoán hiểu sai — kỹ thuật cốt lõi</a></li><li><a href="#m-4-tranh-giang-mot-chieu">4. Tránh giảng một chiều</a></li><li><a href="#m-5-lop-lech-trinh-do">5. Lớp lệch trình độ</a></li><li><a href="#m-6-danh-gia-tien-do-project-t911">6. Đánh giá tiến độ project (T9–11)</a></li><li><a href="#m-7-chuyen-dan-sang-mentoring-nghien-cuu">7. Chuyển dần sang mentoring nghiên cứu</a></li><li><a href="#m-8-mini-defense-tuan-12">8. Mini-defense tuần 12</a></li></ul></nav>
+<article class="doc-body">
+<p>Đối tượng: mentor dẫn buổi 60 phút hằng tuần (kỹ sư/giảng viên/anh chị đi trước). Nguyên tắc gốc của Version 3: <strong>mentor điều phối để học viên tự giải thích và tự thiết kế</strong> — không phải giảng lại giáo trình.</p>
+<h2 id="m-1-chuan-bi-moi-tuan-2030-phut-cho-t1t8-6090-ph">1. Chuẩn bị mỗi tuần (20–30 phút cho T1–T8; 60–90 phút cho T9–T11 vì phải chạy trước mô phỏng)</h2>
+<ol>
+<li>Mở trang tuần, bật công tắc <strong>Mentor</strong> (góc phải thanh tiêu đề) — mọi ghi chú riêng cho bạn hiện ra ngay trong ngữ cảnh bài học.</li>
+<li>Đọc <strong>Layer B</strong> (timeline 60′ + mentor box). Đây là kịch bản chạy buổi — bạn KHÔNG cần đọc hết Layer C để đứng lớp; Layer C là nơi tra cứu khi học viên hỏi sâu.</li>
+<li>Làm trước <strong>quiz 5 câu</strong> (Layer D) — nó cho bạn biết tuần này &quot;ăn điểm&quot; ở khái niệm nào.</li>
+<li>Chuẩn bị vật liệu buổi học nếu timeline yêu cầu (in đoạn RTL lỗi cho tuần 7, giấy A3 cho tuần vẽ diagram…). Mỗi timeline 25–45′ ghi rõ artifact nhóm phải nộp cuối giờ.</li>
+<li>Với tuần 9–11: chạy trước mô phỏng của chính bạn một lần để chắc chắn demo được khi cần &quot;cứu&quot;. RTL đầy đủ nằm ở Layer C của <code>Week09/Week10/Week11.html</code>; <a href="PROJECT_GUIDE.html" title="Mở PROJECT_GUIDE.html"><code>PROJECT_GUIDE.md</code></a> chỉ có đặc tả, bảng interface và verification plan.</li>
+</ol>
+<h2 id="m-2-cach-dung-khung-60-phut">2. Cách dùng khung 60 phút</h2>
+<p>Khung 6 bước cố định mọi tuần — giữ đúng nhịp quan trọng hơn dạy thêm nội dung:</p>
+<div class="tblwrap"><table class="tbl">
+<thead>
+<tr>
+<th>Khung giờ</th>
+<th>Việc</th>
+<th>Nguyên tắc cho mentor</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0–5′</td>
+<td>Retrieval tuần trước</td>
+<td>Hỏi nhanh, gọi ngẫu nhiên, không chấm điểm. Trả lời sai = dữ liệu tốt, đừng sửa vội — ghi lên bảng.</td>
+</tr>
+<tr>
+<td>5–15′</td>
+<td>Học viên giải thích</td>
+<td>Im lặng nhiều nhất có thể. Chỉ hỏi &quot;vì sao?&quot;, &quot;ví dụ?&quot;. Đừng gật đầu sớm với câu trả lời đúng — để lớp phán xét.</td>
+</tr>
+<tr>
+<td>15–25′</td>
+<td>Mentor sửa &amp; giảng sâu</td>
+<td>Chỉ sửa những hiểu sai ĐÃ lộ ra + 3 điều bắt buộc đúng của tuần (ghi sẵn trong timeline). Tối đa 10 phút nói liên tục.</td>
+</tr>
+<tr>
+<td>25–45′</td>
+<td>Active design / breakout</td>
+<td>Lõi của buổi. Đi từng nhóm, hỏi — không cho đáp án. Mỗi nhóm phải ra ARTIFACT (tờ giấy có diagram/bảng/waveform dự đoán).</td>
+</tr>
+<tr>
+<td>45–55′</td>
+<td>Chia sẻ &amp; tranh luận</td>
+<td>Cho các nhóm chất vấn nhau trước; bạn chỉ trọng tài và nêu câu hỏi ép suy nghĩ có sẵn trong timeline.</td>
+</tr>
+<tr>
+<td>55–60′</td>
+<td>Chốt &amp; giao việc</td>
+<td>Đúng công thức: 1 điều phải nhớ, 1 hiểu sai phải tránh, 1 artifact phải nộp trước buổi sau.</td>
+</tr>
+</tbody></table></div>
+<h2 id="m-3-chan-doan-hieu-sai-ky-thuat-cot-loi">3. Chẩn đoán hiểu sai — kỹ thuật cốt lõi</h2>
+<p>Mỗi mentor box có sẵn bộ: <strong>câu chẩn đoán → đáp án tốt → câu hỏi tiếp → cứu nguy → mở rộng</strong>. Cách dùng:</p>
+<ul>
+<li><strong>Hỏi chẩn đoán</strong> (&quot;D đổi giữa hai cạnh clock, Q ra sao?&quot;) — câu được thiết kế để phân biệt hiểu-thật với thuộc-lòng.</li>
+<li>Trả lời đúng → <strong>hỏi tiếp</strong> (câu sâu hơn một nấc). Trả lời trôi chảy cả hai → dùng <strong>mở rộng học viên giỏi</strong>.</li>
+<li>Bí → dùng <strong>cứu nguy</strong> (một hình ảnh đời thường đã soạn sẵn), rồi hỏi lại câu gốc bằng từ của học viên.</li>
+<li>Nghe LÝ DO, đừng nghe thuật ngữ: &quot;em không chắc, nhưng em nghĩ vì FF chỉ chụp tại cạnh…&quot; đáng giá hơn một tràng định nghĩa đúng.</li>
+</ul>
+<p>Dấu hiệu hiểu sai phổ biến toàn khóa cần bắt sớm: nghĩ RTL chạy tuần tự như C (T4–T7); nhầm latch với FF (T5); tạo latch ngoài ý muốn khi thiếu default trong <code>always_comb</code> (T4, T7); nhét thời gian vào state (T6, T9); coi &quot;compile sạch/mô phỏng pass&quot; là xong (T7–T11); muốn chế clock chậm thay vì dùng enable (T9–T11).</p>
+<h2 id="m-4-tranh-giang-mot-chieu">4. Tránh giảng một chiều</h2>
+<ul>
+<li>Quy tắc 10 phút: không nói liên tục quá 10 phút — timeline đã ép sẵn điều này.</li>
+<li>Đổi &quot;để thầy giải thích&quot; thành &quot;nhóm nào giải thích được chỗ này?&quot;. Đổi &quot;đúng rồi&quot; thành &quot;vì sao em chắc?&quot;.</li>
+<li>Khi học viên hỏi một câu hay ngoài phạm vi (CDC, STA…): trả lời 2 câu + chỉ vào danh sách &quot;chủ đề phía trước&quot; (T8/T12) + gợi thành research question nếu hợp (mẫu EQ→RQ có từ T6).</li>
+</ul>
+<h2 id="m-5-lop-lech-trinh-do">5. Lớp lệch trình độ</h2>
+<ul>
+<li>Ghép nhóm 2–3 người trộn trình độ; vai trò luân phiên (người vẽ, người phản biện, người trình bày).</li>
+<li>Nhóm nhanh: mỗi timeline 25–45′ đều có bài mở rộng trong mentor box (vd T9: pha all-red; T7: multiple drivers). Đừng phát thêm lý thuyết — phát thêm bài thiết kế.</li>
+<li>Học viên đuối: giao lại đúng phần Layer A + 2 câu tự chẩn đoán của tuần trước; hẹn 15′ trước buổi sau; KHÔNG hạ chuẩn artifact — hạ phạm vi (counter mod-6 thay vì mod-10) nhưng vẫn đủ chuỗi dự đoán→mô phỏng→đối chiếu.</li>
+</ul>
+<h2 id="m-6-danh-gia-tien-do-project-t911">6. Đánh giá tiến độ project (T9–11)</h2>
+<ul>
+<li>Chấm theo rubric 5 tiêu chí in ở Layer D mỗi tuần (25/20/20/20/15). Nguyên tắc: <strong>code chạy chưa phải điểm tối đa</strong> — phải giải thích được.</li>
+<li>Mốc phải đạt: cuối T9 — traffic_ctrl mô phỏng pass invariant; cuối T10 — hệ ghép display, waveform giải thích được thời điểm seg đổi; cuối T11 — top mô phỏng ra frame UART đúng, (nếu có board) terminal in dòng trạng thái.</li>
+<li>Nhóm trễ mốc: cho dùng RTL chuẩn của mốc trước làm nền để đi tiếp (không phạt điểm tích hợp), nhưng module đó vẫn phải <strong>gõ lại tay</strong> trước buổi bảo vệ — nếu không, phần &quot;RTL đúng&quot; ở T12 chấm 0 và ghi rõ lý do, nhưng phần vấn đáp T12 vẫn hỏi như thường — hiểu mới là thứ được chấm.</li>
+<li>Interface là hợp đồng: nhóm nào muốn sửa <code>traffic_ctrl</code> ở T10/T11 → dừng lại hỏi &quot;có cách nào KHÔNG sửa không?&quot; — đây là bài học tích hợp quan trọng nhất.</li>
+</ul>
+<h2 id="m-7-chuyen-dan-sang-mentoring-nghien-cuu">7. Chuyển dần sang mentoring nghiên cứu</h2>
+<p>Lộ trình đã cài trong giáo trình — việc của mentor là kích hoạt đúng lúc:</p>
+<ul>
+<li>T6–T8: khi học viên hỏi &quot;chọn cái nào tốt hơn?&quot;, trả lời bằng khung EQ→RQ: &quot;đó là một câu hỏi đo được — đo bằng gì?&quot;.</li>
+<li>T8: bài đọc abstract + system diagram đầu tiên (4 câu hỏi định vị). Chấm &quot;trả lời có bằng chứng từ bài báo&quot;, không chấm ý kiến.</li>
+<li>T9–T11: mỗi tuần một EQ→RQ gắn với chính hệ của học viên (T9 độ rộng timer, T10 tần số quét, T11 kiến trúc UART; chiến lược reset là EQ→RQ của T7). Khuyến khích nhóm chọn MỘT câu để làm thí nghiệm nhỏ, <strong>đo bằng thứ đã có</strong>: số FF suy ra được từ RTL, số chu kỳ đếm trên waveform, độ dài khung. Nhóm nào có tool và muốn so báo cáo synthesis thì coi là bài bắc cầu Phase 2 — chấm phần <em>thiết kế thí nghiệm</em>, không chấm con số (đọc utilization/timing report chưa thuộc phạm vi Phase 1).</li>
+<li>T12: học viên viết research question 7 dòng theo chu trình observation → limitation → question → hypothesis → experiment → evidence → conclusion, và chọn track Phase 2. Vai trò mentor: kiểm tra câu hỏi có ĐO ĐƯỢC không, có baseline công bằng không — chưa cần mới lạ.</li>
+</ul>
+<h2 id="m-8-mini-defense-tuan-12">8. Mini-defense tuần 12</h2>
+<ul>
+<li>Học viên thấy trước ngân hàng 10 câu (Layer B tuần 12) — công khai là chủ đích: luyện giải thích, không phải đánh úp.</li>
+<li>Mỗi thành viên trả lời ít nhất 1 câu. Khung 60′ chỉ đủ cho tối đa 4 nhóm (≈12 học viên) — lớp đông hơn thì tách hai ca bảo vệ, hoặc rút demo còn 90 giây và chuyển bớt câu hỏi sang nhận xét viết. Chấm theo rubric bảo vệ (Layer D T12): lý do &gt; thuật ngữ; &quot;em không biết, nhưng em sẽ kiểm bằng cách…&quot; là câu trả lời tốt.</li>
+<li>Kết buổi bằng kế hoạch cá nhân Phase 2 (track + 1 việc đầu tiên) — đừng kết bằng tổng kết của mentor.</li>
+</ul>
+</article>
+
+<div class="doc-foot-nav">
+      <a class="home" href="index.html">← Mục lục chương trình</a>
+      <a href="README.html">README</a>
+      <a href="CURRICULUM_MAP.html">Curriculum Map</a>
+      <a href="PROJECT_GUIDE.html">Project Guide</a>
+      <a href="TECHNICAL_AUDIT.html">Technical Audit</a>
+      <a href="CHANGELOG_V2_TO_V3.html">Changelog</a>
+      <a href="VALIDATION_REPORT.html">Validation</a>
+      <a href="implementation-notes.html">Implementation Notes</a>
+</div>
+
+<div class="footer">
+      <b>IC Design Mentoring — Version 3 · Phase 1</b>
+      <span class="org">Khoa Điện – Điện tử · Trường Kỹ thuật · Đại học Phenikaa</span>
+      <span>Biên soạn: <b style="display:inline">Giảng Viên Đinh Văn Nam</b></span>
+      <span class="cr">© 2026 · Bản quyền thuộc về Giảng Viên Đinh Văn Nam, Khoa Điện-Điện Tử, Trường Kỹ Thuật, Đại học Phenikaa. Tài liệu phục vụ đào tạo — vui lòng giữ nguyên thông tin tác giả khi chia sẻ.</span>
+      <span class="cr">Hoạt động offline — không cần Internet.</span>
+    </div>
+</main>
+</body>
+</html>

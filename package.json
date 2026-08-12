@@ -1,0 +1,30 @@
+{
+  "name": "ic-design-hub",
+  "version": "1.0.0",
+  "description": "IC Design Learning & Research Community Hub — Giảng Viên Đinh Văn Nam, Khoa Điện-Điện Tử, Trường Kỹ Thuật, Đại học Phenikaa",
+  "type": "module",
+  "private": true,
+  "engines": { "node": ">=22.12.0" },
+  "scripts": {
+    "dev": "node tools/build-search-index.mjs && astro dev",
+    "start": "npm run dev",
+    "build": "node tools/build-search-index.mjs && astro build && node tools/postbuild.mjs",
+    "preview": "astro preview",
+    "check": "node tools/check-source-hashes.mjs && node tools/build-search-index.mjs && astro check && node tools/validate-legacy.mjs",
+    "validate": "node tools/validate-dist.mjs",
+    "new:article": "node tools/new-content.mjs article",
+    "new:research": "node tools/new-content.mjs research",
+    "new:project": "node tools/new-content.mjs project",
+    "new:resource": "node tools/new-content.mjs resource",
+    "new:announcement": "node tools/new-content.mjs announcement"
+  },
+  "dependencies": {
+    "astro": "^7.2.1",
+    "@astrojs/rss": "^4.0.19",
+    "@astrojs/sitemap": "^3.7.3"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "typescript": "~5.9.3"
+  }
+}

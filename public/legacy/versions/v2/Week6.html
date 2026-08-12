@@ -1,0 +1,1387 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tuần 6: Finite State Machines — Máy Trạng Thái Hữu Hạn | IC Design Mentoring</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = { theme: { extend: {
+  colors: { primary:'#2563eb', secondary:'#f59e0b', accent:'#10b981', danger:'#ef4444', dark:'#0f172a', light:'#f8fafc' },
+  fontFamily: { sans:['Inter','system-ui','sans-serif'], mono:['JetBrains Mono','Consolas','monospace'] }
+}}};
+</script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+html{scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,sans-serif}
+section{scroll-margin-top:5.5rem}
+.code-window pre{overflow-x:auto;padding:1rem 1.25rem}
+.code-window code{font-family:'JetBrains Mono',Consolas,monospace;font-size:.82rem;line-height:1.6;display:block;white-space:pre;color:#e2e8f0}
+.kw{color:#c4b5fd;font-weight:600}
+.ty{color:#7dd3fc}
+.cm{color:#94b8a0;font-style:italic}
+.nb{color:#fbbf24}
+.fn{color:#6ee7b7;font-weight:600}
+.copy-btn{transition:all .15s}
+.copy-btn.copied{background:#10b981;color:#fff;border-color:#10b981}
+.sig-btn{min-width:88px;padding:.55rem .9rem;border-radius:.75rem;border:2px solid #cbd5e1;font-weight:700;font-family:'JetBrains Mono',monospace;transition:all .15s;background:#fff;color:#475569}
+.sig-btn.on{background:#10b981;border-color:#059669;color:#fff;box-shadow:0 4px 12px rgba(16,185,129,.35)}
+.led{width:42px;height:42px;border-radius:9999px;background:#e2e8f0;border:3px solid #cbd5e1;transition:all .25s;box-shadow:inset 0 2px 4px rgba(0,0,0,.08)}
+.led-on{background:#34d399;border-color:#10b981;box-shadow:0 0 18px rgba(16,185,129,.7)}
+.row-hi{background:#d1fae5 !important;font-weight:600}
+.cell-hi{background:#fef3c7 !important}
+.quiz-opt{cursor:pointer;transition:all .15s}
+.quiz-q:not(.quiz-locked) .quiz-opt:hover{border-color:#2563eb;background:#eff6ff}
+.quiz-locked .quiz-opt{cursor:default}
+.opt-correct{border-color:#10b981 !important;background:#ecfdf5 !important;box-shadow:0 0 0 1px #10b981}
+.opt-wrong{border-color:#ef4444 !important;background:#fef2f2 !important;box-shadow:0 0 0 1px #ef4444}
+.svg-mono{font-family:'JetBrains Mono',Consolas,monospace}
+.wave-sig{stroke-width:2.5;fill:none}
+.step-dot{width:2.25rem;height:2.25rem;border-radius:9999px;display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0}
+.chip-bit{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:.6rem;border:2px solid #cbd5e1;background:#fff;font-family:'JetBrains Mono',monospace;font-weight:800;font-size:.9rem;color:#475569}
+.chip-bit.hit{border-color:#10b981;background:#d1fae5;color:#047857}
+@keyframes flashg{0%{box-shadow:0 0 0 rgba(16,185,129,0)}30%{box-shadow:0 0 30px rgba(16,185,129,.85)}100%{box-shadow:0 0 0 rgba(16,185,129,0)}}
+.detect-flash{animation:flashg 1.1s ease}
+::selection{background:#bfdbfe}
+</style>
+</head>
+<body class="bg-slate-100 text-slate-700">
+<div id="lichub-nav-top" data-lichub="v2" role="navigation" aria-label="Điều hướng Learning Hub (bổ sung, không thuộc trang gốc)" style="background:#0f172a;color:#e2e8f0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:13.5px;line-height:1.6;padding:8px 16px;display:flex;flex-wrap:wrap;gap:4px 16px;align-items:center;border-bottom:3px solid #38bdf8"><a href="../../index.html" style="color:#7dd3fc;text-decoration:none;font-weight:600">⌂ Learning Hub</a><span style="font-size:11px;font-weight:700;letter-spacing:.04em;color:#38bdf8;border:1px solid #38bdf8;border-radius:6px;padding:1px 7px;white-space:nowrap">V2 · BẢN MỞ RỘNG</span><a href="index.html" style="color:#cbd5e1;text-decoration:none">Mục lục V2</a><span style="flex:1"></span><a href="Week5.html" style="color:#7dd3fc;text-decoration:none" title="Sequential Logic & Memory">← Tuần 5</a><a href="Week7.html" style="color:#7dd3fc;text-decoration:none" title="What Is Verilog?">Tuần 7 →</a><span aria-hidden="true" style="color:#475569">|</span><span style="display:inline-flex;gap:8px;align-items:center"><span style="color:#94a3b8">Chuyển bản:</span> <a href="../v1/index.html" style="color:#cbd5e1;text-decoration:none">V1</a> <b aria-current="true" style="color:#38bdf8">V2</b> <a href="../v3/index.html" style="color:#cbd5e1;text-decoration:none">V3</a></span></div>
+
+
+<!-- ============ STICKY NAV ============ -->
+<nav class="sticky top-0 z-50 bg-dark/95 backdrop-blur text-white shadow-lg">
+  <div class="max-w-6xl mx-auto px-4">
+    <div class="flex items-center justify-between h-14 gap-3">
+      <a href="#hero" class="flex items-center gap-2.5 shrink-0">
+        <span class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-emerald-400 flex items-center justify-center"><i class="fa-solid fa-microchip text-sm"></i></span>
+        <span class="font-bold text-sm sm:text-base">IC Design Mentoring</span>
+        <span class="text-[11px] font-semibold bg-primary/30 border border-blue-400/40 rounded-full px-2.5 py-0.5 whitespace-nowrap">Tuần 6/12</span>
+      </a>
+      <div class="hidden lg:flex items-center gap-1 text-[13px] font-medium text-slate-300">
+        <a href="#learning-map" class="px-2.5 py-1.5 rounded-md hover:bg-white/10 hover:text-white">Bản đồ</a>
+        <a href="#core-concepts" class="px-2.5 py-1.5 rounded-md hover:bg-white/10 hover:text-white">Khái niệm</a>
+        <a href="#demo" class="px-2.5 py-1.5 rounded-md hover:bg-white/10 hover:text-white">Demo</a>
+        <a href="#code-rtl" class="px-2.5 py-1.5 rounded-md hover:bg-white/10 hover:text-white">Code</a>
+        <a href="#waveform" class="px-2.5 py-1.5 rounded-md hover:bg-white/10 hover:text-white">Timing</a>
+        <a href="#quiz" class="px-2.5 py-1.5 rounded-md hover:bg-white/10 hover:text-white">Quiz</a>
+        <a href="#homework" class="px-2.5 py-1.5 rounded-md hover:bg-white/10 hover:text-white">Bài tập</a>
+        <a href="#summary" class="px-2.5 py-1.5 rounded-md hover:bg-white/10 hover:text-white">Tóm tắt</a>
+      </div>
+    </div>
+    <div class="lg:hidden flex gap-1 overflow-x-auto pb-2 text-[13px] font-medium text-slate-300 [-webkit-overflow-scrolling:touch]">
+      <a href="#learning-map" class="px-2.5 py-1 rounded-md bg-white/5 whitespace-nowrap">Bản đồ</a>
+      <a href="#core-concepts" class="px-2.5 py-1 rounded-md bg-white/5 whitespace-nowrap">Khái niệm</a>
+      <a href="#demo" class="px-2.5 py-1 rounded-md bg-white/5 whitespace-nowrap">Demo</a>
+      <a href="#code-rtl" class="px-2.5 py-1 rounded-md bg-white/5 whitespace-nowrap">Code</a>
+      <a href="#waveform" class="px-2.5 py-1 rounded-md bg-white/5 whitespace-nowrap">Timing</a>
+      <a href="#quiz" class="px-2.5 py-1 rounded-md bg-white/5 whitespace-nowrap">Quiz</a>
+      <a href="#homework" class="px-2.5 py-1 rounded-md bg-white/5 whitespace-nowrap">Bài tập</a>
+      <a href="#summary" class="px-2.5 py-1 rounded-md bg-white/5 whitespace-nowrap">Tóm tắt</a>
+    </div>
+  </div>
+  <div class="h-1 bg-slate-800"><div class="h-1 bg-gradient-to-r from-primary to-accent" style="width:50%" title="Tiến độ: tuần 6/12"></div></div>
+</nav>
+
+<!-- ============ 01. HERO ============ -->
+<header id="hero" class="bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 text-white">
+  <div class="max-w-6xl mx-auto px-4 pt-14 pb-12">
+    <div class="flex flex-wrap items-center gap-2 mb-5">
+      <span class="text-xs font-bold uppercase tracking-widest bg-white/10 border border-white/20 rounded-full px-3 py-1">Tuần 6</span>
+      <span class="text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 rounded-full px-3 py-1"><i class="fa-solid fa-diagram-project mr-1"></i>Phase 1 — Nền tảng logic số</span>
+    </div>
+    <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight mb-2">Finite State Machines</h1>
+    <p class="text-xl sm:text-2xl font-semibold text-blue-200 mb-5">Máy Trạng Thái Hữu Hạn — Bộ Não Điều Khiển Của Mọi Hệ Thống Số</p>
+    <p class="max-w-3xl text-slate-300 leading-relaxed mb-4">Tuần 5 cho bạn Flip-Flop — mạch biết <em>nhớ</em>. Nhưng counter chỉ biết đếm đều 0, 1, 2… Còn đèn giao thông phải đi ĐỎ → XANH → VÀNG theo luật riêng; máy bán nước phải nhớ đã nhận bao nhiêu tiền; khóa số phải nhớ bạn đã nhập đúng mấy ký tự. Công cụ mô hình hóa tất cả những hệ thống đó là <strong class="text-emerald-300">FSM — Finite State Machine (máy trạng thái hữu hạn)</strong>: một tập hữu hạn các <strong class="text-emerald-300">state (trạng thái)</strong>, các <strong class="text-emerald-300">transition (chuyển trạng thái)</strong> theo <strong class="text-emerald-300">input</strong>, và <strong class="text-emerald-300">output</strong> điều khiển hệ thống. FSM không phải hình vẽ lý thuyết — nó được dịch thẳng thành Verilog và tổng hợp thành Flip-Flop + cổng logic trên FPGA/ASIC.</p>
+    <p class="max-w-3xl text-slate-400 text-sm leading-relaxed mb-8"><i class="fa-solid fa-link mr-1.5 text-blue-400"></i>Kết nối chương trình: <strong class="text-slate-200">Tuần 4</strong> (logic tổ hợp) + <strong class="text-slate-200">Tuần 5</strong> (Flip-Flop, clock) ghép lại đúng bằng công thức FSM = state register + next-state logic + output logic → <strong class="text-slate-200">Tuần 7</strong> học Verilog bài bản để viết FSM trôi chảy, <strong class="text-slate-200">Tuần 9</strong> dùng FSM xây bộ điều khiển đèn giao thông hoàn chỉnh.</p>
+    <h2 class="text-sm font-bold uppercase tracking-widest text-blue-300 mb-3"><i class="fa-solid fa-bullseye mr-1.5"></i>4 mục tiêu học tập tuần này</h2>
+    <div class="grid sm:grid-cols-2 gap-3 max-w-4xl">
+      <div class="bg-white/5 border border-white/15 rounded-xl p-4 flex gap-3"><span class="text-emerald-300 text-lg"><i class="fa-solid fa-circle-nodes"></i></span><p class="text-sm text-slate-200"><strong>1.</strong> Định nghĩa FSM qua 4 thành phần: state, input, output, transition; đọc và vẽ được state diagram (sơ đồ trạng thái).</p></div>
+      <div class="bg-white/5 border border-white/15 rounded-xl p-4 flex gap-3"><span class="text-emerald-300 text-lg"><i class="fa-solid fa-scale-balanced"></i></span><p class="text-sm text-slate-200"><strong>2.</strong> Phân biệt Moore (output chỉ phụ thuộc state) và Mealy (output phụ thuộc state + input), kể cả khác biệt về thời điểm output trên waveform.</p></div>
+      <div class="bg-white/5 border border-white/15 rounded-xl p-4 flex gap-3"><span class="text-emerald-300 text-lg"><i class="fa-solid fa-table-list"></i></span><p class="text-sm text-slate-200"><strong>3.</strong> Mô hình hóa một bài toán thực (bộ phát hiện chuỗi bit "101") thành state diagram + transition table hoàn chỉnh.</p></div>
+      <div class="bg-white/5 border border-white/15 rounded-xl p-4 flex gap-3"><span class="text-emerald-300 text-lg"><i class="fa-solid fa-code"></i></span><p class="text-sm text-slate-200"><strong>4.</strong> Viết FSM chuẩn <em>3 khối</em> SystemVerilog: state register (always_ff), next-state logic (always_comb), output logic (always_comb) — và hiểu mỗi khối tổng hợp ra phần cứng gì.</p></div>
+    </div>
+  </div>
+</header>
+
+<main class="max-w-6xl mx-auto px-4 py-10 space-y-14">
+
+<!-- ============ 02. LEARNING MAP ============ -->
+<section id="learning-map">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center text-lg"><i class="fa-solid fa-map-location-dot"></i></div>
+    <div><p class="text-[11px] font-bold text-primary uppercase tracking-widest">Section 02</p><h2 class="text-2xl font-bold text-slate-900">Learning Map — Bản đồ học tập</h2></div>
+  </div>
+  <div class="grid md:grid-cols-3 gap-4 mb-5">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 relative">
+      <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Tuần 5 — Đã học</p>
+      <h3 class="font-bold text-slate-800 mb-2"><i class="fa-solid fa-memory text-slate-400 mr-1.5"></i>Sequential Logic</h3>
+      <p class="text-sm leading-relaxed">Flip-Flop lưu 1 bit, register, counter, clock edge, reset, setup/hold. Mạch đã biết "nhớ" — nhưng mới nhớ kiểu đếm đều.</p>
+      <div class="hidden md:flex absolute -right-3.5 top-1/2 -translate-y-1/2 w-7 h-7 bg-primary text-white rounded-full items-center justify-center text-xs z-10"><i class="fa-solid fa-arrow-right"></i></div>
+    </div>
+    <div class="bg-blue-50 rounded-2xl shadow-md border-2 border-primary p-5 relative">
+      <p class="text-xs font-bold text-primary uppercase tracking-wider mb-1">Tuần 6 — Bạn đang ở đây</p>
+      <h3 class="font-bold text-slate-900 mb-2"><i class="fa-solid fa-diagram-project text-primary mr-1.5"></i>Finite State Machines</h3>
+      <p class="text-sm leading-relaxed">Tổ chức Flip-Flop + logic tổ hợp thành máy trạng thái: state diagram, transition table, Moore/Mealy, cấu trúc RTL 3 khối.</p>
+      <div class="hidden md:flex absolute -right-3.5 top-1/2 -translate-y-1/2 w-7 h-7 bg-primary text-white rounded-full items-center justify-center text-xs z-10"><i class="fa-solid fa-arrow-right"></i></div>
+    </div>
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+      <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Tuần 7 — Sắp tới</p>
+      <h3 class="font-bold text-slate-800 mb-2"><i class="fa-solid fa-code text-slate-400 mr-1.5"></i>What Is Verilog?</h3>
+      <p class="text-sm leading-relaxed">Học ngôn ngữ mô tả phần cứng một cách hệ thống: module, always, assign — để viết FSM và mọi mạch khác thành thạo.</p>
+    </div>
+  </div>
+  <div class="grid md:grid-cols-2 gap-4">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+      <h3 class="font-bold text-slate-800 mb-2 text-sm uppercase tracking-wide"><i class="fa-solid fa-suitcase text-secondary mr-1.5"></i>Cần mang theo từ các tuần trước</h3>
+      <ul class="text-sm space-y-1.5 list-none">
+        <li><i class="fa-solid fa-check text-accent mr-2"></i>Tuần 5: FF chụp dữ liệu tại cạnh lên; reset đưa FF về giá trị xác định.</li>
+        <li><i class="fa-solid fa-check text-accent mr-2"></i>Tuần 4: mạch tổ hợp + quy tắc gán mặc định (default) để tránh latch.</li>
+        <li><i class="fa-solid fa-check text-accent mr-2"></i>Tuần 3: bảng chân lý — transition table chính là "bảng chân lý của trạng thái".</li>
+      </ul>
+    </div>
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+      <h3 class="font-bold text-slate-800 mb-2 text-sm uppercase tracking-wide"><i class="fa-solid fa-route text-primary mr-1.5"></i>Kiến thức tuần này sẽ dùng ở đâu</h3>
+      <ul class="text-sm space-y-1.5 list-none">
+        <li><i class="fa-solid fa-arrow-right text-primary mr-2"></i><strong>Tuần 9:</strong> traffic light controller = FSM + timer (counter tuần 5).</li>
+        <li><i class="fa-solid fa-arrow-right text-primary mr-2"></i><strong>Tuần 11:</strong> khối điều khiển UART TX/RX là một FSM (idle → start → data → stop).</li>
+        <li><i class="fa-solid fa-arrow-right text-primary mr-2"></i><strong>Sự nghiệp:</strong> gần như mọi khối điều khiển trong SoC — bộ nhớ cache, bus, DMA — đều chứa FSM.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 03. BEFORE SESSION ============ -->
+<section id="before-session">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center text-lg"><i class="fa-solid fa-list-check"></i></div>
+    <div><p class="text-[11px] font-bold text-primary uppercase tracking-widest">Section 03</p><h2 class="text-2xl font-bold text-slate-900">Before Session — Chuẩn bị trước buổi học</h2></div>
+  </div>
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-4">
+    <p class="text-sm leading-relaxed mb-4">Tuần này chúng ta thảo luận <strong>"Finite State Machines"</strong>. Mục tiêu là học cách mô tả những hệ thống có nhiều trạng thái — đèn giao thông, thang máy, máy giặt, máy bán hàng — bằng một mô hình chặt chẽ có thể chuyển thẳng thành Verilog và chạy trên FPGA. FSM là chủ đề "xương sống": làm chủ nó, các tuần dự án 9–11 sẽ rất nhẹ nhàng.</p>
+    <div class="flex items-center justify-between mb-3">
+      <h3 class="font-bold text-slate-800 text-sm uppercase tracking-wide"><i class="fa-solid fa-square-check text-accent mr-1.5"></i>Checklist chuẩn bị</h3>
+      <span class="text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full px-3 py-1">Hoàn thành: <span id="bs-count">0</span>/5</span>
+    </div>
+    <div class="grid sm:grid-cols-2 gap-2.5">
+      <label class="flex items-start gap-3 bg-slate-50 border border-slate-200 rounded-xl p-3 cursor-pointer hover:border-primary"><input type="checkbox" class="bs-chk mt-1 w-4 h-4 accent-emerald-500"><span class="text-sm">Ôn tuần 5: D FF chụp dữ liệu khi nào? Vì sao phải reset thanh ghi?</span></label>
+      <label class="flex items-start gap-3 bg-slate-50 border border-slate-200 rounded-xl p-3 cursor-pointer hover:border-primary"><input type="checkbox" class="bs-chk mt-1 w-4 h-4 accent-emerald-500"><span class="text-sm">Đọc trước 4 thuật ngữ: state, transition, state diagram, controller.</span></label>
+      <label class="flex items-start gap-3 bg-slate-50 border border-slate-200 rounded-xl p-3 cursor-pointer hover:border-primary"><input type="checkbox" class="bs-chk mt-1 w-4 h-4 accent-emerald-500"><span class="text-sm">Lấy lại "hệ thống có trạng thái" bạn đã mô tả ở tuần 5 — tuần này sẽ vẽ nó thành sơ đồ.</span></label>
+      <label class="flex items-start gap-3 bg-slate-50 border border-slate-200 rounded-xl p-3 cursor-pointer hover:border-primary"><input type="checkbox" class="bs-chk mt-1 w-4 h-4 accent-emerald-500"><span class="text-sm">Thử vẽ nháp sơ đồ 3 trạng thái của đèn giao thông: ĐỎ → XANH → VÀNG → ĐỎ.</span></label>
+      <label class="flex items-start gap-3 bg-slate-50 border border-slate-200 rounded-xl p-3 cursor-pointer hover:border-primary"><input type="checkbox" class="bs-chk mt-1 w-4 h-4 accent-emerald-500"><span class="text-sm">Chuẩn bị 3 câu hỏi mang vào breakout room.</span></label>
+    </div>
+  </div>
+  <div class="grid md:grid-cols-2 gap-4">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+      <h3 class="font-bold text-slate-800 text-sm uppercase tracking-wide mb-3"><i class="fa-solid fa-fire text-secondary mr-1.5"></i>3 câu hỏi khởi động</h3>
+      <details class="mb-2 bg-slate-50 border border-slate-200 rounded-xl p-3"><summary class="text-sm font-semibold cursor-pointer">1. Máy bán nước giá 10k: bạn bỏ tờ 5k, rồi tờ 5k nữa. Giữa hai lần bỏ tiền, máy phải nhớ điều gì?</summary><p class="text-sm mt-2 text-slate-600">Nhớ "đã nhận 5k" — đó là một trạng thái. Máy có ít nhất các trạng thái: chưa nhận tiền (0k), đã nhận 5k, đã đủ 10k (trả hàng). Tiền bỏ vào là input gây chuyển trạng thái.</p></details>
+      <details class="mb-2 bg-slate-50 border border-slate-200 rounded-xl p-3"><summary class="text-sm font-semibold cursor-pointer">2. Đèn giao thông chuyển từ ĐỎ sang XANH dựa vào điều gì? Input ở đây là gì?</summary><p class="text-sm mt-2 text-slate-600">Dựa vào thời gian: một bộ timer (counter tuần 5!) đếm đủ N giây thì phát tín hiệu "hết giờ" — tín hiệu đó là input của FSM, gây transition ĐỎ → XANH.</p></details>
+      <details class="bg-slate-50 border border-slate-200 rounded-xl p-3"><summary class="text-sm font-semibold cursor-pointer">3. Khóa mật mã 4 số: bạn nhập đúng 2 số đầu rồi nhập sai 1 số. Khóa nên "nhớ" gì tiếp theo?</summary><p class="text-sm mt-2 text-slate-600">Nó phải quay về trạng thái phù hợp (thường là "chưa đúng số nào") thay vì đứng yên — tức là transition khi input sai cũng phải được định nghĩa rõ. FSM buộc ta liệt kê đủ mọi tình huống, kể cả tình huống sai.</p></details>
+    </div>
+    <div class="bg-amber-50 rounded-2xl shadow-sm border border-amber-200 p-6">
+      <h3 class="font-bold text-amber-800 text-sm uppercase tracking-wide mb-3"><i class="fa-solid fa-stopwatch mr-1.5"></i>Nhiệm vụ nhỏ 5–10 phút</h3>
+      <p class="text-sm leading-relaxed text-amber-900 mb-3">Chọn <strong>máy giặt</strong> (hoặc thiết bị nhiều bước bất kỳ). Liệt kê ra giấy:</p>
+      <ul class="text-sm text-amber-900 space-y-1.5">
+        <li><i class="fa-solid fa-pen text-amber-500 mr-2"></i>Danh sách <strong>trạng thái</strong> (VD: Chờ → Ngâm → Giặt → Xả → Vắt → Xong).</li>
+        <li><i class="fa-solid fa-pen text-amber-500 mr-2"></i><strong>Sự kiện/điều kiện</strong> làm chuyển từng trạng thái (nút Start? hết thời gian? đủ nước?).</li>
+        <li><i class="fa-solid fa-pen text-amber-500 mr-2"></i><strong>Output</strong> ở mỗi trạng thái (van nước mở? motor quay? còi kêu?).</li>
+      </ul>
+      <p class="text-xs text-amber-700 mt-3"><i class="fa-solid fa-lightbulb mr-1"></i>Bạn vừa làm đúng 3 bước đầu của quy trình thiết kế FSM chuyên nghiệp (Section 07).</p>
+    </div>
+  </div>
+</section>
+<!-- ============ 04. CORE CONCEPTS ============ -->
+<section id="core-concepts">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center text-lg"><i class="fa-solid fa-brain"></i></div>
+    <div><p class="text-[11px] font-bold text-primary uppercase tracking-widest">Section 04</p><h2 class="text-2xl font-bold text-slate-900">Core Concepts — Khái niệm cốt lõi</h2></div>
+  </div>
+  <p class="text-sm text-slate-500 mb-5 max-w-3xl">Mỗi khái niệm đi theo 5 tầng: <strong>định nghĩa dễ hiểu → bản chất kỹ thuật → ví dụ đời sống → ví dụ trong IC/FPGA → lỗi hiểu sai phổ biến</strong>.</p>
+
+  <div class="space-y-5">
+    <!-- Concept 1 -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+      <h3 class="font-bold text-slate-900 text-lg mb-3"><span class="inline-flex w-7 h-7 rounded-lg bg-primary text-white items-center justify-center text-sm mr-2">1</span>FSM — Finite State Machine (máy trạng thái hữu hạn)</h3>
+      <div class="grid md:grid-cols-2 gap-3 text-sm">
+        <div class="bg-blue-50 border border-blue-100 rounded-xl p-4"><p class="font-bold text-primary text-xs uppercase mb-1">Định nghĩa dễ hiểu</p><p>FSM là mô hình của hệ thống chỉ có <strong>một số hữu hạn trạng thái</strong>, tại mỗi thời điểm ở đúng một trạng thái, và chuyển trạng thái theo <strong>luật rõ ràng</strong> khi có input.</p></div>
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-4"><p class="font-bold text-slate-700 text-xs uppercase mb-1">Bản chất kỹ thuật</p><p>Về phần cứng, FSM = <strong>state register (nhóm Flip-Flop lưu trạng thái hiện tại)</strong> + <strong>next-state logic (tổ hợp)</strong> tính trạng thái kế từ state và input + <strong>output logic (tổ hợp)</strong>. Chuyển trạng thái xảy ra <em>tại cạnh lên clock</em> — đúng kiến thức tuần 5.</p></div>
+        <div class="bg-emerald-50 border border-emerald-100 rounded-xl p-4"><p class="font-bold text-emerald-700 text-xs uppercase mb-1">Ví dụ đời sống</p><p>Đèn giao thông (ĐỎ→XANH→VÀNG), máy giặt (Ngâm→Giặt→Xả→Vắt), thang máy (Đứng yên→Đi lên→Đi xuống→Mở cửa), ngay cả trạng thái đăng nhập của một ứng dụng.</p></div>
+        <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-4"><p class="font-bold text-indigo-700 text-xs uppercase mb-1">Trong IC / FPGA</p><p>Control unit của CPU, bộ điều khiển giao thức (UART, SPI, I2C), bộ điều khiển bộ nhớ, arbiter của bus — tất cả là FSM. Kỹ sư RTL viết FSM gần như mỗi ngày.</p></div>
+      </div>
+      <div class="mt-3 bg-red-50 border border-red-200 rounded-xl p-4 text-sm"><p class="font-bold text-red-700 text-xs uppercase mb-1"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Lỗi hiểu sai phổ biến</p><p>"FSM chỉ là hình vẽ trên giấy để học cho vui." — Sai: state diagram dịch 1-1 thành code Verilog và tổng hợp thành FF + cổng logic thật. Sơ đồ vẽ sai thì chip chạy sai.</p></div>
+    </div>
+
+    <!-- Concept 2 -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+      <h3 class="font-bold text-slate-900 text-lg mb-3"><span class="inline-flex w-7 h-7 rounded-lg bg-primary text-white items-center justify-center text-sm mr-2">2</span>State, Transition &amp; State Diagram (sơ đồ trạng thái)</h3>
+      <div class="grid md:grid-cols-2 gap-3 text-sm">
+        <div class="bg-blue-50 border border-blue-100 rounded-xl p-4"><p class="font-bold text-primary text-xs uppercase mb-1">Định nghĩa dễ hiểu</p><p><strong>State</strong> = "hệ thống đang ở đâu trong câu chuyện". <strong>Transition</strong> = mũi tên "đi tiếp thế nào khi input là gì". <strong>State diagram</strong>: vòng tròn = state, mũi tên có nhãn input = transition.</p></div>
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-4"><p class="font-bold text-slate-700 text-xs uppercase mb-1">Bản chất kỹ thuật</p><p>Với FSM đồng bộ (synchronous), transition <strong>chỉ xảy ra tại cạnh lên clock</strong>: tại cạnh, state register nạp giá trị next_state. Mỗi state phải định nghĩa lối đi cho <em>mọi</em> giá trị input — không được bỏ sót tình huống.</p></div>
+        <div class="bg-emerald-50 border border-emerald-100 rounded-xl p-4"><p class="font-bold text-emerald-700 text-xs uppercase mb-1">Ví dụ đời sống</p><p>Bản đồ trò chơi cờ tỷ phú: ô đang đứng là state, kết quả xúc xắc là input, luật di chuyển là transition. Cùng một cú xúc xắc, đi đến đâu phụ thuộc ô hiện tại.</p></div>
+        <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-4"><p class="font-bold text-indigo-700 text-xs uppercase mb-1">Trong IC / FPGA</p><p>Transition table (bảng chuyển trạng thái) là dạng "bảng chân lý" của next-state logic — công cụ tổng hợp biến nó thành cổng logic. Review thiết kế FSM luôn bắt đầu từ diagram + table.</p></div>
+      </div>
+      <div class="mt-3 bg-red-50 border border-red-200 rounded-xl p-4 text-sm"><p class="font-bold text-red-700 text-xs uppercase mb-1"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Lỗi hiểu sai phổ biến</p><p>"Input đổi là FSM nhảy trạng thái ngay lập tức." — Với FSM đồng bộ, input chỉ được <em>lấy mẫu tại cạnh clock</em>; giữa hai cạnh, input đổi bao nhiêu lần thì state vẫn đứng yên (nhớ lại demo D FF tuần 5).</p></div>
+    </div>
+
+    <!-- Concept 3 -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+      <h3 class="font-bold text-slate-900 text-lg mb-3"><span class="inline-flex w-7 h-7 rounded-lg bg-primary text-white items-center justify-center text-sm mr-2">3</span>Moore vs Mealy — output "gắn với trạng thái" hay "phản ứng theo input"</h3>
+      <div class="grid md:grid-cols-2 gap-3 text-sm">
+        <div class="bg-blue-50 border border-blue-100 rounded-xl p-4"><p class="font-bold text-primary text-xs uppercase mb-1">Định nghĩa dễ hiểu</p><p><strong>Moore:</strong> output chỉ phụ thuộc <em>state hiện tại</em> — mỗi phòng có biển báo riêng, vào phòng nào biển ấy sáng. <strong>Mealy:</strong> output phụ thuộc <em>state + input</em> — vừa ở phòng nào vừa nghe câu hỏi gì mới quyết định trả lời.</p></div>
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-4"><p class="font-bold text-slate-700 text-xs uppercase mb-1">Bản chất kỹ thuật</p><p>Moore: output = f(state) → ổn định trọn một chu kỳ clock, không glitch theo input. Mealy: output = f(state, input) → có thể phản ứng <strong>sớm hơn ~1 chu kỳ</strong> nhưng thay đổi giữa chu kỳ nếu input đổi. Mealy thường cần ít state hơn.</p></div>
+        <div class="bg-emerald-50 border border-emerald-100 rounded-xl p-4"><p class="font-bold text-emerald-700 text-xs uppercase mb-1">Ví dụ đời sống</p><p>Moore: đèn "PHÒNG ĐANG HỌP" — sáng suốt thời gian phòng ở trạng thái họp. Mealy: người gác cổng — thấy đúng người (state chờ đúng) <em>và</em> đúng mật khẩu (input) là mở cửa tức thì.</p></div>
+        <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-4"><p class="font-bold text-indigo-700 text-xs uppercase mb-1">Trong IC / FPGA</p><p>Tín hiệu điều khiển quan trọng (enable ghi bộ nhớ, đèn giao thông) thường chọn Moore vì sạch glitch; giao thức cần phản hồi trong cùng chu kỳ đôi khi dùng Mealy. Nhập môn: <strong>ưu tiên Moore</strong>.</p></div>
+      </div>
+      <div class="mt-3 bg-red-50 border border-red-200 rounded-xl p-4 text-sm"><p class="font-bold text-red-700 text-xs uppercase mb-1"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Lỗi hiểu sai phổ biến</p><p>"Moore và Mealy chỉ khác tên gọi." — Khác thật sự ở <strong>hàm output và thời điểm output</strong>: cùng bộ phát hiện "101", Mealy báo ngay trong chu kỳ có bit 1 cuối, Moore báo ở chu kỳ kế tiếp (sau cạnh clock). Lẫn lộn dẫn đến hệ thống phản ứng sớm/muộn 1 chu kỳ — lỗi rất khó tìm.</p></div>
+    </div>
+
+    <!-- Concept 4 -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+      <h3 class="font-bold text-slate-900 text-lg mb-3"><span class="inline-flex w-7 h-7 rounded-lg bg-primary text-white items-center justify-center text-sm mr-2">4</span>Controller &amp; Datapath — FSM ra lệnh, datapath xử lý</h3>
+      <div class="grid md:grid-cols-2 gap-3 text-sm">
+        <div class="bg-blue-50 border border-blue-100 rounded-xl p-4"><p class="font-bold text-primary text-xs uppercase mb-1">Định nghĩa dễ hiểu</p><p>Hệ thống số lớn chia đôi: <strong>datapath</strong> (đường dữ liệu: register, adder, counter, MUX) làm việc nặng; <strong>controller</strong> (FSM) đứng ngoài <em>ra lệnh</em>: lúc nào nạp, lúc nào đếm, lúc nào xuất.</p></div>
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-4"><p class="font-bold text-slate-700 text-xs uppercase mb-1">Bản chất kỹ thuật</p><p>Output của FSM là các tín hiệu điều khiển (load, en, sel, clear) nối vào datapath; datapath trả lại tín hiệu trạng thái (done, full, zero) làm input cho FSM. Tách đôi giúp thiết kế, kiểm chứng và tái sử dụng dễ hơn.</p></div>
+        <div class="bg-emerald-50 border border-emerald-100 rounded-xl p-4"><p class="font-bold text-emerald-700 text-xs uppercase mb-1">Ví dụ đời sống</p><p>Bếp trưởng (controller) không tự thái rau — ra lệnh cho các bếp phụ (datapath) theo trình tự công thức; bếp phụ báo lại "xong món" để bếp trưởng ra lệnh tiếp.</p></div>
+        <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-4"><p class="font-bold text-indigo-700 text-xs uppercase mb-1">Trong IC / FPGA</p><p>Tuần 9: FSM đèn giao thông (controller) + timer đếm giây (datapath). CPU: control unit giải mã lệnh và ra lệnh cho ALU/register file (datapath).</p></div>
+      </div>
+      <div class="mt-3 bg-red-50 border border-red-200 rounded-xl p-4 text-sm"><p class="font-bold text-red-700 text-xs uppercase mb-1"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Lỗi hiểu sai phổ biến</p><p>Nhét dữ liệu vào state: "đếm 100 sản phẩm → FSM 100 trạng thái". — Bùng nổ trạng thái (state explosion)! Đúng bài: FSM vài trạng thái (Chờ / Đang đếm / Đầy) + <strong>counter trong datapath</strong> đếm số lượng. Counter và FSM là hai vai khác nhau.</p></div>
+    </div>
+
+    <!-- Concept 5 -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+      <h3 class="font-bold text-slate-900 text-lg mb-3"><span class="inline-flex w-7 h-7 rounded-lg bg-primary text-white items-center justify-center text-sm mr-2">5</span>Case study: Sequence Detector — bộ phát hiện chuỗi "101"</h3>
+      <p class="text-sm mb-3">Bài toán xuyên suốt tuần này: mạch nhận mỗi chu kỳ 1 bit; khi 3 bit liên tiếp gần nhất là <strong>1-0-1</strong> thì output <code class="bg-slate-100 rounded px-1">detected = 1</code> (kiểu Moore, cho phép chồng lấp — overlap). Đây là "Hello World" của FSM, và cũng là lõi của khóa mật mã, nhận dạng mã lệnh, đồng bộ khung dữ liệu.</p>
+      <div class="grid md:grid-cols-4 gap-3 text-sm">
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-center"><p class="font-mono font-extrabold text-slate-700 text-lg mb-1">S0</p><p class="text-xs">Chưa khớp gì — đang chờ bit 1 đầu tiên</p></div>
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-center"><p class="font-mono font-extrabold text-slate-700 text-lg mb-1">S1</p><p class="text-xs">Đã thấy "1" — chờ bit 0</p></div>
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-center"><p class="font-mono font-extrabold text-slate-700 text-lg mb-1">S2</p><p class="text-xs">Đã thấy "10" — chờ bit 1 chốt hạ</p></div>
+        <div class="bg-emerald-50 border border-emerald-300 rounded-xl p-4 text-center"><p class="font-mono font-extrabold text-emerald-700 text-lg mb-1">S3</p><p class="text-xs">Vừa thấy "101" — detected = 1 (state duy nhất có output 1)</p></div>
+      </div>
+      <p class="text-xs text-slate-500 mt-3"><i class="fa-solid fa-lightbulb text-secondary mr-1"></i>Vì sao S3 nhập 0 → S2, nhập 1 → S1? Vì bit "1" cuối của "101" có thể là bit "1" <em>mở đầu</em> của chuỗi "101" tiếp theo (chồng lấp): sau "101", thêm "01" là đủ "10101" chứa 2 lần "101". Ý nghĩa của state = "phần đuôi dài nhất của dòng bit khớp với phần đầu của mẫu".</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 05. SYSTEM VIEW ============ -->
+<section id="system-view">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center text-lg"><i class="fa-solid fa-sitemap"></i></div>
+    <div><p class="text-[11px] font-bold text-primary uppercase tracking-widest">Section 05</p><h2 class="text-2xl font-bold text-slate-900">System View — FSM nằm ở đâu trong hệ thống số?</h2></div>
+  </div>
+  <p class="text-sm text-slate-500 mb-4 max-w-3xl">FSM là <strong>khối điều khiển</strong>: đứng cạnh datapath, nhận tín hiệu trạng thái/cảm biến, phát tín hiệu điều khiển. Bên trong FSM có cả phần tuần tự lẫn phần tổ hợp — bảng dưới tách bạch từng khối:</p>
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-x-auto">
+    <table class="w-full text-sm min-w-[840px]">
+      <thead class="bg-slate-50 text-slate-600 text-xs uppercase tracking-wide">
+        <tr><th class="text-left px-4 py-3">Khối trong FSM</th><th class="text-left px-4 py-3">Input</th><th class="text-left px-4 py-3">Output</th><th class="text-left px-4 py-3">Loại mạch</th><th class="text-left px-4 py-3">Cần clock?</th><th class="text-left px-4 py-3">Cần reset?</th><th class="text-left px-4 py-3">Viết Verilog</th><th class="text-left px-4 py-3">Synthesis ra gì</th></tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100">
+        <tr><td class="px-4 py-3 font-bold text-slate-800">State register</td><td class="px-4 py-3">next_state, clk, rst_n</td><td class="px-4 py-3">state</td><td class="px-4 py-3"><span class="text-primary font-semibold">Tuần tự</span></td><td class="px-4 py-3 text-accent font-bold">Có</td><td class="px-4 py-3 text-danger font-bold">Bắt buộc</td><td class="px-4 py-3"><code class="text-xs bg-slate-100 rounded px-1">always_ff</code> + <code class="text-xs bg-slate-100 rounded px-1">&lt;=</code></td><td class="px-4 py-3">Flip-Flop (2 FF cho 4 state mã hóa nhị phân)</td></tr>
+        <tr><td class="px-4 py-3 font-bold text-slate-800">Next-state logic</td><td class="px-4 py-3">state, din (input ngoài)</td><td class="px-4 py-3">next_state</td><td class="px-4 py-3">Tổ hợp</td><td class="px-4 py-3 text-slate-400 font-bold">Không</td><td class="px-4 py-3 text-slate-400 font-bold">Không</td><td class="px-4 py-3"><code class="text-xs bg-slate-100 rounded px-1">always_comb</code> + default + <code class="text-xs bg-slate-100 rounded px-1">case</code></td><td class="px-4 py-3">Cổng logic (AND/OR/MUX)</td></tr>
+        <tr><td class="px-4 py-3 font-bold text-slate-800">Output logic (Moore)</td><td class="px-4 py-3">state</td><td class="px-4 py-3">detected, tín hiệu điều khiển</td><td class="px-4 py-3">Tổ hợp</td><td class="px-4 py-3 text-slate-400 font-bold">Không</td><td class="px-4 py-3 text-slate-400 font-bold">Không</td><td class="px-4 py-3"><code class="text-xs bg-slate-100 rounded px-1">always_comb</code> + default</td><td class="px-4 py-3">Cổng so sánh state (decoder nhỏ)</td></tr>
+        <tr class="bg-slate-50/60"><td class="px-4 py-3 font-bold text-slate-500">Datapath đi kèm (VD: timer)</td><td class="px-4 py-3 text-slate-500">lệnh từ FSM (en, clear)</td><td class="px-4 py-3 text-slate-500">done, count</td><td class="px-4 py-3 text-slate-500">Tuần tự + tổ hợp</td><td class="px-4 py-3 text-slate-500 font-bold">Có</td><td class="px-4 py-3 text-slate-500 font-bold">Có</td><td class="px-4 py-3 text-slate-500">counter tuần 5</td><td class="px-4 py-3 text-slate-500">FF + adder</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="grid md:grid-cols-3 gap-4 mt-4 text-sm">
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5"><p class="font-bold text-slate-800 mb-1"><i class="fa-solid fa-clock text-primary mr-1.5"></i>Clock của FSM</p><p>Một clock chung cho state register và toàn datapath. Transition chỉ "ăn" tại cạnh lên — input đến giữa chu kỳ phải chờ.</p></div>
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5"><p class="font-bold text-slate-800 mb-1"><i class="fa-solid fa-rotate-left text-secondary mr-1.5"></i>Reset của FSM</p><p>Reset đưa state register về <strong>trạng thái khởi đầu xác định</strong> (S0/IDLE). Quên reset → sau bật nguồn FSM có thể "tỉnh dậy" ở trạng thái bất kỳ, thậm chí tổ hợp bit không thuộc state nào.</p></div>
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5"><p class="font-bold text-slate-800 mb-1"><i class="fa-solid fa-microchip text-accent mr-1.5"></i>Sau synthesis</p><p>4 state mã hóa nhị phân → 2 FF; công cụ có thể chọn one-hot (4 FF, mỗi state 1 FF) để chạy nhanh hơn trên FPGA. Next-state/output → thuần cổng logic.</p></div>
+  </div>
+</section>
+<!-- ============ 06. INTERACTIVE DEMO ============ -->
+<section id="demo">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center text-lg"><i class="fa-solid fa-flask"></i></div>
+    <div><p class="text-[11px] font-bold text-primary uppercase tracking-widest">Section 06</p><h2 class="text-2xl font-bold text-slate-900">Interactive Demo — FSM phát hiện chuỗi "101" (Moore)</h2></div>
+  </div>
+
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-6">
+    <p class="text-sm text-slate-500 mb-4">Mỗi lần nhấn <strong>Nhập bit 0/1</strong> = đặt bit đó vào input <code class="bg-slate-100 rounded px-1">din</code> và tạo <strong>một cạnh lên clock</strong>: FSM lấy mẫu input và chuyển trạng thái. Hãy nhập chuỗi <strong>1, 0, 1</strong> và nhìn trạng thái chạy S0 → S1 → S2 → S3. Thử tiếp <strong>0, 1</strong> để thấy phát hiện chồng lấp (10101 chứa hai lần "101").</p>
+    <div class="flex flex-wrap items-center gap-3 mb-5">
+      <button id="fsm-btn-0" type="button" class="sig-btn"><i class="fa-solid fa-arrow-down mr-1"></i>Nhập bit 0</button>
+      <button id="fsm-btn-1" type="button" class="sig-btn"><i class="fa-solid fa-arrow-up mr-1"></i>Nhập bit 1</button>
+      <button id="fsm-rst" type="button" class="px-4 py-2.5 rounded-xl bg-danger/10 text-danger border border-red-200 font-bold text-sm hover:bg-danger hover:text-white transition"><i class="fa-solid fa-rotate-left mr-1.5"></i>Reset (về S0)</button>
+      <div class="ml-auto flex items-center gap-3 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2">
+        <span class="text-xs font-bold text-slate-500 uppercase">Trạng thái</span>
+        <span id="fsm-state-name" class="font-mono font-extrabold text-2xl text-primary">S0</span>
+        <span class="text-xs font-bold text-slate-500 uppercase ml-3">Số lần phát hiện</span>
+        <span id="fsm-detect-count" class="font-mono font-extrabold text-2xl text-emerald-600">0</span>
+      </div>
+    </div>
+
+    <div id="fsm-banner" class="hidden mb-4 bg-emerald-500 text-white font-bold text-center rounded-xl py-2.5 text-sm"><i class="fa-solid fa-circle-check mr-1.5"></i>PHÁT HIỆN "101"! FSM đang ở S3 — detected = 1 trong trọn chu kỳ này.</div>
+
+    <div class="overflow-x-auto mb-5">
+      <svg viewBox="0 0 760 320" xmlns="http://www.w3.org/2000/svg" class="min-w-[680px] w-full" role="img" aria-label="Sơ đồ trạng thái FSM 101">
+        <defs>
+          <marker id="arrG" markerWidth="9" markerHeight="9" refX="7.5" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#64748b"/></marker>
+          <marker id="arrA" markerWidth="9" markerHeight="9" refX="7.5" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#f59e0b"/></marker>
+        </defs>
+        <!-- reset pointer -->
+        <line x1="30" y1="90" x2="70" y2="126" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrG)"/>
+        <text x="16" y="80" class="svg-mono" font-size="10" fill="#64748b">reset</text>
+        <!-- edges: forward -->
+        <path id="ed-S0-1" d="M134,141 Q190,112 246,141" fill="none" stroke="#64748b" stroke-width="2.5" marker-end="url(#arrG)"/>
+        <text x="190" y="106" text-anchor="middle" class="svg-mono" font-size="13" font-weight="700" fill="#334155">1</text>
+        <path id="ed-S1-0" d="M314,141 Q370,112 426,141" fill="none" stroke="#64748b" stroke-width="2.5" marker-end="url(#arrG)"/>
+        <text x="370" y="106" text-anchor="middle" class="svg-mono" font-size="13" font-weight="700" fill="#334155">0</text>
+        <path id="ed-S2-1" d="M494,141 Q550,112 606,141" fill="none" stroke="#64748b" stroke-width="2.5" marker-end="url(#arrG)"/>
+        <text x="550" y="106" text-anchor="middle" class="svg-mono" font-size="13" font-weight="700" fill="#334155">1</text>
+        <!-- self loops -->
+        <path id="ed-S0-0" d="M88,119 C68,66 132,66 112,119" fill="none" stroke="#64748b" stroke-width="2.5" marker-end="url(#arrG)"/>
+        <text x="100" y="56" text-anchor="middle" class="svg-mono" font-size="13" font-weight="700" fill="#334155">0</text>
+        <path id="ed-S1-1" d="M268,119 C248,66 312,66 292,119" fill="none" stroke="#64748b" stroke-width="2.5" marker-end="url(#arrG)"/>
+        <text x="280" y="56" text-anchor="middle" class="svg-mono" font-size="13" font-weight="700" fill="#334155">1</text>
+        <!-- back edges -->
+        <path id="ed-S3-0" d="M626,178 Q550,238 482,172" fill="none" stroke="#64748b" stroke-width="2.5" marker-end="url(#arrG)"/>
+        <text x="556" y="230" text-anchor="middle" class="svg-mono" font-size="13" font-weight="700" fill="#334155">0</text>
+        <path id="ed-S2-0" d="M440,178 Q280,258 122,172" fill="none" stroke="#64748b" stroke-width="2.5" marker-end="url(#arrG)"/>
+        <text x="280" y="242" text-anchor="middle" class="svg-mono" font-size="13" font-weight="700" fill="#334155">0</text>
+        <path id="ed-S3-1" d="M650,186 Q466,320 300,180" fill="none" stroke="#64748b" stroke-width="2.5" marker-end="url(#arrG)"/>
+        <text x="474" y="272" text-anchor="middle" class="svg-mono" font-size="13" font-weight="700" fill="#334155">1</text>
+        <!-- states -->
+        <circle id="st-S0" cx="100" cy="150" r="32" fill="#ffffff" stroke="#94a3b8" stroke-width="2.5"/>
+        <text id="tx-S0" x="100" y="148" text-anchor="middle" class="svg-mono" font-size="15" font-weight="800" fill="#334155">S0</text>
+        <text x="100" y="164" text-anchor="middle" font-size="8.5" fill="#64748b">chưa khớp</text>
+        <circle id="st-S1" cx="280" cy="150" r="32" fill="#ffffff" stroke="#94a3b8" stroke-width="2.5"/>
+        <text id="tx-S1" x="280" y="148" text-anchor="middle" class="svg-mono" font-size="15" font-weight="800" fill="#334155">S1</text>
+        <text x="280" y="164" text-anchor="middle" font-size="8.5" fill="#64748b">đã thấy "1"</text>
+        <circle id="st-S2" cx="460" cy="150" r="32" fill="#ffffff" stroke="#94a3b8" stroke-width="2.5"/>
+        <text id="tx-S2" x="460" y="148" text-anchor="middle" class="svg-mono" font-size="15" font-weight="800" fill="#334155">S2</text>
+        <text x="460" y="164" text-anchor="middle" font-size="8.5" fill="#64748b">đã thấy "10"</text>
+        <circle cx="640" cy="150" r="38" fill="none" stroke="#94a3b8" stroke-width="1.5" id="st-S3-ring"/>
+        <circle id="st-S3" cx="640" cy="150" r="32" fill="#ffffff" stroke="#94a3b8" stroke-width="2.5"/>
+        <text id="tx-S3" x="640" y="148" text-anchor="middle" class="svg-mono" font-size="15" font-weight="800" fill="#334155">S3</text>
+        <text x="640" y="164" text-anchor="middle" font-size="8.5" fill="#64748b">"101" ✓ out=1</text>
+      </svg>
+    </div>
+
+    <div class="grid lg:grid-cols-2 gap-5">
+      <div>
+        <h3 class="font-bold text-slate-800 text-sm uppercase tracking-wide mb-2"><i class="fa-solid fa-table-list text-primary mr-1.5"></i>Transition table (hàng sáng = state hiện tại)</h3>
+        <div class="overflow-x-auto rounded-xl border border-slate-200">
+          <table class="w-full text-sm text-center min-w-[430px]">
+            <thead class="bg-slate-50 text-xs uppercase text-slate-600"><tr><th class="px-3 py-2 text-left">State</th><th class="px-3 py-2">din = 0 →</th><th class="px-3 py-2">din = 1 →</th><th class="px-3 py-2">Output (Moore)</th></tr></thead>
+            <tbody class="divide-y divide-slate-100 font-mono">
+              <tr id="tr-S0"><td class="px-3 py-2 text-left font-bold">S0</td><td class="px-3 py-2" id="cell-S0-0">S0</td><td class="px-3 py-2" id="cell-S0-1">S1</td><td class="px-3 py-2">0</td></tr>
+              <tr id="tr-S1"><td class="px-3 py-2 text-left font-bold">S1</td><td class="px-3 py-2" id="cell-S1-0">S2</td><td class="px-3 py-2" id="cell-S1-1">S1</td><td class="px-3 py-2">0</td></tr>
+              <tr id="tr-S2"><td class="px-3 py-2 text-left font-bold">S2</td><td class="px-3 py-2" id="cell-S2-0">S0</td><td class="px-3 py-2" id="cell-S2-1">S3</td><td class="px-3 py-2">0</td></tr>
+              <tr id="tr-S3"><td class="px-3 py-2 text-left font-bold">S3</td><td class="px-3 py-2" id="cell-S3-0">S2</td><td class="px-3 py-2" id="cell-S3-1">S1</td><td class="px-3 py-2 font-bold text-emerald-600">1</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="text-xs text-slate-500 mt-2">Ô vàng = transition vừa dùng. Bảng này chính là "bảng chân lý" mà next-state logic sẽ hiện thực.</p>
+      </div>
+      <div>
+        <h3 class="font-bold text-slate-800 text-sm uppercase tracking-wide mb-2"><i class="fa-solid fa-clock-rotate-left text-primary mr-1.5"></i>Dòng bit đã nhập &amp; output</h3>
+        <div id="fsm-history" class="flex flex-wrap gap-1.5 min-h-[38px] bg-slate-50 border border-slate-200 rounded-xl p-2.5 mb-3"><span class="text-xs text-slate-400 self-center">— chưa nhập bit nào —</span></div>
+        <p id="fsm-msg" class="text-sm bg-blue-50 border border-blue-200 text-slate-700 rounded-xl p-3 leading-relaxed min-h-[3.4rem]"><i class="fa-solid fa-circle-info text-primary mr-1"></i>FSM đang ở S0 sau reset. Nhập chuỗi 1, 0, 1 để xem đường đi tới S3.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Moore vs Mealy mini comparison -->
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+    <h3 class="font-bold text-slate-900 mb-1"><i class="fa-solid fa-scale-balanced text-secondary mr-1.5"></i>So sánh nhanh: cùng bộ phát hiện "101" — Moore vs Mealy</h3>
+    <p class="text-sm text-slate-500 mb-4">Hai đèn dưới đây được tính từ cùng demo phía trên. Chú ý <strong>thời điểm</strong> mỗi đèn sáng khi bạn nhập bit 1 lúc đang ở S2:</p>
+    <div class="grid md:grid-cols-2 gap-4 mb-4">
+      <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 flex items-center gap-4">
+        <div id="moore-led" class="led shrink-0"></div>
+        <div class="text-sm"><p class="font-bold text-slate-800">Moore: detected = f(state)</p><p id="moore-txt" class="text-xs text-slate-500">Sáng khi FSM <strong>đã vào S3</strong> — tức là ở chu kỳ SAU cạnh clock chốt bit 1 cuối. Ổn định trọn 1 chu kỳ.</p></div>
+      </div>
+      <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 flex items-center gap-4">
+        <div id="mealy-led" class="led shrink-0"></div>
+        <div class="text-sm"><p class="font-bold text-slate-800">Mealy: detected = f(state, input)</p><p id="mealy-txt" class="text-xs text-slate-500">Sáng NGAY trong chu kỳ đang ở S2 và din = 1 — <strong>trước</strong> cạnh clock, sớm hơn Moore ~1 chu kỳ; và có thể tắt/bật theo input trong chu kỳ.</p></div>
+      </div>
+    </div>
+    <div class="overflow-x-auto rounded-xl border border-slate-200">
+      <table class="w-full text-sm min-w-[560px]">
+        <thead class="bg-slate-50 text-xs uppercase text-slate-600"><tr><th class="px-3 py-2 text-left">Tiêu chí</th><th class="px-3 py-2 text-left">Moore</th><th class="px-3 py-2 text-left">Mealy</th></tr></thead>
+        <tbody class="divide-y divide-slate-100">
+          <tr><td class="px-3 py-2 font-semibold">Output phụ thuộc</td><td class="px-3 py-2">Chỉ state hiện tại</td><td class="px-3 py-2">State + input hiện tại</td></tr>
+          <tr><td class="px-3 py-2 font-semibold">Thời điểm output</td><td class="px-3 py-2">Sau cạnh clock (chu kỳ ở state đích)</td><td class="px-3 py-2">Ngay trong chu kỳ, sớm hơn ~1 chu kỳ</td></tr>
+          <tr><td class="px-3 py-2 font-semibold">Số state (detector "101")</td><td class="px-3 py-2">4 (cần S3 riêng cho output = 1)</td><td class="px-3 py-2">3 (output gắn trên cung S2 --1--&gt; )</td></tr>
+          <tr><td class="px-3 py-2 font-semibold">Độ sạch output</td><td class="px-3 py-2 text-emerald-700">Ổn định, không glitch theo input</td><td class="px-3 py-2 text-amber-600">Có thể thay đổi giữa chu kỳ theo input</td></tr>
+          <tr><td class="px-3 py-2 font-semibold">Khuyến nghị nhập môn</td><td class="px-3 py-2 text-emerald-700 font-bold">Ưu tiên dùng</td><td class="px-3 py-2">Dùng khi cần phản hồi cùng chu kỳ</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 07. ENGINEERING WORKFLOW ============ -->
+<section id="workflow">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center text-lg"><i class="fa-solid fa-diagram-next"></i></div>
+    <div><p class="text-[11px] font-bold text-primary uppercase tracking-widest">Section 07</p><h2 class="text-2xl font-bold text-slate-900">Engineering Workflow — Quy trình thiết kế một FSM</h2></div>
+  </div>
+  <p class="text-sm text-slate-500 mb-5 max-w-3xl">Kỹ sư giỏi <strong>không mở editor trước</strong>. Code Verilog là bước thứ 6, sau khi mô hình đã chặt chẽ trên giấy:</p>
+  <div class="space-y-3">
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex gap-4 items-start"><span class="step-dot bg-primary text-white">1</span><div class="text-sm"><p class="font-bold text-slate-800">Requirement — Mô tả bài toán bằng lời</p><p>"Nhận mỗi chu kỳ 1 bit; báo detected = 1 khi 3 bit gần nhất là 101; cho phép chồng lấp; có reset." Rõ ràng từng chữ trước khi vẽ.</p></div></div>
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex gap-4 items-start"><span class="step-dot bg-primary text-white">2</span><div class="text-sm"><p class="font-bold text-slate-800">Xác định Input / Output</p><p>Input: <code class="bg-slate-100 rounded px-1">clk</code>, <code class="bg-slate-100 rounded px-1">rst_n</code>, <code class="bg-slate-100 rounded px-1">din</code>. Output: <code class="bg-slate-100 rounded px-1">detected</code>. Chọn kiểu máy: Moore (output sạch, dễ debug).</p></div></div>
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex gap-4 items-start"><span class="step-dot bg-primary text-white">3</span><div class="text-sm"><p class="font-bold text-slate-800">Liệt kê state + ý nghĩa</p><p>Mỗi state một câu ý nghĩa: S0 "chưa khớp", S1 "đã thấy 1", S2 "đã thấy 10", S3 "vừa thấy 101". Không đặt tên vô nghĩa kiểu A/B/C — ý nghĩa rõ thì transition tự hiện ra.</p></div></div>
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex gap-4 items-start"><span class="step-dot bg-primary text-white">4</span><div class="text-sm"><p class="font-bold text-slate-800">Vẽ state diagram + lập transition table</p><p>Từ mỗi state phải có lối đi cho <strong>cả din = 0 lẫn din = 1</strong> (bảng ở Section 06). Kiểm tra chéo: tổng số mũi tên = số state × số giá trị input.</p></div></div>
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex gap-4 items-start"><span class="step-dot bg-primary text-white">5</span><div class="text-sm"><p class="font-bold text-slate-800">Định nghĩa output theo state (Moore)</p><p>Bảng output: chỉ S3 cho detected = 1. Nếu thấy output cần phụ thuộc input → cân nhắc Mealy, và hiểu rõ hệ quả timing.</p></div></div>
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex gap-4 items-start"><span class="step-dot bg-primary text-white">6</span><div class="text-sm"><p class="font-bold text-slate-800">Viết RTL theo khuôn 3 khối</p><p>typedef enum đặt tên state → always_ff cho state register → always_comb cho next-state → always_comb cho output. Xem Section 08.</p></div></div>
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex gap-4 items-start"><span class="step-dot bg-primary text-white">7</span><div class="text-sm"><p class="font-bold text-slate-800">Testbench &amp; Simulation</p><p>Bơm chuỗi bit có cả trường hợp trúng (…101…), trượt (…100…), chồng lấp (10101). So waveform với transition table từng cạnh clock một.</p></div></div>
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex gap-4 items-start"><span class="step-dot bg-accent text-white">8</span><div class="text-sm"><p class="font-bold text-slate-800">Synthesis → FPGA</p><p>Kiểm tra báo cáo: số FF của state register (2 FF nhị phân hoặc 4 FF one-hot), không latch nào bị suy diễn (inferred). Nạp bitstream, gắn din vào nút bấm, detected ra LED.</p></div></div>
+  </div>
+</section>
+<!-- ============ 08. CODE / RTL ============ -->
+<section id="code-rtl">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center text-lg"><i class="fa-solid fa-code"></i></div>
+    <div><p class="text-[11px] font-bold text-primary uppercase tracking-widest">Section 08</p><h2 class="text-2xl font-bold text-slate-900">Code / RTL — Khuôn FSM 3 khối chuẩn SystemVerilog</h2></div>
+  </div>
+  <p class="text-sm text-slate-500 mb-5 max-w-3xl">Khuôn mẫu quan trọng nhất tuần này: <strong>1 typedef enum + 3 khối always</strong>. Học thuộc khuôn này — FSM đèn giao thông (tuần 9), FSM UART (tuần 11) và mọi FSM trong sự nghiệp đều là biến thể của nó.</p>
+
+  <div class="code-window bg-dark rounded-2xl overflow-hidden shadow-lg mb-4">
+    <div class="flex items-center justify-between px-4 py-2.5 bg-slate-800/80 border-b border-slate-700">
+      <span class="text-xs font-mono text-slate-300"><i class="fa-solid fa-file-code mr-2"></i>seq_detector_101.sv — Moore, cho phép chồng lấp</span>
+      <button type="button" class="copy-btn text-xs font-semibold border border-slate-600 text-slate-200 rounded-lg px-3 py-1 hover:bg-slate-700" data-copy="code-fsm">Copy</button>
+    </div>
+    <pre><code id="code-fsm"><span class="kw">module</span> <span class="fn">seq_detector_101</span> (
+  <span class="kw">input</span>  <span class="ty">logic</span> clk,       <span class="cm">// clock hệ thống — mọi FF cùng dùng</span>
+  <span class="kw">input</span>  <span class="ty">logic</span> rst_n,     <span class="cm">// reset bất đồng bộ, tích cực mức thấp</span>
+  <span class="kw">input</span>  <span class="ty">logic</span> din,       <span class="cm">// dòng bit vào: 1 bit mỗi chu kỳ clock</span>
+  <span class="kw">output</span> <span class="ty">logic</span> detected   <span class="cm">// = 1 khi 3 bit gần nhất là "101" (Moore)</span>
+);
+
+  <span class="cm">// ---- Đặt tên trạng thái bằng typedef enum: 4 state → 2 bit → 2 FF ----</span>
+  <span class="cm">// Tên có nghĩa (không phải 00/01/10/11 trần trụi) → code tự tài liệu hóa</span>
+  <span class="kw">typedef enum</span> <span class="ty">logic</span> [<span class="nb">1</span>:<span class="nb">0</span>] {
+    S0 = <span class="nb">2'd0</span>,   <span class="cm">// chưa khớp gì</span>
+    S1 = <span class="nb">2'd1</span>,   <span class="cm">// đã thấy "1"</span>
+    S2 = <span class="nb">2'd2</span>,   <span class="cm">// đã thấy "10"</span>
+    S3 = <span class="nb">2'd3</span>    <span class="cm">// vừa thấy "101" → detected = 1</span>
+  } state_t;
+
+  state_t state, next_state;
+
+  <span class="cm">// ==== KHỐI 1: STATE REGISTER — tuần tự, always_ff + non-blocking &lt;= ====</span>
+  <span class="cm">// RESET LÀ BẮT BUỘC: sau bật nguồn FF có giá trị ngẫu nhiên;</span>
+  <span class="cm">// không reset thì FSM "tỉnh dậy" ở trạng thái vô định — lỗi kinh điển!</span>
+  <span class="kw">always_ff</span> @(<span class="kw">posedge</span> clk <span class="kw">or negedge</span> rst_n) <span class="kw">begin</span>
+    <span class="kw">if</span> (!rst_n) state &lt;= S0;          <span class="cm">// về trạng thái khởi đầu xác định</span>
+    <span class="kw">else</span>        state &lt;= next_state;  <span class="cm">// chuyển trạng thái TẠI cạnh lên clock</span>
+  <span class="kw">end</span>
+
+  <span class="cm">// ==== KHỐI 2: NEXT-STATE LOGIC — tổ hợp, always_comb + blocking = ====</span>
+  <span class="cm">// Gán default next_state = state TRƯỚC case: mọi nhánh bỏ sót đều có</span>
+  <span class="cm">// giá trị → công cụ synthesis KHÔNG suy diễn ra latch ngoài ý muốn.</span>
+  <span class="kw">always_comb begin</span>
+    next_state = state;                 <span class="cm">// default: đứng yên</span>
+    <span class="kw">case</span> (state)
+      S0: next_state = din ? S1 : S0;   <span class="cm">// thấy "1" đầu tiên thì tiến</span>
+      S1: next_state = din ? S1 : S2;   <span class="cm">// "11" vẫn coi như đã thấy "1"</span>
+      S2: next_state = din ? S3 : S0;   <span class="cm">// "101" đủ bộ → S3; "100" → về S0</span>
+      S3: next_state = din ? S1 : S2;   <span class="cm">// chồng lấp: bit "1" cuối tái dùng</span>
+      <span class="kw">default</span>: next_state = S0;        <span class="cm">// state lỗi → kéo về khởi đầu</span>
+    <span class="kw">endcase</span>
+  <span class="kw">end</span>
+
+  <span class="cm">// ==== KHỐI 3: OUTPUT LOGIC kiểu Moore — tổ hợp, chỉ nhìn state ====</span>
+  <span class="kw">always_comb begin</span>
+    detected = <span class="nb">1'b0</span>;                  <span class="cm">// default an toàn: mặc định là 0</span>
+    <span class="kw">if</span> (state == S3) detected = <span class="nb">1'b1</span>; <span class="cm">// duy nhất S3 bật output</span>
+  <span class="kw">end</span>
+
+<span class="kw">endmodule</span></code></pre>
+  </div>
+
+  <div class="grid md:grid-cols-3 gap-3 text-sm mb-6">
+    <div class="bg-blue-50 border border-blue-200 rounded-xl p-4"><p class="font-bold text-blue-800 mb-1"><i class="fa-solid fa-microchip mr-1"></i>Khối 1 synthesis ra gì?</p><p>2 Flip-Flop (state 2 bit, mã hóa nhị phân) có reset bất đồng bộ. Nếu công cụ chọn one-hot cho FPGA: 4 FF, mỗi state một FF. Đây là phần <strong>tuần tự</strong> duy nhất của FSM.</p></div>
+    <div class="bg-blue-50 border border-blue-200 rounded-xl p-4"><p class="font-bold text-blue-800 mb-1"><i class="fa-solid fa-diagram-project mr-1"></i>Khối 2 synthesis ra gì?</p><p>Thuần <strong>cổng logic tổ hợp</strong> (AND/OR/MUX hoặc vài LUT): từ 2 bit state + 1 bit din tính ra 2 bit next_state — chính là hiện thực của transition table ở Section 06.</p></div>
+    <div class="bg-blue-50 border border-blue-200 rounded-xl p-4"><p class="font-bold text-blue-800 mb-1"><i class="fa-solid fa-lightbulb mr-1"></i>Khối 3 synthesis ra gì?</p><p>Một <strong>comparator nhỏ</strong> (decoder so sánh state == S3) — tổ hợp. Vì là Moore, detected chỉ đổi ngay sau cạnh clock (cộng propagation delay), ổn định trọn chu kỳ.</p></div>
+  </div>
+
+  <div class="grid lg:grid-cols-2 gap-4 mb-4">
+    <div class="code-window bg-dark rounded-2xl overflow-hidden shadow-lg">
+      <div class="flex items-center justify-between px-4 py-2.5 bg-slate-800/80 border-b border-slate-700">
+        <span class="text-xs font-mono text-slate-300"><i class="fa-solid fa-code-compare mr-2"></i>Biến thể Mealy — chỉ đổi khối output</span>
+        <button type="button" class="copy-btn text-xs font-semibold border border-slate-600 text-slate-200 rounded-lg px-3 py-1 hover:bg-slate-700" data-copy="code-mealy">Copy</button>
+      </div>
+      <pre><code id="code-mealy"><span class="cm">// Mealy: output = f(state, input) — nhìn CẢ din</span>
+<span class="cm">// Báo NGAY trong chu kỳ đang ở S2 mà din = 1,</span>
+<span class="cm">// sớm hơn Moore ~1 chu kỳ nhưng có thể đổi giữa chu kỳ.</span>
+<span class="kw">always_comb begin</span>
+  detected_mealy = <span class="nb">1'b0</span>;              <span class="cm">// default tránh latch</span>
+  <span class="kw">if</span> (state == S2 &amp;&amp; din == <span class="nb">1'b1</span>)
+    detected_mealy = <span class="nb">1'b1</span>;
+<span class="kw">end</span>
+<span class="cm">// Lưu ý: máy Mealy đầy đủ chỉ cần 3 state (S0,S1,S2),</span>
+<span class="cm">// vì "phát hiện" nằm trên CUNG chuyển S2 --din=1--&gt; chứ</span>
+<span class="cm">// không cần state S3 riêng như Moore.</span></code></pre>
+    </div>
+    <div class="code-window bg-dark rounded-2xl overflow-hidden shadow-lg">
+      <div class="flex items-center justify-between px-4 py-2.5 bg-slate-800/80 border-b border-slate-700">
+        <span class="text-xs font-mono text-slate-300"><i class="fa-solid fa-vial mr-2"></i>tb_seq_detector.sv — khung testbench</span>
+        <button type="button" class="copy-btn text-xs font-semibold border border-slate-600 text-slate-200 rounded-lg px-3 py-1 hover:bg-slate-700" data-copy="code-tb">Copy</button>
+      </div>
+      <pre><code id="code-tb"><span class="kw">module</span> <span class="fn">tb_seq_detector</span>;
+  <span class="ty">logic</span> clk = <span class="nb">1'b0</span>, rst_n, din;
+  <span class="ty">logic</span> detected;
+
+  <span class="fn">seq_detector_101</span> dut (.clk, .rst_n, .din, .detected);
+
+  <span class="kw">always</span> #<span class="nb">5</span> clk = ~clk;   <span class="cm">// chu kỳ 10 ns</span>
+
+  <span class="cm">// đặt din rồi chờ đúng 1 cạnh lên clock</span>
+  <span class="kw">task automatic</span> <span class="fn">send_bit</span>(<span class="kw">input</span> <span class="ty">logic</span> b);
+    din = b; @(<span class="kw">posedge</span> clk);
+  <span class="kw">endtask</span>
+
+  <span class="kw">initial begin</span>
+    rst_n = <span class="nb">0</span>; din = <span class="nb">0</span>;
+    <span class="kw">repeat</span> (<span class="nb">2</span>) @(<span class="kw">posedge</span> clk);
+    rst_n = <span class="nb">1</span>;
+    <span class="cm">// 1,0,1,0,1 → kỳ vọng detect 2 lần (chồng lấp)</span>
+    <span class="fn">send_bit</span>(<span class="nb">1</span>); <span class="fn">send_bit</span>(<span class="nb">0</span>); <span class="fn">send_bit</span>(<span class="nb">1</span>);
+    <span class="fn">send_bit</span>(<span class="nb">0</span>); <span class="fn">send_bit</span>(<span class="nb">1</span>);
+    <span class="kw">repeat</span> (<span class="nb">2</span>) @(<span class="kw">posedge</span> clk);
+    <span class="fn">$finish</span>;
+  <span class="kw">end</span>
+
+  <span class="kw">initial</span> <span class="fn">$monitor</span>(<span class="cm">"t=%0t state=%s din=%b det=%b"</span>,
+    $time, dut.state.name(), din, detected);
+<span class="kw">endmodule</span></code></pre>
+    </div>
+  </div>
+  <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm"><i class="fa-solid fa-graduation-cap text-secondary mr-2"></i><strong>Vì sao phải đúng khuôn 3 khối?</strong> Tách bạch giúp: (1) đọc code là thấy ngay state diagram; (2) công cụ synthesis nhận dạng FSM và tối ưu mã hóa state; (3) debug dễ — lỗi transition nằm chắc chắn trong khối 2, lỗi output nằm trong khối 3. Trộn tất cả vào một khối always là nguồn lỗi số một của người mới.</div>
+</section>
+
+<!-- ============ 09. WAVEFORM / TIMING ============ -->
+<section id="waveform">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center text-lg"><i class="fa-solid fa-wave-square"></i></div>
+    <div><p class="text-[11px] font-bold text-primary uppercase tracking-widest">Section 09</p><h2 class="text-2xl font-bold text-slate-900">Waveform / Timing — Moore vs Mealy trên trục thời gian</h2></div>
+  </div>
+  <p class="text-sm text-slate-500 mb-4 max-w-3xl">Chuỗi bit vào: <span class="font-mono font-bold">1, 0, 1, 0, 1</span> (chồng lấp: chứa "101" hai lần). Mỗi cạnh lên clock (đường đứt nét) FSM lấy mẫu <code class="bg-slate-100 rounded px-1">din</code> và nạp next_state. Chú ý: state và output đổi <strong>sau cạnh một khoảng trễ nhỏ</strong> (t<sub>CQ</sub> + delay logic) — không bao giờ "ngay lập tức".</p>
+
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 overflow-x-auto mb-4">
+    <svg viewBox="0 0 830 400" xmlns="http://www.w3.org/2000/svg" class="min-w-[760px] w-full" role="img" aria-label="Waveform Moore vs Mealy cho chuỗi 10101">
+      <!-- cycle labels + edge lines -->
+      <g class="svg-mono" font-size="10" fill="#64748b">
+        <text x="165" y="18" text-anchor="middle">C0 (din=1)</text>
+        <text x="275" y="18" text-anchor="middle">C1 (din=0)</text>
+        <text x="385" y="18" text-anchor="middle">C2 (din=1)</text>
+        <text x="495" y="18" text-anchor="middle">C3 (din=0)</text>
+        <text x="605" y="18" text-anchor="middle">C4 (din=1)</text>
+        <text x="715" y="18" text-anchor="middle">C5</text>
+      </g>
+      <g stroke="#cbd5e1" stroke-width="1" stroke-dasharray="4 4">
+        <line x1="110" y1="26" x2="110" y2="368"/><line x1="220" y1="26" x2="220" y2="368"/>
+        <line x1="330" y1="26" x2="330" y2="368"/><line x1="440" y1="26" x2="440" y2="368"/>
+        <line x1="550" y1="26" x2="550" y2="368"/><line x1="660" y1="26" x2="660" y2="368"/>
+        <line x1="770" y1="26" x2="770" y2="368"/>
+      </g>
+      <!-- clk -->
+      <text x="98" y="52" text-anchor="end" class="svg-mono" font-size="12" font-weight="700" fill="#334155">clk</text>
+      <path class="wave-sig" stroke="#2563eb" d="M110,62 V34 H165 V62 H220 V34 H275 V62 H330 V34 H385 V62 H440 V34 H495 V62 H550 V34 H605 V62 H660 V34 H715 V62 H770"/>
+      <path d="M104,46 L110,38 L116,46" fill="none" stroke="#2563eb" stroke-width="1.5"/>
+      <!-- din -->
+      <text x="98" y="112" text-anchor="end" class="svg-mono" font-size="12" font-weight="700" fill="#334155">din</text>
+      <path class="wave-sig" stroke="#f59e0b" d="M110,94 H220 V122 H330 V94 H440 V122 H550 V94 H660 V122 H770"/>
+      <text x="165" y="88" text-anchor="middle" class="svg-mono" font-size="10" fill="#b45309">1</text>
+      <text x="275" y="118" text-anchor="middle" class="svg-mono" font-size="10" fill="#b45309">0</text>
+      <text x="385" y="88" text-anchor="middle" class="svg-mono" font-size="10" fill="#b45309">1</text>
+      <text x="495" y="118" text-anchor="middle" class="svg-mono" font-size="10" fill="#b45309">0</text>
+      <text x="605" y="88" text-anchor="middle" class="svg-mono" font-size="10" fill="#b45309">1</text>
+      <!-- state bus -->
+      <text x="98" y="172" text-anchor="end" class="svg-mono" font-size="12" font-weight="700" fill="#334155">state</text>
+      <g class="svg-mono" font-size="11" font-weight="700">
+        <path d="M110,154 H218 L228,168 L218,182 H110 Z" fill="#f1f5f9" stroke="#64748b" stroke-width="1.5"/>
+        <text x="167" y="172" text-anchor="middle" fill="#334155">S0</text>
+        <path d="M228,154 H328 L338,168 L328,182 H238 L228,168 Z" fill="#e0e7ff" stroke="#6366f1" stroke-width="1.5" transform="translate(0,0)"/>
+        <text x="281" y="172" text-anchor="middle" fill="#3730a3">S1</text>
+        <path d="M338,154 H438 L448,168 L438,182 H348 L338,168 Z" fill="#e0e7ff" stroke="#6366f1" stroke-width="1.5"/>
+        <text x="391" y="172" text-anchor="middle" fill="#3730a3">S2</text>
+        <path d="M448,154 H548 L558,168 L548,182 H458 L448,168 Z" fill="#d1fae5" stroke="#10b981" stroke-width="1.5"/>
+        <text x="501" y="172" text-anchor="middle" fill="#047857">S3</text>
+        <path d="M558,154 H658 L668,168 L658,182 H568 L558,168 Z" fill="#e0e7ff" stroke="#6366f1" stroke-width="1.5"/>
+        <text x="611" y="172" text-anchor="middle" fill="#3730a3">S2</text>
+        <path d="M668,154 H760 L770,168 L760,182 H678 L668,168 Z" fill="#d1fae5" stroke="#10b981" stroke-width="1.5"/>
+        <text x="717" y="172" text-anchor="middle" fill="#047857">S3</text>
+      </g>
+      <text x="228" y="198" class="svg-mono" font-size="9" fill="#94a3b8">↖ state đổi SAU cạnh (trễ t_CQ)</text>
+      <!-- Moore -->
+      <text x="98" y="248" text-anchor="end" class="svg-mono" font-size="12" font-weight="700" fill="#334155">detected</text>
+      <text x="98" y="261" text-anchor="end" class="svg-mono" font-size="10" fill="#10b981">(Moore)</text>
+      <path class="wave-sig" stroke="#10b981" d="M110,266 H448 V238 H558 V266 H668 V238 H770"/>
+      <text x="503" y="232" text-anchor="middle" class="svg-mono" font-size="10" font-weight="700" fill="#047857">C3: sau khi VÀO S3</text>
+      <text x="719" y="232" text-anchor="middle" class="svg-mono" font-size="10" font-weight="700" fill="#047857">C5</text>
+      <!-- Mealy -->
+      <text x="98" y="318" text-anchor="end" class="svg-mono" font-size="12" font-weight="700" fill="#334155">detected</text>
+      <text x="98" y="331" text-anchor="end" class="svg-mono" font-size="10" fill="#f59e0b">(Mealy)</text>
+      <path class="wave-sig" stroke="#f59e0b" d="M110,336 H332 V308 H440 V336 H552 V308 H660 V336 H770"/>
+      <text x="386" y="302" text-anchor="middle" class="svg-mono" font-size="10" font-weight="700" fill="#b45309">C2: NGAY khi ở S2 &amp; din=1</text>
+      <text x="606" y="302" text-anchor="middle" class="svg-mono" font-size="10" font-weight="700" fill="#b45309">C4</text>
+      <!-- delta arrow -->
+      <path d="M440,352 H552" stroke="#ef4444" stroke-width="1.5" marker-end="url(#arrG)"/>
+      <text x="496" y="366" text-anchor="middle" class="svg-mono" font-size="10" font-weight="700" fill="#ef4444">Mealy sớm hơn Moore ~1 chu kỳ</text>
+    </svg>
+  </div>
+
+  <div class="grid md:grid-cols-3 gap-4 text-sm">
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5"><p class="font-bold text-slate-800 mb-1"><i class="fa-solid fa-crosshairs text-primary mr-1.5"></i>Cách đọc từng cạnh clock</p><p>Tại mỗi cạnh lên: hỏi "state đang là gì? din đang là gì?" → tra transition table → state mới xuất hiện <em>một khoảng trễ nhỏ sau cạnh</em>. Đọc waveform FSM = tra bảng từng cạnh một.</p></div>
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5"><p class="font-bold text-slate-800 mb-1"><i class="fa-solid fa-hourglass-half text-secondary mr-1.5"></i>Setup / hold vẫn áp dụng</p><p>din phải ổn định quanh cạnh lên (setup trước cạnh, hold sau cạnh) — vì din đi vào D của các FF state qua next-state logic. Vi phạm → FF có thể chốt sai, FSM nhảy lung tung.</p></div>
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5"><p class="font-bold text-slate-800 mb-1"><i class="fa-solid fa-bolt text-danger mr-1.5"></i>Vì sao Mealy có thể "glitch"</p><p>detected_mealy nối trực tiếp với din: nếu din rung giữa chu kỳ (nút bấm nhiễu), output rung theo. Moore miễn nhiễm vì chỉ nhìn state — lý do nhập môn ưu tiên Moore.</p></div>
+  </div>
+</section>
+<!-- ============ 10. ACTIVE LEARNING ============ -->
+<section id="active-learning">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center text-lg"><i class="fa-solid fa-people-group"></i></div>
+    <div><p class="text-[11px] font-bold text-primary uppercase tracking-widest">Section 10</p><h2 class="text-2xl font-bold text-slate-900">Active Learning — Kịch bản buổi học 60 phút</h2></div>
+  </div>
+  <div class="space-y-3">
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex gap-4 items-start">
+      <span class="shrink-0 w-16 text-center"><span class="block font-mono font-extrabold text-primary">0–5'</span><span class="text-[10px] uppercase text-slate-400 font-bold">5 phút</span></span>
+      <div class="text-sm"><p class="font-bold text-slate-800">Quick check-in</p><p>Mỗi người 1 câu: "hệ thống nhiều trạng thái em gặp hôm nay là gì?" (thang máy, máy giặt, đèn giao thông…). Mentor ghi nhanh lên bảng — chính là kho ví dụ cho cả buổi.</p></div>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex gap-4 items-start">
+      <span class="shrink-0 w-16 text-center"><span class="block font-mono font-extrabold text-primary">5–15'</span><span class="text-[10px] uppercase text-slate-400 font-bold">10 phút</span></span>
+      <div class="text-sm"><p class="font-bold text-slate-800">Student presentation</p><p>1–2 bạn trình bày sơ đồ trạng thái máy giặt (nhiệm vụ nhỏ trước buổi). Cả lớp soi bằng 2 câu hỏi: "mỗi state có lối đi cho MỌI input chưa?", "output gắn với state hay với transition?"</p></div>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex gap-4 items-start">
+      <span class="shrink-0 w-16 text-center"><span class="block font-mono font-extrabold text-primary">15–25'</span><span class="text-[10px] uppercase text-slate-400 font-bold">10 phút</span></span>
+      <div class="text-sm"><p class="font-bold text-slate-800">Mentor correction</p><p>Mentor chữa trực tiếp trên sơ đồ của sinh viên: chỉ ra transition thiếu, state thừa (dữ liệu nhét vào state), rồi demo bộ phát hiện "101" (Section 06) và chốt khuôn RTL 3 khối trên 1 slide.</p></div>
+    </div>
+    <div class="bg-blue-50 rounded-2xl border-2 border-primary shadow-sm p-4 flex gap-4 items-start">
+      <span class="shrink-0 w-16 text-center"><span class="block font-mono font-extrabold text-primary">25–45'</span><span class="text-[10px] uppercase text-slate-400 font-bold">20 phút</span></span>
+      <div class="text-sm"><p class="font-bold text-slate-800">Breakout room — thiết kế FSM khóa mật mã</p><p>Nhóm 3–4 người, đề bài và vai trò ở Section 11. Sản phẩm nộp: state diagram + transition table chụp ảnh gửi vào kênh chung.</p></div>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex gap-4 items-start">
+      <span class="shrink-0 w-16 text-center"><span class="block font-mono font-extrabold text-primary">45–55'</span><span class="text-[10px] uppercase text-slate-400 font-bold">10 phút</span></span>
+      <div class="text-sm"><p class="font-bold text-slate-800">Group sharing</p><p>Mỗi nhóm 2 phút: Reporter trình bày diagram; nhóm khác thử "phá" bằng một chuỗi nhập bất kỳ — dò theo bảng xem khóa có mở nhầm không.</p></div>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex gap-4 items-start">
+      <span class="shrink-0 w-16 text-center"><span class="block font-mono font-extrabold text-primary">55–60'</span><span class="text-[10px] uppercase text-slate-400 font-bold">5 phút</span></span>
+      <div class="text-sm"><p class="font-bold text-slate-800">Wrap-up</p><p>Chốt 3 điều: (1) FSM = state register + next-state + output; (2) Moore output sạch, Mealy sớm hơn 1 chu kỳ; (3) tuần 7 học Verilog để viết FSM trôi chảy. Giao homework.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 11. BREAKOUT ROOM GUIDE ============ -->
+<section id="breakout">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center text-lg"><i class="fa-solid fa-users-rectangle"></i></div>
+    <div><p class="text-[11px] font-bold text-primary uppercase tracking-widest">Section 11</p><h2 class="text-2xl font-bold text-slate-900">Breakout Room — Thiết kế FSM khóa mật mã 3 nút</h2></div>
+  </div>
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-4">
+    <p class="text-sm leading-relaxed mb-3"><strong>Đề bài:</strong> khóa cửa có 3 nút <span class="font-mono font-bold">A, B, C</span>. Cửa chỉ mở (<code class="bg-slate-100 rounded px-1">unlock = 1</code> kiểu Moore) khi người dùng bấm đúng thứ tự <span class="font-mono font-bold text-primary">A → B → B</span>. Bấm sai bất kỳ lúc nào → quay về trạng thái chờ. Có reset. Mỗi lần bấm nút coi như một input được lấy mẫu tại một cạnh clock.</p>
+    <p class="text-xs text-slate-500">Gợi ý khung: bao nhiêu state là đủ? Ý nghĩa từng state là gì ("chưa đúng gì", "đã đúng A", "đã đúng AB", "mở")? Từ mỗi state phải có đủ 3 mũi tên cho A/B/C.</p>
+  </div>
+  <div class="grid md:grid-cols-2 gap-4 mb-4">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+      <h3 class="font-bold text-slate-800 text-sm uppercase tracking-wide mb-3"><i class="fa-solid fa-comments text-primary mr-1.5"></i>5 câu hỏi thảo luận (buộc phân tích)</h3>
+      <ol class="text-sm space-y-2.5 list-decimal list-inside">
+        <li>Đang ở trạng thái "đã đúng A-B", người dùng bấm <strong>A</strong>. Về trạng thái chờ S0 hay về "đã đúng A"? Vì sao? (Bẫy chồng lấp — chuỗi AAB… thì sao?)</li>
+        <li>Trạng thái "MỞ" nên tự quay về S0 sau 1 lần bấm tiếp theo, hay đứng lại vĩnh viễn? Hệ quả của mỗi lựa chọn với người dùng thật?</li>
+        <li>Output <code class="bg-slate-100 rounded px-1">unlock</code> nên là Moore hay Mealy? Nếu Mealy, cửa mở sớm hơn bao lâu và có rủi ro gì khi nút bị rung (bounce)?</li>
+        <li>Nếu thêm yêu cầu "sai 3 lần liên tiếp → khóa cứng 30 giây", phần đếm "3 lần" và "30 giây" nên nằm trong state của FSM hay trong datapath? Vì sao?</li>
+        <li>Với 4–5 state, cần mấy Flip-Flop nếu mã hóa nhị phân? Nếu one-hot? Đổi cách mã hóa có đổi state diagram không?</li>
+      </ol>
+    </div>
+    <div>
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-4">
+        <h3 class="font-bold text-slate-800 text-sm uppercase tracking-wide mb-3"><i class="fa-solid fa-user-gear text-primary mr-1.5"></i>Vai trò trong nhóm</h3>
+        <ul class="text-sm space-y-2">
+          <li><strong class="text-primary">Facilitator:</strong> giữ nhịp 20 phút, đảm bảo đi đủ 5 câu hỏi, không sa đà câu 1.</li>
+          <li><strong class="text-primary">Note keeper:</strong> vẽ state diagram + ghi transition table trên giấy/whiteboard chung.</li>
+          <li><strong class="text-primary">Reporter:</strong> chuẩn bị 2 phút trình bày: đề → diagram → 1 quyết định thiết kế gây tranh cãi.</li>
+          <li><strong class="text-primary">Skeptic/Checker:</strong> chuyên "phá": thử các chuỗi AAB, ABA, ABBB… dò trên bảng xem khóa có mở nhầm/kẹt không; đếm đủ mũi tên = số state × 3 nút.</li>
+        </ul>
+      </div>
+      <div class="bg-emerald-50 rounded-2xl border border-emerald-200 p-6">
+        <h3 class="font-bold text-emerald-800 text-sm uppercase tracking-wide mb-2"><i class="fa-solid fa-box-archive mr-1.5"></i>Output nhóm phải nộp</h3>
+        <ul class="text-sm text-emerald-900 space-y-1.5">
+          <li><i class="fa-solid fa-check mr-1.5"></i>State diagram: đủ state, đủ mũi tên A/B/C từ mỗi state, đánh dấu state MỞ.</li>
+          <li><i class="fa-solid fa-check mr-1.5"></i>Transition table: cột state hiện tại / input A / B / C / output unlock.</li>
+          <li><i class="fa-solid fa-check mr-1.5"></i>1 câu trả lời cho câu hỏi 4 (đếm sai 3 lần → controller hay datapath?).</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 12. COMMON MISTAKES ============ -->
+<section id="mistakes">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-danger/10 text-danger flex items-center justify-center text-lg"><i class="fa-solid fa-triangle-exclamation"></i></div>
+    <div><p class="text-[11px] font-bold text-danger uppercase tracking-widest">Section 12</p><h2 class="text-2xl font-bold text-slate-900">Common Mistakes — Lỗi kinh điển khi thiết kế FSM</h2></div>
+  </div>
+  <div class="grid md:grid-cols-2 gap-4">
+    <div class="bg-red-50 rounded-2xl border border-red-200 p-5 text-sm">
+      <p class="font-bold text-red-700 mb-1.5"><i class="fa-solid fa-xmark-circle mr-1.5"></i>1. Nhầm Moore với Mealy — output lệch 1 chu kỳ</p>
+      <p class="mb-2"><strong>Vì sao nguy hiểm:</strong> hệ thống phản ứng sớm/muộn hơn thiết kế 1 chu kỳ — với mạch điều khiển ghi bộ nhớ hay mở khóa, lệch 1 chu kỳ là sai chức năng, và lỗi chỉ lộ ra trên waveform.</p>
+      <p class="text-red-900 bg-red-100/70 rounded-lg p-2.5"><strong>Cách sửa:</strong> khai báo ngay từ spec "máy này là Moore/Mealy"; kiểm tra khối output: nhìn thấy input trong biểu thức output = Mealy. Vẽ waveform tay 3–4 chu kỳ trước khi code.</p>
+    </div>
+    <div class="bg-red-50 rounded-2xl border border-red-200 p-5 text-sm">
+      <p class="font-bold text-red-700 mb-1.5"><i class="fa-solid fa-xmark-circle mr-1.5"></i>2. Quên reset state register</p>
+      <p class="mb-2"><strong>Vì sao nguy hiểm:</strong> sau bật nguồn, mỗi FF mang giá trị ngẫu nhiên → FSM khởi động ở state bất kỳ, thậm chí ở tổ hợp bit <em>không thuộc state nào</em> (với one-hot 4 FF có tới 12 tổ hợp "ma"). Chip chạy sai kiểu "lúc được lúc không".</p>
+      <p class="text-red-900 bg-red-100/70 rounded-lg p-2.5"><strong>Cách sửa:</strong> always_ff của state register LUÔN có nhánh reset về trạng thái khởi đầu; kèm nhánh <code class="bg-white/60 rounded px-1">default</code> trong case của next-state logic để kéo state "ma" về nơi an toàn.</p>
+    </div>
+    <div class="bg-red-50 rounded-2xl border border-red-200 p-5 text-sm">
+      <p class="font-bold text-red-700 mb-1.5"><i class="fa-solid fa-xmark-circle mr-1.5"></i>3. Nhét dữ liệu đếm vào state — nhầm counter với FSM</p>
+      <p class="mb-2"><strong>Vì sao nguy hiểm:</strong> "chờ 100 chu kỳ" mà vẽ 100 state là bùng nổ trạng thái: diagram không vẽ nổi, code không bảo trì nổi, đổi 100 → 200 phải vẽ lại từ đầu.</p>
+      <p class="text-red-900 bg-red-100/70 rounded-lg p-2.5"><strong>Cách sửa:</strong> tách kiến trúc controller/datapath: FSM giữ vài state (CHỜ / ĐANG ĐẾM / XONG), phần đếm giao cho counter trong datapath, FSM chỉ nhận tín hiệu <code class="bg-white/60 rounded px-1">done</code>. Đây chính là kiến trúc tuần 9.</p>
+    </div>
+    <div class="bg-red-50 rounded-2xl border border-red-200 p-5 text-sm">
+      <p class="font-bold text-red-700 mb-1.5"><i class="fa-solid fa-xmark-circle mr-1.5"></i>4. Quên default trong always_comb → sinh latch</p>
+      <p class="mb-2"><strong>Vì sao nguy hiểm:</strong> nhánh case nào không gán next_state/output → công cụ hiểu "giữ giá trị cũ" → suy diễn ra <strong>latch</strong>: phần tử nhớ ngoài ý muốn, nhạy glitch, phá timing analysis.</p>
+      <p class="text-red-900 bg-red-100/70 rounded-lg p-2.5"><strong>Cách sửa:</strong> dòng đầu luôn là <code class="bg-white/60 rounded px-1">next_state = state;</code> và <code class="bg-white/60 rounded px-1">detected = 1'b0;</code> (default assignment) rồi mới vào case. Đọc log synthesis: thấy chữ "inferred latch" là phải sửa.</p>
+    </div>
+    <div class="bg-red-50 rounded-2xl border border-red-200 p-5 text-sm">
+      <p class="font-bold text-red-700 mb-1.5"><i class="fa-solid fa-xmark-circle mr-1.5"></i>5. Bỏ sót transition — state có input "không biết đi đâu"</p>
+      <p class="mb-2"><strong>Vì sao nguy hiểm:</strong> tình huống không định nghĩa vẫn xảy ra ngoài đời (người dùng bấm sai, nhiễu); FSM khi đó hành xử theo "ý ngầm" của code chứ không theo spec — nguồn bug khó tái hiện.</p>
+      <p class="text-red-900 bg-red-100/70 rounded-lg p-2.5"><strong>Cách sửa:</strong> kiểm đếm cơ học: số mũi tên = số state × số giá trị input. Với detector "101": 4 state × 2 giá trị din = 8 mũi tên, thiếu 1 là chưa xong.</p>
+    </div>
+    <div class="bg-orange-50 rounded-2xl border border-orange-200 p-5 text-sm">
+      <p class="font-bold text-orange-700 mb-1.5"><i class="fa-solid fa-xmark-circle mr-1.5"></i>6. Trộn 3 khối vào một always duy nhất</p>
+      <p class="mb-2"><strong>Vì sao nguy hiểm:</strong> gán next-state bằng &lt;= lẫn output bằng = trong cùng khối dễ tạo output trễ 1 chu kỳ ngoài dự tính, khó debug, công cụ khó nhận dạng FSM để tối ưu mã hóa state.</p>
+      <p class="text-orange-900 bg-orange-100/70 rounded-lg p-2.5"><strong>Cách sửa:</strong> giữ kỷ luật khuôn 3 khối: always_ff (state, dùng &lt;=) / always_comb (next-state, dùng =) / always_comb (output, dùng =). Mỗi khối một nhiệm vụ duy nhất.</p>
+    </div>
+  </div>
+</section>
+<!-- ============ 13. MINI-PROJECT CONNECTION ============ -->
+<section id="mini-project">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center text-lg"><i class="fa-solid fa-rocket"></i></div>
+    <div><p class="text-[11px] font-bold text-primary uppercase tracking-widest">Section 13</p><h2 class="text-2xl font-bold text-slate-900">Mini-project Connection — FSM của bạn sẽ thành sản phẩm gì?</h2></div>
+  </div>
+  <p class="text-sm text-slate-500 mb-5 max-w-3xl">Chọn 1 trong 3 đề dưới đây làm "dự án nuôi lớn dần": tuần này mô hình hóa (diagram + table), tuần 7 viết Verilog hoàn chỉnh, tuần 8–9 hướng tới chạy trên FPGA.</p>
+  <div class="grid md:grid-cols-3 gap-4">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+      <div class="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl mb-3"><i class="fa-solid fa-bottle-water"></i></div>
+      <h3 class="font-bold text-slate-900 mb-1">Vending Machine — máy bán nước</h3>
+      <p class="text-xs font-bold text-emerald-600 uppercase mb-2">Độ khó: vừa · khuyến nghị</p>
+      <p class="text-sm leading-relaxed mb-3">Nước giá 10k, nhận xu 5k, có trả lại khi bỏ dư (15k). State gợi ý: <span class="font-mono text-xs">IDLE → GOT_5 → GOT_10(bán) → GOT_15(bán + trả 5k)</span>.</p>
+      <ul class="text-xs text-slate-500 space-y-1"><li><i class="fa-solid fa-puzzle-piece text-primary mr-1.5"></i>Kỹ năng: transition theo nhiều input (xu 5k/10k), output nhiều tín hiệu (dispense, change).</li><li><i class="fa-solid fa-link text-primary mr-1.5"></i>Dùng lại: đề gốc của FSM demo tuần này.</li></ul>
+    </div>
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+      <div class="w-11 h-11 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl mb-3"><i class="fa-solid fa-elevator"></i></div>
+      <h3 class="font-bold text-slate-900 mb-1">Elevator — thang máy 3 tầng</h3>
+      <p class="text-xs font-bold text-blue-600 uppercase mb-2">Độ khó: khó hơn</p>
+      <p class="text-sm leading-relaxed mb-3">State: vị trí × hành vi (<span class="font-mono text-xs">Ở_T1, LÊN, Ở_T2, XUỐNG…</span>); input: nút gọi tầng, cảm biến tới tầng; output: motor lên/xuống, mở cửa.</p>
+      <ul class="text-xs text-slate-500 space-y-1"><li><i class="fa-solid fa-puzzle-piece text-primary mr-1.5"></i>Kỹ năng: nhiều input đồng thời → cần luật ưu tiên; thấy rõ giới hạn "nhét hết vào state".</li><li><i class="fa-solid fa-link text-primary mr-1.5"></i>Dùng lại: bài học controller/datapath cho timer mở cửa.</li></ul>
+    </div>
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+      <div class="w-11 h-11 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl mb-3"><i class="fa-solid fa-unlock-keyhole"></i></div>
+      <h3 class="font-bold text-slate-900 mb-1">Password Lock — khóa mật mã</h3>
+      <p class="text-xs font-bold text-amber-600 uppercase mb-2">Độ khó: vừa · nối tiếp breakout</p>
+      <p class="text-sm leading-relaxed mb-3">Chính là bài breakout (A→B→B) nâng cấp: thêm đèn báo sai, đếm sai 3 lần khóa cứng (counter ở datapath!), unlock kiểu Moore.</p>
+      <ul class="text-xs text-slate-500 space-y-1"><li><i class="fa-solid fa-puzzle-piece text-primary mr-1.5"></i>Kỹ năng: xử lý chồng lấp chuỗi nhập — cùng họ với detector "101".</li><li><i class="fa-solid fa-link text-primary mr-1.5"></i>Dùng lại: tuần 11, FSM UART RX cũng "dò chuỗi" bit start/data/stop.</li></ul>
+    </div>
+  </div>
+  <div class="mt-4 bg-blue-50 border border-blue-200 rounded-2xl p-5 text-sm"><i class="fa-solid fa-forward text-primary mr-2"></i><strong>Nhìn sang tuần 9:</strong> đèn giao thông = FSM 4 state + timer. Sau tuần này bạn đã có nửa FSM; tuần 5 đã có nửa timer — tuần 9 chỉ là ghép hai mảnh và thêm kỷ luật kỹ sư.</div>
+</section>
+
+<!-- ============ 14. QUIZ ============ -->
+<section id="quiz">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center text-lg"><i class="fa-solid fa-circle-question"></i></div>
+    <div><p class="text-[11px] font-bold text-primary uppercase tracking-widest">Section 14</p><h2 class="text-2xl font-bold text-slate-900">Quiz — 10 câu tự kiểm tra</h2></div>
+  </div>
+  <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 mb-4 flex flex-wrap items-center gap-3">
+    <p class="text-sm"><i class="fa-solid fa-circle-info text-primary mr-1.5"></i>Chọn đáp án — hệ thống chấm ngay và hiện giải thích. Mỗi câu chỉ chọn được một lần.</p>
+    <span class="ml-auto text-sm font-bold bg-slate-50 border border-slate-200 rounded-full px-4 py-1.5">Đúng <span id="quiz-correct" class="text-emerald-600">0</span> / trả lời <span id="quiz-answered">0</span> / 10</span>
+    <button id="quiz-final" type="button" class="px-4 py-1.5 rounded-full bg-primary text-white text-sm font-bold hover:bg-blue-700 transition">Chấm điểm</button>
+  </div>
+  <p id="quiz-verdict" class="hidden mb-4 text-sm font-bold bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl p-4"></p>
+  <div class="space-y-4">
+    <div class="quiz-q bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+      <p class="font-bold text-slate-800 text-sm mb-3">1. Bốn thành phần định nghĩa một FSM là gì?</p>
+      <div class="grid sm:grid-cols-2 gap-2 text-sm">
+        <div class="quiz-opt border-2 border-slate-200 rounded-xl px-3.5 py-2.5">A. Clock, reset, wire, register</div>
+        <div class="quiz-opt border-2 border-slate-200 rounded-xl px-3.5 py-2.5" data-correct="1">B. State, input, output, transition</div>
+        <div class="quiz-opt border-2 border-slate-200 rounded-xl px-3.5 py-2.5">C. AND, OR, NOT, XOR</div>
+        <div class="quiz-opt border-2 border-slate-200 rounded-xl px-3.5 py-2.5">D. Module, port, always, assign</div>
+      </div>
+      <div class="quiz-exp hidden mt-3 text-sm bg-blue-50 border border-blue-200 rounded-xl p-3"><strong>Giải thích:</strong> FSM = tập hữu hạn state + input gây chuyển + luật transition + output. Clock/reset là hạ tầng hiện thực (câu A), không phải định nghĩa mô hình.</div>
+    </div>
+    <div class="quiz-q bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+      <p class="font-bold text-slate-800 text-sm mb-3">2. Điểm khác biệt cốt lõi giữa máy Moore và máy Mealy?</p>
+      <div class="grid sm:grid-cols-2 gap-2 text-sm">
+        <div class="quiz-opt border-2 border-slate-200 rounded-xl px-3.5 py-2.5">A. Moore nhiều input hơn Mealy</div>
+        <div class="quiz-opt border-2 border-slate-200 rounded-xl px-3.5 py-2.5">B. Moore không cần clock, Mealy cần</div>
+        <div class="quiz-opt border-2 border-slate-200 rounded-xl px-3.5 py-2.5" data-correct="1">C. Output Moore chỉ phụ thuộc state; output Mealy phụ thuộc state + input</div>
+        <div class="quiz-opt border-2 border-slate-200 rounded-xl px-3.5 py-2.5">D. Moore dùng FF, Mealy dùng latch</div>
+      </div>
+      <div class="quiz-exp hidden mt-3 text-sm bg-blue-50 border border-blue-200 rounded-xl p-3"><strong>Giải thích:</strong> khác nhau ở <em>hàm output</em>: Moore = f(state), Mealy = f(state, input). Hệ quả: Mealy phản ứng sớm hơn ~1 chu kỳ nhưng output có thể đổi giữa chu kỳ theo input; cả hai đều là FSM đồng bộ dùng FF.</div>
+    </div>
+    <div class="quiz-q bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+      <p class="font-bold text-slate-800 text-sm mb-3">3. Trong FSM đồng bộ, việc chuyển trạng thái thực sự xảy ra khi nào?</p>
+      <div class="grid sm:grid-cols-2 gap-2 text-sm">
+        <div class="quiz-opt border-2 border-slate-200 rounded-xl px-3.5 py-2.5">A. Ngay lập tức khi input đổi giá trị</div>
+        <div class="quiz-opt border-2 border-slate-200 rounded-xl px-3.5 py-2.5" data-correct="1">B. Tại cạnh lên clock, khi state register nạp next_state</div>
+        <div class="quiz-opt border-2 border-slate-200 rounded-xl px-3.5 py-2.5">C. Khi reset được nhả ra</div>
+        <div class="quiz-opt border-2 border-slate-200 rounded-xl px-3.5 py-2.5">D. Khi output logic tính xong</div>
+      </div>
+      <div class="quiz-exp hidden mt-3 text-sm bg-blue-50 border border-blue-200 rounded-xl p-3"><strong>Giải thích:</strong> input đổi giữa chu kỳ chỉ làm next_state (tổ hợp) đổi; state thật chỉ được cập nhật tại cạnh lên clock — giống D FF tuần 5. Sau cạnh còn có độ trễ t<sub>CQ</sub>, không "ngay lập tức".</div>
+    </div>
+    <div class="quiz-q bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+      <p class="font-bold text-slate-800 text-sm mb-3">4. Detector "101" (Moore) đang ở S2 (đã thấy "10"), nhập din = 1. Trạng thái kế tiếp là?</p>
+      <div class="grid sm:grid-cols-2 gap-2 text-sm">
+        <div class="quiz-opt border-2 border-slate-200 rounded-xl px-3.5 py-2.5">A. S0 — quay về đầu</div>
+        <div class="quiz-opt border-2 border-slate-200 rounded-xl px-3.5 py-2.5">B. S1 — coi như mới thấy "1"</div>
+        <div class="quiz-opt border-2 border-slate-200 rounded-xl px-3.5 py-2.5" data-correct="1">C. S3 — đủ chuỗi "101", detected = 1 ở chu kỳ tới</div>
+        <div class="quiz-opt border-2 border-slate-200 rounded-xl px-3.5 py-2.5">D. S2 — đứng yên chờ thêm</div>
+      </div>
+      <div class="quiz-exp hidden mt-3 text-sm bg-blue-50 border border-blue-200 rounded-xl p-3"><strong>Giải thích:</strong> S2 nghĩa là 2 bit gần nhất "10"; thêm bit 1 → "101" trọn vẹn → S3. Vì là Moore, detected chỉ = 1 khi FSM <em>đã ở</em> S3 (sau cạnh clock), không phải ngay lúc bấm.</div>
+    </div>
+    <div class="quiz-q bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+      <p class="font-bold text-slate-800 text-sm mb-3">5. Vì sao từ S3, nhập din = 1 lại đi về S1 chứ không về S0?</p>
+      <div class="grid sm:grid-cols-2 gap-2 text-sm">
+        <div class="quiz-opt border-2 border-slate-200 rounded-xl px-3.5 py-2.5">A. Vì S1 gần S3 hơn trên sơ đồ</div>
+        <div class="quiz-opt border-2 border-slate-200 rounded-xl px-3.5 py-2.5" data-correct="1">B. Vì bit "1" vừa nhập có thể là bit mở đầu của chuỗi "101" tiếp theo (chồng lấp)</div>
+        <div class="quiz-opt border-2 border-slate-200 rounded-xl px-3.5 py-2.5">C. Vì Moore bắt buộc quay về S1</div>
+        <div class="quiz-opt border-2 border-slate-200 rounded-xl px-3.5 py-2.5">D. Đề sai — phải về S0 mới đúng</div>
+      </div>
+      <div class="quiz-exp hidden mt-3 text-sm bg-blue-50 border border-blue-200 rounded-xl p-3"><strong>Giải thích:</strong> state = "phần đuôi dài nhất của dòng bit khớp với phần đầu mẫu". Sau "…101" nhập thêm 1, đuôi là "…11" → khớp "1" → S1. Nhờ vậy "10101" phát hiện được 2 lần. Nếu về S0 sẽ bỏ sót lần thứ hai.</div>
+    </div>
+    <div class="quiz-q bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+      <p class="font-bold text-slate-800 text-sm mb-3">6. Khối state register trong RTL chuẩn được viết bằng gì?</p>
+      <div class="grid sm:grid-cols-2 gap-2 text-sm">
+        <div class="quiz-opt border-2 border-slate-200 rounded-xl px-3.5 py-2.5">A. always_comb với blocking =</div>
+        <div class="quiz-opt border-2 border-slate-200 rounded-xl px-3.5 py-2.5" data-correct="1">B. always_ff @(posedge clk …) với non-blocking &lt;= và có nhánh reset</div>
+        <div class="quiz-opt border-2 border-slate-200 rounded-xl px-3.5 py-2.5">C. assign liên tục</div>
+        <div class="quiz-opt border-2 border-slate-200 rounded-xl px-3.5 py-2.5">D. initial begin … end</div>
+      </div>
+      <div class="quiz-exp hidden mt-3 text-sm bg-blue-50 border border-blue-200 rounded-xl p-3"><strong>Giải thích:</strong> state register là phần tuần tự duy nhất của FSM: always_ff + &lt;= mô tả Flip-Flop, nhánh reset đưa về trạng thái khởi đầu xác định. Hai khối còn lại (next-state, output) là always_comb + =.</div>
+    </div>
+    <div class="quiz-q bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+      <p class="font-bold text-slate-800 text-sm mb-3">7. Trong always_comb của next-state logic, quên gán default và bỏ sót một nhánh case sẽ gây ra gì?</p>
+      <div class="grid sm:grid-cols-2 gap-2 text-sm">
+        <div class="quiz-opt border-2 border-slate-200 rounded-xl px-3.5 py-2.5">A. Không sao, công cụ tự hiểu</div>
+        <div class="quiz-opt border-2 border-slate-200 rounded-xl px-3.5 py-2.5">B. Mạch chạy nhanh hơn</div>
+        <div class="quiz-opt border-2 border-slate-200 rounded-xl px-3.5 py-2.5" data-correct="1">C. Công cụ synthesis suy diễn ra latch ngoài ý muốn</div>
+        <div class="quiz-opt border-2 border-slate-200 rounded-xl px-3.5 py-2.5">D. FSM mất clock</div>
+      </div>
+      <div class="quiz-exp hidden mt-3 text-sm bg-blue-50 border border-blue-200 rounded-xl p-3"><strong>Giải thích:</strong> nhánh không gán = "giữ giá trị cũ" = cần phần tử nhớ → latch được sinh ra trong mạch lẽ ra thuần tổ hợp. Thuốc giải: <code class="bg-white/70 rounded px-1">next_state = state;</code> ở dòng đầu luôn có mặt.</div>
+    </div>
+    <div class="quiz-q bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+      <p class="font-bold text-slate-800 text-sm mb-3">8. Hệ thống cần "đếm đủ 100 sản phẩm rồi báo đầy". Cách mô hình hóa đúng là?</p>
+      <div class="grid sm:grid-cols-2 gap-2 text-sm">
+        <div class="quiz-opt border-2 border-slate-200 rounded-xl px-3.5 py-2.5">A. FSM 100 trạng thái, mỗi sản phẩm một state</div>
+        <div class="quiz-opt border-2 border-slate-200 rounded-xl px-3.5 py-2.5" data-correct="1">B. FSM vài trạng thái (controller) + counter 7 bit trong datapath báo tín hiệu full</div>
+        <div class="quiz-opt border-2 border-slate-200 rounded-xl px-3.5 py-2.5">C. 100 Flip-Flop nối tiếp thành chuỗi</div>
+        <div class="quiz-opt border-2 border-slate-200 rounded-xl px-3.5 py-2.5">D. Không thể làm bằng mạch số</div>
+      </div>
+      <div class="quiz-exp hidden mt-3 text-sm bg-blue-50 border border-blue-200 rounded-xl p-3"><strong>Giải thích:</strong> dữ liệu đếm thuộc về datapath (counter), FSM chỉ điều khiển (Chờ / Đang đếm / Đầy) và nhận cờ so sánh count == 100. Nhét số đếm vào state là bùng nổ trạng thái — lỗi số 3 ở Section 12.</div>
+    </div>
+    <div class="quiz-q bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+      <p class="font-bold text-slate-800 text-sm mb-3">9. FSM 4 trạng thái mã hóa nhị phân cần bao nhiêu Flip-Flop cho state register? Nếu mã hóa one-hot?</p>
+      <div class="grid sm:grid-cols-2 gap-2 text-sm">
+        <div class="quiz-opt border-2 border-slate-200 rounded-xl px-3.5 py-2.5">A. 4 FF nhị phân; 2 FF one-hot</div>
+        <div class="quiz-opt border-2 border-slate-200 rounded-xl px-3.5 py-2.5" data-correct="1">B. 2 FF nhị phân; 4 FF one-hot</div>
+        <div class="quiz-opt border-2 border-slate-200 rounded-xl px-3.5 py-2.5">C. 1 FF cho cả hai cách</div>
+        <div class="quiz-opt border-2 border-slate-200 rounded-xl px-3.5 py-2.5">D. 8 FF nhị phân; 16 FF one-hot</div>
+      </div>
+      <div class="quiz-exp hidden mt-3 text-sm bg-blue-50 border border-blue-200 rounded-xl p-3"><strong>Giải thích:</strong> nhị phân: 2 bit mã hóa được 4 state → 2 FF (mỗi FF lưu đúng 1 bit — tuần 5). One-hot: mỗi state một FF riêng → 4 FF, đổi lại next-state logic đơn giản và nhanh — FPGA hay chọn one-hot.</div>
+    </div>
+    <div class="quiz-q bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+      <p class="font-bold text-slate-800 text-sm mb-3">10. Vì sao tín hiệu điều khiển quan trọng (VD: cho phép ghi bộ nhớ) thường được thiết kế kiểu Moore?</p>
+      <div class="grid sm:grid-cols-2 gap-2 text-sm">
+        <div class="quiz-opt border-2 border-slate-200 rounded-xl px-3.5 py-2.5">A. Vì Moore tốn ít Flip-Flop hơn</div>
+        <div class="quiz-opt border-2 border-slate-200 rounded-xl px-3.5 py-2.5">B. Vì Mealy không tổng hợp được lên FPGA</div>
+        <div class="quiz-opt border-2 border-slate-200 rounded-xl px-3.5 py-2.5" data-correct="1">C. Vì output Moore chỉ đổi theo state, ổn định trọn chu kỳ, không rung theo input</div>
+        <div class="quiz-opt border-2 border-slate-200 rounded-xl px-3.5 py-2.5">D. Vì Moore không cần reset</div>
+      </div>
+      <div class="quiz-exp hidden mt-3 text-sm bg-blue-50 border border-blue-200 rounded-xl p-3"><strong>Giải thích:</strong> output Mealy nối trực tiếp input — input rung (glitch) là output rung theo, có thể gây ghi nhầm bộ nhớ. Moore cách ly output khỏi input qua state register nên sạch. Moore thường cần <em>nhiều</em> state hơn (A sai).</div>
+    </div>
+  </div>
+</section>
+<!-- ============ 15. HOMEWORK ============ -->
+<section id="homework">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center text-lg"><i class="fa-solid fa-house-laptop"></i></div>
+    <div><p class="text-[11px] font-bold text-primary uppercase tracking-widest">Section 15</p><h2 class="text-2xl font-bold text-slate-900">Homework — Bài tập sau buổi học (3 mức)</h2></div>
+  </div>
+  <p class="text-sm text-slate-500 mb-5 max-w-3xl">Làm tối thiểu Mức 1 + Mức 2. Mức 3 dành cho bạn muốn tiến nhanh — chính là bước đệm hoàn hảo cho tuần 7 (Verilog) và tuần 9 (traffic light).</p>
+  <div class="space-y-4">
+    <div class="bg-white rounded-2xl shadow-sm border-l-4 border-emerald-400 border border-slate-200 p-6">
+      <div class="flex flex-wrap items-center gap-2 mb-3">
+        <span class="text-xs font-extrabold uppercase bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full px-3 py-1">Mức 1 — Nhận biết / giải thích</span>
+        <span class="text-xs text-slate-400 font-semibold"><i class="fa-regular fa-clock mr-1"></i>~30 phút</span>
+      </div>
+      <p class="text-sm leading-relaxed mb-2"><strong>Đề bài:</strong> (a) Giải thích bằng lời của bạn — kèm 1 ví dụ đời sống cho mỗi khái niệm: <em>state, transition, Moore, Mealy</em>. (b) Dùng transition table của detector "101" (Section 06), dò tay chuỗi nhập <span class="font-mono font-bold">1, 1, 0, 1, 0, 1</span>: ghi state sau từng bit và đếm số lần <code class="bg-slate-100 rounded px-1">detected = 1</code>.</p>
+      <div class="grid md:grid-cols-3 gap-3 text-xs mt-3">
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-3"><p class="font-bold text-slate-700 uppercase mb-1"><i class="fa-solid fa-paper-plane mr-1 text-primary"></i>Nộp</p><p>1 trang note (ảnh chụp hoặc PDF) vào kênh chung trước buổi tuần 7.</p></div>
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-3"><p class="font-bold text-slate-700 uppercase mb-1"><i class="fa-solid fa-lightbulb mr-1 text-secondary"></i>Gợi ý</p><p>Dò bảng từng cạnh clock một: "state đang là gì + bit vào là gì → tra bảng". Có thể tự kiểm bằng demo Section 06.</p></div>
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-3"><p class="font-bold text-slate-700 uppercase mb-1"><i class="fa-solid fa-clipboard-check mr-1 text-accent"></i>Tiêu chí</p><p>Dò đúng 6/6 bước (đáp án: S1, S1, S2, S3, S2, S3 — detect 2 lần); 4 thuật ngữ giải thích đúng bản chất, không chép định nghĩa.</p></div>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl shadow-sm border-l-4 border-primary border border-slate-200 p-6">
+      <div class="flex flex-wrap items-center gap-2 mb-3">
+        <span class="text-xs font-extrabold uppercase bg-blue-50 text-primary border border-blue-200 rounded-full px-3 py-1">Mức 2 — Thiết kế / mô hình hóa</span>
+        <span class="text-xs text-slate-400 font-semibold"><i class="fa-regular fa-clock mr-1"></i>~60 phút</span>
+      </div>
+      <p class="text-sm leading-relaxed mb-2"><strong>Đề bài:</strong> hoàn thiện FSM <strong>khóa mật mã A → B → B</strong> (tiếp nối breakout) <em>hoặc</em> <strong>vending machine 10k</strong> (Section 13): liệt kê state kèm một câu ý nghĩa mỗi state; vẽ state diagram <em>đủ mũi tên cho mọi input từ mọi state</em>; lập transition table; định nghĩa output kiểu Moore.</p>
+      <div class="grid md:grid-cols-3 gap-3 text-xs mt-3">
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-3"><p class="font-bold text-slate-700 uppercase mb-1"><i class="fa-solid fa-paper-plane mr-1 text-primary"></i>Nộp</p><p>Ảnh state diagram + transition table (vẽ tay được) + 3 dòng: "quyết định thiết kế khó nhất của tôi là gì, vì sao chọn vậy".</p></div>
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-3"><p class="font-bold text-slate-700 uppercase mb-1"><i class="fa-solid fa-lightbulb mr-1 text-secondary"></i>Gợi ý</p><p>Kiểm đếm cơ học: số mũi tên = số state × số input. Chú ý bẫy chồng lấp: đang ở "đã đúng A-B" mà bấm A thì về đâu?</p></div>
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-3"><p class="font-bold text-slate-700 uppercase mb-1"><i class="fa-solid fa-clipboard-check mr-1 text-accent"></i>Tiêu chí</p><p>Không thiếu transition nào; xử lý input sai/chồng lấp có chủ đích; output gắn với state (Moore) rõ ràng; tên state có nghĩa.</p></div>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl shadow-sm border-l-4 border-secondary border border-slate-200 p-6">
+      <div class="flex flex-wrap items-center gap-2 mb-3">
+        <span class="text-xs font-extrabold uppercase bg-amber-50 text-amber-700 border border-amber-200 rounded-full px-3 py-1">Mức 3 — RTL / testbench / mini-project</span>
+        <span class="text-xs text-slate-400 font-semibold"><i class="fa-regular fa-clock mr-1"></i>~90–120 phút</span>
+      </div>
+      <p class="text-sm leading-relaxed mb-2"><strong>Đề bài:</strong> viết SystemVerilog cho bộ phát hiện chuỗi <span class="font-mono font-bold">"110"</span> (tự chọn có/không chồng lấp — ghi rõ trong comment) theo đúng <strong>khuôn 3 khối</strong>, kèm testbench kiểu <code class="bg-slate-100 rounded px-1">send_bit</code> (Section 08). Mô phỏng trên <a href="https://www.edaplayground.com" target="_blank" rel="noopener" class="text-primary underline">EDA Playground</a>, mở waveform và chỉ ra thời điểm <code class="bg-slate-100 rounded px-1">detected = 1</code>.</p>
+      <div class="grid md:grid-cols-3 gap-3 text-xs mt-3">
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-3"><p class="font-bold text-slate-700 uppercase mb-1"><i class="fa-solid fa-paper-plane mr-1 text-primary"></i>Nộp</p><p>Link EDA Playground + ảnh waveform + 3 dòng giải thích: "detected lên 1 tại cạnh nào, vì sao".</p></div>
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-3"><p class="font-bold text-slate-700 uppercase mb-1"><i class="fa-solid fa-lightbulb mr-1 text-secondary"></i>Gợi ý</p><p>Đừng code ngay: sửa transition table trước (làm lại bước 3–5 của workflow), rồi mới đổi phần case trong code mẫu Section 08.</p></div>
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-3"><p class="font-bold text-slate-700 uppercase mb-1"><i class="fa-solid fa-clipboard-check mr-1 text-accent"></i>Tiêu chí</p><p>Compile sạch; đúng kỷ luật 3 khối (&lt;= trong always_ff, = và default trong always_comb); waveform khớp transition table; không latch trong log.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 16. RUBRIC ============ -->
+<section id="rubric">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center text-lg"><i class="fa-solid fa-ranking-star"></i></div>
+    <div><p class="text-[11px] font-bold text-primary uppercase tracking-widest">Section 16</p><h2 class="text-2xl font-bold text-slate-900">Rubric — Tự định vị năng lực tuần 6</h2></div>
+  </div>
+  <p class="text-sm text-slate-500 mb-4 max-w-3xl">Đọc từng hàng và tự hỏi "mình đang ở cột nào?". Mục tiêu tối thiểu sau tuần này: mọi tiêu chí đạt cột <strong>Đạt cơ bản</strong>, riêng "Mô hình hóa" đạt <strong>Khá</strong>.</p>
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-x-auto">
+    <table class="w-full text-sm min-w-[900px]">
+      <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-600">
+        <tr>
+          <th class="text-left px-4 py-3 w-44">Tiêu chí</th>
+          <th class="text-left px-4 py-3 bg-red-50/60 text-red-700">Chưa đạt</th>
+          <th class="text-left px-4 py-3 bg-amber-50/60 text-amber-700">Đạt cơ bản</th>
+          <th class="text-left px-4 py-3 bg-blue-50/60 text-blue-700">Khá</th>
+          <th class="text-left px-4 py-3 bg-emerald-50/60 text-emerald-700">Tốt</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100 align-top">
+        <tr>
+          <td class="px-4 py-3 font-bold text-slate-800">Hiểu khái niệm FSM</td>
+          <td class="px-4 py-3">Chỉ nhắc lại định nghĩa, không cho được ví dụ.</td>
+          <td class="px-4 py-3">Nêu đúng 4 thành phần state/input/output/transition kèm 1 ví dụ đời sống.</td>
+          <td class="px-4 py-3">Giải thích được FSM = state register + next-state + output logic và vai trò từng khối.</td>
+          <td class="px-4 py-3">Nói được state của một FSM bất kỳ "mã hóa thông tin gì của quá khứ" (VD: đuôi khớp dài nhất).</td>
+        </tr>
+        <tr>
+          <td class="px-4 py-3 font-bold text-slate-800">Xác định input / output</td>
+          <td class="px-4 py-3">Lẫn lộn input với state, output với transition.</td>
+          <td class="px-4 py-3">Liệt kê đúng input/output của detector "101" và khóa mật mã.</td>
+          <td class="px-4 py-3">Với đề bài mới, tự tách được đâu là input FSM, đâu là tín hiệu trạng thái từ datapath (done, full…).</td>
+          <td class="px-4 py-3">Chủ động đặt câu hỏi làm rõ spec (input có thể đồng thời không? output cần sạch glitch không?).</td>
+        </tr>
+        <tr>
+          <td class="px-4 py-3 font-bold text-slate-800">Mô hình hóa (diagram + table)</td>
+          <td class="px-4 py-3">Diagram thiếu mũi tên; không lập được transition table.</td>
+          <td class="px-4 py-3">Vẽ đúng diagram bài quen thuộc; table đủ hàng nhưng cần gợi ý mới đủ transition.</td>
+          <td class="px-4 py-3">Tự vẽ diagram + table cho đề mới, tự kiểm bằng phép đếm mũi tên = state × input.</td>
+          <td class="px-4 py-3">Xử lý đúng chồng lấp và tình huống input sai; giải thích được vì sao mỗi transition đi về đâu.</td>
+        </tr>
+        <tr>
+          <td class="px-4 py-3 font-bold text-slate-800">Phân biệt Moore / Mealy</td>
+          <td class="px-4 py-3">Cho rằng khác nhau ở tên gọi hoặc số state.</td>
+          <td class="px-4 py-3">Phát biểu đúng: Moore = f(state), Mealy = f(state, input).</td>
+          <td class="px-4 py-3">Chỉ ra trên waveform output nào sớm hơn ~1 chu kỳ và vì sao.</td>
+          <td class="px-4 py-3">Chọn đúng kiểu máy cho tình huống thật (tín hiệu điều khiển → Moore) và bảo vệ được lựa chọn.</td>
+        </tr>
+        <tr>
+          <td class="px-4 py-3 font-bold text-slate-800">Viết RTL 3 khối</td>
+          <td class="px-4 py-3">Trộn tất cả vào một always; lẫn &lt;= với =.</td>
+          <td class="px-4 py-3">Điền đúng vào khuôn 3 khối có sẵn cho detector "101".</td>
+          <td class="px-4 py-3">Tự viết FSM mới đúng khuôn: reset đủ, default đủ, không latch trong log synthesis.</td>
+          <td class="px-4 py-3">Viết + testbench + mô phỏng độc lập; giải thích được từng khối tổng hợp ra phần cứng gì.</td>
+        </tr>
+        <tr>
+          <td class="px-4 py-3 font-bold text-slate-800">Đọc waveform</td>
+          <td class="px-4 py-3">Không chỉ ra được thời điểm chuyển state.</td>
+          <td class="px-4 py-3">Dò được state theo từng cạnh lên clock trên waveform cho sẵn.</td>
+          <td class="px-4 py-3">Chỉ ra thời điểm detected của Moore vs Mealy và độ trễ sau cạnh (t<sub>CQ</sub>).</td>
+          <td class="px-4 py-3">Nhìn waveform sai → truy ngược được lỗi nằm ở khối nào (transition? output? reset?).</td>
+        </tr>
+        <tr>
+          <td class="px-4 py-3 font-bold text-slate-800">Liên hệ ứng dụng</td>
+          <td class="px-4 py-3">Không kể được ứng dụng nào của FSM.</td>
+          <td class="px-4 py-3">Kể được 2–3 ứng dụng (đèn giao thông, khóa số, máy bán nước).</td>
+          <td class="px-4 py-3">Phân tách được controller/datapath trong một hệ thật (VD: đếm sai 3 lần → counter ở datapath).</td>
+          <td class="px-4 py-3">Nhìn một thiết bị bất kỳ và phác được FSM của nó trong 5 phút — kèm giới hạn của mô hình.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============ 17. MENTOR NOTES ============ -->
+<section id="mentor-notes">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-slate-800 text-emerald-400 flex items-center justify-center text-lg"><i class="fa-solid fa-chalkboard-user"></i></div>
+    <div><p class="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Section 17 — dành cho mentor</p><h2 class="text-2xl font-bold text-slate-900">Mentor Notes — Ghi chú cho người dẫn buổi</h2></div>
+  </div>
+  <div class="bg-slate-900 text-slate-300 rounded-2xl shadow-lg p-6 sm:p-8 space-y-6">
+    <div class="grid md:grid-cols-2 gap-6">
+      <div>
+        <h3 class="text-white font-bold text-sm uppercase tracking-wide mb-3"><i class="fa-solid fa-bullhorn text-emerald-400 mr-1.5"></i>Nên nhấn mạnh điều gì</h3>
+        <ul class="text-sm space-y-2 leading-relaxed">
+          <li><i class="fa-solid fa-star text-amber-400 mr-2"></i><strong class="text-white">Khuôn 3 khối là trung tâm buổi học.</strong> State diagram ↔ transition table ↔ 3 khối RTL là <em>cùng một thứ</em> ở ba dạng biểu diễn — sinh viên nắm được ánh xạ 1-1 này là đạt 80% mục tiêu.</li>
+          <li><i class="fa-solid fa-star text-amber-400 mr-2"></i>Transition chỉ xảy ra <strong class="text-white">tại cạnh lên clock</strong> — nối thẳng về demo D FF tuần 5 để sinh viên thấy FSM không phải kiến thức mới hoàn toàn.</li>
+          <li><i class="fa-solid fa-star text-amber-400 mr-2"></i><strong class="text-white">Controller vs datapath:</strong> mọi thứ cần "đếm" hay "chứa dữ liệu" đi vào datapath; FSM chỉ giữ "đang ở pha nào của câu chuyện".</li>
+        </ul>
+      </div>
+      <div>
+        <h3 class="text-white font-bold text-sm uppercase tracking-wide mb-3"><i class="fa-solid fa-magnifying-glass text-red-400 mr-1.5"></i>Sinh viên thường hiểu sai ở đâu</h3>
+        <ul class="text-sm space-y-2 leading-relaxed">
+          <li><i class="fa-solid fa-xmark text-red-400 mr-2"></i>Nghĩ input đổi là state nhảy ngay (quên vai trò cạnh clock).</li>
+          <li><i class="fa-solid fa-xmark text-red-400 mr-2"></i>Vẽ diagram thiếu mũi tên cho input "không mong muốn" — chỉ vẽ đường "đi đúng".</li>
+          <li><i class="fa-solid fa-xmark text-red-400 mr-2"></i>Coi Moore/Mealy là hai cách gọi; không thấy hệ quả lệch 1 chu kỳ trên waveform.</li>
+          <li><i class="fa-solid fa-xmark text-red-400 mr-2"></i>"Đếm 100 lần" → vẽ 100 state (chưa tách controller/datapath).</li>
+          <li><i class="fa-solid fa-xmark text-red-400 mr-2"></i>Trong code: quên reset, quên default — nhắc sinh viên đọc log synthesis tìm chữ "inferred latch".</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <h3 class="text-white font-bold text-sm uppercase tracking-wide mb-3"><i class="fa-solid fa-comments text-blue-400 mr-1.5"></i>Câu vấn đáp nên hỏi — và câu trả lời kỳ vọng</h3>
+      <div class="grid md:grid-cols-2 gap-3 text-sm">
+        <div class="bg-white/5 border border-white/10 rounded-xl p-4">
+          <p class="font-semibold text-blue-300 mb-1.5">1. "Vì sao từ S3 nhập bit 1 lại về S1 mà không về S0?"</p>
+          <p class="text-slate-400"><strong class="text-emerald-400">Kỳ vọng:</strong> bit "1" cuối của "101" có thể là bit mở đầu chuỗi mới (chồng lấp) — state ghi nhớ "đuôi khớp dài nhất". Trả lời được câu này chứng tỏ hiểu ý nghĩa của state, không học vẹt bảng.</p>
+        </div>
+        <div class="bg-white/5 border border-white/10 rounded-xl p-4">
+          <p class="font-semibold text-blue-300 mb-1.5">2. "Nếu xóa dòng <span class="font-mono text-xs">next_state = state;</span> đầu always_comb thì sao?"</p>
+          <p class="text-slate-400"><strong class="text-emerald-400">Kỳ vọng:</strong> nhánh nào bỏ sót sẽ không được gán → công cụ suy diễn latch. Bonus nếu nói được cách phát hiện: cảnh báo "inferred latch" trong log synthesis.</p>
+        </div>
+        <div class="bg-white/5 border border-white/10 rounded-xl p-4">
+          <p class="font-semibold text-blue-300 mb-1.5">3. "FSM 4 state cần mấy Flip-Flop? Nếu mã hóa one-hot?"</p>
+          <p class="text-slate-400"><strong class="text-emerald-400">Kỳ vọng:</strong> nhị phân 2 FF, one-hot 4 FF; diagram và table không đổi — chỉ cách hiện thực đổi. Nối lại tuần 5: mỗi FF lưu đúng 1 bit.</p>
+        </div>
+        <div class="bg-white/5 border border-white/10 rounded-xl p-4">
+          <p class="font-semibold text-blue-300 mb-1.5">4. "Đèn Mealy sáng lúc nào so với đèn Moore trong demo?"</p>
+          <p class="text-slate-400"><strong class="text-emerald-400">Kỳ vọng:</strong> Mealy sáng ngay trong chu kỳ ở S2 với din = 1 (trước cạnh clock); Moore sáng ở chu kỳ sau, khi đã vào S3. Mealy sớm hơn ~1 chu kỳ nhưng có thể rung theo input.</p>
+        </div>
+      </div>
+    </div>
+    <div class="bg-emerald-500/10 border border-emerald-400/30 rounded-xl p-4 text-sm">
+      <p class="font-bold text-emerald-300 mb-1"><i class="fa-solid fa-arrow-right-long mr-1.5"></i>Cách nối sang tuần 7 (What Is Verilog?)</p>
+      <p class="text-slate-300 leading-relaxed">Chốt buổi bằng chính code FSM ở Section 08: "Hôm nay các em <em>đọc</em> được code này nhờ hiểu mô hình. Tuần sau chúng ta mổ xẻ <em>ngôn ngữ</em>: vì sao module/always/assign mô tả phần cứng song song chứ không phải chương trình chạy tuần tự như C/Python." Giao mỗi bạn mang theo code Mức 3 (dù chưa chạy được) — tuần 7 sẽ debug cùng nhau. FSM là ví dụ xuyên suốt của tuần 7 và là trái tim của tuần 9 (traffic light) + tuần 11 (UART).</p>
+    </div>
+  </div>
+</section>
+<!-- ============ 18. KEY VOCABULARY ============ -->
+<section id="vocabulary">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center text-lg"><i class="fa-solid fa-book-open"></i></div>
+    <div><p class="text-[11px] font-bold text-primary uppercase tracking-widest">Section 18</p><h2 class="text-2xl font-bold text-slate-900">Key Vocabulary — Từ vựng kỹ thuật song ngữ</h2></div>
+  </div>
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-x-auto">
+    <table class="w-full text-sm min-w-[860px]">
+      <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-600">
+        <tr><th class="text-left px-4 py-3">English term</th><th class="text-left px-4 py-3">Nghĩa tiếng Việt</th><th class="text-left px-4 py-3">Giải thích kỹ thuật</th><th class="text-left px-4 py-3">Câu ví dụ</th></tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100 align-top">
+        <tr><td class="px-4 py-3 font-bold text-primary whitespace-nowrap">Finite State Machine (FSM)</td><td class="px-4 py-3">Máy trạng thái hữu hạn</td><td class="px-4 py-3">Mô hình gồm tập hữu hạn state, chuyển theo input tại cạnh clock; hiện thực bằng state register + logic tổ hợp.</td><td class="px-4 py-3 italic text-slate-500">"The UART transmitter is controlled by a four-state FSM."</td></tr>
+        <tr><td class="px-4 py-3 font-bold text-primary whitespace-nowrap">State</td><td class="px-4 py-3">Trạng thái</td><td class="px-4 py-3">"Vị trí trong câu chuyện" của hệ thống; tóm tắt phần quá khứ cần nhớ để quyết định tương lai.</td><td class="px-4 py-3 italic text-slate-500">"After reset, the FSM starts in the IDLE state."</td></tr>
+        <tr><td class="px-4 py-3 font-bold text-primary whitespace-nowrap">Transition</td><td class="px-4 py-3">Chuyển trạng thái</td><td class="px-4 py-3">Luật đi từ state này sang state khác theo input, chỉ "ăn" tại cạnh lên clock (FSM đồng bộ).</td><td class="px-4 py-3 italic text-slate-500">"The transition from S2 to S3 happens when din equals 1."</td></tr>
+        <tr><td class="px-4 py-3 font-bold text-primary whitespace-nowrap">State Diagram</td><td class="px-4 py-3">Sơ đồ trạng thái</td><td class="px-4 py-3">Biểu diễn đồ họa: vòng tròn = state, mũi tên có nhãn input = transition. Dịch 1-1 sang RTL.</td><td class="px-4 py-3 italic text-slate-500">"Always draw the state diagram before writing any RTL."</td></tr>
+        <tr><td class="px-4 py-3 font-bold text-primary whitespace-nowrap">Transition Table</td><td class="px-4 py-3">Bảng chuyển trạng thái</td><td class="px-4 py-3">"Bảng chân lý của trạng thái": hàng = state hiện tại, cột = input, ô = next state. Nguồn của next-state logic.</td><td class="px-4 py-3 italic text-slate-500">"Check the transition table: every state needs an entry for every input."</td></tr>
+        <tr><td class="px-4 py-3 font-bold text-primary whitespace-nowrap">Moore machine</td><td class="px-4 py-3">Máy Moore</td><td class="px-4 py-3">Output = f(state) — ổn định trọn chu kỳ, không glitch theo input; thường cần nhiều state hơn Mealy.</td><td class="px-4 py-3 italic text-slate-500">"We chose a Moore machine so the enable signal stays clean."</td></tr>
+        <tr><td class="px-4 py-3 font-bold text-primary whitespace-nowrap">Mealy machine</td><td class="px-4 py-3">Máy Mealy</td><td class="px-4 py-3">Output = f(state, input) — phản ứng sớm hơn ~1 chu kỳ nhưng output có thể đổi giữa chu kỳ theo input.</td><td class="px-4 py-3 italic text-slate-500">"A Mealy machine can flag the pattern one cycle earlier."</td></tr>
+        <tr><td class="px-4 py-3 font-bold text-primary whitespace-nowrap">State Register</td><td class="px-4 py-3">Thanh ghi trạng thái</td><td class="px-4 py-3">Nhóm Flip-Flop lưu state hiện tại; phần tuần tự duy nhất của FSM; bắt buộc có reset.</td><td class="px-4 py-3 italic text-slate-500">"The state register must be reset to a known state."</td></tr>
+        <tr><td class="px-4 py-3 font-bold text-primary whitespace-nowrap">Next-state logic</td><td class="px-4 py-3">Logic trạng thái kế</td><td class="px-4 py-3">Mạch tổ hợp tính next_state từ state + input; viết bằng always_comb + case + default.</td><td class="px-4 py-3 italic text-slate-500">"A missing default in the next-state logic infers a latch."</td></tr>
+        <tr><td class="px-4 py-3 font-bold text-primary whitespace-nowrap">State Encoding</td><td class="px-4 py-3">Mã hóa trạng thái</td><td class="px-4 py-3">Cách gán bit cho state: nhị phân (ít FF), one-hot (mỗi state 1 FF — FPGA ưa dùng vì logic nhanh, đơn giản).</td><td class="px-4 py-3 italic text-slate-500">"The synthesis tool re-encoded the FSM as one-hot."</td></tr>
+        <tr><td class="px-4 py-3 font-bold text-primary whitespace-nowrap">Controller</td><td class="px-4 py-3">Khối điều khiển</td><td class="px-4 py-3">FSM ra lệnh (load, en, sel, clear) cho datapath và nhận lại tín hiệu trạng thái (done, full, zero).</td><td class="px-4 py-3 italic text-slate-500">"The controller tells the timer when to start counting."</td></tr>
+        <tr><td class="px-4 py-3 font-bold text-primary whitespace-nowrap">Datapath</td><td class="px-4 py-3">Đường dữ liệu</td><td class="px-4 py-3">Tập khối xử lý dữ liệu: register, counter, adder, MUX, shift register — nơi chứa mọi thứ cần "đếm/chứa".</td><td class="px-4 py-3 italic text-slate-500">"Keep the retry counter in the datapath, not in the FSM states."</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============ 19. FINAL SUMMARY ============ -->
+<section id="summary">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center text-lg"><i class="fa-solid fa-flag-checkered"></i></div>
+    <div><p class="text-[11px] font-bold text-primary uppercase tracking-widest">Section 19</p><h2 class="text-2xl font-bold text-slate-900">Final Summary — Chốt lại tuần 6</h2></div>
+  </div>
+
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-4">
+    <h3 class="font-bold text-slate-800 text-sm uppercase tracking-wide mb-4"><i class="fa-solid fa-key text-secondary mr-1.5"></i>5 ý chính cần nhớ</h3>
+    <div class="grid md:grid-cols-2 gap-3 text-sm">
+      <div class="flex gap-3 bg-blue-50 border border-blue-100 rounded-xl p-4"><span class="shrink-0 w-7 h-7 rounded-lg bg-primary text-white flex items-center justify-center font-extrabold text-xs">1</span><p>FSM = <strong>state + input + output + transition</strong>; về phần cứng là <strong>state register (FF) + next-state logic + output logic (tổ hợp)</strong>.</p></div>
+      <div class="flex gap-3 bg-blue-50 border border-blue-100 rounded-xl p-4"><span class="shrink-0 w-7 h-7 rounded-lg bg-primary text-white flex items-center justify-center font-extrabold text-xs">2</span><p>Chuyển trạng thái chỉ xảy ra <strong>tại cạnh lên clock</strong>; state mới xuất hiện sau cạnh một khoảng trễ nhỏ (t<sub>CQ</sub>) — không bao giờ "ngay lập tức".</p></div>
+      <div class="flex gap-3 bg-blue-50 border border-blue-100 rounded-xl p-4"><span class="shrink-0 w-7 h-7 rounded-lg bg-primary text-white flex items-center justify-center font-extrabold text-xs">3</span><p><strong>Moore</strong>: output = f(state), sạch và ổn định trọn chu kỳ. <strong>Mealy</strong>: output = f(state, input), sớm hơn ~1 chu kỳ nhưng có thể rung theo input. Nhập môn ưu tiên Moore.</p></div>
+      <div class="flex gap-3 bg-blue-50 border border-blue-100 rounded-xl p-4"><span class="shrink-0 w-7 h-7 rounded-lg bg-primary text-white flex items-center justify-center font-extrabold text-xs">4</span><p>Kỷ luật RTL: <strong>khuôn 3 khối</strong> — always_ff (&lt;=, có reset) / always_comb next-state (=, có default) / always_comb output (=, có default). Thiếu default → latch.</p></div>
+      <div class="flex gap-3 bg-blue-50 border border-blue-100 rounded-xl p-4 md:col-span-2"><span class="shrink-0 w-7 h-7 rounded-lg bg-primary text-white flex items-center justify-center font-extrabold text-xs">5</span><p><strong>Controller ra lệnh, datapath làm việc:</strong> mọi thứ cần đếm/chứa dữ liệu thuộc datapath (counter, register); FSM chỉ giữ "đang ở pha nào". Đây chính là kiến trúc của traffic light tuần 9 và UART tuần 11.</p></div>
+    </div>
+  </div>
+
+  <div class="grid md:grid-cols-2 gap-4 mb-4">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+      <h3 class="font-bold text-slate-800 text-sm uppercase tracking-wide mb-3"><i class="fa-solid fa-person-circle-question text-primary mr-1.5"></i>3 câu hỏi tự phản tỉnh</h3>
+      <ul class="text-sm space-y-2.5">
+        <li class="flex gap-2.5"><i class="fa-solid fa-circle-dot text-primary mt-1 text-[9px]"></i><span>Nếu phải giải thích cho bạn cùng phòng "state là gì" bằng một ví dụ <em>không có</em> trong bài, tôi sẽ dùng ví dụ nào?</span></li>
+        <li class="flex gap-2.5"><i class="fa-solid fa-circle-dot text-primary mt-1 text-[9px]"></i><span>Tôi có tự vẽ lại được state diagram của detector "101" từ trí nhớ — và tự kiểm tra đủ 8 mũi tên không?</span></li>
+        <li class="flex gap-2.5"><i class="fa-solid fa-circle-dot text-primary mt-1 text-[9px]"></i><span>Trong 3 khối của FSM, khối nào tôi còn mơ hồ nhất khi nhìn code — và tôi sẽ hỏi gì ở buổi tuần 7?</span></li>
+      </ul>
+    </div>
+    <div class="bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 text-white rounded-2xl shadow-lg p-6 flex flex-col justify-center">
+      <i class="fa-solid fa-quote-left text-3xl text-emerald-400 mb-3"></i>
+      <p class="text-lg font-semibold leading-relaxed mb-3">"Sinh viên giỏi nhớ được sơ đồ trạng thái. Kỹ sư giỏi biết <em>vì sao từng mũi tên đi về đúng chỗ đó</em> — và dám để người khác thử phá thiết kế của mình."</p>
+      <p class="text-sm text-slate-400">— Mentor note, tuần 6</p>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="font-bold text-slate-800 text-sm uppercase tracking-wide"><i class="fa-solid fa-list-check text-accent mr-1.5"></i>Sau buổi học, tôi có thể…</h3>
+      <span class="text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full px-3 py-1">Đạt: <span id="sum-count">0</span>/6</span>
+    </div>
+    <div class="grid sm:grid-cols-2 gap-2.5">
+      <label class="flex items-start gap-3 bg-slate-50 border border-slate-200 rounded-xl p-3 cursor-pointer hover:border-accent"><input type="checkbox" class="sum-chk mt-1 w-4 h-4 accent-emerald-500"><span class="text-sm">Kể đúng 4 thành phần của FSM và cho 1 ví dụ đời sống.</span></label>
+      <label class="flex items-start gap-3 bg-slate-50 border border-slate-200 rounded-xl p-3 cursor-pointer hover:border-accent"><input type="checkbox" class="sum-chk mt-1 w-4 h-4 accent-emerald-500"><span class="text-sm">Vẽ state diagram + transition table cho detector "101" (đủ 8 mũi tên).</span></label>
+      <label class="flex items-start gap-3 bg-slate-50 border border-slate-200 rounded-xl p-3 cursor-pointer hover:border-accent"><input type="checkbox" class="sum-chk mt-1 w-4 h-4 accent-emerald-500"><span class="text-sm">Giải thích Moore vs Mealy kèm khác biệt thời điểm output trên waveform.</span></label>
+      <label class="flex items-start gap-3 bg-slate-50 border border-slate-200 rounded-xl p-3 cursor-pointer hover:border-accent"><input type="checkbox" class="sum-chk mt-1 w-4 h-4 accent-emerald-500"><span class="text-sm">Đọc hiểu code FSM 3 khối và chỉ ra khối nào tổng hợp ra FF, khối nào ra cổng logic.</span></label>
+      <label class="flex items-start gap-3 bg-slate-50 border border-slate-200 rounded-xl p-3 cursor-pointer hover:border-accent"><input type="checkbox" class="sum-chk mt-1 w-4 h-4 accent-emerald-500"><span class="text-sm">Nêu 3 lỗi kinh điển (quên reset, thiếu default → latch, nhét dữ liệu vào state) và cách sửa.</span></label>
+      <label class="flex items-start gap-3 bg-slate-50 border border-slate-200 rounded-xl p-3 cursor-pointer hover:border-accent"><input type="checkbox" class="sum-chk mt-1 w-4 h-4 accent-emerald-500"><span class="text-sm">Mô hình hóa một thiết bị thật (khóa số / máy bán nước) thành FSM hoàn chỉnh trên giấy.</span></label>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer class="bg-dark text-slate-300 mt-4">
+  <div class="max-w-6xl mx-auto px-4 py-8">
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+      <a href="Week5.html" class="group inline-flex items-center gap-2 text-sm font-semibold text-slate-300 hover:text-white transition"><i class="fa-solid fa-arrow-left-long group-hover:-translate-x-0.5 transition"></i><span><span class="block text-[10px] uppercase tracking-widest text-slate-500">Tuần trước</span>Tuần 5: Sequential Logic &amp; Memory</span></a>
+      <div class="text-center">
+        <p class="text-xs text-slate-500">Chương trình Mentoring Thiết kế Vi mạch số — 12 tuần</p>
+        <p class="text-xs text-slate-500 mt-1">Bản quyền © Khoa Điện - Điện tử, Trường Kỹ thuật Phenikaa, Đại học Phenikaa · Giảng viên: ThS. Đinh Văn Nam</p>
+        <p class="text-[11px] text-slate-600 mt-1">Tuần 6/12 · Finite State Machines</p>
+      </div>
+      <a href="Week7.html" class="group inline-flex items-center gap-2 text-sm font-semibold text-slate-300 hover:text-white transition text-right"><span><span class="block text-[10px] uppercase tracking-widest text-slate-500">Tuần sau</span>Tuần 7: What Is Verilog?</span><i class="fa-solid fa-arrow-right-long group-hover:translate-x-0.5 transition"></i></a>
+    </div>
+  </div>
+</footer>
+<script>
+(function () {
+  'use strict';
+
+  // ============ Helpers ============
+  function $id(x) { return document.getElementById(x); }
+
+  // ============ Checklist counters (before-session & summary) ============
+  function bindChecklist(cls, countId) {
+    var boxes = document.querySelectorAll('input.' + cls);
+    var out = $id(countId);
+    if (!out || !boxes.length) return;
+    function upd() {
+      var n = 0;
+      boxes.forEach(function (b) { if (b.checked) n++; });
+      out.textContent = n;
+    }
+    boxes.forEach(function (b) { b.addEventListener('change', upd); });
+    upd();
+  }
+  bindChecklist('bs-chk', 'bs-count');
+  bindChecklist('sum-chk', 'sum-count');
+
+  // ============ Copy buttons ============
+  document.querySelectorAll('.copy-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var src = $id(btn.getAttribute('data-copy'));
+      if (!src) return;
+      var text = src.innerText;
+      function done() {
+        var old = btn.textContent;
+        btn.textContent = 'Đã copy!';
+        btn.classList.add('copied');
+        setTimeout(function () { btn.textContent = old; btn.classList.remove('copied'); }, 1600);
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done, function () { fallback(); });
+      } else { fallback(); }
+      function fallback() {
+        var ta = document.createElement('textarea');
+        ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta); ta.select();
+        try { document.execCommand('copy'); done(); } catch (e) {}
+        document.body.removeChild(ta);
+      }
+    });
+  });
+
+  // ============ FSM demo — sequence detector "101" (Moore) ============
+  // Transition table — đúng với bảng ở Section 06:
+  // S0: 0→S0, 1→S1 | S1: 0→S2, 1→S1 | S2: 0→S0, 1→S3 | S3: 0→S2, 1→S1
+  var TT = {
+    S0: { 0: 'S0', 1: 'S1' },
+    S1: { 0: 'S2', 1: 'S1' },
+    S2: { 0: 'S0', 1: 'S3' },
+    S3: { 0: 'S2', 1: 'S1' }
+  };
+  var STATES = ['S0', 'S1', 'S2', 'S3'];
+  var state = 'S0';
+  var detectCount = 0;
+  var bitCount = 0;
+  var edgeTimer = null;
+
+  function paintStates() {
+    STATES.forEach(function (s) {
+      var c = $id('st-' + s), t = $id('tx-' + s), row = $id('tr-' + s);
+      if (!c || !t || !row) return;
+      var active = (s === state);
+      if (active && s === 'S3') {
+        c.setAttribute('fill', '#10b981'); c.setAttribute('stroke', '#059669');
+        t.setAttribute('fill', '#ffffff');
+      } else if (active) {
+        c.setAttribute('fill', '#2563eb'); c.setAttribute('stroke', '#1d4ed8');
+        t.setAttribute('fill', '#ffffff');
+      } else {
+        c.setAttribute('fill', '#ffffff'); c.setAttribute('stroke', '#94a3b8');
+        t.setAttribute('fill', '#334155');
+      }
+      row.classList.toggle('row-hi', active);
+    });
+    $id('fsm-state-name').textContent = state;
+    $id('fsm-state-name').className = 'font-mono font-extrabold text-2xl ' + (state === 'S3' ? 'text-emerald-600' : 'text-primary');
+  }
+
+  function clearCellHi() {
+    document.querySelectorAll('.cell-hi').forEach(function (el) { el.classList.remove('cell-hi'); });
+  }
+
+  function flashEdge(from, bit) {
+    var e = $id('ed-' + from + '-' + bit);
+    if (!e) return;
+    e.setAttribute('stroke', '#f59e0b');
+    e.setAttribute('stroke-width', '4');
+    e.setAttribute('marker-end', 'url(#arrA)');
+    if (edgeTimer) clearTimeout(edgeTimer);
+    edgeTimer = setTimeout(function () {
+      e.setAttribute('stroke', '#64748b');
+      e.setAttribute('stroke-width', '2.5');
+      e.setAttribute('marker-end', 'url(#arrG)');
+    }, 900);
+  }
+
+  function setLed(id, on) {
+    var el = $id(id);
+    if (el) el.classList.toggle('led-on', on);
+  }
+
+  function pushHistory(bit, hit) {
+    var box = $id('fsm-history');
+    if (bitCount === 1) box.innerHTML = '';
+    var chip = document.createElement('span');
+    chip.className = 'chip-bit' + (hit ? ' hit' : '');
+    chip.textContent = bit;
+    chip.title = hit ? 'Cạnh clock này đưa FSM vào S3 — detected = 1' : '';
+    box.appendChild(chip);
+  }
+
+  function inputBit(bit) {
+    var prev = state;
+    var next = TT[prev][bit];
+    // Mealy: f(state, input) — tính TRƯỚC cạnh clock, với state cũ
+    var mealyLit = (prev === 'S2' && bit === 1);
+    // Cạnh lên clock: state register nạp next_state
+    state = next;
+    bitCount++;
+    var mooreLit = (state === 'S3');
+    if (mooreLit) detectCount++;
+
+    paintStates();
+    clearCellHi();
+    var cell = $id('cell-' + prev + '-' + bit);
+    if (cell) cell.classList.add('cell-hi');
+    flashEdge(prev, bit);
+    pushHistory(bit, mooreLit);
+    setLed('moore-led', mooreLit);
+    setLed('mealy-led', mealyLit);
+    $id('fsm-detect-count').textContent = detectCount;
+
+    var banner = $id('fsm-banner');
+    banner.classList.toggle('hidden', !mooreLit);
+    if (mooreLit) { banner.classList.remove('detect-flash'); void banner.offsetWidth; banner.classList.add('detect-flash'); }
+
+    var msg = 'Cạnh lên clock số ' + bitCount + ': state cũ <b class="font-mono">' + prev + '</b>, din = <b class="font-mono">' + bit + '</b> → tra transition table → state mới <b class="font-mono">' + state + '</b>.';
+    if (mooreLit) msg += ' <b class="text-emerald-700">Chuỗi "101" trọn vẹn — detected (Moore) = 1 trong trọn chu kỳ này.</b>';
+    if (mealyLit) msg += ' <span class="text-amber-700">Đèn Mealy đã sáng NGAY khi ở S2 với din = 1 — trước cạnh clock, sớm hơn Moore ~1 chu kỳ.</span>';
+    if (prev === 'S3' && bit === 1) msg += ' Chồng lấp: bit "1" cuối được tái dùng làm bit mở đầu chuỗi mới → về S1.';
+    if (prev === 'S3' && bit === 0) msg += ' Chồng lấp: đuôi "…10" vẫn khớp 2 ký tự đầu của mẫu → về S2.';
+    $id('fsm-msg').innerHTML = '<i class="fa-solid fa-circle-info text-primary mr-1"></i>' + msg;
+  }
+
+  function resetFsm() {
+    state = 'S0'; detectCount = 0; bitCount = 0;
+    paintStates();
+    clearCellHi();
+    setLed('moore-led', false);
+    setLed('mealy-led', false);
+    $id('fsm-detect-count').textContent = '0';
+    $id('fsm-banner').classList.add('hidden');
+    $id('fsm-history').innerHTML = '<span class="text-xs text-slate-400 self-center">— chưa nhập bit nào —</span>';
+    $id('fsm-msg').innerHTML = '<i class="fa-solid fa-circle-info text-primary mr-1"></i>FSM đang ở S0 sau reset (state register được nạp giá trị khởi đầu xác định). Nhập chuỗi 1, 0, 1 để xem đường đi tới S3.';
+  }
+
+  $id('fsm-btn-0').addEventListener('click', function () { inputBit(0); });
+  $id('fsm-btn-1').addEventListener('click', function () { inputBit(1); });
+  $id('fsm-rst').addEventListener('click', resetFsm);
+  paintStates();
+
+  // ============ Quiz ============
+  var answered = 0, correct = 0;
+  var total = document.querySelectorAll('.quiz-q').length;
+
+  function updScore() {
+    $id('quiz-correct').textContent = correct;
+    $id('quiz-answered').textContent = answered;
+  }
+
+  document.querySelectorAll('.quiz-q').forEach(function (q) {
+    q.querySelectorAll('.quiz-opt').forEach(function (opt) {
+      opt.addEventListener('click', function () {
+        if (q.classList.contains('quiz-locked')) return;
+        q.classList.add('quiz-locked');
+        var isCorrect = opt.hasAttribute('data-correct');
+        if (isCorrect) {
+          opt.classList.add('opt-correct');
+          correct++;
+        } else {
+          opt.classList.add('opt-wrong');
+          var right = q.querySelector('[data-correct]');
+          if (right) right.classList.add('opt-correct');
+        }
+        answered++;
+        var exp = q.querySelector('.quiz-exp');
+        if (exp) exp.classList.remove('hidden');
+        updScore();
+      });
+    });
+  });
+
+  $id('quiz-final').addEventListener('click', function () {
+    var v = $id('quiz-verdict');
+    var txt;
+    if (answered < total) {
+      txt = '<i class="fa-solid fa-circle-info mr-1.5"></i>Bạn mới trả lời ' + answered + '/' + total + ' câu — làm nốt rồi chấm nhé!';
+    } else if (correct >= 9) {
+      txt = '<i class="fa-solid fa-trophy mr-1.5"></i>' + correct + '/' + total + ' — Xuất sắc! Bạn đã sẵn sàng viết FSM thật ở tuần 7 và tuần 9.';
+    } else if (correct >= 7) {
+      txt = '<i class="fa-solid fa-thumbs-up mr-1.5"></i>' + correct + '/' + total + ' — Tốt! Xem lại phần giải thích các câu sai, đặc biệt Moore vs Mealy và ý nghĩa của state.';
+    } else if (correct >= 5) {
+      txt = '<i class="fa-solid fa-book-open mr-1.5"></i>' + correct + '/' + total + ' — Ổn ở mức nền. Nên chơi lại demo Section 06 với chuỗi 10101 rồi làm lại các câu sai.';
+    } else {
+      txt = '<i class="fa-solid fa-rotate-left mr-1.5"></i>' + correct + '/' + total + ' — Đừng nản: đọc lại Core Concepts (Section 04), dò demo từng bước, rồi quay lại quiz. FSM cần "ngấm" qua tay.';
+    }
+    v.innerHTML = txt;
+    v.classList.remove('hidden');
+    v.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+})();
+</script>
+</body>
+</html>

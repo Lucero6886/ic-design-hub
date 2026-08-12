@@ -1,0 +1,37 @@
+name: "Gợi ý tài nguyên"
+description: "Đề xuất công cụ, sách, paper, khóa học… đáng đưa vào khu Tài nguyên"
+title: "[Tài nguyên] "
+labels: ["resource-suggestion"]
+body:
+  - type: input
+    id: name
+    attributes:
+      label: "Tên tài nguyên"
+    validations:
+      required: true
+  - type: input
+    id: url
+    attributes:
+      label: "Link"
+      placeholder: "https://..."
+    validations:
+      required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: "Loại"
+      options: ["Công cụ (tool)", "Sách", "Paper", "Phần mềm", "HDL/EDA", "Khóa học", "Tài liệu tham khảo khác"]
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: "Vì sao đáng dùng?"
+      description: "Tiêu chí của hub: tài nguyên phải kèm lý do cụ thể — không nhận danh sách link vô hồn."
+    validations:
+      required: true
+  - type: input
+    id: license
+    attributes:
+      label: "Giấy phép/bản quyền (nếu biết)"
+      placeholder: "vd: GPL-2.0, miễn phí cho giáo dục, trả phí…"

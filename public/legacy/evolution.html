@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="Giảng Viên Đinh Văn Nam">
+<meta name="copyright" content="© 2026 · Bản quyền thuộc về Giảng Viên Đinh Văn Nam, Khoa Điện-Điện Tử, Trường Kỹ Thuật, Đại học Phenikaa">
+<meta name="description" content="So sánh ba phiên bản giáo trình IC Design Mentoring (V1 → V2 → V3) trên 11 phương diện, dẫn chứng từ tư liệu gốc.">
+<title>Tiến hóa giáo trình V1 → V2 → V3 — IC Design Mentoring</title>
+<link rel="stylesheet" href="assets/css/site.css">
+</head>
+<body>
+
+<div id="icdh-legacy-banner" style="background:#12314a;color:#cfe3f5;font:14px/1.5 system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;padding:9px 16px;text-align:center">
+Bạn đang xem <b>Learning Hub phiên bản lưu trữ</b> (cổng V1/V2/V3 nguyên trạng). Hub mới — bài viết, project, nghiên cứu, cộng đồng — ở đây: <a href="../" style="color:#8ec4ee;font-weight:700">Về IC Design Learning &amp; Research Hub →</a>
+</div>
+<header class="topbar">
+  <div class="topbar-in">
+    <a class="brand" href="index.html"><span class="logo">IC</span>
+      <span>IC Design Mentoring<small>Learning Hub · Tiến hóa giáo trình</small></span></a>
+    <nav class="nav" aria-label="Điều hướng chính">
+      <a href="index.html">Trang chủ</a>
+      <a href="versions/v1/index.html">V1</a>
+      <a href="versions/v2/index.html">V2</a>
+      <a href="versions/v3/index.html">V3</a>
+      <a href="evolution.html" aria-current="page">Tiến hóa</a>
+      <a href="about.html">Giới thiệu</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <h1 style="margin-top:34px">Tiến hóa giáo trình: V1 → V2 → V3</h1>
+  <p class="muted" style="max-width:840px">Trang này so sánh ba trạng thái lịch sử của giáo trình để trả lời câu hỏi của người làm chương trình: <em>mỗi bước nhảy giải quyết vấn đề gì, và bằng chứng nằm ở đâu?</em> Mọi nhận định đều dẫn từ tư liệu gốc — báo cáo rà soát V1/V2 (07/08/2026), <a href="versions/v3/CHANGELOG_V2_TO_V3.html">Changelog V2→V3</a>, <a href="versions/v3/TECHNICAL_AUDIT.html">Technical Audit</a> và <a href="versions/v3/VALIDATION_REPORT.html">Validation Report</a>. Phiên bản cũ không bị coi là "sai" — chúng là những giai đoạn cần thiết mà bản sau đứng lên trên.</p>
+
+  <div class="toc"><b>Trên trang này</b>
+    <a href="#timeline">Dòng thời gian</a>
+    <a href="#dimensions">Bảng so sánh 11 phương diện</a>
+    <a href="#v1v2">V1 → V2</a>
+    <a href="#v2v3">V2 → V3</a>
+    <a href="#audit">8 hiệu chỉnh kỹ thuật</a>
+    <a href="#postrelease">Rà soát sau phát hành</a>
+    <a href="#research">Cầu nối nghiên cứu</a>
+    <a href="#when">Khi nào dùng bản nào</a>
+  </div>
+
+  <h2 id="timeline">Dòng thời gian</h2>
+  <div class="evo">
+    <div class="stage">
+      <span class="badge b-v1">V1</span>
+      <h3>Bản gốc — kịch bản buổi học</h3>
+      <div class="when">đóng gói 09/07/2026 · 11 file · 52–62 KB/tuần · ~1.300–1.600 từ/tuần</div>
+      <p class="small muted">Mỗi tuần là một phiếu điều phối buổi sinh hoạt 60 phút: checklist chuẩn bị, agenda, nhiệm vụ thuyết trình nhóm, breakout, từ vựng Anh–Việt, lời khuyên mentor. Gần như không có nội dung giảng dạy; cả bộ chỉ có 2 đoạn code (Tuần 7). Thiếu file Tuần 5; các trang không liên kết với nhau.</p>
+    </div>
+    <div class="stage">
+      <span class="badge b-v2">V2</span>
+      <h3>Bản mở rộng — giáo trình tự học</h3>
+      <div class="when">đóng gói 10/07/2026 · 12 file · 111–178 KB/tuần · ~6.300–10.100 từ/tuần</div>
+      <p class="small muted">Gấp 4–6 lần V1 về khối lượng, khung 18 section lặp lại đủ 12 tuần: mỗi khái niệm trình bày 5 tầng, có quiz chấm tự động, code RTL chất lượng công nghiệp (tách controller/datapath, FSM 3 khối, tick-enable, invariant check trong testbench), rubric, mentor notes, homework 3 mức. Điều hướng tuần trước/sau đúng 100% nhưng chưa có trang mục lục, chưa lưu tiến độ, phụ thuộc CDN.</p>
+    </div>
+    <div class="stage">
+      <span class="badge b-v3">V3</span>
+      <h3>Bản hiện hành — hệ thống 4 lớp có kiểm định</h3>
+      <div class="when">phát hành 07–08/08/2026 · 12 tuần + index + 8 tài liệu · 33–47 KB/tuần</div>
+      <p class="small muted">Giữ phần nội dung mạnh của V2, tái cấu trúc theo 4 lớp (A trước buổi · B buổi 60′ · C lab · D sau buổi); Tuần 9–11 gộp thành một project tích hợp; Tuần 12 thành capstone + cầu nối nghiên cứu; 8 điểm kỹ thuật được hiệu chỉnh có hồ sơ; offline hoàn toàn; một quiz engine; lưu tiến độ; RTL biên dịch &amp; mô phỏng thật bằng Icarus Verilog.</p>
+    </div>
+  </div>
+
+  <h2 id="dimensions">So sánh 11 phương diện</h2>
+  <div class="tblwrap">
+    <table class="tbl">
+      <tr><th style="min-width:170px">Phương diện</th><th>V1 — Bản gốc</th><th>V2 — Mở rộng</th><th>V3 — Hiện hành</th></tr>
+      <tr><td><b>Tổ chức giáo trình</b></td>
+        <td>11 trang rời rạc, không mục lục, không liên kết; thiếu Tuần 5</td>
+        <td>12 tuần, khung 18 section thống nhất, prev/next đúng 100%; chưa có trang mục lục</td>
+        <td>12 tuần 4 lớp + index hub + Curriculum Map; điều hướng và template thống nhất toàn khóa</td></tr>
+      <tr><td><b>Sư phạm</b></td>
+        <td>Học qua buổi sinh hoạt: nhóm thuyết trình, mentor dẫn dắt</td>
+        <td>Tự học + buổi học: mỗi khái niệm 5 tầng, common mistakes, active learning</td>
+        <td>Nguyên tắc tường minh: learn-by-explaining, predict-before-simulate, debug-before-answers, design-before-code, hardware thinking</td></tr>
+      <tr><td><b>Chiều sâu kỹ thuật</b></td>
+        <td>Khái niệm mức giới thiệu, không code (trừ 2 snippet T7)</td>
+        <td>Sâu và chính xác ở các điểm đã thẩm định (UART tính đúng cả overhead khung; FSM/latch/blocking dạy đúng)</td>
+        <td>Giữ độ sâu V2, sửa 8 phát biểu quá tay, thêm giới hạn hiệu lực cho mọi quy tắc ("đúng khi nào")</td></tr>
+      <tr><td><b>Lộ trình RTL</b></td>
+        <td>Chưa có (Verilog chỉ được giới thiệu là gì ở T7)</td>
+        <td>RTL xuất hiện ở hầu hết các tuần; T7 tên "Verilog" nhưng code là SystemVerilog</td>
+        <td>T1–T6 tiếp xúc có dẫn dắt → T7 "Writing Clean RTL in SystemVerilog" hệ thống hóa → T9–11 tự viết trong project; toàn bộ RTL biên dịch được bằng iverilog -g2012</td></tr>
+      <tr><td><b>Tích hợp project</b></td>
+        <td>3 chủ đề T9–11 độc lập, dạng thảo luận</td>
+        <td>3 mini-project T9–11 riêng lẻ, có code nhưng không nối thành một hệ</td>
+        <td>MỘT hệ Smart Traffic Controller lớn dần 3 tuần (FSM+timer → 7-segment → UART), interface cố định từ T9, có Project Guide + milestone + verification plan</td></tr>
+      <tr><td><b>Đánh giá</b></td>
+        <td>Không có quiz/rubric</td>
+        <td>Quiz 9–10 câu/tuần chấm tự động; rubric tự đánh giá; 5 biến thể engine khác nhau giữa các tuần</td>
+        <td>Một engine duy nhất, 5 câu/tuần có giải thích trỏ về bài, rubric 5 tiêu chí trọng số cố định 25/20/20/20/15, T12 có rubric bảo vệ + ngân hàng vấn đáp công khai</td></tr>
+      <tr><td><b>Khả dụng cho mentor</b></td>
+        <td>Cao theo cách riêng: chính nó là kịch bản buổi học</td>
+        <td>Mentor notes cuối trang mỗi tuần</td>
+        <td>Mentor Session Guide 60′ công khai + khối mentor-only bật bằng công tắc + MENTOR_GUIDE.md riêng</td></tr>
+      <tr><td><b>Artifact của học viên</b></td>
+        <td>Bài thuyết trình nhóm, phiếu sau buổi</td>
+        <td>Homework 3 mức khó; mini-project mỗi tuần</td>
+        <td>Deliverable liệt kê tường minh từng bài (file gì, ảnh gì, mấy dòng giải thích); portfolio 12 mục + bảo vệ T12</td></tr>
+      <tr><td><b>Rà soát tính đúng</b></td>
+        <td>Chưa có quy trình</td>
+        <td>Chưa có quy trình (nội dung được thẩm định là chính xác ở các điểm kiểm, nhưng không có hồ sơ audit)</td>
+        <td>Có hồ sơ: Technical Audit 8 mục + Validation Report (render thật, mô phỏng RTL thật, kiểm cấu trúc script) + đợt rà soát học thuật 08/08 với 40 hiệu chỉnh</td></tr>
+      <tr><td><b>Tư duy hệ thống</b></td>
+        <td>Mức giới thiệu ngành (chip trong đời sống)</td>
+        <td>Section "System View" mỗi tuần</td>
+        <td>Chuỗi trừu tượng 6 tầng nhất quán (transistor → cổng → khối → hệ số → IC → SoC) + mô hình controller–datapath dùng xuyên suốt + sơ đồ SVG vẽ đúng netlist</td></tr>
+      <tr><td><b>Cầu nối nghiên cứu</b></td>
+        <td>Chưa có</td>
+        <td>T12 định hướng Phase 2 (danh sách project tiếp theo)</td>
+        <td>Khung EQ→RQ (câu hỏi kỹ thuật → câu hỏi nghiên cứu) từ T6 trở đi + T12 có đề cương nghiên cứu nhỏ và tiêu chí bằng chứng</td></tr>
+    </table>
+  </div>
+  <p class="small dim">Số liệu V1/V2 lấy từ báo cáo rà soát 07/08/2026 (lưu tại <code>_source/bao-cao-danh-gia-lucero-ic-v1-v2.md</code>); số liệu V3 lấy từ bộ tài liệu V3.</p>
+
+  <h2 id="v1v2">V1 → V2: từ kịch bản buổi học thành giáo trình</h2>
+  <p style="max-width:840px">V1 trả lời câu hỏi <em>"buổi sinh hoạt 60 phút diễn ra thế nào?"</em> — và trả lời tốt: timeline buổi học, nhiệm vụ nhóm, lời khuyên mentor của nó được V2 kế thừa thành các section Breakout/Active Learning. Nhưng V1 không trả lời được <em>"học viên học nội dung ở đâu?"</em>: gần như không có phần giảng dạy, không quiz, không bài tập có tiêu chí. V2 giải quyết đúng khoảng trống đó bằng khung 18 section và nội dung tự học đầy đủ — đồng thời bổ sung Tuần 5 (Sequential Logic &amp; Memory), mắt xích bắt buộc trước FSM mà bản lưu V1 không có.</p>
+  <div class="co co-hist"><b>Ghi chú lịch sử:</b> điểm mạnh chuyên môn của V2 đã được thẩm định trực tiếp trong đợt rà soát 07/08/2026: code Tuần 9 tách controller/datapath và có invariant check trong testbench; các phép tính UART Tuần 11 đúng cả những chỗ dễ sai (DIV, sai số %, throughput tính đủ overhead khung 10 bit). Các vấn đề còn lại của V2 chủ yếu là <em>đóng gói</em>: phụ thuộc CDN, 5 biến thể quiz engine, không lưu tiến độ, không mục lục — đây chính là danh sách việc của V3.</div>
+
+  <h2 id="v2v3">V2 → V3: giữ nội dung, đổi kiến trúc, thêm kiểm định</h2>
+  <p style="max-width:840px">V3 <b>không</b> viết lại từ đầu — nguyên tắc thiết kế của nó là giữ phần nội dung kỹ thuật mạnh của V2 và thay đổi ba thứ:</p>
+  <ul class="prose" style="max-width:840px">
+    <li><b>Kiến trúc học:</b> 18 section tuyến tính → 4 lớp theo vòng đời một tuần học (trước buổi · buổi 60′ · lab · sau buổi), để học viên biết chính xác cần đọc gì trước buổi (15–25′) thay vì đối mặt trang ~10.000 từ.</li>
+    <li><b>Tích hợp:</b> ba mini-project rời (T9/T10/T11) → một hệ Smart Traffic Controller duy nhất lớn dần, interface cố định từ T9; T12 từ trang lý thuyết dài nhất thành buổi bảo vệ + tổng kết + cầu nối nghiên cứu.</li>
+    <li><b>Hạ tầng:</b> bỏ CDN (offline hoàn toàn), một quiz engine, lưu tiến độ localStorage, trang mục lục, sơ đồ SVG vẽ theo netlist, và toàn bộ RTL được biên dịch + mô phỏng thật trước khi phát hành.</li>
+  </ul>
+  <p class="small muted">Chi tiết đầy đủ từng thay đổi: <a href="versions/v3/CHANGELOG_V2_TO_V3.html">CHANGELOG_V2_TO_V3</a>.</p>
+
+  <h2 id="audit">8 hiệu chỉnh kỹ thuật V2 → V3 (Technical Audit)</h2>
+  <p style="max-width:840px">Tám phát biểu của V2 được xác định là <em>đúng hướng nhưng quá tay</em> — nói tắt thành tuyệt đối hóa. V3 giữ ý định dạy và thêm điều kiện hiệu lực. Trang V2 lưu trữ <b>không bị sửa lại</b>; bảng dưới là bản đối chiếu, chi tiết ở <a href="versions/v3/TECHNICAL_AUDIT.html">Technical Audit</a>.</p>
+  <div class="tblwrap">
+    <table class="tbl">
+      <tr><th>#</th><th>V2 viết (tóm tắt)</th><th>Giới hạn</th><th>V3 dạy</th></tr>
+      <tr><td>5.1</td><td>"Bật nguồn FF có giá trị ngẫu nhiên; mọi thanh ghi phải reset"</td><td>Hành vi khởi động phụ thuộc công nghệ (FPGA có init lúc nạp bitstream); "mọi thanh ghi" là quyết định kiến trúc</td><td>Phân biệt init-lúc-nạp-cấu-hình với reset chức năng; khóa học vẫn bắt buộc <code>rst_n</code> cho thanh ghi điều khiển, kèm lý do</td></tr>
+      <tr><td>5.2</td><td>"4 state → 2 bit → 2 FF"</td><td><code>logic [1:0] state</code> là biểu diễn RTL, không phải cam kết số FF vật lý (công cụ có thể chọn one-hot)</td><td>Mã hóa state là quyền của synthesis; số FF đọc từ báo cáo công cụ</td></tr>
+      <tr><td>5.3</td><td>"<code>logic</code> thay cho <code>wire</code> và <code>reg</code>"</td><td>Dễ đọc thành "ba từ là một khái niệm"</td><td>net ≠ biến: <code>wire</code> là net; <code>reg</code>/<code>logic</code> là kiểu biến; <code>logic</code> thay hầu hết chỗ dùng <code>reg</code></td></tr>
+      <tr><td>5.4</td><td>"Synthesis dịch RTL thành netlist — phần cứng thật" (1-1)</td><td>Thiếu chữ "tương đương đã tối ưu"; timing không tự nhiên "được giữ"</td><td>Synthesis sinh mạng tương đương chức năng đã tối ưu; timing là ràng buộc phải kiểm bằng STA, có thể trượt</td></tr>
+      <tr><td>5.5</td><td>"FPGA NRE ≈ 0"; ASIC "mỗi chip vài xu"</td><td>Bỏ qua chi phí kỹ sư/IP/tool/verification; đơn giá không điều kiện</td><td>NRE có ở cả hai phương án; bài toán hòa vốn dán nhãn "minh họa" và phát biểu bằng đại lượng bất biến với giả định</td></tr>
+      <tr><td>5.6</td><td>"Đồng bộ 2 FF chống/tránh metastability"</td><td>Ngụ ý loại bỏ hoàn toàn — sai về nguyên lý</td><td>Synchronizer <b>giảm xác suất</b> lỗi xuống mức chấp nhận được (MTBF), không triệt tiêu</td></tr>
+      <tr><td>5.7</td><td>"Ngưỡng an toàn sai số baud ≈ 2%"</td><td>Là guideline kinh nghiệm, không phải đặc tả phổ quát</td><td>Điều luôn đúng: sai số tích lũy theo bit — điểm lấy mẫu bit k trôi ≈ (k+1,5)·e; ngưỡng 1–2% là biên an toàn dưới giới hạn lý thuyết</td></tr>
+      <tr><td>5.8</td><td>"Bạn đã học đủ 100% mảnh ghép của một design FPGA tiêu chuẩn"</td><td>Phóng đại phạm vi — ngộ nhận nguy hiểm</td><td>"Đủ nền, chưa phải đủ 100%": liệt kê tường minh dãy chủ đề Phase 2 (STA, CDC, BRAM/PLL, timing closure, DFT…)</td></tr>
+    </table>
+  </div>
+
+  <h2 id="postrelease">Rà soát học thuật sau phát hành (08/08/2026) — V3 cũng được audit chính nó</h2>
+  <p style="max-width:840px">Sau khi phát hành, V3 tiếp tục qua một đợt rà soát học thuật toàn khóa theo yêu cầu của chủ chương trình, sinh <b>40 hiệu chỉnh</b> — trong đó có những lỗi cùng loại với lỗi V2 từng mắc (nói tắt sai chi tiết, sơ đồ thiếu nhánh, tỉ số không bất biến với giả định). Điểm phương pháp đáng ghi: vòng kiểm ngược thứ hai phát hiện 5 lỗi nằm ngay trong bản sửa của vòng một — bằng chứng rằng <em>bản sửa không tự động đúng hơn bản gốc</em>, và mọi khẳng định về hành vi ngôn ngữ giờ đều kèm mô phỏng đối chứng. Hồ sơ: <a href="versions/v3/VALIDATION_REPORT.html">Validation Report §6b</a> và <a href="versions/v3/implementation-notes.html">Implementation Notes mục 6</a>.</p>
+
+  <h2 id="research">Cầu nối nghiên cứu: Learn → Build → Verify → Integrate → Measure → Research</h2>
+  <p style="max-width:840px">Giáo trình này không dừng ở "làm được bài": V3 cài sẵn một lộ trình chuyển từ bài tập sang tư duy nghiên cứu. Một bài thiết kế trở thành nghiên cứu khi học viên bắt đầu hỏi: giới hạn ở đâu? cải thiện chỉ số nào? kiến trúc thay thế nào tồn tại? đánh đổi gì đang được tối ưu? tính đúng kiểm chứng ra sao? chi phí phần cứng đo thế nào? phương án đề xuất so với baseline ra sao?</p>
+  <ul class="prose" style="max-width:840px">
+    <li><b>Learn → Build:</b> T1–T8 học nền, T9–11 xây một hệ thật có interface cố định.</li>
+    <li><b>Verify:</b> từ T5 mỗi thiết kế đi kèm testbench; T9 nâng lên invariant an toàn kiểm mọi cạnh clock.</li>
+    <li><b>Integrate:</b> T10–11 ghép khối qua interface và bắt tay (handshake) — kỹ năng hệ thống, không chỉ kỹ năng khối.</li>
+    <li><b>Measure:</b> mỗi tuần từ T6 có khung <b>EQ→RQ</b>: biến một câu hỏi kỹ thuật ("timer nên rộng bao nhiêu bit?") thành câu hỏi nghiên cứu đo được ("width ảnh hưởng thế nào tới diện tích/công suất/f_max?").</li>
+    <li><b>Research:</b> T12 yêu cầu một đề cương nghiên cứu nhỏ: câu hỏi, thí nghiệm khả dĩ, <em>tiêu chí bằng chứng</em> và dạng kết luận dự kiến — đúng cấu trúc của một proposal thật, ở quy mô một trang.</li>
+  </ul>
+
+  <h2 id="when">Khi nào dùng bản nào?</h2>
+  <div class="tblwrap">
+    <table class="tbl">
+      <tr><th>Bạn cần</th><th>Dùng</th></tr>
+      <tr><td>Học, dạy, hoặc mentoring khóa 12 tuần <b>hiện nay</b></td><td><b>V3</b> — <a href="versions/v3/index.html">vào giáo trình</a></td></tr>
+      <tr><td>Tham khảo format "tiến trình buổi sinh hoạt 60 phút" thuần túy</td><td>V1 — các phiếu điều phối gốc</td></tr>
+      <tr><td>Đối chiếu một khái niệm được V2 trình bày 5 tầng ra sao</td><td>V2 — trang tuần tương ứng</td></tr>
+      <tr><td>Rà soát vì sao V3 dạy khác V2 ở một điểm kỹ thuật</td><td><a href="versions/v3/TECHNICAL_AUDIT.html">Technical Audit</a> + trang V2 lưu trữ để thấy nguyên văn</td></tr>
+      <tr><td>Nghiên cứu tiến trình phát triển giáo trình kỹ thuật</td><td>Trang này + <code>_source/</code> (bản gốc nguyên trạng) + báo cáo rà soát</td></tr>
+    </table>
+  </div>
+
+  <div class="footer">
+    <b>IC Design Mentoring — Learning Hub</b>
+    <span class="org">Khoa Điện – Điện tử · Trường Kỹ thuật · Đại học Phenikaa · Biên soạn: <b>Giảng Viên Đinh Văn Nam</b></span>
+    <span class="org">© 2026 · Bản quyền thuộc về Giảng Viên Đinh Văn Nam, Khoa Điện-Điện Tử, Trường Kỹ Thuật, Đại học Phenikaa.</span>
+  </div>
+</main>
+</body>
+</html>

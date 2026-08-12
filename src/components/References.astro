@@ -1,0 +1,36 @@
+---
+/** Khối tài liệu tham khảo chuẩn — nguồn chưa kiểm chứng hiển thị cảnh báo rõ */
+interface Ref {
+  label: string;
+  url?: string;
+  note?: string;
+  needsVerification?: boolean;
+}
+interface Props {
+  references: Ref[];
+}
+const { references } = Astro.props;
+---
+
+{
+  references.length > 0 && (
+    <section aria-labelledby="refs-h">
+      <h2 id="refs-h">Tài liệu tham khảo</h2>
+      <ol>
+        {references.map((r) => (
+          <li>
+            {r.url ? (
+              <a href={r.url} rel="noopener">{r.label}</a>
+            ) : (
+              r.label
+            )}
+            {r.note && <span class="muted"> — {r.note}</span>}
+            {r.needsVerification && (
+              <span class="badge warn" style="margin-left:8px">nguồn cần kiểm chứng</span>
+            )}
+          </li>
+        ))}
+      </ol>
+    </section>
+  )
+}

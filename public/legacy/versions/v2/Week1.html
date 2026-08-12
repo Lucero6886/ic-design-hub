@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tuần 1 — Why Semiconductor? Why IC Design? | IC Design Mentoring</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        primary: '#2563eb',
+        secondary: '#f59e0b',
+        accent: '#10b981',
+        danger: '#ef4444',
+        dark: '#0f172a',
+        light: '#f8fafc'
+      },
+      fontFamily: { sans: ['Inter', 'sans-serif'] }
+    }
+  }
+}
+</script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Inter', sans-serif; }
+  pre, code, .mono { font-family: 'JetBrains Mono', monospace; }
+  section { scroll-margin-top: 90px; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  .code-block { background: #0f172a; color: #e2e8f0; border-radius: 0.75rem; padding: 1rem 1.25rem; overflow-x: auto; font-size: 0.85rem; line-height: 1.6; }
+  .kw { color: #a78bfa; font-weight: 600; }        /* keyword: tím */
+  .tp { color: #60a5fa; }                           /* kiểu dữ liệu: xanh */
+  .cm { color: #86a694; font-style: italic; }       /* comment: xám-xanh lá */
+  .nb { color: #fbbf24; }                           /* số */
+  .st { color: #fca5a5; }                           /* chuỗi */
+  .fn { color: #67e8f9; }                           /* tên module/hàm */
+  .quiz-opt { display: block; width: 100%; text-align: left; border: 1.5px solid #e2e8f0; border-radius: 0.6rem; padding: 0.55rem 0.9rem; transition: all .15s; background: #fff; font-size: 0.925rem; }
+  .quiz-opt:hover { border-color: #2563eb; background: #eff6ff; }
+  .opt-correct { background: #ecfdf5 !important; border-color: #10b981 !important; color: #047857; font-weight: 600; }
+  .opt-wrong { background: #fef2f2 !important; border-color: #ef4444 !important; color: #b91c1c; }
+  .opt-dim { opacity: 0.55; }
+  .dashflow { stroke-dasharray: 6 6; animation: dashmove 0.7s linear infinite; }
+  @keyframes dashmove { to { stroke-dashoffset: -24; } }
+  .hotspot { cursor: pointer; }
+  .hotspot rect, .hotspot circle { transition: filter .15s, stroke-width .15s; }
+  .hotspot:hover rect, .hotspot:hover circle { filter: brightness(1.25); }
+  .hotspot.active rect, .hotspot.active circle { stroke: #facc15; stroke-width: 3; }
+  .switch { position: relative; display: inline-block; width: 46px; height: 26px; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .slider-ui { position: absolute; cursor: pointer; inset: 0; background: #cbd5e1; border-radius: 999px; transition: .2s; }
+  .slider-ui:before { content: ""; position: absolute; height: 20px; width: 20px; left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: .2s; }
+  .switch input:checked + .slider-ui { background: #10b981; }
+  .switch input:checked + .slider-ui:before { transform: translateX(20px); }
+</style>
+</head>
+<body class="bg-slate-100 text-slate-800">
+<div id="lichub-nav-top" data-lichub="v2" role="navigation" aria-label="Điều hướng Learning Hub (bổ sung, không thuộc trang gốc)" style="background:#0f172a;color:#e2e8f0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:13.5px;line-height:1.6;padding:8px 16px;display:flex;flex-wrap:wrap;gap:4px 16px;align-items:center;border-bottom:3px solid #38bdf8"><a href="../../index.html" style="color:#7dd3fc;text-decoration:none;font-weight:600">⌂ Learning Hub</a><span style="font-size:11px;font-weight:700;letter-spacing:.04em;color:#38bdf8;border:1px solid #38bdf8;border-radius:6px;padding:1px 7px;white-space:nowrap">V2 · BẢN MỞ RỘNG</span><a href="index.html" style="color:#cbd5e1;text-decoration:none">Mục lục V2</a><span style="flex:1"></span><span style="color:#475569">← Tuần trước</span><a href="Week2.html" style="color:#7dd3fc;text-decoration:none" title="From Idea to Chip">Tuần 2 →</a><span aria-hidden="true" style="color:#475569">|</span><span style="display:inline-flex;gap:8px;align-items:center"><span style="color:#94a3b8">Chuyển bản:</span> <a href="../v1/index.html" style="color:#cbd5e1;text-decoration:none">V1</a> <b aria-current="true" style="color:#38bdf8">V2</b> <a href="../v3/index.html" style="color:#cbd5e1;text-decoration:none">V3</a></span></div>
+
+
+<!-- ===== STICKY NAV ===== -->
+<header class="sticky top-0 z-50 bg-white/95 backdrop-blur shadow-sm">
+  <div class="max-w-6xl mx-auto px-4">
+    <div class="flex items-center justify-between h-14">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-blue-800 text-white flex items-center justify-center"><i class="fa-solid fa-microchip"></i></div>
+        <div>
+          <p class="font-bold text-dark leading-tight">IC Design Mentoring</p>
+          <p class="text-xs text-slate-500 leading-tight">Tuần 1/12 — Why Semiconductor?</p>
+        </div>
+      </div>
+      <span class="hidden md:inline-flex items-center gap-2 text-xs font-semibold bg-blue-50 text-primary px-3 py-1.5 rounded-full"><i class="fa-solid fa-flag-checkered"></i> Buổi mở đầu chương trình</span>
+    </div>
+    <nav class="flex gap-1 overflow-x-auto no-scrollbar pb-2 text-sm">
+      <a href="#hero" class="px-3 py-1 rounded-full whitespace-nowrap text-slate-600 hover:bg-blue-50 hover:text-primary">Tổng quan</a>
+      <a href="#learning-map" class="px-3 py-1 rounded-full whitespace-nowrap text-slate-600 hover:bg-blue-50 hover:text-primary">Lộ trình</a>
+      <a href="#before-session" class="px-3 py-1 rounded-full whitespace-nowrap text-slate-600 hover:bg-blue-50 hover:text-primary">Chuẩn bị</a>
+      <a href="#core-concepts" class="px-3 py-1 rounded-full whitespace-nowrap text-slate-600 hover:bg-blue-50 hover:text-primary">Khái niệm</a>
+      <a href="#demo" class="px-3 py-1 rounded-full whitespace-nowrap text-slate-600 hover:bg-blue-50 hover:text-primary">Demo</a>
+      <a href="#code-rtl" class="px-3 py-1 rounded-full whitespace-nowrap text-slate-600 hover:bg-blue-50 hover:text-primary">Code</a>
+      <a href="#quiz" class="px-3 py-1 rounded-full whitespace-nowrap text-slate-600 hover:bg-blue-50 hover:text-primary">Quiz</a>
+      <a href="#homework" class="px-3 py-1 rounded-full whitespace-nowrap text-slate-600 hover:bg-blue-50 hover:text-primary">Bài tập</a>
+      <a href="#vocabulary" class="px-3 py-1 rounded-full whitespace-nowrap text-slate-600 hover:bg-blue-50 hover:text-primary">Từ vựng</a>
+      <a href="#summary" class="px-3 py-1 rounded-full whitespace-nowrap text-slate-600 hover:bg-blue-50 hover:text-primary">Tổng kết</a>
+    </nav>
+  </div>
+  <div class="h-1 bg-slate-200"><div id="scrollProgress" class="h-full bg-primary transition-all duration-150" style="width:0%"></div></div>
+</header>
+
+<!-- ===== 1. HERO ===== -->
+<section id="hero" class="bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 text-white">
+  <div class="max-w-6xl mx-auto px-4 py-14 md:py-20">
+    <span class="inline-flex items-center gap-2 bg-white/10 border border-white/20 px-4 py-1.5 rounded-full text-sm font-semibold mb-5"><i class="fa-solid fa-bolt text-amber-400"></i> Tuần 1 / 12 · Technical Talk</span>
+    <h1 class="text-3xl md:text-5xl font-extrabold leading-tight mb-3">Why Semiconductor?<br class="hidden md:block"> Why IC Design?</h1>
+    <h2 class="text-xl md:text-2xl font-semibold text-blue-200 mb-6">Vì sao ngành bán dẫn và thiết kế vi mạch quan trọng?</h2>
+    <p class="max-w-3xl text-slate-300 leading-relaxed mb-8">Bạn đang đọc trang web này trên một thiết bị chứa <b class="text-white">hàng chục con chip</b> và <b class="text-white">hàng chục tỷ transistor</b> — những "công tắc điện tử" nhỏ hơn virus, bật tắt hàng tỷ lần mỗi giây. Mỗi con chip đó đều bắt đầu từ bàn làm việc của một kỹ sư thiết kế vi mạch (IC Design engineer). Tuần này, chúng ta không học công thức khó — chúng ta trả lời câu hỏi quan trọng nhất của cả hành trình: <b class="text-amber-300">ngành này là gì, ai làm gì trong đó, và vì sao bạn nên bước vào?</b></p>
+    <div class="grid md:grid-cols-2 gap-3 mb-8">
+      <div class="bg-white/10 border border-white/15 rounded-xl p-4 flex gap-3"><i class="fa-solid fa-atom text-amber-400 text-xl mt-1"></i><p class="text-sm text-slate-200"><b class="text-white">Mục tiêu 1.</b> Giải thích được semiconductor (chất bán dẫn), transistor, chip, IC (Integrated Circuit — mạch tích hợp) là gì bằng ngôn ngữ của chính mình.</p></div>
+      <div class="bg-white/10 border border-white/15 rounded-xl p-4 flex gap-3"><i class="fa-solid fa-mobile-screen text-amber-400 text-xl mt-1"></i><p class="text-sm text-slate-200"><b class="text-white">Mục tiêu 2.</b> Chỉ ra được chip nằm ở đâu trong các thiết bị quanh ta, phân biệt SoC, ASIC, FPGA ở mức nhập môn.</p></div>
+      <div class="bg-white/10 border border-white/15 rounded-xl p-4 flex gap-3"><i class="fa-solid fa-user-gear text-amber-400 text-xl mt-1"></i><p class="text-sm text-slate-200"><b class="text-white">Mục tiêu 3.</b> Mô tả được các hướng nghề nghiệp chính của kỹ sư IC Design: front-end (RTL, verification) và back-end (physical design).</p></div>
+      <div class="bg-white/10 border border-white/15 rounded-xl p-4 flex gap-3"><i class="fa-solid fa-rocket text-amber-400 text-xl mt-1"></i><p class="text-sm text-slate-200"><b class="text-white">Mục tiêu 4.</b> Xác định được điểm khởi đầu học tập của bản thân: logic số → Verilog → FPGA → project nhỏ.</p></div>
+    </div>
+    <div class="grid md:grid-cols-2 gap-3 max-w-3xl">
+      <div class="bg-emerald-500/10 border border-emerald-400/30 rounded-xl p-4"><p class="text-xs uppercase tracking-wide text-emerald-300 font-bold mb-1"><i class="fa-solid fa-location-dot mr-1"></i> Tuần này là điểm xuất phát</p><p class="text-sm text-slate-200">Không cần kiến thức trước. Chỉ cần tò mò: "Bên trong con chip có gì và ai đã tạo ra nó?"</p></div>
+      <div class="bg-blue-500/10 border border-blue-400/30 rounded-xl p-4"><p class="text-xs uppercase tracking-wide text-blue-300 font-bold mb-1"><i class="fa-solid fa-forward mr-1"></i> Tuần sau — Tuần 2</p><p class="text-sm text-slate-200"><b>From Idea to Chip:</b> hành trình một ý tưởng đi qua Specification → RTL → Verification → Tape-out để trở thành chip thật.</p></div>
+    </div>
+  </div>
+</section>
+
+<main class="max-w-6xl mx-auto px-4">
+
+<!-- ===== 2. LEARNING MAP ===== -->
+<section id="learning-map" class="py-12">
+  <div class="flex items-center gap-3 mb-6"><span class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-extrabold">2</span><h2 class="text-2xl md:text-3xl font-bold text-dark"><i class="fa-solid fa-map-location-dot text-primary mr-2"></i>Bản đồ học tập</h2></div>
+  <div class="grid md:grid-cols-3 gap-4 mb-6">
+    <div class="bg-white rounded-2xl shadow p-5 border-t-4 border-slate-300">
+      <p class="text-xs font-bold uppercase text-slate-400 mb-2">Trước tuần này</p>
+      <h3 class="font-bold text-dark mb-2"><i class="fa-solid fa-seedling text-slate-400 mr-1"></i> Điểm xuất phát</h3>
+      <p class="text-sm text-slate-600">Bạn là sinh viên Điện tử — Viễn thông — Tự động hóa — KTMT, từng nghe "bán dẫn", "chip" trên báo nhưng chưa hình dung nghề này làm gì. Thế là đủ!</p>
+    </div>
+    <div class="bg-white rounded-2xl shadow-lg p-5 border-t-4 border-primary ring-2 ring-primary/20">
+      <p class="text-xs font-bold uppercase text-primary mb-2">Tuần này — Tuần 1</p>
+      <h3 class="font-bold text-dark mb-2"><i class="fa-solid fa-microchip text-primary mr-1"></i> Why Semiconductor? Why IC Design?</h3>
+      <p class="text-sm text-slate-600">Bức tranh toàn cảnh: chất bán dẫn → transistor → IC → SoC; ngành công nghiệp và các vai trò kỹ sư; động lực nghề nghiệp của chính bạn.</p>
+    </div>
+    <div class="bg-white rounded-2xl shadow p-5 border-t-4 border-emerald-400">
+      <p class="text-xs font-bold uppercase text-emerald-500 mb-2">Tuần sau — Tuần 2</p>
+      <h3 class="font-bold text-dark mb-2"><i class="fa-solid fa-route text-emerald-500 mr-1"></i> From Idea to Chip</h3>
+      <p class="text-sm text-slate-600">Đi sâu vào design flow (quy trình thiết kế): Specification → Architecture → RTL → Verification → Synthesis → Physical Design → Tape-out.</p>
+    </div>
+  </div>
+  <div class="grid md:grid-cols-2 gap-4">
+    <div class="bg-blue-50 border border-blue-200 rounded-2xl p-5"><h4 class="font-bold text-primary mb-2"><i class="fa-solid fa-key mr-1"></i> Cần gì trước buổi học?</h4><ul class="text-sm text-slate-700 space-y-1.5 list-disc list-inside"><li>Kiến thức vật lý phổ thông về dòng điện, điện áp (đủ dùng).</li><li>Một chiếc điện thoại/laptop để... nhìn nó bằng con mắt khác.</li><li>Tinh thần đặt câu hỏi "vì sao" thay vì học thuộc.</li></ul></div>
+    <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-5"><h4 class="font-bold text-emerald-600 mb-2"><i class="fa-solid fa-arrow-trend-up mr-1"></i> Kiến thức tuần này dùng vào đâu?</h4><ul class="text-sm text-slate-700 space-y-1.5 list-disc list-inside"><li><b>Tuần 2:</b> hiểu vị trí từng nghề trong design flow.</li><li><b>Tuần 3–7:</b> cổng logic, mạch số, Verilog — công cụ của front-end.</li><li><b>Tuần 8–11:</b> FPGA vs ASIC, mini-project — bước chân thực chiến đầu tiên.</li></ul></div>
+  </div>
+</section>
+
+<!-- ===== 3. BEFORE SESSION ===== -->
+<section id="before-session" class="py-12">
+  <div class="flex items-center gap-3 mb-6"><span class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-extrabold">3</span><h2 class="text-2xl md:text-3xl font-bold text-dark"><i class="fa-solid fa-clipboard-check text-primary mr-2"></i>Trước buổi học</h2></div>
+  <div class="bg-white rounded-2xl shadow p-6 mb-5">
+    <p class="text-slate-700 leading-relaxed">Tuần này chúng ta bắt đầu Technical Talk đầu tiên với chủ đề <b>"Why Semiconductor? Why IC Design?"</b>. Mục tiêu không phải là học kiến thức khó, mà là cùng tìm hiểu: ngành bán dẫn là gì, chip xuất hiện ở đâu trong cuộc sống, kỹ sư IC Design làm gì mỗi ngày, và vì sao sinh viên ngành điện tử nên quan tâm ngay từ bây giờ. Hãy đến buổi học với <b>ví dụ thật</b> và <b>câu hỏi thật</b> của chính bạn.</p>
+  </div>
+  <div class="grid lg:grid-cols-2 gap-5">
+    <div class="bg-white rounded-2xl shadow p-6">
+      <div class="flex items-center justify-between mb-4"><h3 class="font-bold text-dark"><i class="fa-solid fa-list-check text-primary mr-2"></i>Checklist chuẩn bị</h3><span id="beforeCount" class="text-xs font-bold bg-blue-50 text-primary px-3 py-1 rounded-full">0/5 hoàn thành</span></div>
+      <div id="beforeChecklist" class="space-y-3 text-sm text-slate-700">
+        <label class="flex items-start gap-3 cursor-pointer"><input type="checkbox" class="mt-0.5 w-4 h-4 accent-blue-600"><span>Tự trả lời (1–2 câu): semiconductor / chip là gì theo cách hiểu của mình?</span></label>
+        <label class="flex items-start gap-3 cursor-pointer"><input type="checkbox" class="mt-0.5 w-4 h-4 accent-blue-600"><span>Tìm <b>5 thiết bị</b> trong đời sống có dùng chip (không tính điện thoại, laptop — quá dễ!).</span></label>
+        <label class="flex items-start gap-3 cursor-pointer"><input type="checkbox" class="mt-0.5 w-4 h-4 accent-blue-600"><span>Tra cứu nhanh: một kỹ sư IC Design làm công việc gì mỗi ngày?</span></label>
+        <label class="flex items-start gap-3 cursor-pointer"><input type="checkbox" class="mt-0.5 w-4 h-4 accent-blue-600"><span>Tìm <b>3 công ty / tổ chức</b> liên quan đến bán dẫn hoặc thiết kế chip (trong nước hoặc quốc tế).</span></label>
+        <label class="flex items-start gap-3 cursor-pointer"><input type="checkbox" class="mt-0.5 w-4 h-4 accent-blue-600"><span>Chuẩn bị <b>3 câu hỏi</b> để mang vào breakout room (phòng thảo luận nhóm).</span></label>
+      </div>
+    </div>
+    <div class="space-y-5">
+      <div class="bg-white rounded-2xl shadow p-6">
+        <h3 class="font-bold text-dark mb-3"><i class="fa-solid fa-fire text-secondary mr-2"></i>3 câu hỏi khởi động</h3>
+        <ol class="space-y-2 text-sm text-slate-700 list-decimal list-inside">
+          <li>Trong 24 giờ qua, bạn đã "chạm" vào bao nhiêu con chip mà không hề nhận ra?</li>
+          <li>Nếu toàn bộ chip trên thế giới ngừng hoạt động trong 1 ngày, điều gì xảy ra với thành phố của bạn?</li>
+          <li>Theo bạn, "thiết kế" một con chip giống thiết kế một tòa nhà hay viết một phần mềm hơn? Vì sao?</li>
+        </ol>
+      </div>
+      <div class="bg-amber-50 border border-amber-200 rounded-2xl p-6">
+        <h3 class="font-bold text-amber-700 mb-2"><i class="fa-solid fa-stopwatch mr-2"></i>Nhiệm vụ nhỏ (5–10 phút)</h3>
+        <p class="text-sm text-slate-700 leading-relaxed">Chọn <b>một thiết bị có chip</b> trong nhà bạn (nồi cơm điện, xe máy, TV, tai nghe...). Viết 3 dòng: <b>(1)</b> thiết bị đó là gì, <b>(2)</b> nó cần chip để làm gì, <b>(3)</b> nếu không có chip thì thiết bị sẽ ra sao? Mang câu trả lời đến buổi học để chia sẻ.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- ===== 4. CORE CONCEPTS ===== -->
+<section id="core-concepts" class="py-12">
+  <div class="flex items-center gap-3 mb-6"><span class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-extrabold">4</span><h2 class="text-2xl md:text-3xl font-bold text-dark"><i class="fa-solid fa-cube text-primary mr-2"></i>Khái niệm cốt lõi</h2></div>
+  <p class="text-slate-600 mb-6 max-w-3xl">Mỗi khái niệm được xây theo 5 tầng: <b>định nghĩa dễ hiểu → bản chất kỹ thuật → ví dụ đời sống → ví dụ trong IC → lỗi hiểu sai phổ biến</b>. Đi từ trực giác trước, thuật ngữ sau.</p>
+
+  <div class="space-y-6">
+    <!-- Concept 1: Semiconductor -->
+    <div class="bg-white rounded-2xl shadow overflow-hidden">
+      <div class="bg-gradient-to-r from-primary to-blue-700 text-white px-6 py-3"><h3 class="font-bold text-lg"><i class="fa-solid fa-atom mr-2"></i>1. Semiconductor — Chất bán dẫn</h3></div>
+      <div class="p-6 grid md:grid-cols-2 gap-4 text-sm text-slate-700">
+        <div class="space-y-3">
+          <p><b class="text-primary">Định nghĩa dễ hiểu:</b> vật liệu "lưng chừng" — dẫn điện kém hơn đồng, tốt hơn nhựa. Điều kỳ diệu: ta có thể <b>điều khiển</b> nó lúc dẫn, lúc không dẫn.</p>
+          <p><b class="text-primary">Bản chất kỹ thuật:</b> silicon (Si) tinh khiết dẫn điện rất kém. Khi pha tạp (doping) một lượng cực nhỏ nguyên tử khác (P, B...), ta tạo vùng thừa electron (loại N) hoặc thiếu electron (loại P). Ghép các vùng N–P khéo léo → tạo được linh kiện mà <b>điện áp điều khiển được dòng điện</b>.</p>
+          <p><b class="text-primary">Ví dụ đời sống:</b> giống vòi nước có van — bản thân đường ống không quyết định nước chảy hay không, cái <b>van</b> mới quyết định. Bán dẫn cho phép ta chế tạo hàng tỷ "van điện" siêu nhỏ.</p>
+        </div>
+        <div class="space-y-3">
+          <p><b class="text-primary">Trong IC:</b> gần như toàn bộ chip hiện đại được chế tạo trên đế silicon (silicon wafer — tấm nền bán dẫn), vì silicon rẻ, ổn định và tinh chế được đến độ tinh khiết 99.9999999%.</p>
+          <div class="bg-red-50 border border-red-200 rounded-xl p-3"><p><b class="text-danger"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Hiểu sai phổ biến:</b> "ngành bán dẫn = làm việc trong nhà máy sản xuất". Sai! Ngành bán dẫn gồm nhiều mắt xích: <b>thiết kế</b> (design), <b>sản xuất</b> (manufacturing/foundry), <b>đóng gói &amp; kiểm thử</b> (packaging &amp; test), công cụ EDA, vật liệu... Kỹ sư IC Design làm việc với máy tính và phần mềm, không đứng trong phòng sạch.</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Concept 2: Transistor -->
+    <div class="bg-white rounded-2xl shadow overflow-hidden">
+      <div class="bg-gradient-to-r from-primary to-blue-700 text-white px-6 py-3"><h3 class="font-bold text-lg"><i class="fa-solid fa-toggle-on mr-2"></i>2. Transistor (MOSFET) — Công tắc điện tử</h3></div>
+      <div class="p-6 grid md:grid-cols-2 gap-4 text-sm text-slate-700">
+        <div class="space-y-3">
+          <p><b class="text-primary">Định nghĩa dễ hiểu:</b> công tắc bật/tắt <b>không có ngón tay bấm</b> — được bấm bằng điện áp. Đây là "viên gạch" nhỏ nhất của mọi con chip số.</p>
+          <p><b class="text-primary">Bản chất kỹ thuật:</b> MOSFET có 3 cực chính: Gate (cực cổng — chân điều khiển), Drain (cực máng) và Source (cực nguồn). Với NMOS: đặt điện áp đủ lớn vào Gate (vượt điện áp ngưỡng V<sub>T</sub>) → hình thành kênh dẫn giữa Drain–Source → dòng điện chạy qua. Bỏ điện áp → kênh biến mất → dòng bị chặn.</p>
+          <p><b class="text-primary">Ví dụ đời sống:</b> vòi nước cảm ứng: đưa tay vào (tín hiệu điều khiển) → nước chảy; rút tay → nước ngừng. Gate chính là "cảm biến tay" đó.</p>
+        </div>
+        <div class="space-y-3">
+          <p><b class="text-primary">Trong IC:</b> một SoC điện thoại đời mới chứa <b>hơn 15–20 tỷ transistor</b>, mỗi transistor chỉ vài chục nanomet — nhỏ hơn virus corona (~100 nm). Từ transistor ghép thành cổng logic (Tuần 3), rồi thành khối chức năng, rồi thành chip.</p>
+          <div class="bg-red-50 border border-red-200 rounded-xl p-3"><p><b class="text-danger"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Hiểu sai phổ biến:</b> "transistor bật/tắt tức thời". Thực tế transistor cần thời gian (cỡ picô-giây) để nạp/xả điện tích — đây chính là nguồn gốc của <b>propagation delay</b> (độ trễ lan truyền) và giới hạn tốc độ chip. Xem mục Timing bên dưới.</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Concept 3: Chip / IC -->
+    <div class="bg-white rounded-2xl shadow overflow-hidden">
+      <div class="bg-gradient-to-r from-primary to-blue-700 text-white px-6 py-3"><h3 class="font-bold text-lg"><i class="fa-solid fa-microchip mr-2"></i>3. Chip / IC — Mạch tích hợp</h3></div>
+      <div class="p-6 grid md:grid-cols-2 gap-4 text-sm text-slate-700">
+        <div class="space-y-3">
+          <p><b class="text-primary">Định nghĩa dễ hiểu:</b> IC (Integrated Circuit — mạch tích hợp) là cả một mạch điện khổng lồ được "thu nhỏ và in" lên một miếng silicon bé bằng móng tay. "Chip" là cách gọi thân mật của IC.</p>
+          <p><b class="text-primary">Bản chất kỹ thuật:</b> thay vì hàn từng linh kiện rời trên board, người ta chế tạo transistor, điện trở, tụ và <b>dây nối kim loại nhiều lớp</b> ngay trên cùng một đế silicon (die), bằng quang khắc (photolithography). Tích hợp → nhỏ hơn, nhanh hơn, rẻ hơn, tiết kiệm điện hơn.</p>
+          <p><b class="text-primary">Ví dụ đời sống:</b> giống việc thu cả một thành phố (nhà máy điện, đường sá, khu dân cư) vào một mô hình tí hon — nhưng mô hình này <b>hoạt động thật</b>.</p>
+        </div>
+        <div class="space-y-3">
+          <p><b class="text-primary">Trong IC/hệ thống:</b> board mạch điện thoại chứa nhiều IC: SoC, chip nhớ, PMIC (Power Management IC — chip quản lý nguồn), chip RF... Mỗi IC đảm nhiệm một mảng việc.</p>
+          <div class="bg-red-50 border border-red-200 rounded-xl p-3"><p><b class="text-danger"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Hiểu sai phổ biến:</b> "chip chỉ có trong máy tính". Ô tô đời mới chứa <b>1.000–3.000 chip</b>; thẻ ngân hàng, máy giặt, bóng đèn thông minh, tai nghe bluetooth... đều có chip.</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Concept 4: SoC -->
+    <div class="bg-white rounded-2xl shadow overflow-hidden">
+      <div class="bg-gradient-to-r from-primary to-blue-700 text-white px-6 py-3"><h3 class="font-bold text-lg"><i class="fa-solid fa-boxes-stacked mr-2"></i>4. SoC — System on Chip: cả hệ thống trên MỘT chip</h3></div>
+      <div class="p-6 grid md:grid-cols-2 gap-4 text-sm text-slate-700">
+        <div class="space-y-3">
+          <p><b class="text-primary">Định nghĩa dễ hiểu:</b> SoC (System on Chip — hệ thống trên chip) là <b>MỘT con IC duy nhất</b> tích hợp <b>nhiều khối chức năng</b> trên cùng một miếng silicon: CPU, GPU, bộ điều khiển bộ nhớ, khối xử lý ảnh, khối AI, modem...</p>
+          <p><b class="text-primary">Bản chất kỹ thuật:</b> mỗi khối chức năng là một "IP core" (lõi IP — khối thiết kế tái sử dụng) được các team khác nhau thiết kế, sau đó tích hợp lại và kết nối bằng bus/NoC (mạng trên chip). Tất cả nằm <b>trên cùng một die silicon</b>.</p>
+          <p><b class="text-primary">Ví dụ đời sống:</b> căn hộ studio "all-in-one": bếp, phòng ngủ, phòng làm việc trong <b>một</b> căn phòng — không phải một tòa nhà nhiều căn hộ riêng.</p>
+        </div>
+        <div class="space-y-3">
+          <p><b class="text-primary">Trong IC:</b> Apple A17, Snapdragon 8 Gen 3, Exynos... là các SoC. Nhờ tích hợp lên một chip: khoảng cách tín hiệu ngắn → nhanh hơn, tốn ít điện hơn, board nhỏ gọn hơn.</p>
+          <div class="bg-red-50 border border-red-200 rounded-xl p-3"><p><b class="text-danger"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Hiểu sai phổ biến (rất hay gặp):</b> "SoC là thiết bị chứa nhiều IC". <b>SAI.</b> SoC là <b>một IC</b> tích hợp nhiều <b>khối chức năng</b> trên <b>một chip duy nhất</b>. Board mạch chứa nhiều IC thì gọi là hệ thống trên board, không phải SoC.</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Concept 5: ASIC vs FPGA -->
+    <div class="bg-white rounded-2xl shadow overflow-hidden">
+      <div class="bg-gradient-to-r from-primary to-blue-700 text-white px-6 py-3"><h3 class="font-bold text-lg"><i class="fa-solid fa-scale-balanced mr-2"></i>5. ASIC vs FPGA — Chip "may đo" và chip "lắp ráp lại được"</h3></div>
+      <div class="p-6 grid md:grid-cols-2 gap-4 text-sm text-slate-700">
+        <div class="space-y-3">
+          <p><b class="text-primary">ASIC</b> (Application-Specific Integrated Circuit — chip chuyên dụng): thiết kế cho <b>một</b> nhiệm vụ cụ thể, sản xuất tại nhà máy, <b>không sửa được</b> sau khi chế tạo. Như bộ vest may đo: vừa vặn hoàn hảo, nhưng may xong không nới lại được.</p>
+          <p><b class="text-primary">FPGA</b> (Field-Programmable Gate Array — mạch logic lập trình được): chip chứa "biển" khối logic có thể <b>cấu hình lại</b> bằng cách nạp bitstream (tệp cấu hình). Như bộ LEGO: hôm nay lắp bộ đếm, mai xóa đi lắp bộ điều khiển đèn giao thông.</p>
+        </div>
+        <div class="space-y-3">
+          <p><b class="text-primary">Trong chương trình này:</b> ta học thiết kế bằng Verilog rồi <b>thử trên FPGA</b> (rẻ, sửa được ngay); tư duy và code chuẩn thì sau này chuyển sang ASIC được. Tuần 8 sẽ so sánh chi tiết (chi phí NRE, tốc độ, điện năng, time-to-market).</p>
+          <div class="bg-red-50 border border-red-200 rounded-xl p-3"><p><b class="text-danger"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Hiểu sai phổ biến:</b> "FPGA không liên quan IC Design" hoặc "ASIC luôn tốt hơn FPGA". Cả hai đều sai — FPGA là công cụ học và prototype (mẫu thử) chuẩn của kỹ sư số; chọn FPGA hay ASIC là bài toán <b>trade-off</b> (đánh đổi), tùy sản lượng và yêu cầu.</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Concept 6: Nghề IC Design -->
+    <div class="bg-white rounded-2xl shadow overflow-hidden">
+      <div class="bg-gradient-to-r from-primary to-blue-700 text-white px-6 py-3"><h3 class="font-bold text-lg"><i class="fa-solid fa-user-astronaut mr-2"></i>6. Kỹ sư IC Design làm gì? — Các hướng nghề nghiệp</h3></div>
+      <div class="p-6 text-sm text-slate-700">
+        <div class="grid md:grid-cols-3 gap-4 mb-4">
+          <div class="bg-blue-50 rounded-xl p-4 border border-blue-200"><h4 class="font-bold text-primary mb-1"><i class="fa-solid fa-pen-ruler mr-1"></i> RTL Design (Front-end)</h4><p>Mô tả hoạt động của mạch bằng Verilog/SystemVerilog ở mức RTL (Register Transfer Level — mức truyền thanh ghi). "Kiến trúc sư" của khối logic.</p></div>
+          <div class="bg-emerald-50 rounded-xl p-4 border border-emerald-200"><h4 class="font-bold text-emerald-600 mb-1"><i class="fa-solid fa-bug-slash mr-1"></i> Verification (Front-end)</h4><p>Kiểm chứng thiết kế: viết testbench (môi trường kiểm thử), mô phỏng, "săn bug" trước khi chip đi sản xuất. Chiếm 60–70% công sức dự án, nhu cầu tuyển dụng lớn nhất.</p></div>
+          <div class="bg-amber-50 rounded-xl p-4 border border-amber-200"><h4 class="font-bold text-amber-600 mb-1"><i class="fa-solid fa-map mr-1"></i> Physical Design (Back-end)</h4><p>Biến netlist (danh sách cổng logic) thành layout (bản vẽ vật lý) — sắp đặt hàng tỷ transistor, đi dây, tối ưu PPA (Performance – Power – Area), chuẩn bị tape-out.</p></div>
+        </div>
+        <div class="grid md:grid-cols-3 gap-4 mb-4">
+          <div class="bg-slate-50 rounded-xl p-4 border border-slate-200"><h4 class="font-bold text-slate-600 mb-1">DFT Engineer</h4><p>Design-for-Test: chèn mạch hỗ trợ kiểm tra chip sau sản xuất (scan chain, BIST).</p></div>
+          <div class="bg-slate-50 rounded-xl p-4 border border-slate-200"><h4 class="font-bold text-slate-600 mb-1">Analog / Mixed-Signal</h4><p>Thiết kế mạch tương tự: PLL, ADC/DAC, mạch nguồn — làm việc ở mức transistor.</p></div>
+          <div class="bg-slate-50 rounded-xl p-4 border border-slate-200"><h4 class="font-bold text-slate-600 mb-1">FPGA / Embedded</h4><p>Triển khai hệ thống số trên FPGA, prototype thuật toán, sản phẩm chuyên dụng số lượng nhỏ.</p></div>
+        </div>
+        <div class="bg-emerald-50 border border-emerald-300 rounded-xl p-4"><p><b class="text-emerald-700"><i class="fa-solid fa-lightbulb mr-1"></i>Thông điệp chính:</b> bạn có thể bắt đầu hành trình IC Design ngay từ hôm nay với: <b>Digital Logic → Verilog → FPGA → tiếng Anh kỹ thuật → project nhỏ</b>. Không cần đợi "học xong hết" mới bắt đầu — chương trình 12 tuần này chính là con đường đó.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 5. SYSTEM VIEW ===== -->
+<section id="system-view" class="py-12">
+  <div class="flex items-center gap-3 mb-6"><span class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-extrabold">5</span><h2 class="text-2xl md:text-3xl font-bold text-dark"><i class="fa-solid fa-sitemap text-primary mr-2"></i>Góc nhìn hệ thống: từ transistor đến sản phẩm</h2></div>
+  <p class="text-slate-600 mb-6 max-w-3xl">Thiết kế số là trò chơi <b>xếp tầng trừu tượng</b>: mỗi tầng che giấu độ phức tạp của tầng dưới. Đây là "bản đồ" bạn sẽ leo trong 12 tuần.</p>
+  <div class="bg-white rounded-2xl shadow overflow-x-auto mb-6">
+    <table class="w-full text-sm min-w-[640px]">
+      <thead class="bg-dark text-white"><tr><th class="px-4 py-3 text-left">Cấp độ</th><th class="px-4 py-3 text-left">Là gì?</th><th class="px-4 py-3 text-left">Ví dụ</th><th class="px-4 py-3 text-left">Học ở tuần</th></tr></thead>
+      <tbody class="divide-y divide-slate-100 text-slate-700">
+        <tr class="hover:bg-slate-50"><td class="px-4 py-3 font-semibold text-primary">Transistor</td><td class="px-4 py-3">Công tắc điều khiển bằng điện áp</td><td class="px-4 py-3">NMOS, PMOS</td><td class="px-4 py-3">Tuần 1</td></tr>
+        <tr class="hover:bg-slate-50"><td class="px-4 py-3 font-semibold text-primary">Logic gate (cổng logic)</td><td class="px-4 py-3">Vài transistor ghép thành phép toán logic</td><td class="px-4 py-3">AND, OR, NOT, NAND</td><td class="px-4 py-3">Tuần 3</td></tr>
+        <tr class="hover:bg-slate-50"><td class="px-4 py-3 font-semibold text-primary">Khối chức năng</td><td class="px-4 py-3">Nhiều cổng ghép thành khối có nhiệm vụ rõ ràng</td><td class="px-4 py-3">MUX, Adder, Register, Counter, FSM</td><td class="px-4 py-3">Tuần 4–6</td></tr>
+        <tr class="hover:bg-slate-50"><td class="px-4 py-3 font-semibold text-primary">IP core / Subsystem</td><td class="px-4 py-3">Khối lớn tái sử dụng, mô tả bằng Verilog RTL</td><td class="px-4 py-3">UART, bộ điều khiển đèn giao thông, CPU core</td><td class="px-4 py-3">Tuần 7–11</td></tr>
+        <tr class="hover:bg-slate-50"><td class="px-4 py-3 font-semibold text-primary">SoC / Chip</td><td class="px-4 py-3"><b>MỘT IC</b> tích hợp nhiều khối chức năng trên một die</td><td class="px-4 py-3">Snapdragon, Apple A-series</td><td class="px-4 py-3">Tuần 1, 2, 8</td></tr>
+        <tr class="hover:bg-slate-50"><td class="px-4 py-3 font-semibold text-primary">Hệ thống / Sản phẩm</td><td class="px-4 py-3">Nhiều chip trên board + phần mềm</td><td class="px-4 py-3">Smartphone, ô tô, trạm 5G</td><td class="px-4 py-3">Toàn khóa</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="grid md:grid-cols-2 gap-5">
+    <div class="bg-white rounded-2xl shadow p-6">
+      <h3 class="font-bold text-dark mb-3"><i class="fa-solid fa-id-card text-primary mr-2"></i>"Block card" đầu tiên của bạn: cổng NOT (inverter)</h3>
+      <table class="w-full text-sm">
+        <tbody class="divide-y divide-slate-100 text-slate-700">
+          <tr><td class="py-2 font-semibold w-40">Input</td><td class="py-2">a (1 bit)</td></tr>
+          <tr><td class="py-2 font-semibold">Output</td><td class="py-2">y (1 bit), y = NOT a</td></tr>
+          <tr><td class="py-2 font-semibold">Loại mạch</td><td class="py-2">Tổ hợp (combinational) — output chỉ phụ thuộc input hiện tại</td></tr>
+          <tr><td class="py-2 font-semibold">Cần clock?</td><td class="py-2">Không</td></tr>
+          <tr><td class="py-2 font-semibold">Cần reset?</td><td class="py-2">Không</td></tr>
+          <tr><td class="py-2 font-semibold">Verilog</td><td class="py-2"><code class="bg-slate-100 px-2 py-0.5 rounded text-primary">assign y = ~a;</code></td></tr>
+          <tr><td class="py-2 font-semibold">Synthesis ra gì?</td><td class="py-2">1 cell inverter = <b>2 transistor CMOS</b> (1 PMOS + 1 NMOS)</td></tr>
+        </tbody>
+      </table>
+      <p class="text-xs text-slate-500 mt-3"><i class="fa-solid fa-circle-info mr-1"></i>Từ Tuần 4, mỗi khối mạch mới đều sẽ có một "block card" như thế này — thói quen chuẩn của kỹ sư số.</p>
+    </div>
+    <div class="bg-white rounded-2xl shadow p-6">
+      <h3 class="font-bold text-dark mb-3"><i class="fa-solid fa-mobile-screen-button text-primary mr-2"></i>Chip nằm ở đâu trong smartphone?</h3>
+      <ul class="text-sm text-slate-700 space-y-2">
+        <li class="flex gap-2"><span class="w-24 shrink-0 font-bold text-primary">SoC</span><span>"Bộ não": CPU, GPU, NPU, ISP, modem... tích hợp trên MỘT chip.</span></li>
+        <li class="flex gap-2"><span class="w-24 shrink-0 font-bold text-violet-600">Memory</span><span>DRAM (nhớ tạm khi chạy) + Flash (lưu trữ lâu dài) — thường là chip riêng.</span></li>
+        <li class="flex gap-2"><span class="w-24 shrink-0 font-bold text-amber-600">PMIC</span><span>Quản lý nguồn: biến đổi, phân phối điện áp cho từng khối, sạc pin.</span></li>
+        <li class="flex gap-2"><span class="w-24 shrink-0 font-bold text-emerald-600">RF Front-end</span><span>Khuếch đại, lọc tín hiệu vô tuyến 4G/5G/WiFi trước khi vào modem.</span></li>
+        <li class="flex gap-2"><span class="w-24 shrink-0 font-bold text-slate-500">Sensor IC</span><span>Cảm biến ảnh camera, gia tốc kế, vân tay... mỗi cái là một chip.</span></li>
+      </ul>
+      <p class="text-xs text-slate-500 mt-3"><i class="fa-solid fa-hand-pointer mr-1"></i>Khám phá tương tác ở phần Demo bên dưới.</p>
+    </div>
+  </div>
+</section>
+<!-- ===== 6. INTERACTIVE DEMO ===== -->
+<section id="demo" class="py-12">
+  <div class="flex items-center gap-3 mb-6"><span class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-extrabold">6</span><h2 class="text-2xl md:text-3xl font-bold text-dark"><i class="fa-solid fa-flask text-primary mr-2"></i>Demo tương tác</h2></div>
+
+  <!-- Demo A: Transistor switch -->
+  <div class="bg-white rounded-2xl shadow p-6 mb-8">
+    <h3 class="font-bold text-lg text-dark mb-1"><i class="fa-solid fa-toggle-off text-primary mr-2"></i>Demo 1 — Transistor là công tắc điều khiển bằng điện áp</h3>
+    <p class="text-sm text-slate-600 mb-4">Nhấn nút để thay đổi điện áp cực Gate (V<sub>G</sub>) của transistor NMOS. Quan sát kênh dẫn, dòng điện và bóng đèn. Kênh dẫn hình thành khi V<sub>G</sub> vượt điện áp ngưỡng V<sub>T</sub> (khoảng 0.4–0.7 V).</p>
+    <div class="grid lg:grid-cols-2 gap-6 items-center">
+      <div class="bg-slate-50 rounded-xl p-3 border border-slate-200">
+        <svg viewBox="0 0 560 320" xmlns="http://www.w3.org/2000/svg" class="w-full h-auto">
+          <!-- VDD -->
+          <line x1="270" y1="30" x2="330" y2="30" stroke="#334155" stroke-width="3"/>
+          <text x="340" y="34" font-size="14" fill="#334155" font-weight="bold">VDD = 1.8 V</text>
+          <line id="wVdd" x1="300" y1="30" x2="300" y2="70" stroke="#94a3b8" stroke-width="3"/>
+          <!-- Lamp -->
+          <circle id="mosLampGlow" cx="300" cy="95" r="34" fill="#fde047" opacity="0"/>
+          <circle id="mosLamp" cx="300" cy="95" r="24" fill="#e2e8f0" stroke="#64748b" stroke-width="2.5"/>
+          <line x1="285" y1="80" x2="315" y2="110" stroke="#64748b" stroke-width="2"/>
+          <line x1="315" y1="80" x2="285" y2="110" stroke="#64748b" stroke-width="2"/>
+          <text x="340" y="99" font-size="13" fill="#475569">Đèn (tải)</text>
+          <!-- Drain wire -->
+          <line id="wDrain" x1="300" y1="119" x2="300" y2="185" stroke="#94a3b8" stroke-width="3"/>
+          <text x="308" y="160" font-size="12" fill="#64748b">D (Drain)</text>
+          <!-- MOSFET -->
+          <line x1="300" y1="185" x2="292" y2="185" stroke="#334155" stroke-width="3"/>
+          <rect id="mosChannel" x="286" y="182" width="6" height="56" rx="2" fill="#cbd5e1"/>
+          <line x1="278" y1="186" x2="278" y2="234" stroke="#334155" stroke-width="3"/>
+          <line id="wGate" x1="150" y1="210" x2="278" y2="210" stroke="#94a3b8" stroke-width="3"/>
+          <line x1="292" y1="235" x2="300" y2="235" stroke="#334155" stroke-width="3"/>
+          <text x="308" y="250" font-size="12" fill="#64748b">S (Source)</text>
+          <text x="245" y="175" font-size="12" fill="#64748b">G (Gate)</text>
+          <!-- Source to GND -->
+          <line id="wSrc" x1="300" y1="235" x2="300" y2="272" stroke="#94a3b8" stroke-width="3"/>
+          <line x1="278" y1="272" x2="322" y2="272" stroke="#334155" stroke-width="3"/>
+          <line x1="286" y1="280" x2="314" y2="280" stroke="#334155" stroke-width="2.5"/>
+          <line x1="294" y1="288" x2="306" y2="288" stroke="#334155" stroke-width="2"/>
+          <text x="330" y="285" font-size="12" fill="#64748b">GND (0 V)</text>
+          <!-- VG box -->
+          <rect x="46" y="188" width="104" height="44" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+          <text id="vgText" x="98" y="215" font-size="14" fill="#1d4ed8" font-weight="bold" text-anchor="middle">V_G = 0 V</text>
+          <!-- Animated current -->
+          <path id="mosCurrent" d="M300,34 L300,68 M300,122 L300,182 M300,238 L300,268" stroke="#10b981" stroke-width="3" fill="none" class="dashflow" opacity="0"/>
+        </svg>
+      </div>
+      <div>
+        <button id="vgToggle" class="w-full md:w-auto bg-primary hover:bg-blue-700 text-white font-bold px-6 py-3 rounded-xl mb-4 transition"><i class="fa-solid fa-power-off mr-2"></i>Đặt V_G = 1.8 V (mức High)</button>
+        <div id="mosStatus" class="rounded-xl px-4 py-3 text-sm font-semibold bg-slate-100 text-slate-600 mb-4"><i class="fa-solid fa-circle-xmark mr-1"></i> Transistor OFF — kênh dẫn chưa hình thành, dòng điện bị chặn, đèn tắt.</div>
+        <div id="mosOff" class="text-sm text-slate-700 leading-relaxed bg-slate-50 border border-slate-200 rounded-xl p-4">
+          <p class="mb-2"><b class="text-slate-800">Trạng thái hiện tại: V<sub>G</sub> = 0 V (mức Low).</b></p>
+          <p>Điện áp Gate thấp hơn ngưỡng V<sub>T</sub> → dưới cực Gate <b>không có kênh dẫn</b> nối Drain–Source. Mạch bị "đứt" tại transistor → không có dòng qua đèn. Đây chính là <b>logic 0</b> tại ngõ điều khiển.</p>
+        </div>
+        <div id="mosOn" class="hidden text-sm text-slate-700 leading-relaxed bg-emerald-50 border border-emerald-200 rounded-xl p-4">
+          <p class="mb-2"><b class="text-emerald-700">Trạng thái hiện tại: V<sub>G</sub> = 1.8 V (mức High).</b></p>
+          <p>V<sub>G</sub> vượt ngưỡng V<sub>T</sub> → điện trường hút electron về dưới cực Gate, hình thành <b>kênh dẫn</b> (dải xanh) → dòng điện chạy từ VDD qua đèn, qua kênh Drain–Source xuống GND → đèn sáng. Một điện áp nhỏ ở Gate đã <b>điều khiển</b> được dòng điện lớn hơn — đó là nguyên lý của mọi mạch số.</p>
+        </div>
+        <p class="text-xs text-slate-500 mt-3"><i class="fa-solid fa-lightbulb text-amber-500 mr-1"></i>Ghép 2 transistor (1 PMOS + 1 NMOS) theo kiểu bù nhau → cổng NOT. Ghép 4–6 transistor → NAND, NOR. Hàng tỷ transistor → SoC. Tất cả bắt đầu từ cái "công tắc" bạn vừa bấm.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Demo B: Chip inside smartphone -->
+  <div class="bg-white rounded-2xl shadow p-6">
+    <h3 class="font-bold text-lg text-dark mb-1"><i class="fa-solid fa-mobile-screen text-primary mr-2"></i>Demo 2 — "Mổ xẻ" smartphone: chip nào nằm ở đâu?</h3>
+    <p class="text-sm text-slate-600 mb-4">Click vào từng khối trên board mạch điện thoại để xem đó là chip gì, làm nhiệm vụ gì, và điều gì xảy ra nếu thiếu nó.</p>
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="bg-slate-50 rounded-xl p-3 border border-slate-200 flex justify-center">
+        <svg viewBox="0 0 280 520" xmlns="http://www.w3.org/2000/svg" class="h-[420px] w-auto">
+          <rect x="20" y="10" width="240" height="500" rx="30" fill="#1e293b" stroke="#475569" stroke-width="3"/>
+          <rect x="35" y="60" width="210" height="400" rx="8" fill="#0f172a"/>
+          <text x="140" y="45" font-size="13" fill="#94a3b8" text-anchor="middle">Board mạch bên trong</text>
+          <g id="hsCam" class="hotspot" data-chip="cam">
+            <circle cx="62" cy="92" r="16" fill="#475569" stroke="#64748b" stroke-width="2"/>
+            <circle cx="62" cy="92" r="7" fill="#0ea5e9"/>
+          </g>
+          <text x="88" y="96" font-size="11" fill="#94a3b8">Camera sensor</text>
+          <g id="hsRf" class="hotspot" data-chip="rf">
+            <rect x="60" y="125" width="120" height="42" rx="6" fill="#10b981" stroke="#059669" stroke-width="2"/>
+            <text x="120" y="151" font-size="13" fill="#ffffff" text-anchor="middle" font-weight="bold">RF / Modem</text>
+          </g>
+          <g id="hsSoc" class="hotspot" data-chip="soc">
+            <rect x="60" y="185" width="120" height="110" rx="8" fill="#2563eb" stroke="#1d4ed8" stroke-width="2"/>
+            <text x="120" y="235" font-size="17" fill="#ffffff" text-anchor="middle" font-weight="bold">SoC</text>
+            <text x="120" y="255" font-size="10" fill="#bfdbfe" text-anchor="middle">CPU·GPU·NPU·ISP</text>
+          </g>
+          <g id="hsPmic" class="hotspot" data-chip="pmic">
+            <rect x="195" y="185" width="42" height="72" rx="6" fill="#f59e0b" stroke="#d97706" stroke-width="2"/>
+            <text x="216" y="226" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="bold">PMIC</text>
+          </g>
+          <g id="hsMem" class="hotspot" data-chip="mem">
+            <rect x="60" y="312" width="120" height="52" rx="6" fill="#7c3aed" stroke="#6d28d9" stroke-width="2"/>
+            <text x="120" y="343" font-size="13" fill="#ffffff" text-anchor="middle" font-weight="bold">RAM + Flash</text>
+          </g>
+          <rect x="60" y="385" width="177" height="60" rx="6" fill="#334155"/>
+          <text x="148" y="420" font-size="11" fill="#94a3b8" text-anchor="middle">Pin (battery)</text>
+        </svg>
+      </div>
+      <div class="space-y-3 text-sm">
+        <div id="chipDefault" class="bg-blue-50 border border-blue-200 rounded-xl p-5 text-slate-700"><p class="font-bold text-primary mb-1"><i class="fa-solid fa-hand-pointer mr-1"></i> Hãy click vào một khối trên hình!</p><p>Mỗi khối màu là một (hoặc một cụm) IC thật sự trên board điện thoại. Gợi ý: bắt đầu với khối <b>SoC</b> màu xanh dương — nhân vật chính của khóa học này.</p></div>
+        <div id="chipSoc" class="hidden bg-blue-50 border-2 border-primary rounded-xl p-5 text-slate-700">
+          <p class="font-bold text-primary text-base mb-1">SoC — System on Chip (hệ thống trên chip)</p>
+          <p class="mb-2"><b>Chức năng:</b> "bộ não" của điện thoại. Là <b>MỘT IC duy nhất</b> tích hợp nhiều khối chức năng trên cùng một die silicon: CPU (tính toán), GPU (đồ họa), NPU (AI), ISP (xử lý ảnh), bộ điều khiển bộ nhớ, thường tích hợp cả modem.</p>
+          <p class="mb-2"><b>Nếu thiếu nó:</b> điện thoại chỉ là vỏ nhựa + pin. Không hệ điều hành, không app, không màn hình.</p>
+          <p class="text-xs bg-white rounded-lg p-2 border border-blue-200"><i class="fa-solid fa-star text-amber-500 mr-1"></i><b>Fun fact:</b> SoC hiện đại chứa 15–20 tỷ transistor trên diện tích ~1 cm² — mật độ hơn 100 triệu transistor/mm². Hàng nghìn kỹ sư front-end và back-end cùng làm trong 2–3 năm.</p>
+        </div>
+        <div id="chipMem" class="hidden bg-violet-50 border-2 border-violet-500 rounded-xl p-5 text-slate-700">
+          <p class="font-bold text-violet-700 text-base mb-1">Memory — Chip nhớ (RAM + Flash)</p>
+          <p class="mb-2"><b>Chức năng:</b> DRAM là "bàn làm việc" — giữ dữ liệu của app đang chạy, mất điện là quên. Flash (NAND) là "tủ hồ sơ" — lưu ảnh, video, hệ điều hành lâu dài.</p>
+          <p class="mb-2"><b>Nếu thiếu nó:</b> không mở nổi app (thiếu RAM), không lưu nổi tấm ảnh nào (thiếu Flash).</p>
+          <p class="text-xs bg-white rounded-lg p-2 border border-violet-200"><i class="fa-solid fa-star text-amber-500 mr-1"></i><b>Fun fact:</b> trong nhiều điện thoại, chip DRAM được xếp chồng <b>ngay trên lưng SoC</b> (Package-on-Package) để rút ngắn đường tín hiệu — hai chip "cõng nhau" trong một gói.</p>
+        </div>
+        <div id="chipPmic" class="hidden bg-amber-50 border-2 border-amber-500 rounded-xl p-5 text-slate-700">
+          <p class="font-bold text-amber-700 text-base mb-1">PMIC — Power Management IC (chip quản lý nguồn)</p>
+          <p class="mb-2"><b>Chức năng:</b> nhận điện từ pin (~3.7 V) rồi biến đổi thành nhiều mức điện áp khác nhau (0.6 V, 1.1 V, 1.8 V, 3.3 V...) cấp riêng cho từng khối; điều khiển sạc pin, bảo vệ quá áp/quá nhiệt.</p>
+          <p class="mb-2"><b>Nếu thiếu nó:</b> SoC nhận thẳng điện áp pin → cháy ngay lập tức; pin sạc không kiểm soát → nguy cơ phồng, nổ.</p>
+          <p class="text-xs bg-white rounded-lg p-2 border border-amber-200"><i class="fa-solid fa-star text-amber-500 mr-1"></i><b>Fun fact:</b> mỗi lõi CPU trong SoC có thể được cấp điện áp riêng và thay đổi liên tục theo tải (DVFS) — PMIC phải phản ứng trong micro-giây.</p>
+        </div>
+        <div id="chipRf" class="hidden bg-emerald-50 border-2 border-emerald-500 rounded-xl p-5 text-slate-700">
+          <p class="font-bold text-emerald-700 text-base mb-1">RF / Modem — Chip thu phát vô tuyến</p>
+          <p class="mb-2"><b>Chức năng:</b> modem mã hóa/giải mã dữ liệu 4G/5G; khối RF front-end khuếch đại và lọc sóng radio từ ăng-ten. Đây là vùng giao thoa giữa thiết kế số và analog/RF.</p>
+          <p class="mb-2"><b>Nếu thiếu nó:</b> điện thoại thành... máy nghe nhạc offline: không gọi, không 4G/5G, không WiFi.</p>
+          <p class="text-xs bg-white rounded-lg p-2 border border-emerald-200"><i class="fa-solid fa-star text-amber-500 mr-1"></i><b>Fun fact:</b> modem 5G phải xử lý nhiều Gbit dữ liệu mỗi giây trong khi công suất phát chỉ vài trăm mW — một kỳ tích của cả thiết kế số lẫn analog.</p>
+        </div>
+        <div id="chipCam" class="hidden bg-sky-50 border-2 border-sky-500 rounded-xl p-5 text-slate-700">
+          <p class="font-bold text-sky-700 text-base mb-1">Image Sensor — Cảm biến ảnh (một IC đặc biệt)</p>
+          <p class="mb-2"><b>Chức năng:</b> tấm silicon chứa hàng chục triệu photodiode (điểm ảnh) biến ánh sáng thành tín hiệu điện, kèm mạch đọc và ADC ngay trên chip.</p>
+          <p class="mb-2"><b>Nếu thiếu nó:</b> không chụp ảnh, không quét QR, không gọi video.</p>
+          <p class="text-xs bg-white rounded-lg p-2 border border-sky-200"><i class="fa-solid fa-star text-amber-500 mr-1"></i><b>Fun fact:</b> cảm biến ảnh là IC bán chạy hàng đầu thế giới về số lượng — mỗi điện thoại chứa 3–5 chiếc.</p>
+        </div>
+        <p class="text-xs text-slate-500"><i class="fa-solid fa-circle-info mr-1"></i>Lưu ý thuật ngữ: cả board này là "hệ thống"; riêng khối SoC mới là "System on Chip" — một IC tích hợp nhiều khối chức năng. Đừng nhầm hai cấp độ này!</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 7. ENGINEERING WORKFLOW ===== -->
+<section id="workflow" class="py-12">
+  <div class="flex items-center gap-3 mb-6"><span class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-extrabold">7</span><h2 class="text-2xl md:text-3xl font-bold text-dark"><i class="fa-solid fa-diagram-project text-primary mr-2"></i>Quy trình kỹ thuật: hành trình của một con chip</h2></div>
+  <p class="text-slate-600 mb-6 max-w-3xl">Cái nhìn "chim bay" về cách một con chip ra đời — Tuần 2 sẽ đi sâu từng bước. Hãy chú ý ranh giới <span class="font-bold text-primary">Front-end</span> / <span class="font-bold text-amber-600">Back-end</span> / <span class="font-bold text-slate-600">Sản xuất</span>.</p>
+  <div class="grid md:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
+    <div class="bg-white rounded-xl shadow p-4 border-t-4 border-slate-400"><p class="text-xs font-bold text-slate-400 mb-1">BƯỚC 1</p><h4 class="font-bold text-dark text-sm mb-1">Requirement / Idea</h4><p class="text-xs text-slate-600">Thị trường cần gì? Chip phải làm gì, nhanh bao nhiêu, tốn bao nhiêu điện?</p></div>
+    <div class="bg-white rounded-xl shadow p-4 border-t-4 border-primary"><p class="text-xs font-bold text-primary mb-1">BƯỚC 2 · FRONT-END</p><h4 class="font-bold text-dark text-sm mb-1">Spec &amp; Architecture</h4><p class="text-xs text-slate-600">Đặc tả chức năng, chia hệ thống thành các khối, xác định I/O từng khối.</p></div>
+    <div class="bg-white rounded-xl shadow p-4 border-t-4 border-primary"><p class="text-xs font-bold text-primary mb-1">BƯỚC 3 · FRONT-END</p><h4 class="font-bold text-dark text-sm mb-1">RTL + Verification</h4><p class="text-xs text-slate-600">Viết Verilog mô tả mạch; viết testbench mô phỏng, săn bug đến khi đạt coverage.</p></div>
+    <div class="bg-white rounded-xl shadow p-4 border-t-4 border-amber-500"><p class="text-xs font-bold text-amber-600 mb-1">BƯỚC 4 · BACK-END</p><h4 class="font-bold text-dark text-sm mb-1">Synthesis + Physical Design</h4><p class="text-xs text-slate-600">RTL → netlist cổng logic → layout vật lý; tối ưu timing, công suất, diện tích.</p></div>
+    <div class="bg-white rounded-xl shadow p-4 border-t-4 border-red-500"><p class="text-xs font-bold text-red-500 mb-1">BƯỚC 5 · MILESTONE</p><h4 class="font-bold text-dark text-sm mb-1">Tape-out → Foundry</h4><p class="text-xs text-slate-600">Gửi layout (GDSII) đến foundry (nhà máy: TSMC, Samsung...) chế tạo wafer.</p></div>
+    <div class="bg-white rounded-xl shadow p-4 border-t-4 border-emerald-500"><p class="text-xs font-bold text-emerald-600 mb-1">BƯỚC 6</p><h4 class="font-bold text-dark text-sm mb-1">Package, Test, Sản phẩm</h4><p class="text-xs text-slate-600">Cắt die, đóng gói, kiểm thử từng chip, giao cho hãng lắp vào sản phẩm.</p></div>
+  </div>
+  <div class="bg-blue-50 border border-blue-200 rounded-2xl p-5 text-sm text-slate-700"><p><b class="text-primary"><i class="fa-solid fa-graduation-cap mr-1"></i>Bạn đứng ở đâu trên bản đồ này?</b> Chương trình 12 tuần tập trung vào vùng <b>Front-end</b>: tư duy logic số (Tuần 3–6) → Verilog RTL (Tuần 7) → mô phỏng và FPGA prototype (Tuần 8–11). Đó cũng chính là cánh cửa vào nghề phổ biến nhất cho sinh viên mới ra trường tại Việt Nam (RTL design, verification).</p></div>
+</section>
+
+<!-- ===== 8. CODE / RTL ===== -->
+<section id="code-rtl" class="py-12">
+  <div class="flex items-center gap-3 mb-6"><span class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-extrabold">8</span><h2 class="text-2xl md:text-3xl font-bold text-dark"><i class="fa-solid fa-code text-primary mr-2"></i>Code preview — chạm nhẹ vào Verilog</h2></div>
+  <p class="text-slate-600 mb-6 max-w-3xl">Đây là <b>bản xem trước</b> — bạn CHƯA cần hiểu cú pháp! Chỉ cần cảm nhận: kỹ sư IC mô tả phần cứng bằng ngôn ngữ HDL (Hardware Description Language — ngôn ngữ mô tả phần cứng), rồi công cụ tổng hợp biến mô tả đó thành transistor thật. Tuần 7 sẽ học bài bản.</p>
+  <div class="grid lg:grid-cols-2 gap-6">
+    <div class="bg-white rounded-2xl shadow p-5">
+      <div class="flex items-center justify-between mb-3"><h3 class="font-bold text-dark text-sm"><i class="fa-solid fa-file-code text-primary mr-1"></i> inverter.sv — cổng NOT (mạch tổ hợp)</h3><button class="copy-btn text-xs bg-slate-800 hover:bg-slate-700 text-white px-3 py-1.5 rounded-lg" data-target="codeInv"><i class="fa-regular fa-copy mr-1"></i>Copy</button></div>
+      <pre class="code-block"><code id="codeInv"><span class="cm">// Cổng NOT: y luôn bằng đảo của a.</span>
+<span class="cm">// "Preview" — tuần 7 sẽ học kỹ từng từ khóa.</span>
+<span class="kw">module</span> <span class="fn">inverter</span> (
+  <span class="kw">input</span>  <span class="tp">logic</span> a,   <span class="cm">// ngõ vào 1 bit</span>
+  <span class="kw">output</span> <span class="tp">logic</span> y    <span class="cm">// ngõ ra 1 bit</span>
+);
+  <span class="cm">// assign = nối dây liên tục: y LUÔN = ~a</span>
+  <span class="cm">// (~ là phép đảo bit)</span>
+  <span class="kw">assign</span> y = ~a;
+<span class="kw">endmodule</span></code></pre>
+      <p class="text-xs text-slate-600 mt-3"><i class="fa-solid fa-microchip text-primary mr-1"></i><b>Synthesis ra gì?</b> Đúng 1 cell inverter — 2 transistor (1 PMOS + 1 NMOS) đấu bù nhau. Dòng <code class="bg-slate-100 px-1 rounded">assign</code> không phải "lệnh chạy tuần tự" mà là <b>một sợi dây + một cổng logic tồn tại vĩnh viễn</b> trong mạch.</p>
+    </div>
+    <div class="bg-white rounded-2xl shadow p-5">
+      <div class="flex items-center justify-between mb-3"><h3 class="font-bold text-dark text-sm"><i class="fa-solid fa-file-code text-primary mr-1"></i> and2.sv — cổng AND 2 ngõ vào (mạch tổ hợp)</h3><button class="copy-btn text-xs bg-slate-800 hover:bg-slate-700 text-white px-3 py-1.5 rounded-lg" data-target="codeAnd"><i class="fa-regular fa-copy mr-1"></i>Copy</button></div>
+      <pre class="code-block"><code id="codeAnd"><span class="cm">// Cổng AND 2 ngõ vào: y = a VÀ b.</span>
+<span class="kw">module</span> <span class="fn">and2</span> (
+  <span class="kw">input</span>  <span class="tp">logic</span> a, b, <span class="cm">// hai ngõ vào 1 bit</span>
+  <span class="kw">output</span> <span class="tp">logic</span> y     <span class="cm">// ngõ ra 1 bit</span>
+);
+  <span class="cm">// &amp; là phép AND theo bit:</span>
+  <span class="cm">// y = 1 chỉ khi a = 1 VÀ b = 1</span>
+  <span class="kw">assign</span> y = a &amp; b;
+<span class="kw">endmodule</span></code></pre>
+      <p class="text-xs text-slate-600 mt-3"><i class="fa-solid fa-microchip text-primary mr-1"></i><b>Synthesis ra gì?</b> 1 cell AND2 (thực chất thư viện thường dùng NAND2 + inverter ≈ 6 transistor). Tuần 3 ta sẽ "chơi" với đủ 6 cổng logic; Tuần 7 mới học Verilog nghiêm túc — giờ bạn chỉ cần thấy: <b>code này mô tả phần cứng, không phải chương trình chạy từng dòng</b>.</p>
+    </div>
+  </div>
+</section>
+<!-- ===== 9. WAVEFORM / TIMING ===== -->
+<section id="waveform" class="py-12">
+  <div class="flex items-center gap-3 mb-6"><span class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-extrabold">9</span><h2 class="text-2xl md:text-3xl font-bold text-dark"><i class="fa-solid fa-wave-square text-primary mr-2"></i>Tư duy thời gian: nhanh đến đâu là "nhanh"?</h2></div>
+  <p class="text-slate-600 mb-6 max-w-3xl">Tuần này chưa có clock (xung nhịp) — nhưng ta gieo hạt giống quan trọng nhất của tư duy phần cứng: <b>không có gì đổi "ngay lập tức"</b>. Mọi tín hiệu đi qua transistor đều mất thời gian.</p>
+  <div class="grid lg:grid-cols-2 gap-6 mb-6">
+    <div class="bg-white rounded-2xl shadow p-5">
+      <h3 class="font-bold text-dark mb-3 text-sm"><i class="fa-solid fa-hourglass-half text-secondary mr-1"></i> Propagation delay (độ trễ lan truyền) qua một cổng NOT</h3>
+      <svg viewBox="0 0 560 240" xmlns="http://www.w3.org/2000/svg" class="w-full h-auto bg-slate-50 rounded-xl border border-slate-200">
+        <text x="20" y="52" font-size="13" fill="#334155" font-weight="bold">IN</text>
+        <path d="M60,70 L220,70 L220,34 L540,34" stroke="#2563eb" stroke-width="3" fill="none"/>
+        <text x="20" y="150" font-size="13" fill="#334155" font-weight="bold">OUT</text>
+        <path d="M60,132 L260,132 L260,168 L540,168" stroke="#10b981" stroke-width="3" fill="none"/>
+        <line x1="220" y1="26" x2="220" y2="200" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="5 4"/>
+        <line x1="260" y1="26" x2="260" y2="200" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="5 4"/>
+        <path d="M222,210 L258,210" stroke="#ef4444" stroke-width="2.5"/>
+        <path d="M226,205 L220,210 L226,215 M254,205 L260,210 L254,215" stroke="#ef4444" stroke-width="2.5" fill="none"/>
+        <text x="272" y="214" font-size="13" fill="#ef4444" font-weight="bold">t_pd ≈ vài chục picô-giây</text>
+        <text x="300" y="24" font-size="11" fill="#64748b">IN nhảy 0 → 1 tại đây</text>
+        <text x="300" y="188" font-size="11" fill="#64748b">OUT chỉ đổi 1 → 0 SAU t_pd</text>
+      </svg>
+      <p class="text-xs text-slate-600 mt-3">Ngõ ra không lật cùng lúc với ngõ vào: transistor phải nạp/xả điện dung ký sinh. Khoảng trễ đó gọi là <b>propagation delay (t<sub>pd</sub>)</b>. Nhiều cổng nối tiếp nhau → các độ trễ <b>cộng dồn</b> — chuỗi dài nhất trong mạch gọi là critical path (đường găng), quyết định tốc độ tối đa của chip.</p>
+    </div>
+    <div class="space-y-4">
+      <div class="bg-white rounded-2xl shadow p-5">
+        <h3 class="font-bold text-dark mb-2 text-sm"><i class="fa-solid fa-gauge-high text-primary mr-1"></i> Trực giác về tốc độ chip</h3>
+        <ul class="text-sm text-slate-700 space-y-2">
+          <li class="flex gap-2"><i class="fa-solid fa-bolt text-amber-500 mt-1"></i><span>CPU 3 GHz = 3 tỷ chu kỳ mỗi giây → mỗi chu kỳ chỉ dài <b>~0.33 ns</b>.</span></li>
+          <li class="flex gap-2"><i class="fa-solid fa-bolt text-amber-500 mt-1"></i><span>Trong 0.33 ns, ánh sáng chỉ đi được <b>~10 cm</b> — chưa hết chiều dài bàn phím!</span></li>
+          <li class="flex gap-2"><i class="fa-solid fa-bolt text-amber-500 mt-1"></i><span>Vậy trong MỘT chu kỳ, tín hiệu chỉ kịp chui qua một chuỗi <b>vài chục cổng logic</b>. Kỹ sư phải "chia việc" cho vừa từng chu kỳ — đó là lý do tồn tại của thanh ghi và clock (Tuần 5).</span></li>
+        </ul>
+      </div>
+      <div class="bg-amber-50 border border-amber-300 rounded-2xl p-5">
+        <h3 class="font-bold text-amber-700 mb-2 text-sm"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Câu thần chú của tuần</h3>
+        <p class="text-sm text-slate-700">"Tín hiệu số <b>không</b> đổi ngay lập tức — nó lan truyền qua từng transistor với độ trễ hữu hạn." Ghi nhớ câu này: Tuần 3 (delay qua cổng), Tuần 5 (setup/hold) và Tuần 9 (timing của FSM) đều xây trên nó.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 10. ACTIVE LEARNING ===== -->
+<section id="active-learning" class="py-12">
+  <div class="flex items-center gap-3 mb-6"><span class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-extrabold">10</span><h2 class="text-2xl md:text-3xl font-bold text-dark"><i class="fa-solid fa-people-group text-primary mr-2"></i>Kịch bản buổi học 60 phút</h2></div>
+  <div class="bg-white rounded-2xl shadow p-6">
+    <ol class="relative border-l-2 border-blue-200 ml-3 space-y-5">
+      <li class="ml-6"><span class="absolute -left-3.5 w-7 h-7 bg-primary text-white rounded-full flex items-center justify-center text-xs font-bold">5'</span><h4 class="font-bold text-dark text-sm">Quick check-in (5 phút)</h4><p class="text-sm text-slate-600">Mỗi bạn nói 1 câu: "Thiết bị có chip thú vị nhất mình tìm được tuần này là ___." Mentor ghi nhanh lên bảng chung.</p></li>
+      <li class="ml-6"><span class="absolute -left-3.5 w-7 h-7 bg-primary text-white rounded-full flex items-center justify-center text-xs font-bold">10'</span><h4 class="font-bold text-dark text-sm">Student presentation (10 phút)</h4><p class="text-sm text-slate-600">Nhóm được phân công trình bày phần chuẩn bị: semiconductor là gì, 5 ví dụ thiết bị có chip, kỹ sư IC Design làm gì, 3 công ty đã tìm hiểu.</p></li>
+      <li class="ml-6"><span class="absolute -left-3.5 w-7 h-7 bg-secondary text-white rounded-full flex items-center justify-center text-xs font-bold">10'</span><h4 class="font-bold text-dark text-sm">Mentor correction (10 phút)</h4><p class="text-sm text-slate-600">Mentor chỉnh các điểm hiểu sai (đặc biệt: SoC là MỘT chip; design ≠ manufacturing; mức logic là khoảng điện áp), demo transistor switch và smartphone explorer ngay trên trang này.</p></li>
+      <li class="ml-6"><span class="absolute -left-3.5 w-7 h-7 bg-accent text-white rounded-full flex items-center justify-center text-xs font-bold">20'</span><h4 class="font-bold text-dark text-sm">Breakout room (15–20 phút)</h4><p class="text-sm text-slate-600">Nhóm 4–5 bạn thảo luận theo bộ câu hỏi ở mục 11, điền "Device chip card" và chuẩn bị 1 phút báo cáo.</p></li>
+      <li class="ml-6"><span class="absolute -left-3.5 w-7 h-7 bg-accent text-white rounded-full flex items-center justify-center text-xs font-bold">10'</span><h4 class="font-bold text-dark text-sm">Group sharing (10 phút)</h4><p class="text-sm text-slate-600">Reporter mỗi nhóm trình bày 1 phút. Cả lớp vote thiết bị "giàu chip" bất ngờ nhất.</p></li>
+      <li class="ml-6"><span class="absolute -left-3.5 w-7 h-7 bg-dark text-white rounded-full flex items-center justify-center text-xs font-bold">5'</span><h4 class="font-bold text-dark text-sm">Wrap-up (5 phút)</h4><p class="text-sm text-slate-600">Mentor chốt 3 keyword: <b>Semiconductor – Chip – IC Design</b>; giao bài tập; teaser Tuần 2: "Một ý tưởng đi đường nào để thành chip?"</p></li>
+    </ol>
+  </div>
+</section>
+
+<!-- ===== 11. BREAKOUT ROOM GUIDE ===== -->
+<section id="breakout" class="py-12">
+  <div class="flex items-center gap-3 mb-6"><span class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-extrabold">11</span><h2 class="text-2xl md:text-3xl font-bold text-dark"><i class="fa-solid fa-comments text-primary mr-2"></i>Hướng dẫn breakout room</h2></div>
+  <div class="grid lg:grid-cols-2 gap-6">
+    <div class="bg-white rounded-2xl shadow p-6">
+      <h3 class="font-bold text-dark mb-3"><i class="fa-solid fa-circle-question text-primary mr-2"></i>Câu hỏi thảo luận (phân tích, không học thuộc)</h3>
+      <ol class="space-y-3 text-sm text-slate-700 list-decimal list-inside">
+        <li><b>Săn chip:</b> liệt kê các thiết bị có chip trong phòng bạn đang ngồi. Thiết bị nào khiến nhóm ngạc nhiên nhất? Vì sao nó cần chip?</li>
+        <li><b>Phân tích:</b> chọn 1 thiết bị, đoán xem bên trong cần những loại chip nào (xử lý? nhớ? nguồn? thu phát?). Nếu bỏ đi một chip, chức năng nào biến mất?</li>
+        <li><b>Nghề nghiệp:</b> trong các hướng (RTL design, verification, physical design, DFT, analog), hướng nào nghe hấp dẫn với từng thành viên? Vì sao?</li>
+        <li><b>Nỗi lo:</b> điều gì khiến bạn lo lắng nhất khi học lĩnh vực này (toán? tiếng Anh? công cụ?) — nhóm thử đề xuất cách vượt qua.</li>
+        <li><b>Phản biện:</b> có ý kiến cho rằng "AI sẽ thay kỹ sư thiết kế chip". Nhóm đồng ý hay phản đối? Dựa trên điều gì?</li>
+      </ol>
+    </div>
+    <div class="space-y-5">
+      <div class="bg-white rounded-2xl shadow p-6">
+        <h3 class="font-bold text-dark mb-3"><i class="fa-solid fa-user-tag text-primary mr-2"></i>Vai trò trong nhóm</h3>
+        <div class="grid grid-cols-2 gap-3 text-sm">
+          <div class="bg-blue-50 rounded-xl p-3"><b class="text-primary">Facilitator</b><p class="text-slate-600 text-xs mt-1">Điều phối, đảm bảo ai cũng được nói, giữ nhịp thời gian.</p></div>
+          <div class="bg-emerald-50 rounded-xl p-3"><b class="text-emerald-600">Note keeper</b><p class="text-slate-600 text-xs mt-1">Ghi lại ý kiến vào "Device chip card" của nhóm.</p></div>
+          <div class="bg-amber-50 rounded-xl p-3"><b class="text-amber-600">Reporter</b><p class="text-slate-600 text-xs mt-1">Trình bày 1 phút kết quả nhóm trước cả lớp.</p></div>
+          <div class="bg-red-50 rounded-xl p-3"><b class="text-danger">Skeptic / Checker</b><p class="text-slate-600 text-xs mt-1">Hỏi "chắc chưa?", soát lỗi hiểu sai (VD: SoC, design vs manufacturing).</p></div>
+        </div>
+      </div>
+      <div class="bg-emerald-50 border border-emerald-300 rounded-2xl p-6">
+        <h3 class="font-bold text-emerald-700 mb-2"><i class="fa-solid fa-file-circle-check mr-2"></i>Sản phẩm nhóm phải nộp: "Device Chip Card"</h3>
+        <ul class="text-sm text-slate-700 space-y-1 list-disc list-inside">
+          <li>Tên thiết bị + ảnh/hình vẽ nhanh</li>
+          <li>Ít nhất 3 chip bên trong (đoán có căn cứ) + vai trò từng chip</li>
+          <li>1 dòng: "Nếu thiếu chip X thì ___"</li>
+          <li>1 câu hỏi nhóm muốn hỏi mentor</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 12. COMMON MISTAKES ===== -->
+<section id="mistakes" class="py-12">
+  <div class="flex items-center gap-3 mb-6"><span class="w-10 h-10 rounded-xl bg-danger/10 text-danger flex items-center justify-center font-extrabold">12</span><h2 class="text-2xl md:text-3xl font-bold text-dark"><i class="fa-solid fa-circle-exclamation text-danger mr-2"></i>Lỗi hiểu sai phổ biến</h2></div>
+  <div class="grid md:grid-cols-2 gap-4">
+    <div class="bg-white rounded-2xl shadow p-5 border-l-4 border-danger"><h4 class="font-bold text-danger mb-1"><i class="fa-solid fa-xmark mr-1"></i> "IC Design = sản xuất chip trong nhà máy"</h4><p class="text-sm text-slate-600 mb-2"><b>Vì sao sai:</b> thiết kế và sản xuất là hai mắt xích tách biệt. Nhiều công ty thiết kế <b>fabless</b> (không sở hữu nhà máy): Apple, Qualcomm, NVIDIA thiết kế — TSMC sản xuất.</p><p class="text-sm text-emerald-700"><b>Hiểu đúng:</b> kỹ sư IC Design làm việc với Verilog, testbench, công cụ EDA trên máy tính; foundry lo phần chế tạo.</p></div>
+    <div class="bg-white rounded-2xl shadow p-5 border-l-4 border-danger"><h4 class="font-bold text-danger mb-1"><i class="fa-solid fa-xmark mr-1"></i> "SoC là thiết bị chứa nhiều IC"</h4><p class="text-sm text-slate-600 mb-2"><b>Vì sao sai:</b> nhầm cấp độ! Board chứa nhiều IC là "hệ thống trên board".</p><p class="text-sm text-emerald-700"><b>Hiểu đúng:</b> SoC là <b>MỘT IC duy nhất</b> tích hợp nhiều khối chức năng (CPU, GPU, modem...) trên <b>cùng một die silicon</b>. "System on Chip" — hệ thống nằm TRÊN một chip.</p></div>
+    <div class="bg-white rounded-2xl shadow p-5 border-l-4 border-secondary"><h4 class="font-bold text-amber-600 mb-1"><i class="fa-solid fa-xmark mr-1"></i> "Logic 1 = có điện, logic 0 = mất điện"</h4><p class="text-sm text-slate-600 mb-2"><b>Vì sao sai:</b> cả hai mức đều là trạng thái điện áp hợp lệ của mạch đang được cấp nguồn.</p><p class="text-sm text-emerald-700"><b>Hiểu đúng:</b> logic 1/0 là <b>khoảng điện áp</b> quy ước High/Low (VD với nguồn 1.8 V: dưới ~0.6 V đọc là 0, trên ~1.2 V đọc là 1; khoảng giữa là vùng cấm không xác định).</p></div>
+    <div class="bg-white rounded-2xl shadow p-5 border-l-4 border-secondary"><h4 class="font-bold text-amber-600 mb-1"><i class="fa-solid fa-xmark mr-1"></i> "Muốn học IC Design phải giỏi vật lý lượng tử"</h4><p class="text-sm text-slate-600 mb-2"><b>Vì sao sai:</b> nhờ các tầng trừu tượng, kỹ sư số làm việc với mức logic/RTL, không cần giải phương trình Schrödinger.</p><p class="text-sm text-emerald-700"><b>Hiểu đúng:</b> lộ trình vào nghề: logic số → Verilog → FPGA → project — chính là 12 tuần này. Vật lý bán dẫn sâu dành cho hướng device/analog.</p></div>
+    <div class="bg-white rounded-2xl shadow p-5 border-l-4 border-danger"><h4 class="font-bold text-danger mb-1"><i class="fa-solid fa-xmark mr-1"></i> "Chip chỉ có trong máy tính, điện thoại"</h4><p class="text-sm text-slate-600 mb-2"><b>Vì sao nguy hiểm:</b> đánh giá thấp quy mô ngành → bỏ lỡ cơ hội nghề (ô tô, y tế, năng lượng, IoT).</p><p class="text-sm text-emerald-700"><b>Hiểu đúng:</b> ô tô đời mới có 1.000–3.000 chip; thẻ ngân hàng, máy giặt, đồng hồ, bóng đèn thông minh đều có chip.</p></div>
+    <div class="bg-white rounded-2xl shadow p-5 border-l-4 border-secondary"><h4 class="font-bold text-amber-600 mb-1"><i class="fa-solid fa-xmark mr-1"></i> "Tín hiệu trong chip thay đổi tức thời"</h4><p class="text-sm text-slate-600 mb-2"><b>Vì sao sai:</b> transistor cần thời gian nạp/xả điện dung → mọi cổng đều có propagation delay.</p><p class="text-sm text-emerald-700"><b>Hiểu đúng:</b> tín hiệu lan truyền với độ trễ hữu hạn; tổng độ trễ trên đường dài nhất (critical path) quyết định tốc độ tối đa của chip.</p></div>
+  </div>
+</section>
+
+<!-- ===== 13. MINI-PROJECT CONNECTION ===== -->
+<section id="mini-project" class="py-12">
+  <div class="flex items-center gap-3 mb-6"><span class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-extrabold">13</span><h2 class="text-2xl md:text-3xl font-bold text-dark"><i class="fa-solid fa-rocket text-primary mr-2"></i>Kết nối mini-project</h2></div>
+  <div class="bg-white rounded-2xl shadow p-6 mb-5">
+    <h3 class="font-bold text-dark mb-4">Tuần 1 là "trạm phóng" — mọi project của khóa đều bắt đầu từ câu hỏi "Why?" hôm nay:</h3>
+    <div class="grid md:grid-cols-4 gap-3 text-sm">
+      <div class="bg-blue-50 rounded-xl p-4 border border-blue-200"><p class="font-bold text-primary mb-1"><i class="fa-solid fa-bell mr-1"></i> Tuần 3–4</p><p class="text-slate-600">Mạch báo động, đèn tự động từ cổng logic — "chip" đầu tiên bạn tự thiết kế trên giấy.</p></div>
+      <div class="bg-emerald-50 rounded-xl p-4 border border-emerald-200"><p class="font-bold text-emerald-600 mb-1"><i class="fa-solid fa-traffic-light mr-1"></i> Tuần 9</p><p class="text-slate-600">Traffic Light Controller — FSM + Verilog chạy trên FPGA thật.</p></div>
+      <div class="bg-amber-50 rounded-xl p-4 border border-amber-200"><p class="font-bold text-amber-600 mb-1"><i class="fa-solid fa-7 mr-1"></i> Tuần 10</p><p class="text-slate-600">Counter + LED 7 đoạn — nhìn thấy con số "chạy" do chính mạch của bạn đếm.</p></div>
+      <div class="bg-violet-50 rounded-xl p-4 border border-violet-200"><p class="font-bold text-violet-600 mb-1"><i class="fa-solid fa-right-left mr-1"></i> Tuần 11</p><p class="text-slate-600">UART — FPGA của bạn "nói chuyện" với PC, nền của mọi hệ thống nhúng.</p></div>
+    </div>
+  </div>
+  <div class="bg-gradient-to-r from-blue-50 to-emerald-50 border border-blue-200 rounded-2xl p-6">
+    <h3 class="font-bold text-dark mb-2"><i class="fa-solid fa-flag mr-1 text-primary"></i> Mini-mission tuần này: "Chip Hunt"</h3>
+    <p class="text-sm text-slate-700">Chọn 1 thiết bị bạn dùng hằng ngày. Tạo 1 slide/1 trang giấy: ảnh thiết bị → các chip bạn đoán có bên trong → chức năng từng chip → "nếu không có chip thì...?". Đây chính là phiên bản sơ khai của kỹ năng <b>system partitioning</b> (phân hoạch hệ thống) mà kiến trúc sư SoC dùng hằng ngày — và là đầu vào cho bài "spec card" ở Tuần 2.</p>
+  </div>
+</section>
+<!-- ===== 14. QUIZ ===== -->
+<section id="quiz" class="py-12">
+  <div class="flex items-center gap-3 mb-6"><span class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-extrabold">14</span><h2 class="text-2xl md:text-3xl font-bold text-dark"><i class="fa-solid fa-circle-question text-primary mr-2"></i>Quiz kiểm tra nhanh (10 câu)</h2></div>
+  <div class="flex flex-wrap items-center gap-3 mb-6">
+    <span id="quizScore" class="text-sm font-bold bg-blue-50 text-primary px-4 py-2 rounded-full">Điểm: 0/10 · Đã trả lời: 0/10</span>
+    <button id="quizReset" class="text-sm font-semibold bg-slate-200 hover:bg-slate-300 text-slate-700 px-4 py-2 rounded-full"><i class="fa-solid fa-rotate-left mr-1"></i>Làm lại từ đầu</button>
+  </div>
+  <div class="space-y-5">
+    <div class="quiz-q bg-white rounded-2xl shadow p-5" data-answer="B">
+      <p class="font-semibold text-dark mb-3">Câu 1. Vì sao vật liệu bán dẫn (semiconductor) đặc biệt hữu ích để chế tạo mạch điện tử?</p>
+      <div class="grid gap-2">
+        <button class="quiz-opt" data-opt="A">A. Vì nó dẫn điện tốt hơn mọi kim loại</button>
+        <button class="quiz-opt" data-opt="B">B. Vì khả năng dẫn điện của nó có thể ĐIỀU KHIỂN được (lúc dẫn, lúc không)</button>
+        <button class="quiz-opt" data-opt="C">C. Vì nó hoàn toàn cách điện nên an toàn</button>
+        <button class="quiz-opt" data-opt="D">D. Vì nó rẻ hơn nhựa</button>
+      </div>
+      <div class="quiz-exp hidden mt-3 text-sm bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-700"><b>Giải thích:</b> điểm quý của bán dẫn không phải dẫn "tốt" hay "kém", mà là dẫn <b>có điều khiển</b>: pha tạp + điện áp cho phép bật/tắt dòng điện — nền tảng để làm transistor (công tắc điện tử).</div>
+    </div>
+    <div class="quiz-q bg-white rounded-2xl shadow p-5" data-answer="C">
+      <p class="font-semibold text-dark mb-3">Câu 2. Trong mạch số, transistor MOSFET đóng vai trò giống như:</p>
+      <div class="grid gap-2">
+        <button class="quiz-opt" data-opt="A">A. Một pin cung cấp năng lượng</button>
+        <button class="quiz-opt" data-opt="B">B. Một điện trở hạn dòng</button>
+        <button class="quiz-opt" data-opt="C">C. Một công tắc được bật/tắt bằng điện áp ở cực Gate</button>
+        <button class="quiz-opt" data-opt="D">D. Một ăng-ten thu tín hiệu</button>
+      </div>
+      <div class="quiz-exp hidden mt-3 text-sm bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-700"><b>Giải thích:</b> như trong Demo 1 — điện áp Gate vượt ngưỡng V<sub>T</sub> thì kênh dẫn hình thành (ON), ngược lại dòng bị chặn (OFF). Hàng tỷ "công tắc" như vậy tạo nên mọi phép tính số.</div>
+    </div>
+    <div class="quiz-q bg-white rounded-2xl shadow p-5" data-answer="A">
+      <p class="font-semibold text-dark mb-3">Câu 3. IC (Integrated Circuit — mạch tích hợp) nghĩa là gì?</p>
+      <div class="grid gap-2">
+        <button class="quiz-opt" data-opt="A">A. Nhiều linh kiện (transistor, dây nối...) được chế tạo TÍCH HỢP trên cùng một miếng silicon</button>
+        <button class="quiz-opt" data-opt="B">B. Nhiều linh kiện rời được hàn lên một board mạch in</button>
+        <button class="quiz-opt" data-opt="C">C. Một phần mềm mô phỏng mạch điện</button>
+        <button class="quiz-opt" data-opt="D">D. Một loại pin dùng cho thiết bị nhỏ</button>
+      </div>
+      <div class="quiz-exp hidden mt-3 text-sm bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-700"><b>Giải thích:</b> "tích hợp" = chế tạo tất cả trên cùng một đế silicon bằng quang khắc, khác hẳn mạch linh kiện rời trên board. Nhờ đó mạch nhỏ, nhanh, rẻ và tiết kiệm điện hơn hàng nghìn lần.</div>
+    </div>
+    <div class="quiz-q bg-white rounded-2xl shadow p-5" data-answer="C">
+      <p class="font-semibold text-dark mb-3">Câu 4. Phát biểu nào về SoC (System on Chip) là ĐÚNG?</p>
+      <div class="grid gap-2">
+        <button class="quiz-opt" data-opt="A">A. SoC là một thiết bị điện tử chứa nhiều IC khác nhau trên board</button>
+        <button class="quiz-opt" data-opt="B">B. SoC là tên gọi khác của board mạch chủ máy tính</button>
+        <button class="quiz-opt" data-opt="C">C. SoC là MỘT IC tích hợp nhiều khối chức năng (CPU, GPU, modem...) trên cùng một chip</button>
+        <button class="quiz-opt" data-opt="D">D. SoC là phần mềm điều khiển chip</button>
+      </div>
+      <div class="quiz-exp hidden mt-3 text-sm bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-700"><b>Giải thích:</b> đây là misconception kinh điển! SoC = <b>một chip duy nhất</b> chứa cả "hệ thống" khối chức năng bên trong. Board chứa nhiều IC chỉ là "hệ thống trên board", không phải SoC.</div>
+    </div>
+    <div class="quiz-q bg-white rounded-2xl shadow p-5" data-answer="B">
+      <p class="font-semibold text-dark mb-3">Câu 5. Kỹ sư front-end trong thiết kế vi mạch số chủ yếu làm gì?</p>
+      <div class="grid gap-2">
+        <button class="quiz-opt" data-opt="A">A. Vận hành máy quang khắc trong phòng sạch</button>
+        <button class="quiz-opt" data-opt="B">B. Viết RTL bằng Verilog và kiểm chứng thiết kế (verification)</button>
+        <button class="quiz-opt" data-opt="C">C. Sắp đặt transistor và đi dây kim loại trên layout</button>
+        <button class="quiz-opt" data-opt="D">D. Thiết kế vỏ nhựa và tản nhiệt cho chip</button>
+      </div>
+      <div class="quiz-exp hidden mt-3 text-sm bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-700"><b>Giải thích:</b> front-end = mô tả chức năng (RTL design) + chứng minh nó đúng (verification). Sắp đặt và đi dây là việc của back-end (physical design); vận hành máy sản xuất là việc của foundry.</div>
+    </div>
+    <div class="quiz-q bg-white rounded-2xl shadow p-5" data-answer="D">
+      <p class="font-semibold text-dark mb-3">Câu 6. Công ty "fabless" là công ty như thế nào?</p>
+      <div class="grid gap-2">
+        <button class="quiz-opt" data-opt="A">A. Công ty chỉ sản xuất chip, không thiết kế</button>
+        <button class="quiz-opt" data-opt="B">B. Công ty làm cả thiết kế lẫn sản xuất</button>
+        <button class="quiz-opt" data-opt="C">C. Công ty chỉ bán board mạch</button>
+        <button class="quiz-opt" data-opt="D">D. Công ty thiết kế chip nhưng KHÔNG sở hữu nhà máy sản xuất, thuê foundry chế tạo</button>
+      </div>
+      <div class="quiz-exp hidden mt-3 text-sm bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-700"><b>Giải thích:</b> "fab" = nhà máy chế tạo, "fabless" = không có fab. Apple, Qualcomm, NVIDIA thiết kế chip rồi thuê foundry (TSMC, Samsung Foundry...) sản xuất. Mô hình này tách "thiết kế" khỏi "chế tạo".</div>
+    </div>
+    <div class="quiz-q bg-white rounded-2xl shadow p-5" data-answer="B">
+      <p class="font-semibold text-dark mb-3">Câu 7. Mức logic 1 và 0 trong mạch số thực chất là gì?</p>
+      <div class="grid gap-2">
+        <button class="quiz-opt" data-opt="A">A. Logic 1 = có điện, logic 0 = mất điện hoàn toàn</button>
+        <button class="quiz-opt" data-opt="B">B. Hai KHOẢNG điện áp quy ước: vùng High đọc là 1, vùng Low đọc là 0</button>
+        <button class="quiz-opt" data-opt="C">C. Hai tần số khác nhau của dòng điện</button>
+        <button class="quiz-opt" data-opt="D">D. Chiều dòng điện chạy xuôi hay ngược</button>
+      </div>
+      <div class="quiz-exp hidden mt-3 text-sm bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-700"><b>Giải thích:</b> mạch luôn được cấp nguồn; 1/0 chỉ là điện áp nằm trong khoảng High hay Low (giữa hai khoảng là vùng không xác định). Ví dụ nguồn 1.8 V: ~0–0.6 V là mức 0, ~1.2–1.8 V là mức 1.</div>
+    </div>
+    <div class="quiz-q bg-white rounded-2xl shadow p-5" data-answer="A">
+      <p class="font-semibold text-dark mb-3">Câu 8. Điểm khác biệt cốt lõi giữa FPGA và ASIC là gì?</p>
+      <div class="grid gap-2">
+        <button class="quiz-opt" data-opt="A">A. FPGA cấu hình lại được sau khi chế tạo; ASIC cố định vĩnh viễn theo thiết kế</button>
+        <button class="quiz-opt" data-opt="B">B. FPGA luôn nhanh hơn và tiết kiệm điện hơn ASIC</button>
+        <button class="quiz-opt" data-opt="C">C. ASIC dùng cho học tập, FPGA dùng cho sản xuất hàng loạt</button>
+        <button class="quiz-opt" data-opt="D">D. FPGA là phần mềm, ASIC là phần cứng</button>
+      </div>
+      <div class="quiz-exp hidden mt-3 text-sm bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-700"><b>Giải thích:</b> FPGA như LEGO — nạp bitstream để cấu hình lại bao nhiêu lần tùy thích; ASIC như tượng đúc — cố định sau sản xuất nhưng thường nhanh hơn, rẻ hơn/chip khi số lượng lớn. Đây là <b>trade-off</b>, không bên nào "luôn tốt hơn" (chi tiết ở Tuần 8).</div>
+    </div>
+    <div class="quiz-q bg-white rounded-2xl shadow p-5" data-answer="C">
+      <p class="font-semibold text-dark mb-3">Câu 9. Vì sao tín hiệu đi qua một cổng logic KHÔNG thay đổi ngay lập tức ở ngõ ra?</p>
+      <div class="grid gap-2">
+        <button class="quiz-opt" data-opt="A">A. Vì phần mềm điều khiển chip xử lý chậm</button>
+        <button class="quiz-opt" data-opt="B">B. Vì dòng điện phải chờ xung clock cho phép</button>
+        <button class="quiz-opt" data-opt="C">C. Vì transistor cần thời gian nạp/xả điện dung — tạo ra propagation delay</button>
+        <button class="quiz-opt" data-opt="D">D. Vì tín hiệu phải đi vòng qua bộ nhớ trước</button>
+      </div>
+      <div class="quiz-exp hidden mt-3 text-sm bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-700"><b>Giải thích:</b> mỗi node trong mạch có điện dung ký sinh; transistor phải nạp/xả nó → độ trễ lan truyền t<sub>pd</sub>. Cổng logic thuần tổ hợp không cần clock (đáp án B sai) — clock chỉ xuất hiện ở mạch tuần tự (Tuần 5).</div>
+    </div>
+    <div class="quiz-q bg-white rounded-2xl shadow p-5" data-answer="B">
+      <p class="font-semibold text-dark mb-3">Câu 10. PMIC trong điện thoại đảm nhiệm việc gì?</p>
+      <div class="grid gap-2">
+        <button class="quiz-opt" data-opt="A">A. Xử lý ảnh chụp từ camera</button>
+        <button class="quiz-opt" data-opt="B">B. Biến đổi và phân phối các mức điện áp phù hợp cho từng khối, quản lý sạc pin</button>
+        <button class="quiz-opt" data-opt="C">C. Thu phát sóng 4G/5G</button>
+        <button class="quiz-opt" data-opt="D">D. Lưu trữ hình ảnh và video</button>
+      </div>
+      <div class="quiz-exp hidden mt-3 text-sm bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-700"><b>Giải thích:</b> PMIC = Power Management IC. Pin cho ra ~3.7 V nhưng SoC cần ~0.6–1.1 V, RAM cần 1.1–1.8 V... PMIC biến đổi, phân phối và giám sát tất cả các mức nguồn đó — thiếu nó, SoC cháy ngay khi cắm pin.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 15. HOMEWORK ===== -->
+<section id="homework" class="py-12">
+  <div class="flex items-center gap-3 mb-6"><span class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-extrabold">15</span><h2 class="text-2xl md:text-3xl font-bold text-dark"><i class="fa-solid fa-pen-to-square text-primary mr-2"></i>Bài tập về nhà (3 mức)</h2></div>
+  <div class="grid lg:grid-cols-3 gap-5">
+    <div class="bg-white rounded-2xl shadow p-6 border-t-4 border-emerald-400">
+      <span class="text-xs font-bold bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full">MỨC 1 · NHẬN BIẾT</span>
+      <h3 class="font-bold text-dark mt-3 mb-2">Giải thích cho người thân</h3>
+      <p class="text-sm text-slate-600 mb-3"><b>Yêu cầu nộp:</b> đoạn văn 5–7 câu giải thích "chip là gì, vì sao quan trọng" sao cho ông bà/bố mẹ hiểu được + danh sách 5 thiết bị có chip kèm vai trò của chip trong mỗi thiết bị.</p>
+      <p class="text-sm text-slate-600 mb-3"><b>Gợi ý:</b> dùng phép so sánh đời thường (công tắc, thành phố thu nhỏ); tránh mọi thuật ngữ tiếng Anh chưa giải thích.</p>
+      <p class="text-xs text-slate-500"><b>Tiêu chí:</b> đúng bản chất (không nói "chip = phần mềm"), dễ hiểu, đủ 5 ví dụ đa dạng (không lấy cả 5 là đồ công nghệ).</p>
+    </div>
+    <div class="bg-white rounded-2xl shadow p-6 border-t-4 border-primary">
+      <span class="text-xs font-bold bg-blue-100 text-primary px-3 py-1 rounded-full">MỨC 2 · PHÂN TÍCH / VẼ SƠ ĐỒ</span>
+      <h3 class="font-bold text-dark mt-3 mb-2">Sơ đồ khối smartphone + bản đồ nghề nghiệp</h3>
+      <p class="text-sm text-slate-600 mb-3"><b>Yêu cầu nộp:</b> (1) sơ đồ khối một smartphone với tối thiểu 5 chip (SoC, memory, PMIC, RF, sensor) + mũi tên dữ liệu/nguồn giữa chúng; (2) bảng 3 cột: vai trò kỹ sư — làm gì — kỹ năng cần.</p>
+      <p class="text-sm text-slate-600 mb-3"><b>Gợi ý:</b> dựa vào Demo 2; chú thích rõ khối nào là MỘT chip (SoC) và khối nào là chip riêng.</p>
+      <p class="text-xs text-slate-500"><b>Tiêu chí:</b> phân cấp đúng (SoC ≠ board), mũi tên có ý nghĩa, bảng nghề nghiệp ≥ 3 vai trò.</p>
+    </div>
+    <div class="bg-white rounded-2xl shadow p-6 border-t-4 border-secondary">
+      <span class="text-xs font-bold bg-amber-100 text-amber-700 px-3 py-1 rounded-full">MỨC 3 · THỰC CHIẾN</span>
+      <h3 class="font-bold text-dark mt-3 mb-2">Chạy code preview + tuyên ngôn học tập</h3>
+      <p class="text-sm text-slate-600 mb-3"><b>Yêu cầu nộp:</b> (1) tạo tài khoản EDA Playground (edaplayground.com), dán module <code class="bg-slate-100 px-1 rounded">inverter</code> ở mục 8, chạy thử và chụp màn hình; (2) viết 10 dòng "Vì sao mình muốn học IC Design" + mục tiêu sau 12 tuần.</p>
+      <p class="text-sm text-slate-600 mb-3"><b>Gợi ý:</b> trên EDA Playground chọn tool "Icarus Verilog"; chưa cần hiểu hết — mục tiêu là làm quen môi trường.</p>
+      <p class="text-xs text-slate-500"><b>Tiêu chí:</b> ảnh chụp chạy không lỗi; tuyên ngôn có mục tiêu đo được (VD: "tuần 9 tự viết FSM đèn giao thông").</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 16. RUBRIC ===== -->
+<section id="rubric" class="py-12">
+  <div class="flex items-center gap-3 mb-6"><span class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-extrabold">16</span><h2 class="text-2xl md:text-3xl font-bold text-dark"><i class="fa-solid fa-table-cells text-primary mr-2"></i>Rubric tự đánh giá</h2></div>
+  <div class="bg-white rounded-2xl shadow overflow-x-auto">
+    <table class="w-full text-sm min-w-[760px]">
+      <thead class="bg-dark text-white"><tr><th class="px-4 py-3 text-left w-52">Tiêu chí</th><th class="px-4 py-3 text-left">Chưa đạt</th><th class="px-4 py-3 text-left">Đạt cơ bản</th><th class="px-4 py-3 text-left">Khá</th><th class="px-4 py-3 text-left">Tốt</th></tr></thead>
+      <tbody class="divide-y divide-slate-100 text-slate-700 align-top">
+        <tr><td class="px-4 py-3 font-semibold">Hiểu khái niệm nền</td><td class="px-4 py-3">Chưa phân biệt được chip / phần mềm</td><td class="px-4 py-3">Nêu được định nghĩa semiconductor, transistor, IC</td><td class="px-4 py-3">Giải thích bằng ví dụ đời sống của riêng mình</td><td class="px-4 py-3">Giải thích được chuỗi transistor → gate → block → SoC</td></tr>
+        <tr><td class="px-4 py-3 font-semibold">Phân biệt SoC / IC / board</td><td class="px-4 py-3">Nhầm SoC với thiết bị nhiều IC</td><td class="px-4 py-3">Phát biểu đúng "SoC là một IC tích hợp nhiều khối"</td><td class="px-4 py-3">Chỉ ra được các khối bên trong một SoC thực tế</td><td class="px-4 py-3">Giải thích được vì sao tích hợp lên 1 chip nhanh hơn, ít tốn điện hơn</td></tr>
+        <tr><td class="px-4 py-3 font-semibold">Nhận diện chip trong đời sống</td><td class="px-4 py-3">Chỉ kể được điện thoại/máy tính</td><td class="px-4 py-3">Kể được 5 thiết bị có chip</td><td class="px-4 py-3">Nêu được vai trò của chip trong từng thiết bị</td><td class="px-4 py-3">Phân tích được "nếu thiếu chip X thì mất chức năng Y"</td></tr>
+        <tr><td class="px-4 py-3 font-semibold">Hiểu bức tranh nghề nghiệp</td><td class="px-4 py-3">Nghĩ IC design = làm trong nhà máy</td><td class="px-4 py-3">Kể tên front-end / back-end</td><td class="px-4 py-3">Mô tả công việc hằng ngày của 3 vai trò</td><td class="px-4 py-3">Tự xác định hướng muốn thử và lộ trình học tương ứng</td></tr>
+        <tr><td class="px-4 py-3 font-semibold">Tư duy timing sơ khởi</td><td class="px-4 py-3">Nghĩ tín hiệu đổi tức thời</td><td class="px-4 py-3">Nêu được khái niệm propagation delay</td><td class="px-4 py-3">Giải thích nguồn gốc delay (nạp/xả điện dung)</td><td class="px-4 py-3">Liên hệ delay với giới hạn tần số của chip</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+<!-- ===== 17. MENTOR NOTES ===== -->
+<section id="mentor-notes" class="py-12">
+  <div class="flex items-center gap-3 mb-6"><span class="w-10 h-10 rounded-xl bg-dark text-amber-400 flex items-center justify-center font-extrabold">17</span><h2 class="text-2xl md:text-3xl font-bold text-dark"><i class="fa-solid fa-chalkboard-user text-dark mr-2"></i>Ghi chú dành cho Mentor</h2></div>
+  <div class="bg-dark text-slate-200 rounded-2xl shadow-xl p-6 md:p-8 border-l-8 border-amber-400">
+    <div class="grid md:grid-cols-2 gap-6 text-sm leading-relaxed">
+      <div>
+        <h3 class="font-bold text-amber-400 mb-2"><i class="fa-solid fa-bullseye mr-1"></i> Nhấn mạnh gì?</h3>
+        <ul class="space-y-1.5 list-disc list-inside text-slate-300">
+          <li>3 keywords: <b class="text-white">Semiconductor – Chip – IC Design</b>. Lặp lại ít nhất 3 lần trong buổi.</li>
+          <li>Ví dụ xuyên suốt: smartphone chứa SoC, memory, PMIC, RF, sensor — dùng Demo 2 trực tiếp.</li>
+          <li>Thông điệp chốt: sinh viên bắt đầu được NGAY từ logic số + Verilog + FPGA + tiếng Anh + project nhỏ.</li>
+        </ul>
+        <h3 class="font-bold text-amber-400 mt-5 mb-2"><i class="fa-solid fa-lightbulb mr-1"></i> Sinh viên hay hiểu sai ở đâu?</h3>
+        <ul class="space-y-1.5 list-disc list-inside text-slate-300">
+          <li>"IC Design là làm việc trong nhà máy" → vẽ ngay ranh giới design house / foundry lên bảng.</li>
+          <li>"SoC = thiết bị nhiều chip" → dùng câu hỏi Quiz 4 để kiểm tra lại cuối buổi.</li>
+          <li>Sợ ngành "quá cao siêu" → kể lộ trình thật của một kỹ sư mới: học logic → Verilog → thi tuyển fresher.</li>
+        </ul>
+      </div>
+      <div>
+        <h3 class="font-bold text-amber-400 mb-2"><i class="fa-solid fa-microphone-lines mr-1"></i> Câu hỏi vấn đáp nên dùng (kèm đáp án kỳ vọng)</h3>
+        <ul class="space-y-2.5 text-slate-300">
+          <li><b class="text-white">"Transistor giống vật gì trong nhà bạn?"</b> → Công tắc/van nước, nhưng bấm bằng điện áp thay vì bằng tay.</li>
+          <li><b class="text-white">"SoC khác board mạch nhiều chip chỗ nào?"</b> → SoC là MỘT die silicon tích hợp nhiều khối; board là nhiều chip riêng hàn cạnh nhau.</li>
+          <li><b class="text-white">"Apple có nhà máy sản xuất chip không?"</b> → Không — Apple là fabless; TSMC sản xuất. Thiết kế và chế tạo là hai nghề khác nhau.</li>
+          <li><b class="text-white">"Tín hiệu qua cổng logic mất bao lâu?"</b> → Một khoảng thời gian hữu hạn (picô-giây) gọi là propagation delay — không tức thời.</li>
+        </ul>
+        <h3 class="font-bold text-amber-400 mt-5 mb-2"><i class="fa-solid fa-arrow-right mr-1"></i> Cách nối sang Tuần 2</h3>
+        <p class="text-slate-300">Kết buổi bằng câu hỏi treo: <i>"Giả sử nhóm mình có ý tưởng một con chip đếm người vào thư viện — bắt đầu từ đâu, và đi qua những bước nào để nó thành silicon thật?"</i> — đó chính là nội dung "From Idea to Chip" tuần sau. Dặn sinh viên mang theo 1 ý tưởng hệ thống đơn giản.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 18. KEY VOCABULARY ===== -->
+<section id="vocabulary" class="py-12">
+  <div class="flex items-center gap-3 mb-6"><span class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-extrabold">18</span><h2 class="text-2xl md:text-3xl font-bold text-dark"><i class="fa-solid fa-book text-primary mr-2"></i>Từ vựng chuyên ngành</h2></div>
+  <div class="bg-white rounded-2xl shadow overflow-x-auto">
+    <table class="w-full text-sm min-w-[820px]">
+      <thead class="bg-dark text-white"><tr><th class="px-4 py-3 text-left">English term</th><th class="px-4 py-3 text-left">Nghĩa tiếng Việt</th><th class="px-4 py-3 text-left">Giải thích kỹ thuật</th><th class="px-4 py-3 text-left">Câu ví dụ</th></tr></thead>
+      <tbody class="divide-y divide-slate-100 text-slate-700 align-top">
+        <tr class="hover:bg-slate-50"><td class="px-4 py-3 font-bold text-primary">Semiconductor</td><td class="px-4 py-3">Chất bán dẫn / ngành bán dẫn</td><td class="px-4 py-3">Vật liệu (thường là silicon) có độ dẫn điện điều khiển được bằng pha tạp và điện áp</td><td class="px-4 py-3 italic">"Vietnam is investing heavily in the semiconductor industry."</td></tr>
+        <tr class="hover:bg-slate-50"><td class="px-4 py-3 font-bold text-primary">Transistor</td><td class="px-4 py-3">Bóng bán dẫn</td><td class="px-4 py-3">Công tắc điện tử 3 cực (Gate/Drain/Source), bật tắt bằng điện áp Gate</td><td class="px-4 py-3 italic">"This SoC contains 19 billion transistors."</td></tr>
+        <tr class="hover:bg-slate-50"><td class="px-4 py-3 font-bold text-primary">Integrated Circuit (IC)</td><td class="px-4 py-3">Mạch tích hợp</td><td class="px-4 py-3">Mạch điện hoàn chỉnh chế tạo trên một miếng silicon duy nhất</td><td class="px-4 py-3 italic">"An IC integrates millions of components on one die."</td></tr>
+        <tr class="hover:bg-slate-50"><td class="px-4 py-3 font-bold text-primary">Chip / Die</td><td class="px-4 py-3">Vi mạch / phiến silicon</td><td class="px-4 py-3">Cách gọi thân mật của IC; die là miếng silicon trước khi đóng gói</td><td class="px-4 py-3 italic">"The chip shortage affected the car industry."</td></tr>
+        <tr class="hover:bg-slate-50"><td class="px-4 py-3 font-bold text-primary">SoC (System on Chip)</td><td class="px-4 py-3">Hệ thống trên chip</td><td class="px-4 py-3">MỘT IC tích hợp nhiều khối chức năng (CPU, GPU, modem...) trên cùng một die</td><td class="px-4 py-3 italic">"The Snapdragon SoC integrates CPU, GPU and modem."</td></tr>
+        <tr class="hover:bg-slate-50"><td class="px-4 py-3 font-bold text-primary">ASIC</td><td class="px-4 py-3">Chip chuyên dụng</td><td class="px-4 py-3">IC thiết kế cho một ứng dụng cụ thể, không thay đổi được sau sản xuất</td><td class="px-4 py-3 italic">"Bitcoin miners use ASICs for maximum efficiency."</td></tr>
+        <tr class="hover:bg-slate-50"><td class="px-4 py-3 font-bold text-primary">FPGA</td><td class="px-4 py-3">Mạch logic lập trình được</td><td class="px-4 py-3">Chip chứa mảng khối logic cấu hình lại được bằng bitstream</td><td class="px-4 py-3 italic">"We prototype the design on an FPGA board first."</td></tr>
+        <tr class="hover:bg-slate-50"><td class="px-4 py-3 font-bold text-primary">IC Design</td><td class="px-4 py-3">Thiết kế vi mạch</td><td class="px-4 py-3">Quá trình mô tả, kiểm chứng và hiện thực hóa mạch tích hợp trước khi sản xuất</td><td class="px-4 py-3 italic">"She works as an IC design engineer in Da Nang."</td></tr>
+        <tr class="hover:bg-slate-50"><td class="px-4 py-3 font-bold text-primary">Verification</td><td class="px-4 py-3">Kiểm chứng thiết kế</td><td class="px-4 py-3">Mô phỏng và kiểm tra thiết kế đúng spec trước tape-out; chiếm 60–70% công sức</td><td class="px-4 py-3 italic">"Verification engineers hunt bugs before tape-out."</td></tr>
+        <tr class="hover:bg-slate-50"><td class="px-4 py-3 font-bold text-primary">Physical Design</td><td class="px-4 py-3">Thiết kế vật lý</td><td class="px-4 py-3">Chuyển netlist thành layout: sắp đặt cell, đi dây, tối ưu PPA</td><td class="px-4 py-3 italic">"Physical design converts the netlist into a layout."</td></tr>
+        <tr class="hover:bg-slate-50"><td class="px-4 py-3 font-bold text-primary">Foundry</td><td class="px-4 py-3">Nhà máy sản xuất chip</td><td class="px-4 py-3">Công ty chế tạo wafer theo layout khách hàng gửi (TSMC, Samsung Foundry...)</td><td class="px-4 py-3 italic">"TSMC is the world's largest foundry."</td></tr>
+        <tr class="hover:bg-slate-50"><td class="px-4 py-3 font-bold text-primary">Fabless</td><td class="px-4 py-3">(Công ty) không sở hữu nhà máy</td><td class="px-4 py-3">Mô hình chỉ thiết kế chip, thuê foundry sản xuất</td><td class="px-4 py-3 italic">"Qualcomm is a fabless company."</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ===== 19. FINAL SUMMARY ===== -->
+<section id="summary" class="py-12">
+  <div class="flex items-center gap-3 mb-6"><span class="w-10 h-10 rounded-xl bg-accent/10 text-accent flex items-center justify-center font-extrabold">19</span><h2 class="text-2xl md:text-3xl font-bold text-dark"><i class="fa-solid fa-flag-checkered text-accent mr-2"></i>Tổng kết tuần 1</h2></div>
+  <div class="grid lg:grid-cols-2 gap-6 mb-6">
+    <div class="bg-white rounded-2xl shadow p-6">
+      <h3 class="font-bold text-dark mb-3"><i class="fa-solid fa-star text-amber-500 mr-2"></i>5 ý chính cần nhớ</h3>
+      <ol class="space-y-2.5 text-sm text-slate-700 list-decimal list-inside">
+        <li>Bán dẫn quý ở chỗ <b>điều khiển được</b> khả năng dẫn điện → chế tạo transistor: công tắc bấm bằng điện áp.</li>
+        <li>IC = cả mạch điện tích hợp trên một miếng silicon; <b>SoC = MỘT IC</b> tích hợp nhiều khối chức năng trên cùng một chip.</li>
+        <li>Mức logic 1/0 là <b>khoảng điện áp</b> High/Low — không phải "có điện/mất điện".</li>
+        <li>Ngành chia thành design (front-end: RTL, verification; back-end: physical design) và manufacturing (foundry) — kỹ sư thiết kế không đứng trong nhà máy.</li>
+        <li>Tín hiệu lan truyền với <b>độ trễ hữu hạn</b> (propagation delay) — nền của mọi bài học timing sau này.</li>
+      </ol>
+    </div>
+    <div class="space-y-5">
+      <div class="bg-white rounded-2xl shadow p-6">
+        <h3 class="font-bold text-dark mb-3"><i class="fa-solid fa-mirror mr-2 fa-magnifying-glass text-primary"></i>3 câu hỏi tự phản tỉnh</h3>
+        <ul class="space-y-2 text-sm text-slate-700 list-disc list-inside">
+          <li>Mình có thể giải thích "SoC là gì" cho một người bạn trong 30 giây không?</li>
+          <li>Trong các vai trò kỹ sư đã nghe hôm nay, vai trò nào khiến mình tò mò nhất — và mình cần kỹ năng gì cho nó?</li>
+          <li>Điều gì trong buổi học hôm nay thay đổi cách mình nhìn chiếc điện thoại đang cầm?</li>
+        </ul>
+      </div>
+      <div class="bg-gradient-to-r from-slate-900 to-blue-900 text-white rounded-2xl p-6">
+        <p class="text-sm leading-relaxed"><i class="fa-solid fa-quote-left text-amber-400 mr-2"></i>Mỗi con chip tỷ transistor đều bắt đầu từ một sinh viên từng ngồi học cổng logic đầu tiên. Đừng hỏi "liệu mình có kịp không" — hãy hỏi "hôm nay mình đặt viên gạch nào".<span class="block mt-2 text-xs text-blue-200">— Mentor, IC Design Mentoring Program</span></p>
+      </div>
+    </div>
+  </div>
+  <div class="bg-white rounded-2xl shadow p-6">
+    <div class="flex items-center justify-between mb-4"><h3 class="font-bold text-dark"><i class="fa-solid fa-list-check text-accent mr-2"></i>Sau buổi học, tôi có thể...</h3><span id="sumCount" class="text-xs font-bold bg-emerald-50 text-emerald-600 px-3 py-1 rounded-full">0/5</span></div>
+    <div id="sumChecklist" class="grid md:grid-cols-2 gap-3 text-sm text-slate-700">
+      <label class="flex items-start gap-3 cursor-pointer bg-slate-50 rounded-xl p-3"><input type="checkbox" class="mt-0.5 w-4 h-4 accent-emerald-600"><span>Giải thích đơn giản chip/semiconductor là gì bằng 1 ví dụ đời thường</span></label>
+      <label class="flex items-start gap-3 cursor-pointer bg-slate-50 rounded-xl p-3"><input type="checkbox" class="mt-0.5 w-4 h-4 accent-emerald-600"><span>Kể tên 5 thiết bị có chip và vai trò của chip trong đó</span></label>
+      <label class="flex items-start gap-3 cursor-pointer bg-slate-50 rounded-xl p-3"><input type="checkbox" class="mt-0.5 w-4 h-4 accent-emerald-600"><span>Phát biểu đúng SoC là gì (một IC — nhiều khối chức năng)</span></label>
+      <label class="flex items-start gap-3 cursor-pointer bg-slate-50 rounded-xl p-3"><input type="checkbox" class="mt-0.5 w-4 h-4 accent-emerald-600"><span>Mô tả 3 hướng nghề nghiệp của kỹ sư IC Design</span></label>
+      <label class="flex items-start gap-3 cursor-pointer bg-slate-50 rounded-xl p-3"><input type="checkbox" class="mt-0.5 w-4 h-4 accent-emerald-600"><span>Giải thích vì sao tín hiệu số không thay đổi "ngay lập tức"</span></label>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ===== FOOTER ===== -->
+<footer class="bg-dark text-slate-300 mt-8">
+  <div class="max-w-6xl mx-auto px-4 py-8">
+    <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+      <span class="text-sm text-slate-500"><i class="fa-solid fa-flag mr-1"></i> Tuần 1 — buổi mở đầu chương trình</span>
+      <p class="text-sm font-semibold text-center">Chương trình Mentoring Thiết kế Vi mạch số — 12 tuần</p>
+      <a href="Week2.html" class="inline-flex items-center gap-2 bg-primary hover:bg-blue-700 text-white text-sm font-bold px-5 py-2.5 rounded-xl transition">Tuần 2: From Idea to Chip <i class="fa-solid fa-arrow-right"></i></a>
+    </div>
+    <p class="text-center text-xs text-slate-500 mt-4">Bản quyền © Khoa Điện - Điện tử, Trường Kỹ thuật Phenikaa, Đại học Phenikaa · Giảng viên: ThS. Đinh Văn Nam</p>
+    <p class="text-center text-xs text-slate-500 mt-2">Why Semiconductor? Why IC Design? · Học liệu tương tác — mở trực tiếp trên trình duyệt, không cần cài đặt.</p>
+  </div>
+</footer>
+
+<script>
+// ===== Scroll progress =====
+(function () {
+  var bar = document.getElementById('scrollProgress');
+  window.addEventListener('scroll', function () {
+    var h = document.documentElement;
+    var max = h.scrollHeight - h.clientHeight;
+    bar.style.width = (max > 0 ? (h.scrollTop / max) * 100 : 0) + '%';
+  });
+})();
+
+// ===== Checklist counters =====
+function bindChecklist(boxId, badgeId) {
+  var box = document.getElementById(boxId);
+  var badge = document.getElementById(badgeId);
+  if (!box || !badge) return;
+  var inputs = box.querySelectorAll('input[type="checkbox"]');
+  box.addEventListener('change', function () {
+    var n = 0;
+    inputs.forEach(function (c) { if (c.checked) n++; });
+    badge.textContent = badgeId === 'beforeCount' ? (n + '/' + inputs.length + ' hoàn thành') : (n + '/' + inputs.length);
+  });
+}
+bindChecklist('beforeChecklist', 'beforeCount');
+bindChecklist('sumChecklist', 'sumCount');
+
+// ===== Demo 1: Transistor switch =====
+(function () {
+  var on = false;
+  var btn = document.getElementById('vgToggle');
+  var vgText = document.getElementById('vgText');
+  var lamp = document.getElementById('mosLamp');
+  var glow = document.getElementById('mosLampGlow');
+  var channel = document.getElementById('mosChannel');
+  var current = document.getElementById('mosCurrent');
+  var status = document.getElementById('mosStatus');
+  var panelOn = document.getElementById('mosOn');
+  var panelOff = document.getElementById('mosOff');
+  var wires = ['wVdd', 'wDrain', 'wSrc', 'wGate'].map(function (id) { return document.getElementById(id); });
+  btn.addEventListener('click', function () {
+    on = !on;
+    vgText.textContent = on ? 'V_G = 1.8 V' : 'V_G = 0 V';
+    lamp.setAttribute('fill', on ? '#fde047' : '#e2e8f0');
+    lamp.setAttribute('stroke', on ? '#f59e0b' : '#64748b');
+    glow.setAttribute('opacity', on ? '0.4' : '0');
+    channel.setAttribute('fill', on ? '#10b981' : '#cbd5e1');
+    current.setAttribute('opacity', on ? '1' : '0');
+    wires.forEach(function (w, i) { w.setAttribute('stroke', on ? (i === 3 ? '#2563eb' : '#10b981') : '#94a3b8'); });
+    status.className = on ? 'rounded-xl px-4 py-3 text-sm font-semibold bg-emerald-100 text-emerald-700 mb-4' : 'rounded-xl px-4 py-3 text-sm font-semibold bg-slate-100 text-slate-600 mb-4';
+    status.innerHTML = on ? '<i class="fa-solid fa-circle-check mr-1"></i> Transistor ON — kênh dẫn hình thành, dòng điện chạy, đèn sáng.' : '<i class="fa-solid fa-circle-xmark mr-1"></i> Transistor OFF — kênh dẫn chưa hình thành, dòng điện bị chặn, đèn tắt.';
+    btn.innerHTML = on ? '<i class="fa-solid fa-power-off mr-2"></i>Đặt V_G = 0 V (mức Low)' : '<i class="fa-solid fa-power-off mr-2"></i>Đặt V_G = 1.8 V (mức High)';
+    panelOn.classList.toggle('hidden', !on);
+    panelOff.classList.toggle('hidden', on);
+  });
+})();
+
+// ===== Demo 2: Smartphone chip explorer =====
+(function () {
+  var panels = { soc: 'chipSoc', mem: 'chipMem', pmic: 'chipPmic', rf: 'chipRf', cam: 'chipCam' };
+  var allPanels = ['chipDefault', 'chipSoc', 'chipMem', 'chipPmic', 'chipRf', 'chipCam'];
+  var spots = document.querySelectorAll('.hotspot');
+  spots.forEach(function (g) {
+    g.addEventListener('click', function () {
+      spots.forEach(function (s) { s.classList.remove('active'); });
+      g.classList.add('active');
+      allPanels.forEach(function (id) { document.getElementById(id).classList.add('hidden'); });
+      document.getElementById(panels[g.dataset.chip]).classList.remove('hidden');
+    });
+  });
+})();
+
+// ===== Copy buttons =====
+document.querySelectorAll('.copy-btn').forEach(function (btn) {
+  btn.addEventListener('click', function () {
+    var code = document.getElementById(btn.dataset.target);
+    var text = code ? code.textContent : '';
+    function done() {
+      var old = btn.innerHTML;
+      btn.innerHTML = '<i class="fa-solid fa-check mr-1"></i>Đã copy!';
+      setTimeout(function () { btn.innerHTML = old; }, 1500);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done, function () { fallbackCopy(text); done(); });
+    } else { fallbackCopy(text); done(); }
+  });
+});
+function fallbackCopy(text) {
+  var ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand('copy'); } catch (e) {}
+  document.body.removeChild(ta);
+}
+
+// ===== Quiz =====
+(function () {
+  var qs = document.querySelectorAll('.quiz-q');
+  var scoreEl = document.getElementById('quizScore');
+  var score = 0, answered = 0, total = qs.length;
+  function refresh() { scoreEl.textContent = 'Điểm: ' + score + '/' + total + ' · Đã trả lời: ' + answered + '/' + total; }
+  qs.forEach(function (q) {
+    q.querySelectorAll('.quiz-opt').forEach(function (opt) {
+      opt.addEventListener('click', function () {
+        if (q.dataset.done === '1') return;
+        q.dataset.done = '1';
+        answered++;
+        var correct = q.dataset.answer;
+        var chosen = opt.dataset.opt;
+        q.querySelectorAll('.quiz-opt').forEach(function (o) {
+          if (o.dataset.opt === correct) { o.classList.add('opt-correct'); }
+          else if (o === opt) { o.classList.add('opt-wrong'); }
+          else { o.classList.add('opt-dim'); }
+        });
+        if (chosen === correct) score++;
+        var exp = q.querySelector('.quiz-exp');
+        exp.classList.remove('hidden');
+        exp.classList.add(chosen === correct ? 'border-emerald-300' : 'border-red-300');
+        refresh();
+      });
+    });
+  });
+  document.getElementById('quizReset').addEventListener('click', function () {
+    score = 0; answered = 0;
+    qs.forEach(function (q) {
+      q.dataset.done = '0';
+      q.querySelectorAll('.quiz-opt').forEach(function (o) { o.classList.remove('opt-correct', 'opt-wrong', 'opt-dim'); });
+      var exp = q.querySelector('.quiz-exp');
+      exp.classList.add('hidden');
+      exp.classList.remove('border-emerald-300', 'border-red-300');
+    });
+    refresh();
+  });
+  refresh();
+})();
+</script>
+</body>
+</html>

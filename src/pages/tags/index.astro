@@ -1,0 +1,39 @@
+---
+import BaseLayout from "~/layouts/BaseLayout.astro";
+import { href } from "~/utils/url";
+import { getPublished } from "~/utils/content";
+import { TRACKS } from "~/data/tracks";
+
+const [articles, research, projects, resources, paths] = await Promise.all([
+  getPublished("articles"),
+  getPublished("research"),
+  getPublished("projects"),
+  getPublished("resources"),
+  getPublished("learning-paths"),
+]);
+
+const counts = new Map<string, number>();
+for (const e of [...articles, ...research, ...projects, ...resources, ...paths]) {
+  const d = e.data as { tags?: string[]; track?: string };
+  for (const t of d.tags ?? []) counts.set(t, (counts.get(t) ?? 0) + 1);
+  if (d.track) counts.set(d.track, (counts.get(d.track) ?? 0) + 1);
+}
+const sorted = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+const activeTrackIds = new Set(TRACKS.filter((t) => t.status === "active").map((t) => t.id));
+---
+
+<BaseLayout title="Chủ đề & tag" description="Duyệt nội dung của hub theo chủ đề và tag." path="tags/">
+  <div class="wrap">
+    <nav class="crumbs" aria-label="Breadcrumb"><a href={href("")}>Trang chủ</a> / <span>Chủ đề &amp; tag</span></nav>
+    <h1 style="margin-top:10px">Chủ đề &amp; tag</h1>
+    <p class="sec-sub">Số trong ngoặc là số nội dung gắn tag đó.</p>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;max-width:900px">
+      {sorted.map(([tag, n]) => (
+        <a class="tag" style="font-size:14px;padding:5px 12px" href={href(`tags/${tag}/`)}>
+          #{tag} ({n}){activeTrackIds.has(tag) ? " · track" : ""}
+        </a>
+      ))}
+    </div>
+    {sorted.length === 0 && <p class="muted">Chưa có nội dung gắn tag.</p>}
+  </div>
+</BaseLayout>

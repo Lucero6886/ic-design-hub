@@ -1,0 +1,51 @@
+---
+import BaseLayout from "~/layouts/BaseLayout.astro";
+import EntryList from "~/components/EntryList.astro";
+import { href } from "~/utils/url";
+import { getPublished, label } from "~/utils/content";
+
+const projects = await getPublished("projects");
+---
+
+<BaseLayout
+  title="Project"
+  description="Project học tập, FPGA, IC design, sinh viên và nghiên cứu — mỗi project là một đối tượng tri thức đầy đủ: mục tiêu, kiến trúc, milestone, kết quả, giới hạn."
+  path="projects/"
+>
+  <section class="hero">
+    <div class="wrap">
+      <div class="kicker">Projects</div>
+      <h1>Project</h1>
+      <p class="sub">
+        Project là cầu nối giữa học và nghiên cứu: mỗi project ghi rõ vấn đề, mục tiêu, kiến trúc,
+        milestone, kết quả hiện tại, khả năng tái lập và giới hạn đã biết.
+      </p>
+    </div>
+  </section>
+  <section class="section" style="padding-bottom:28px">
+    <div class="wrap">
+      <EntryList
+        items={projects.map((p) => ({
+          url: href(`projects/${p.id}/`),
+          title: p.data.title,
+          summary: p.data.summary,
+          date: p.data.date,
+          updated: p.data.updated,
+          track: p.data.track,
+          tags: p.data.tags,
+          badges: [
+            { text: label(p.data.kind), tone: "acc" },
+            { text: label(p.data.status), tone: p.data.status === "completed" ? "green" : "gray" },
+            ...(p.data.difficulty ? [{ text: label(p.data.difficulty), tone: "gray" as const }] : []),
+          ],
+        }))}
+        emptyText="Chưa có project công bố. Đề xuất project mới qua GitHub Issues (mẫu 'Đề xuất project')."
+      />
+      <div class="co info" style="margin-top:22px">
+        <b>Quyền riêng tư của sinh viên:</b> project chỉ ghi tên người đóng góp khi có sự đồng ý
+        công khai rõ ràng. Không bao giờ công bố email, mã số sinh viên, điểm số, repo riêng tư
+        hay dữ liệu nghiên cứu chưa công bố.
+      </div>
+    </div>
+  </section>
+</BaseLayout>

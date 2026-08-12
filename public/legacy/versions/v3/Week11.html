@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="Giảng Viên Đinh Văn Nam">
+<meta name="copyright" content="© 2026 · Bản quyền thuộc về Giảng Viên Đinh Văn Nam, Khoa Điện-Điện Tử, Trường Kỹ Thuật, Đại học Phenikaa">
+<meta name="description" content="IC Design Mentoring — Version 3, Phase 1 (12 tuần). Khoa Điện – Điện tử · Trường Kỹ thuật · Đại học Phenikaa. Biên soạn: Giảng Viên Đinh Văn Nam.">
+<title>Tuần 11 — Project C: UART Status Communication | IC Design Mentoring v3</title>
+<link rel="stylesheet" href="css/style.css">
+<script src="js/app.js" defer></script>
+</head>
+<body data-week="11">
+
+<header class="topbar">
+  <div class="topbar-in">
+    <a class="brand" href="index.html"><span class="logo">IC</span>
+      <span>IC Design Mentoring<small>Tuần 11/12 · Project C — UART Status</small></span></a>
+    <nav class="layer-chips">
+      <a class="chip" href="../../index.html" title="Learning Hub — cổng ba phiên bản giáo trình; đây là V3, bản hiện hành được khuyến nghị">⌂ Hub · V3</a>
+      <a class="chip chip-a" href="#layer-a"><span class="dot"></span>A · Trước buổi</a>
+      <a class="chip chip-b" href="#layer-b"><span class="dot"></span>B · Buổi học 60′</a>
+      <a class="chip chip-c" href="#layer-c"><span class="dot"></span>C · Lab</a>
+      <a class="chip chip-d" href="#layer-d"><span class="dot"></span>D · Sau buổi</a>
+      <a class="chip" href="index.html">Mục lục</a>
+    </nav>
+    <span class="mentor-sw" title="Hiện/ẩn nội dung dành riêng cho mentor"><span class="tr"></span> Mentor</span>
+  </div>
+  <div class="scrollbar"><div></div></div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <div class="pill-row">
+      <span class="pill">Tuần 11 / 12</span>
+      <span class="pill acc">Project tích hợp · tuần 3/3</span>
+      <span class="pill">Khoa Điện – Điện tử · ĐH Phenikaa</span>
+    </div>
+    <h1>Project C — UART Status Communication</h1>
+    <p class="sub">Hệ thống biết "nói": gửi trạng thái về PC qua một sợi dây</p>
+    <p>T9 hệ biết <b>quyết định</b>, T10 hệ biết <b>hiển thị</b> — tuần này nó biết <b>báo cáo</b>: mỗi giây gửi một dòng trạng thái (<code>GN 09</code>) về PC qua UART. Bạn học truyền nối tiếp, khung 8N1, baud rate, và xây <code>uart_tx</code> — một FSM + shift register dựng từ đúng bộ đồ nghề T6 (enum có tên, non-blocking, nhánh đủ); riêng bản RTL ở C3 <b>gộp</b> ba khối thành một <code>always_ff</code> cho gọn, nên nó không phải khuôn 3 khối — đó là lựa chọn có ý thức, sẽ mổ xẻ ở C3. Cuối tuần: <b>ba tuần ghép thành MỘT hệ hoàn chỉnh</b>, sẵn sàng cho buổi bảo vệ T12.</p>
+    <div class="outcomes">
+      <div class="outcome"><b>Mục tiêu 1.</b> Vẽ và đọc đúng khung UART 8N1: idle 1 → start 0 → 8 bit dữ liệu LSB-first → stop 1.</div>
+      <div class="outcome"><b>Mục tiêu 2.</b> Tính bit time và bộ chia baud (DIV) từ clock hệ thống; đánh giá sai số có chấp nhận được không.</div>
+      <div class="outcome"><b>Mục tiêu 3.</b> Thiết kế <code>uart_tx</code>: FSM 4 trạng thái + baud tick (enable) + shift register + handshake start/busy.</div>
+      <div class="outcome"><b>Mục tiêu 4.</b> Tích hợp toàn hệ (traffic + display + UART) trong một top module; hiểu vấn đề tín hiệu bất đồng bộ và vai trò của synchronizer.</div>
+    </div>
+    <div class="pos">
+      <div><b>Tuần trước — T10.</b> Hệ có màn hình: traffic_ctrl → seg7. Interface hợp đồng vẫn nguyên vẹn.</div>
+      <div><b>Tuần này — T11.</b> Thêm kênh nói: status_tx + uart_tx → PC terminal. Hệ tích hợp HOÀN CHỈNH.</div>
+      <div><b>Tuần sau — T12.</b> Bảo vệ mini-defense: demo, giải thích, phản tư, chọn hướng Phase 2.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= LAYER A ================= -->
+<section id="layer-a" class="layer layer-a">
+  <div class="wrap layer-head">
+    <div class="band">
+      <span class="layer-badge">A</span>
+      <h2>Trước buổi học</h2>
+      <span class="time">⏱ 15–25 phút · chỉ cần đọc phần này</span>
+    </div>
+    <p class="lead">Bạn KHÔNG cần đọc Layer C trước buổi học. Chuẩn bị đủ ở đây là bạn sẵn sàng thảo luận.</p>
+  </div>
+  <div class="wrap layer-body">
+    <div class="grid2">
+      <div class="card">
+        <h3>Vì sao tuần này quan trọng</h3>
+        <p>Hệ thống thật phải giao tiếp với thế giới ngoài — và thế giới ngoài <b>không chạy theo clock của bạn</b>. UART là giao thức nối tiếp đơn giản nhất, có trên gần như mọi board (cầu USB-UART), là cửa ngõ debug số một của kỹ sư FPGA. Đây cũng là lần đầu bạn chạm khái niệm <b>bất đồng bộ</b> — chủ đề lớn của cả sự nghiệp.</p>
+        <p class="small muted"><b>Điều kiện tiên quyết:</b> T9–T10 (hệ đang chạy), T6 (FSM), T5 (counter/shift).</p>
+      </div>
+      <div class="card">
+        <h3>Hoạt động chuẩn bị (10′)</h3>
+        <p>Viết tay chuỗi bit truyền ký tự <b>'A' (0x41)</b> qua UART 8N1 theo thứ tự trên dây: idle → start → D0…D7 (LSB trước!) → stop. Kiểm lại bằng widget ở C1 <em>sau</em> buổi học. Mang tờ giấy đến lớp — sai cũng mang (điểm sai là nguyên liệu thảo luận tốt nhất).</p>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Khái niệm thiết yếu — đọc chậm, 5 ý</h3>
+      <ul>
+        <li><b>Nối tiếp thay vì song song:</b> 1 sợi dây, truyền lần lượt từng bit theo thời gian — đổi dây lấy thời gian.</li>
+        <li><b>Khung 8N1</b> (10 bit): idle mức 1 → <b>start = 0</b> (cạnh xuống đánh thức bên nhận) → 8 bit dữ liệu <b>LSB trước</b> → <b>stop = 1</b>.</li>
+        <li><b>Baud rate</b> = số bit/giây; hai bên <b>hẹn trước</b> (không có dây clock chung!). Bit time = 1/baud: 9600 → ≈104,17 µs; 115200 → ≈8,68 µs.</li>
+        <li><b>Bộ chia baud:</b> từ clock 50 MHz tạo nhịp baud bằng counter: DIV = round(f_clk / baud) — lại là tick-enable như T9, không phải clock mới.</li>
+        <li><b>uart_tx</b> = FSM (IDLE/START/DATA/STOP) + shift register + bit counter — toàn đồ nghề cũ, lắp theo cách mới.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>2 câu hỏi tự chẩn đoán</h3>
+      <details class="reveal"><summary>1. Không có dây clock chung, bên nhận làm sao biết LÚC NÀO một bit bắt đầu?</summary>
+        <div class="rv-body">Nhờ <b>start bit</b>: đường idle giữ mức 1, cạnh xuống 1→0 là "tiếng gõ cửa" duy nhất. Từ mốc đó, bên nhận tự đếm thời gian bằng clock nội bộ (đã hẹn baud) để lấy mẫu giữa từng bit. Vì vậy hai bên lệch baud nhiều → điểm lấy mẫu trôi dần → đọc sai.</div>
+      </details>
+      <details class="reveal"><summary>2. Gửi 0x41 = 01000001. Bit dữ liệu ĐẦU TIÊN xuất hiện trên dây là gì?</summary>
+        <div class="rv-body">Bit 1 — vì UART gửi <b>LSB trước</b>: D0 của 0x41 là 1. Chuỗi dữ liệu trên dây: 1,0,0,0,0,0,1,0. Gửi nhầm MSB trước, PC sẽ nhận ra byte "lật gương" (0x82).</div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ================= LAYER B ================= -->
+<section id="layer-b" class="layer layer-b">
+  <div class="wrap layer-head">
+    <div class="band">
+      <span class="layer-badge">B</span>
+      <h2>Buổi mentoring 60 phút</h2>
+      <span class="time">🗺 Mentor Session Guide</span>
+    </div>
+    <p class="lead">Kịch bản buổi học — nửa đầu chốt giao thức bằng giấy-bút, nửa sau thiết kế uart_tx như một FSM quen thuộc.</p>
+  </div>
+  <div class="wrap layer-body">
+    <div class="card">
+      <div class="timeline">
+        <div class="tl-row">
+          <span class="tl-time">0–5′</span>
+          <h4>Retrieval — kiểm tra tuần 10</h4>
+          <ul>
+            <li>seg7_decoder là tổ hợp hay tuần tự? Vì sao?</li>
+            <li>Vì sao truyền <code>time_left</code> dạng binary thay vì truyền thẳng 7 bit seg?</li>
+            <li>Khi ghép display vào hệ T9, bạn có phải sửa <code>traffic_ctrl</code> không?</li>
+          </ul>
+        </div>
+        <div class="tl-row">
+          <span class="tl-time">5–15′</span>
+          <h4>Học viên giải thích — trò chơi frame card</h4>
+          <p>Hai học viên lên bảng vẽ chuỗi bit 'A' đã chuẩn bị. Lớp soi theo 3 câu: idle mức mấy? bit nào đi đầu? start/stop ở đâu? Sau đó một bạn "làm RX": nhận tờ frame của nhóm khác và giải mã ngược ra ký tự.</p>
+        </div>
+        <div class="tl-row">
+          <span class="tl-time">15–25′</span>
+          <h4>Mentor sửa &amp; giảng sâu</h4>
+          <p>Chốt 3 điều: (1) LSB-first — quy ước, sai là "lật gương" byte; (2) baud là <b>hợp đồng thời gian</b> thay cho dây clock — sai số tích lũy qua từng bit chứ không tự sửa; (3) baud tick lại là <b>enable</b> (không phải clock mới) — nhất quán với T9. Tính mẫu DIV = 50 MHz/115200 ≈ 434 trên bảng.</p>
+        </div>
+        <div class="tl-row">
+          <span class="tl-time">25–45′</span>
+          <h4>Active design — thiết kế uart_tx trên giấy (nhóm 2–3 người)</h4>
+          <ul>
+            <li>Vẽ state diagram: IDLE → START → DATA(×8) → STOP → IDLE. Sự kiện chuyển: baud_tick.</li>
+            <li>Xác định datapath: shift register 8 bit (dịch phải — vì sao phải?), bit counter 3 bit.</li>
+            <li>Thiết kế handshake: <code>start</code> (xung yêu cầu) và <code>busy</code> (đang bận — ai cần nó?).</li>
+            <li><b>Dự đoán:</b> vẽ waveform tx cho byte 0x41 với DIV=4 (mô phỏng thu nhỏ), đánh dấu từng bit time.</li>
+          </ul>
+          <p class="small muted">Artifact nhóm: state diagram + waveform 0x41 dự đoán.</p>
+        </div>
+        <div class="tl-row">
+          <span class="tl-time">45–55′</span>
+          <h4>Chia sẻ &amp; tranh luận kỹ thuật</h4>
+          <p>So state diagram giữa các nhóm: DATA là 1 state + bit counter, hay 8 state? (Cả hai chạy — cái nào chịu thay đổi tốt hơn khi đổi sang 7 bit dữ liệu? Đúng bài học "đừng nhét đếm vào state" của T9.) Nếu <code>start</code> đến khi đang busy thì làm gì — bỏ qua hay xếp hàng? (Tuần này: bỏ qua, ghi rõ trong spec.)</p>
+        </div>
+        <div class="tl-row">
+          <span class="tl-time">55–60′</span>
+          <h4>Chốt &amp; giao việc</h4>
+          <ul>
+            <li><b>Nhớ:</b> khung 8N1 LSB-first; baud = hợp đồng; sai số tích lũy; baud tick là enable.</li>
+            <li><b>Tránh:</b> đếm bit bằng 8 state; quên idle/stop ở mức 1.</li>
+            <li><b>Artifact sau buổi:</b> uart_tx + testbench đo độ dài start bit + tích hợp top (Layer D).</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <p class="mentor-hint">💡 Bật công tắc <b>Mentor</b> trên thanh tiêu đề để xem ghi chú dành riêng cho mentor.</p>
+
+    <div class="mentor-only">
+      <div class="mentor-box">
+        <span class="mtag">Mentor only · Tuần 11</span>
+        <h3>Ghi chú vận hành buổi học</h3>
+        <div class="grid2">
+          <div>
+            <h4>Mục tiêu mentor cần chốt được</h4>
+            <ul class="small">
+              <li>Mọi học viên tự vẽ đúng khung 0x41 (kể cả sau khi sai lần đầu).</li>
+              <li><code>uart_tx</code> được nhận ra là <b>FSM + datapath</b> quen thuộc (state/next-state/shift register/bộ đếm), không phải kiến thức mới. Nói rõ một điểm dễ bị bắt lỗi: bản RTL ở C3 <b>gộp</b> next-state và output vào một <code>always_ff</code> cho gọn, nên nó KHÔNG phải khuôn 3 khối của Tuần 6. Đây là lựa chọn có ý thức — hỏi ngược học viên "tách lại thành 3 khối thì viết thế nào?" là bài luyện tốt.</li>
+              <li>Phân biệt: tick 1 Hz (nhịp gửi message) ≠ baud tick (nhịp từng bit) — hai enable khác nhau, MỘT clock duy nhất.</li>
+            </ul>
+            <h4>Hiểu sai kinh điển (chờ sẵn)</h4>
+            <ul class="small">
+              <li>MSB trước (lật gương byte).</li>
+              <li>"Lệch baud một chút chỉ sai một chút" — không: điểm lấy mẫu bit thứ k trôi tỉ lệ với k, sai số cộng dồn.</li>
+              <li>"Sửa lệch baud bằng cách tăng DIV cho chắc" — DIV phải bám round(f/baud), không phải "càng lớn càng an toàn".</li>
+              <li>Đưa thẳng tín hiệu ngoài (rx, nút bấm) vào FSM không qua đồng bộ hóa.</li>
+            </ul>
+          </div>
+          <div>
+            <h4>Câu hỏi chẩn đoán → đáp án tốt → hỏi tiếp</h4>
+            <p class="small"><b>Hỏi:</b> "Vì sao idle chọn mức 1 mà không phải 0?"<br>
+            <b>Đáp tốt:</b> để start bit (0) tạo cạnh xuống rõ ràng; và dây đứt/mất nguồn thường đọc ra 0 kéo dài → phát hiện được bất thường (break).<br>
+            <b>Hỏi tiếp:</b> "Nếu hai bên lệch baud 6% thì bit nào hỏng trước, vì sao?" → bit muộn (D7): trôi ≈ (k+1,5)×6% bit time, cộng dồn vượt nửa bit.</p>
+            <p class="small"><b>Cứu nguy (nếu bí):</b> đọc chính tả qua điện thoại đã hẹn "1 chữ mỗi giây": người chép chỉ cần nghe "bắt đầu!" (start bit) rồi tự đếm giây. Đồng hồ hai người lệch ít thì vẫn chép đúng cả câu ngắn — lệch nhiều thì cuối câu chép nhầm chữ.</p>
+            <p class="small"><b>Mở rộng học viên giỏi:</b> "RX (nhận) khó hơn TX ở điểm nào?" → dây rx không đồng bộ với clk: cần synchronizer 2 FF + căn giữa bit + oversampling ×16; nói rõ: synchronizer <b>giảm xác suất</b> lan truyền metastability, không triệt tiêu được về nguyên lý.</p>
+          </div>
+        </div>
+        <div class="co co-warn small"><b>Nhịp buổi học.</b> Không dạy RX chi tiết trong buổi — chỉ mở cửa sổ khái niệm (C5). Ưu tiên mọi nhóm ra được state diagram TX đúng và waveform 0x41 đúng. Nhóm nhanh: hỏi thiết kế status_tx (gửi 6 byte nối tiếp nhau — điều phối bằng busy thế nào?).</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= LAYER C ================= -->
+<section id="layer-c" class="layer layer-c">
+  <div class="wrap layer-head">
+    <div class="band">
+      <span class="layer-badge">C</span>
+      <h2>Technical Lab — Deep Dive</h2>
+      <span class="time">🔬 Giao thức · RTL · tích hợp toàn hệ</span>
+    </div>
+    <p class="lead">Từ khung bit đến hệ thống hoàn chỉnh. C6 là thời khắc của cả khóa: ba tuần project ghép thành một top module.</p>
+  </div>
+  <div class="wrap layer-body">
+    <div class="dd-tools"><button data-dd="open">Mở tất cả</button><button data-dd="close">Đóng tất cả</button></div>
+
+    <details class="dd" open>
+      <summary><span class="no">C1</span> Khung 8N1 — chơi với từng bit <span class="est">~10′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <p>UART 8N1 = 8 bit dữ liệu, No parity, 1 stop bit → khung 10 bit. Đường dây chỉ có hai mức 0/1 và <b>một mốc thời gian duy nhất</b>: cạnh xuống của start bit. Mọi thứ sau đó là đếm thời gian theo hợp đồng baud.</p>
+        <div class="widget" data-widget="uart" data-default="A">
+          <div class="wtitle">Máy dựng khung UART — gõ ký tự, đổi baud</div>
+          <div class="wnote">Đối chiếu với tờ giấy bạn chuẩn bị ở Layer A. Chú ý: D0 (LSB) đi ngay sau start; đổi baud chỉ đổi bit time, không đổi thứ tự bit. Khung 10 bit ở 9600 ≈ 1,04 ms → tối đa ~960 byte/giây.</div>
+        </div>
+      </div>
+    </details>
+
+    <details class="dd">
+      <summary><span class="no">C2</span> Baud, bit time, DIV và sai số <span class="est">~12′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <p><b>Bộ chia baud:</b> muốn nhịp 115200 baud từ clock 50 MHz: <code>DIV = round(50_000_000 / 115_200) = 434</code>. Counter đếm 0…433 rồi phát 1 xung <b>baud_tick</b> rộng đúng 1 chu kỳ — vẫn là enable như <code>tick</code> của T9, chỉ khác: ở đây xung sinh bằng tổ hợp (<code>baud_cnt == DIV-1</code>) nên trùng chu kỳ cuối của bit time, còn <code>tick_gen</code> cho xung đã qua thanh ghi nên trễ thêm 1 chu kỳ. Sai số làm tròn: 50M/434 = 115.207 baud → lệch ≈ 0,006% — không đáng kể.</p>
+        <div class="co co-fix"><span class="tag">Hiệu chỉnh kỹ thuật so với v2</span> v2 nêu "ngưỡng an toàn ≈ 2%" như chuẩn phổ quát. Chính xác hơn: <b>vài phần trăm là guideline kinh nghiệm</b>, không phải đặc tả cứng — ngưỡng thực tế phụ thuộc sai số clock CỦA CẢ HAI PHÍA, độ dài khung, cách lấy mẫu (giữa bit? oversampling bao nhiêu?), và hiện thực bên nhận. Điều chắc chắn đúng: <b>sai số tích lũy theo từng bit</b> — điểm lấy mẫu bit thứ k trôi ≈ (k + 1,5) × e (e = lệch tương đối), nên bit muộn hỏng trước; khung càng dài càng nhạy. Xem <code>TECHNICAL_AUDIT.md</code> mục 5.7.</div>
+        <div class="wr">
+          <p><b>Predict-before-check.</b> Board clock 27 MHz, cần 9600 baud. Tính DIV và sai số tương đối. Nghĩ xong hãy bấm.</p>
+          <button class="wr-btn wbtn alt" data-label="Hiện đáp án">Hiện đáp án</button>
+          <div class="wr-ans"><div class="co co-ok">DIV = round(27.000.000 / 9600) = round(2812,5) = <b>2813</b> → baud thật = 27M/2813 ≈ 9598,3 → lệch ≈ <b>0,018%</b>. Cộng cả sai số phía PC vẫn rất an toàn theo guideline vài %. Lưu ý trường hợp ,5 nằm đúng giữa: 2812 cho +0,018% — hai đáp án đều chấp nhận nếu lập luận đúng.</div></div>
+        </div>
+        <p class="small"><b>Throughput nhớ tính cả khung:</b> mỗi byte tốn 10 bit trên dây. Cảm biến 1000 mẫu/s × 2 byte = 16.000 bit dữ liệu/s nhưng <b>20.000 bit/s trên dây</b> → 9600 không đủ, 19200 cũng chưa đủ — chọn 38400 trở lên.</p>
+      </div>
+    </details>
+
+    <details class="dd">
+      <summary><span class="no">C3</span> uart_tx — FSM + shift register (module chính của tuần) <span class="est">~20′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <div class="rtl-frame">
+          <div class="rtl-head"><span class="ftag ftag-rtl">RTL</span><span class="fname">uart_tx.sv</span><span class="muted">· synthesizable</span></div>
+<pre class="code"><code>module uart_tx #(
+  parameter int unsigned CLK_HZ = 50_000_000,
+  parameter int unsigned BAUD   = 115_200
+)(
+  input  logic       clk,
+  input  logic       rst_n,
+  input  logic       start,   // xung 1 chu kỳ: yêu cầu gửi
+  input  logic [7:0] data,    // byte cần gửi (chốt tại thời điểm start)
+  output logic       tx,      // đường nối tiếp — idle mức 1
+  output logic       busy     // 1 = đang gửi; start đến lúc busy bị BỎ QUA
+);
+  // Làm tròn thay vì cắt — khớp quy tắc DIV = round(f_clk / baud) dạy ở Layer A
+  localparam int unsigned DIV = (CLK_HZ + BAUD/2) / BAUD;   // 434 @ 50 MHz, 115200
+
+  typedef enum logic [1:0] { IDLE, START, DATA, STOP } state_t;
+  state_t state;
+
+  // Datapath 1 — bộ chia baud: chỉ chạy khi đang gửi
+  logic [$clog2(DIV)-1:0] baud_cnt;
+  logic                   baud_tick;      // enable 1 chu kỳ mỗi bit time
+
+  always_ff @(posedge clk or negedge rst_n) begin
+    if (!rst_n)                 baud_cnt &lt;= '0;
+    else if (state == IDLE)     baud_cnt &lt;= '0;
+    else if (baud_cnt == DIV-1) baud_cnt &lt;= '0;
+    else                        baud_cnt &lt;= baud_cnt + 1'b1;
+  end
+  assign baud_tick = (baud_cnt == DIV-1);
+
+  // Controller + datapath dịch bit (gộp một khối always_ff cho gọn nhập môn)
+  logic [2:0] bit_idx;    // đếm 8 bit dữ liệu
+  logic [7:0] shreg;      // shift register — dịch PHẢI vì LSB đi trước
+
+  always_ff @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
+      state   &lt;= IDLE;
+      tx      &lt;= 1'b1;             // idle giữ mức 1
+      bit_idx &lt;= '0;
+      shreg   &lt;= '0;
+    end else begin
+      case (state)
+        IDLE:  if (start) begin
+                 shreg   &lt;= data;      // CHỐT dữ liệu — data đổi sau đó không sao
+                 tx      &lt;= 1'b0;      // start bit bắt đầu ngay
+                 bit_idx &lt;= '0;
+                 state   &lt;= START;
+               end
+        START: if (baud_tick) begin    // hết bit time của start
+                 tx    &lt;= shreg[0];    // đưa D0 (LSB) lên dây
+                 shreg &lt;= {1'b1, shreg[7:1]};  // dịch phải, bơm 1 vào đầu
+                 state &lt;= DATA;
+               end
+        DATA:  if (baud_tick) begin
+                 if (bit_idx == 3'd7) begin
+                   tx    &lt;= 1'b1;      // stop bit
+                   state &lt;= STOP;
+                 end else begin
+                   tx      &lt;= shreg[0];
+                   shreg   &lt;= {1'b1, shreg[7:1]};
+                   bit_idx &lt;= bit_idx + 3'd1;
+                 end
+               end
+        STOP:  if (baud_tick)
+                 state &lt;= IDLE;        // tx đã ở mức 1 → nối liền idle
+        default: state &lt;= IDLE;
+      endcase
+    end
+  end
+  assign busy = (state != IDLE);
+endmodule</code></pre>
+          <div class="rtl-meta">
+            <div><b>1 · Mục đích</b>Phát một khung 8N1 mỗi lần nhận xung <code>start</code>; báo <code>busy</code> cho tầng trên điều phối.</div>
+            <div><b>2 · Interface</b>Handshake start/busy — hợp đồng với <code>status_tx</code> ở C6.</div>
+            <div><b>3 · Phần cứng suy ra</b>~9 FF baud counter + 8 FF shreg + 3 FF bit_idx + state register (theo biểu diễn RTL — tool có thể mã hóa lại) + 1 FF tx; toàn bộ đóng theo MỘT clk.</div>
+            <div><b>4 · Chiến lược test</b>Đo start bit dài đúng DIV chu kỳ; soi thứ tự bit của 0x41 (1,0,0,0,0,0,1,0); gửi 2 byte liên tiếp — byte 2 phải chờ busy.</div>
+            <div><b>5 · Waveform kỳ vọng</b>tx: 1…0(DIV)·1·0·0·0·0·0·1·0(mỗi bit DIV)·1(stop)…1; busy phủ đúng 10 bit time.</div>
+            <div><b>6 · Bug kinh điển</b>Quên chốt data vào shreg (data đổi giữa chừng làm hỏng khung); dịch trái (thành MSB-first); baud_cnt không reset ở IDLE (start bit đầu tiên ngắn); quên tx=1 khi reset.</div>
+          </div>
+        </div>
+        <p class="small"><b>Đọc kỹ một chỗ hay:</b> ở START và DATA, mỗi <code>baud_tick</code> vừa đẩy bit mới lên <code>tx</code> vừa dịch <code>shreg</code> — non-blocking (<code>&lt;=</code>) bảo đảm <code>tx</code> lấy giá trị <code>shreg[0]</code> <em>trước khi</em> dịch. Đây chính là lý do luật "tuần tự dùng &lt;=" của T7 tồn tại.</p>
+      </div>
+    </details>
+
+    <details class="dd">
+      <summary><span class="no">C4</span> Testbench uart_tx — đo bằng số, không đo bằng mắt <span class="est">~12′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <div class="rtl-frame">
+          <div class="rtl-head"><span class="ftag ftag-tb">TESTBENCH</span><span class="fname">tb_uart_tx.sv</span><span class="muted">· chỉ để mô phỏng</span></div>
+<pre class="code"><code>module tb_uart_tx;
+  logic clk = 1'b0, rst_n, start;
+  logic [7:0] data;
+  logic tx, busy;
+
+  // DIV nhỏ để mô phỏng nhanh: CLK_HZ/BAUD = 8 chu kỳ mỗi bit
+  uart_tx #(.CLK_HZ(8_000_000), .BAUD(1_000_000)) dut
+    (.clk, .rst_n, .start, .data, .tx, .busy);
+
+  always #5 clk = ~clk;
+
+  // Đo độ rộng start bit bằng ĐẾM CHU KỲ (không nhìn mắt)
+  int cnt;
+  initial begin
+    rst_n = 0; start = 0; data = 8'h41;      // 'A'
+    repeat (3) @(posedge clk);
+    rst_n = 1; @(posedge clk);
+    // TB lái tín hiệu ĐỒNG BỘ bằng &lt;= (non-blocking) để không đua
+    // với chính DUT tại cùng cạnh clock — thói quen chuẩn khi viết TB
+    start &lt;= 1'b1; @(posedge clk); start &lt;= 1'b0;   // xung start 1 chu kỳ
+
+    wait (busy == 1'b1);      // uart đã vào khung — tx đang ở start bit
+    cnt = 0;
+    // Lấy mẫu ở CẠNH XUỐNG clk: giữa chu kỳ, mọi cập nhật đã lắng —
+    // đúng tinh thần "lấy mẫu giữa bit" của chính UART RX (C5)
+    @(negedge clk);
+    while (tx == 1'b0) begin cnt++; @(negedge clk); end
+    if (cnt != 8) $error("start bit dai %0d chu ky, ky vong 8", cnt);
+    else          $display("start bit OK: %0d chu ky", cnt);
+
+    // Gửi byte thứ hai NGAY khi đang busy — phải bị bỏ qua
+    start &lt;= 1'b1; @(posedge clk); start &lt;= 1'b0;
+    wait (busy == 1'b0);
+    $display("khung 1 xong; start giua chung da bi bo qua dung spec");
+    repeat (20) @(posedge clk);
+    $finish;
+  end
+
+  initial $monitor("t=%0t tx=%b busy=%b", $time, tx, busy);
+endmodule</code></pre>
+          <div class="rtl-meta">
+            <div><b>Test plan</b>➊ khung 'A' chuẩn → ➋ đo start bit bằng counter → ➌ start giữa lúc busy (spec: bỏ qua) → ➍ khung kết thúc sạch về idle.</div>
+            <div><b>Điểm học</b>"Đo bằng số" kế thừa invariant T9: máy kiểm thay mắt. Bạn nên thêm check thứ tự bit của 0x41 (nâng cao: sampling giữa bit trong TB).</div>
+          </div>
+        </div>
+        <div class="wavebox">
+          <svg viewBox="0 0 680 120" width="680" height="120">
+            <g transform="translate(70,14)">
+              <text class="wv-note" x="0" y="-2"></text>
+              <polyline class="wv-sig" points="0,26 50,26 50,58 100,58 100,26 150,26 150,58 400,58 400,26 450,26 450,58 500,58 500,26 590,26"/>
+              <line class="wv-mark" x1="50" y1="10" x2="50" y2="70"/>
+              <line class="wv-mark" x1="100" y1="10" x2="100" y2="70"/>
+              <text class="wv-val" x="58" y="80">START</text>
+              <text class="wv-val" x="112" y="80">D0=1</text>
+              <text class="wv-val" x="170" y="80">D1..D5 = 0</text>
+              <text class="wv-val" x="404" y="80">D6=1</text>
+              <text class="wv-val" x="455" y="80">D7=0</text>
+              <text class="wv-val" x="508" y="80">STOP=1</text>
+              <text class="wv-note" x="150" y="104">'A' = 0x41 = 01000001 → trên dây (LSB trước): 1,0,0,0,0,0,1,0</text>
+            </g>
+            <text class="wv-lab" x="10" y="40">tx</text>
+          </svg>
+        </div>
+      </div>
+    </details>
+
+    <details class="dd">
+      <summary><span class="no">C5</span> Tín hiệu bất đồng bộ &amp; synchronizer — cửa sổ sang thế giới thật <span class="est">~10′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <p>TX dễ vì mọi thứ theo <code>clk</code> của ta. Nhưng dây <code>rx</code> từ PC (hay nút bấm) <b>không quan tâm clock của bạn</b> — nó có thể đổi mức ngay trong "vùng cấm" t<sub>su</sub>/t<sub>h</sub> của FF (T5), khiến FF rơi vào trạng thái chập chờn (metastability).</p>
+        <div class="co co-fix"><span class="tag">Hiệu chỉnh kỹ thuật so với v2</span> v2 viết "cho rx qua 2 flip-flop để <em>tránh</em> metastability" / "2 FF <em>chống</em> metastability". Chính xác: synchronizer 2 FF <b>giảm xác suất metastability lan vào logic phía sau</b> xuống mức thấp (thời gian trung bình giữa hai sự cố — MTBF — rất dài), nhưng <b>không thể triệt tiêu về mặt nguyên lý</b>. Đây là bài toán xác suất, không phải công tắc bật/tắt. Xem <code>TECHNICAL_AUDIT.md</code> mục 5.6.</div>
+        <pre class="code standalone"><code>// Khuôn synchronizer 2 FF — MỌI tín hiệu bất đồng bộ phải qua đây trước.
+// Cố ý không reset hai FF này (giá trị bị ghi đè sau 2 chu kỳ); muốn nhất
+// quán với quy ước reset của khóa thì reset chúng về 1 — mức idle của UART.
+logic rx_ff1, rx_ff2;
+always_ff @(posedge clk) begin
+  rx_ff1 &lt;= rx;       // tầng 1: có thể "rung" — cho nó thời gian ổn định
+  rx_ff2 &lt;= rx_ff1;   // tầng 2: phía sau CHỈ ĐƯỢC dùng rx_ff2
+end</code></pre>
+        <p class="small"><b>RX nhận thế nào (mức khái niệm — Phase 2 làm thật):</b> rình cạnh xuống trên rx_ff2 → đợi nửa bit time, xác nhận vẫn 0 (start thật, không phải gai nhiễu) → từ đó mỗi bit time lấy mẫu một lần <b>ở giữa bit</b> — nơi tín hiệu ổn định nhất. Hiện thực phổ biến: <b>oversampling ×16</b> (tick nhanh gấp 16 lần baud — vẫn là enable từ counter, không phải clock mới).</p>
+      </div>
+    </details>
+
+    <details class="dd">
+      <summary><span class="no">C6</span> Tích hợp toàn hệ — status_tx + top module <span class="est">~15′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <p><code>status_tx</code> là "phóng viên": mỗi tick 1 Hz, đọc <code>phase</code> + <code>time_left</code> (hợp đồng T9!) và gửi 6 byte, ví dụ <code>GN 09\n</code>, từng byte qua handshake start/busy.</p>
+        <div class="rtl-frame">
+          <div class="rtl-head"><span class="ftag ftag-rtl">RTL</span><span class="fname">status_tx.sv</span><span class="muted">· synthesizable</span></div>
+<pre class="code"><code>module status_tx (
+  input  logic       clk, rst_n,
+  input  logic       tick,        // 1 Hz: mỗi giây gửi một dòng trạng thái
+  input  logic [1:0] phase,       // từ traffic_ctrl (hợp đồng T9)
+  input  logic [3:0] time_left,   // từ traffic_ctrl (hợp đồng T9)
+  input  logic       tx_busy,
+  output logic       tx_start,
+  output logic [7:0] tx_data
+);
+  // Thông điệp 6 byte: [pha 2 ký tự] [cách] [chục] [đơn vị] [xuống dòng]
+  logic [7:0] msg [0:5];
+  always_comb begin
+    unique case (phase)
+      2'd0:    begin msg[0] = "G"; msg[1] = "N"; end   // GREEN_NS
+      2'd1:    begin msg[0] = "Y"; msg[1] = "N"; end   // YELLOW_NS
+      2'd2:    begin msg[0] = "G"; msg[1] = "E"; end   // GREEN_EW
+      default: begin msg[0] = "Y"; msg[1] = "E"; end   // YELLOW_EW
+    endcase
+    msg[2] = " ";
+    msg[3] = (time_left &gt;= 4'd10) ? "1" : "0";                       // hàng chục
+    msg[4] = 8'h30 + {4'b0, (time_left &gt;= 4'd10) ? time_left - 4'd10
+                                                 : time_left};       // '0' + đơn vị
+    msg[5] = 8'h0A;                                                  // '\n'
+  end
+
+  typedef enum logic [1:0] { S_IDLE, S_LOAD, S_WBUSY, S_WDONE } state_t;
+  state_t state;
+  logic [2:0] idx;   // 0..5
+
+  always_ff @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
+      state &lt;= S_IDLE; idx &lt;= '0; tx_start &lt;= 1'b0; tx_data &lt;= '0;
+    end else begin
+      tx_start &lt;= 1'b0;                    // mặc định: start chỉ là xung 1 chu kỳ
+      case (state)
+        S_IDLE:  if (tick) begin idx &lt;= '0; state &lt;= S_LOAD; end
+        S_LOAD:  if (!tx_busy) begin       // uart rảnh → phát byte idx
+                   tx_data  &lt;= msg[idx];
+                   tx_start &lt;= 1'b1;
+                   state    &lt;= S_WBUSY;
+                 end
+        S_WBUSY: if (tx_busy) state &lt;= S_WDONE;      // uart đã nhận việc
+        S_WDONE: if (!tx_busy) begin                  // uart gửi xong byte
+                   if (idx == 3'd5) state &lt;= S_IDLE;  // hết 6 byte
+                   else begin idx &lt;= idx + 3'd1; state &lt;= S_LOAD; end
+                 end
+        default: state &lt;= S_IDLE;
+      endcase
+    end
+  end
+endmodule</code></pre>
+          <div class="rtl-meta">
+            <div><b>Phần cứng suy ra</b>Bảng mã ASCII tổ hợp (LUT) + state register + idx counter; message 6 byte @115200 ≈ 0,52 ms ≪ 1 s nên luôn kịp trước tick sau.</div>
+            <div><b>Bug kinh điển</b>Bỏ qua S_WBUSY (thấy busy=0 ngay sau start vì busy chưa kịp lên → gửi trùng byte); quên hạ tx_start (uart hiểu là start liên tục).</div>
+          </div>
+        </div>
+        <div class="rtl-frame">
+          <div class="rtl-head"><span class="ftag ftag-rtl">RTL</span><span class="fname">traffic_system_top.sv — HỆ HOÀN CHỈNH 3 TUẦN</span></div>
+<pre class="code"><code>module traffic_system_top #(
+  parameter int unsigned CLK_HZ = 50_000_000,
+  parameter int unsigned BAUD   = 115_200
+)(
+  input  logic       clk,
+  input  logic       rst_n,
+  output logic [2:0] ns_light, ew_light,  // T9
+  output logic [6:0] seg,                 // T10
+  output logic       tx                   // T11 → cầu USB-UART → PC
+);
+  logic       tick;
+  logic [1:0] phase;
+  logic [3:0] time_left;
+  logic       tx_start, tx_busy;
+  logic [7:0] tx_data;
+
+  tick_gen     #(.DIV(CLK_HZ)) u_tick (.clk, .rst_n, .tick);
+  traffic_ctrl #(.GREEN_TICKS(10), .YELLOW_TICKS(3)) u_ctrl
+    (.clk, .rst_n, .tick, .ns_light, .ew_light, .phase, .time_left);
+  seg7_decoder u_seg  (.bcd(time_left), .seg);
+  status_tx    u_stat (.clk, .rst_n, .tick, .phase, .time_left,
+                       .tx_busy, .tx_start, .tx_data);
+  uart_tx      #(.CLK_HZ(CLK_HZ), .BAUD(BAUD)) u_tx
+    (.clk, .rst_n, .start(tx_start), .data(tx_data), .tx, .busy(tx_busy));
+endmodule</code></pre>
+          <div class="rtl-meta">
+            <div><b>Nhìn lại 3 tuần</b>T9: tick_gen + traffic_ctrl. T10: seg7_decoder nối vào time_left. T11: status_tx + uart_tx nối vào phase/time_left. KHÔNG module cũ nào bị sửa — sức mạnh của hợp đồng interface.</div>
+            <div><b>Trên board thật</b>Gán chân tx vào chân nối cầu USB-UART (tra sơ đồ board!); mở PuTTY/Tera Term đúng baud → mỗi giây một dòng "GN 09". Nạp bitstream = cấu hình FPGA (T8).</div>
+          </div>
+        </div>
+        <figure class="figure">
+          <img src="assets/fig-system-top.svg" alt="Sơ đồ khối mức đỉnh: tick_gen phát tick cho traffic_ctrl và status_tx; traffic_ctrl xuất ns_light, ew_light, time_left, phase; seg7_decoder ra LED 7 đoạn; status_tx bắt tay với uart_tx qua tx_start, tx_data và phản hồi tx_busy; uart_tx ra PC">
+          <figcaption>Hệ thống hoàn chỉnh sau ba tuần. Ba điều cần đọc ra: <b>tick đi tới CẢ HAI</b> khối cần nhịp giây · <b>time_left chia cho hai đích</b> (chấm tròn = điểm nối) · <b>tx_busy là đường phản hồi</b> đi ngược từ uart_tx về status_tx. Bảng liên kết tín hiệu đầy đủ: <code>PROJECT_GUIDE.md</code> §2.4.</figcaption>
+        </figure>
+        <div class="co co-info small"><b>Đọc sơ đồ:</b> mũi tên chỉ chiều truyền, <code>[n]</code> là độ rộng bit, nét đứt xám là <code>clk</code>/<code>rst_n</code> (tới mọi khối tuần tự — riêng <code>seg7_decoder</code> là mạch tổ hợp nên không có), chấm tròn ● là điểm nối còn hai đường cắt nhau không có chấm thì <b>không</b> nối.</div>
+      </div>
+    </details>
+
+    <details class="dd">
+      <summary><span class="no">C7</span> Từ vựng kỹ thuật tuần 11 <span class="est">~5′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <div class="tblwrap">
+        <table class="tbl vocab">
+          <tr><th>Thuật ngữ</th><th>Nghĩa</th><th>Câu ví dụ (EN)</th></tr>
+          <tr><td>UART</td><td>Universal Asynchronous Receiver-Transmitter — truyền nối tiếp không dây clock chung</td><td class="en">The FPGA sends status over UART.</td></tr>
+          <tr><td>Serial / Parallel</td><td>Truyền lần lượt 1 dây / cùng lúc nhiều dây</td><td class="en">Serial links trade wires for time.</td></tr>
+          <tr><td>Frame (8N1)</td><td>Khung 10 bit: start + 8 data + stop</td><td class="en">Each frame carries one byte.</td></tr>
+          <tr><td>Start / Stop bit</td><td>Bit 0 mở khung / bit 1 đóng khung</td><td class="en">The start bit wakes the receiver.</td></tr>
+          <tr><td>LSB first</td><td>Bit trọng số thấp nhất đi trước</td><td class="en">UART sends the LSB first.</td></tr>
+          <tr><td>Baud rate</td><td>Số bit/giây — hợp đồng thời gian hai bên</td><td class="en">Both sides must agree on the baud rate.</td></tr>
+          <tr><td>Bit time</td><td>1/baud — thời lượng một bit trên dây</td><td class="en">At 9600 baud, one bit lasts 104 µs.</td></tr>
+          <tr><td>Shift register</td><td>Chuỗi FF dịch từng bit ra/vào</td><td class="en">The transmitter shifts the byte out.</td></tr>
+          <tr><td>Handshake (start/busy)</td><td>Bắt tay điều phối giữa hai module</td><td class="en">Wait for busy to deassert before the next byte.</td></tr>
+          <tr><td>Metastability / Synchronizer</td><td>Trạng thái chập chờn của FF / 2 FF giảm xác suất lan truyền</td><td class="en">A synchronizer reduces the probability of metastability propagating.</td></tr>
+        </table>
+        </div>
+      </div>
+    </details>
+  </div>
+</section>
+
+<!-- ================= LAYER D ================= -->
+<section id="layer-d" class="layer layer-d">
+  <div class="wrap layer-head">
+    <div class="band">
+      <span class="layer-badge">D</span>
+      <h2>Sau buổi học</h2>
+      <span class="time">📝 Quiz 5 câu · bài tập · phản tư</span>
+    </div>
+  </div>
+  <div class="wrap layer-body">
+
+    <div class="card">
+      <h3>Quiz tự kiểm tra — 5 câu</h3>
+      <div class="quiz" id="quiz">
+        <div class="qz-item" data-answer="B">
+          <p class="qz-q">1. Vì sao đường UART idle ở mức 1 chứ không phải mức 0?</p>
+          <button class="qz-opt" data-key="A">Vì mức 1 tiết kiệm điện hơn mức 0</button>
+          <button class="qz-opt" data-key="B">Để start bit (0) tạo cạnh xuống rõ ràng làm mốc thời gian — và dây đứt/mất nguồn (đọc ra 0 kéo dài) bị phát hiện là bất thường</button>
+          <button class="qz-opt" data-key="C">Quy ước ngẫu nhiên, đổi thành 0 cũng không sao</button>
+          <button class="qz-opt" data-key="D">Vì stop bit cần mức 0 để phân biệt</button>
+          <div class="qz-expl"><b>Giải thích:</b> toàn bộ đồng bộ thời gian của UART treo trên đúng một sự kiện: cạnh xuống của start. Idle = 1 làm sự kiện đó không thể nhầm; và "đường dây chết" tự lộ diện (break condition). Xem C1.</div>
+        </div>
+        <div class="qz-item" data-answer="D">
+          <p class="qz-q">2. Gửi 0x41 ('A') qua 8N1. Chuỗi trên dây ngay sau start bit là gì?</p>
+          <button class="qz-opt" data-key="A">0,1,0,0,0,0,0,1 — MSB trước</button>
+          <button class="qz-opt" data-key="B">0,1,1,1,1,1,0,1 — đảo bit toàn bộ</button>
+          <button class="qz-opt" data-key="C">1,0,0,0,0,0,1,0 rồi mới tới start bit</button>
+          <button class="qz-opt" data-key="D">1,0,0,0,0,0,1,0 — LSB (D0=1) đi trước, kết thúc bằng stop=1</button>
+          <div class="qz-expl"><b>Giải thích:</b> 0x41 = 01000001 → D0=1, D1..D5=0, D6=1, D7=0. LSB-first nên dây thấy 1,0,0,0,0,0,1,0. Gửi MSB trước là lỗi "lật gương" (PC nhận 0x82). Xem C1, C4 (waveform).</div>
+        </div>
+        <div class="qz-item" data-answer="A">
+          <p class="qz-q">3. Hai bên lệch baud tương đối e. Vì sao bit D7 hỏng trước D0?</p>
+          <button class="qz-opt" data-key="A">Điểm lấy mẫu bit thứ k trôi ≈ (k+1,5)·e bit time — sai số TÍCH LŨY theo k, bit muộn trôi nhiều nhất</button>
+          <button class="qz-opt" data-key="B">Vì D7 là bit quan trọng nhất nên nhạy cảm hơn</button>
+          <button class="qz-opt" data-key="C">Vì stop bit hút nhiễu sang D7</button>
+          <button class="qz-opt" data-key="D">Không đúng — mọi bit hỏng cùng lúc khi lệch baud</button>
+          <div class="qz-expl"><b>Giải thích:</b> RX chỉ có MỘT mốc (cạnh start) rồi tự đếm; mỗi bit cộng thêm một phần sai số. Vì vậy "vài %" chỉ là guideline — khung càng dài, cách lấy mẫu càng thô thì ngưỡng thật càng chặt. Xem C2 (bản hiệu chỉnh 5.7).</div>
+        </div>
+        <div class="qz-item" data-answer="C">
+          <p class="qz-q">4. Trong status_tx, vì sao phải có state S_WBUSY (đợi busy lên) trước khi đợi busy xuống?</p>
+          <button class="qz-opt" data-key="A">Không cần — có thể đợi busy xuống ngay sau khi phát start</button>
+          <button class="qz-opt" data-key="B">Để tiết kiệm một flip-flop</button>
+          <button class="qz-opt" data-key="C">Vì busy cần 1 chu kỳ mới lên sau start — kiểm "busy==0" ngay lập tức sẽ tưởng nhầm uart đã xong và phát trùng byte</button>
+          <button class="qz-opt" data-key="D">Vì uart_tx yêu cầu start dài 2 chu kỳ</button>
+          <div class="qz-expl"><b>Giải thích:</b> đây là race kinh điển của handshake: tín hiệu trạng thái cần một nhịp để phản ánh lệnh vừa phát. Trình tự đúng: phát lệnh → chờ xác nhận ĐÃ NHẬN (busy=1) → chờ XONG (busy=0). Xem C6 (bug kinh điển).</div>
+        </div>
+        <div class="qz-item" data-answer="B">
+          <p class="qz-q">5. Phát biểu nào về synchronizer 2 FF là <b>chính xác</b>?</p>
+          <button class="qz-opt" data-key="A">Loại bỏ hoàn toàn metastability nên tín hiệu sau nó tuyệt đối an toàn</button>
+          <button class="qz-opt" data-key="B">Giảm xác suất metastability lan vào logic phía sau xuống rất thấp — nhưng không thể triệt tiêu về nguyên lý</button>
+          <button class="qz-opt" data-key="C">Chỉ cần cho tín hiệu nội bộ cùng clock</button>
+          <button class="qz-opt" data-key="D">Là bộ lọc nhiễu điện áp trên dây dài</button>
+          <div class="qz-expl"><b>Giải thích:</b> metastability là hiện tượng vật lý xác suất; thêm tầng FF là mua thêm thời gian ổn định (MTBF tăng vọt) chứ không phải công tắc tắt nó đi. Đây là điểm đã hiệu chỉnh so với v2 (mục 5.6). Xem C5.</div>
+        </div>
+        <div class="qz-bar"><span class="qz-score"></span><span class="qz-verdict"></span><button class="qz-reset">Làm lại</button></div>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <h3>Bài tập bắt buộc <span class="badge badge-req">nộp trước buổi 12</span></h3>
+        <ul class="small">
+          <li>① Gõ lại <code>uart_tx.sv</code> (không copy-paste) + <code>tb_uart_tx.sv</code>; mô phỏng: start bit đúng DIV chu kỳ, thứ tự bit 0x41 đúng, start giữa lúc busy bị bỏ qua.</li>
+          <li>② Ghép <code>status_tx</code> + <code>traffic_system_top</code>: mô phỏng toàn hệ (DIV thu nhỏ), chụp waveform <b>một frame hoàn chỉnh</b> trên tx, chú thích start/D0…D7/stop.</li>
+          <li>③ Nếu có board: nạp, mở serial terminal đúng baud, chụp màn hình dòng "GN 09…" — bằng chứng hệ chạy thật.</li>
+        </ul>
+        <p class="small"><b>Nộp:</b> các file .sv + waveform chú thích + (nếu có) ảnh terminal + 3 dòng "bug tôi gặp và cách waveform giúp tìm ra".</p>
+      </div>
+      <div class="card">
+        <h3>Thử thách nâng cao <span class="badge badge-opt">tự chọn</span></h3>
+        <p>Đổi thông điệp thành <code>S=GN T=09\n</code> (10 byte) — sửa những gì trong status_tx? Có cần đổi uart_tx không? (Không — đúng nghĩa tách tầng.) Hoặc: thêm parity bit chẵn vào khung (8E1) — vẽ khung mới trước, sửa FSM sau.</p>
+        <div class="eqrq">
+          <div class="eq"><b>Câu hỏi kỹ thuật</b>Kiến trúc UART nào cho hệ của tôi?</div>
+          <div class="arr">→</div>
+          <div class="rq"><b>Câu hỏi nghiên cứu</b>Logic giao tiếp tối ưu cho công suất thấp thế nào (clock gating hợp lệ, giảm toggle, gửi theo sự kiện thay vì định kỳ)? Thí nghiệm khả dĩ: so công suất ước lượng khi gửi 1 Hz định kỳ vs chỉ-gửi-khi-đổi-pha.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Rubric tuần 11</h3>
+      <div class="tblwrap">
+      <table class="tbl rubric">
+        <tr><th>Tiêu chí</th><th>Trọng số</th><th>Đạt khi…</th></tr>
+        <tr><td>Hiểu khái niệm</td><td class="pct">25%</td><td>Vẽ đúng khung 8N1 cho byte bất kỳ; giải thích được vì sao sai số baud tích lũy.</td></tr>
+        <tr><td>Kiến trúc</td><td class="pct">20%</td><td>Tách đúng tầng: uart_tx (khung bit) / status_tx (nội dung) / traffic_ctrl (không sửa); handshake start/busy vẽ được.</td></tr>
+        <tr><td>RTL đúng</td><td class="pct">20%</td><td>uart_tx chạy đúng thứ tự bit, chốt data, tx idle mức 1; toàn hệ MỘT clock, mọi nhịp chậm là enable.</td></tr>
+        <tr><td>Verification</td><td class="pct">20%</td><td>Đo start bit bằng đếm chu kỳ; test start-khi-busy; waveform frame chú thích đầy đủ.</td></tr>
+        <tr><td>Giao tiếp kỹ thuật</td><td class="pct">15%</td><td>Kể được một bug thật + cách waveform/số đo dẫn tới nguyên nhân.</td></tr>
+      </table>
+      </div>
+      <p class="small muted">Code chạy được chưa phải điểm tối đa — phải giải thích được vì sao nó đúng.</p>
+    </div>
+
+    <div class="card">
+      <h3>Tổng kết tuần 11</h3>
+      <div class="ican">
+        <div><b>I can explain</b>① Khung 8N1 và vì sao chỉ cần một mốc thời gian (start). ② Bộ chia baud là counter-enable, và sai số của nó tích lũy ra sao. ③ Synchronizer làm gì được và không làm gì được (xác suất, không tuyệt đối).</div>
+        <div><b>I can design</b>uart_tx: FSM 4 trạng thái + shift register + handshake; status_tx điều phối nhiều byte qua busy.</div>
+        <div><b>I can verify</b>Testbench đo bằng số (độ dài start bit, thứ tự bit) và kiểm tình huống race (start khi busy).</div>
+        <div><b>I can connect</b>Hệ 3 tuần đã hoàn chỉnh trong <code>traffic_system_top</code>: quyết định (T9) → hiển thị (T10) → báo cáo (T11) — không module nào bị đập lại.</div>
+        <div class="unsure"><b>I am still unsure about…</b><textarea class="reflect" id="unsure11" placeholder="Điều tôi giải thích được tuần này mà tuần trước chưa giải thích được là… / Điều tôi còn mơ hồ là… (tự động lưu trên máy bạn)"></textarea></div>
+        <div class="nextwk"><b>Next week</b>T12 không dạy gì mới: bạn <b>demo, giải thích và bảo vệ</b> chính hệ thống này — rồi chọn hướng đi Phase 2. Chuẩn bị 3 waveform đẹp nhất của bạn.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="weeknav">
+      <a href="Week10.html"><small>← Tuần trước</small><b>T10 · Project B — Counter &amp; 7-Segment</b></a>
+      <a class="next" href="Week12.html"><small>Tuần sau →</small><b>T12 · Capstone Review &amp; Research Bridge</b></a>
+    </div>
+    <div class="footer">
+      <b>IC Design Mentoring — Version 3 · Phase 1</b>
+      <span class="org">Khoa Điện – Điện tử · Trường Kỹ thuật · Đại học Phenikaa</span>
+      <span>Biên soạn: <b style="display:inline">Giảng Viên Đinh Văn Nam</b></span>
+      <span class="cr">© 2026 · Bản quyền thuộc về Giảng Viên Đinh Văn Nam, Khoa Điện-Điện Tử, Trường Kỹ Thuật, Đại học Phenikaa. Tài liệu phục vụ đào tạo — vui lòng giữ nguyên thông tin tác giả khi chia sẻ.</span>
+      <span class="cr">Hoạt động offline — không cần Internet.</span>
+    </div>
+  </div>
+</footer>
+</body>
+</html>

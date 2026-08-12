@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="Giảng Viên Đinh Văn Nam">
+<meta name="copyright" content="© 2026 · Bản quyền thuộc về Giảng Viên Đinh Văn Nam, Khoa Điện-Điện Tử, Trường Kỹ Thuật, Đại học Phenikaa">
+<meta name="description" content="IC Design Mentoring — Version 3, Phase 1 (12 tuần). Khoa Điện – Điện tử · Trường Kỹ thuật · Đại học Phenikaa. Biên soạn: Giảng Viên Đinh Văn Nam.">
+<title>Tuần 1 — Why Semiconductor? Why IC Design? | IC Design Mentoring v3</title>
+<link rel="stylesheet" href="css/style.css">
+<script src="js/app.js" defer></script>
+</head>
+<body data-week="01">
+
+<!-- ================= TOP BAR ================= -->
+<header class="topbar">
+  <div class="topbar-in">
+    <a class="brand" href="index.html"><span class="logo">IC</span>
+      <span>IC Design Mentoring<small>Tuần 1/12 · Why Semiconductor?</small></span></a>
+    <nav class="layer-chips">
+      <a class="chip" href="../../index.html" title="Learning Hub — cổng ba phiên bản giáo trình; đây là V3, bản hiện hành được khuyến nghị">⌂ Hub · V3</a>
+      <a class="chip chip-a" href="#layer-a"><span class="dot"></span>A · Trước buổi</a>
+      <a class="chip chip-b" href="#layer-b"><span class="dot"></span>B · Buổi học 60′</a>
+      <a class="chip chip-c" href="#layer-c"><span class="dot"></span>C · Lab</a>
+      <a class="chip chip-d" href="#layer-d"><span class="dot"></span>D · Sau buổi</a>
+      <a class="chip" href="index.html">Mục lục</a>
+    </nav>
+    <span class="mentor-sw" title="Hiện/ẩn nội dung dành riêng cho mentor"><span class="tr"></span> Mentor</span>
+  </div>
+  <div class="scrollbar"><div></div></div>
+</header>
+
+<!-- ================= HERO ================= -->
+<section class="hero">
+  <div class="wrap">
+    <div class="pill-row">
+      <span class="pill">Tuần 1 / 12</span>
+      <span class="pill acc">Buổi mở đầu · động lực &amp; bối cảnh</span>
+      <span class="pill">Khoa Điện – Điện tử · ĐH Phenikaa</span>
+    </div>
+    <h1>Why Semiconductor? Why IC Design?</h1>
+    <p class="sub">Vì sao ngành bán dẫn — và vì sao đáng để bạn thiết kế vi mạch?</p>
+    <p>Thiết bị bạn đang cầm chứa hàng chục con chip; mỗi chip chứa tới hàng tỷ transistor — những công tắc nhỏ hơn virus, bật tắt hàng tỷ lần mỗi giây. Tất cả bắt đầu từ bàn phím của những kỹ sư thiết kế vi mạch. Tuần này không có công thức khó: bạn học cách nhìn thế giới điện tử theo <b>chuỗi trừu tượng</b> — từ transistor đến SoC — và trả lời câu hỏi lớn nhất của hành trình 12 tuần: ngành này là gì, ai làm gì, vì sao nên bước vào.</p>
+    <div class="outcomes">
+      <div class="outcome"><b>Mục tiêu 1.</b> Giải thích bằng lời của mình: semiconductor, transistor, IC (mạch tích hợp), SoC — và tính chất nào làm chúng quý giá.</div>
+      <div class="outcome"><b>Mục tiêu 2.</b> Vẽ được bản đồ trừu tượng 6 tầng: transistor → logic gate → functional block → digital system → IC → SoC cho một thiết bị thật.</div>
+      <div class="outcome"><b>Mục tiêu 3.</b> Mô tả các hướng nghề chính: RTL design, verification, physical design, DFT — và sản phẩm mỗi vai trò bàn giao.</div>
+      <div class="outcome"><b>Mục tiêu 4.</b> Nhận diện được một module RTL khi nhìn thấy: code mô tả <em>mạch</em>, không phải chương trình chạy từng dòng.</div>
+    </div>
+    <div class="pos">
+      <div><b>Trước tuần này.</b> Điểm xuất phát: sinh viên Điện tử — Viễn thông — Tự động hóa — KTMT, chưa cần biết gì về chip. Tò mò là đủ.</div>
+      <div><b>Tuần này — T1.</b> Bức tranh toàn cảnh: chuỗi trừu tượng transistor → SoC, ngành công nghiệp và các vai trò kỹ sư, động lực của chính bạn.</div>
+      <div><b>Tuần sau — T2.</b> From Idea to Chip: một ý tưởng đi qua những chặng nào (spec → RTL → verification → tape-out) để thành silicon.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= LAYER A ================= -->
+<section id="layer-a" class="layer layer-a">
+  <div class="wrap layer-head">
+    <div class="band">
+      <span class="layer-badge">A</span>
+      <h2>Trước buổi học</h2>
+      <span class="time">⏱ 15–25 phút · chỉ cần đọc phần này</span>
+    </div>
+    <p class="lead">Bạn KHÔNG cần đọc Layer C trước buổi học. Chuẩn bị đủ ở đây là bạn sẵn sàng thảo luận. Layer C dành cho lúc thực hành sau buổi.</p>
+  </div>
+  <div class="wrap layer-body">
+    <div class="grid2">
+      <div class="card">
+        <h3>Vì sao tuần này quan trọng</h3>
+        <p>Mọi thiết bị quanh bạn — điện thoại, router, xe máy điện, máy giặt — đều chạy bằng chip. Khóa này là hành trình từ chỗ <b>hiểu</b> chip được xây thế nào đến chỗ <b>tự xây</b> một hệ thống số nhỏ chạy thật trên FPGA (T9–11). Tuần 1 dựng khung nhìn cho toàn bộ hành trình đó.</p>
+        <p class="small muted"><b>Điều kiện tiên quyết:</b> không cần gì ngoài sự tò mò — chưa cần biết lập trình hay điện tử số.</p>
+      </div>
+      <div class="card">
+        <h3>Hoạt động chuẩn bị (10′)</h3>
+        <p>Chọn <b>1 thiết bị ở nhà</b> (điện thoại, router Wi-Fi, xe máy điện…). Viết ra giấy: <b>3 chức năng</b> nó làm được, và với mỗi chức năng, <b>đoán "con chip nào đảm nhiệm"</b>. Đoán sai không sao — mang tờ giấy đến buổi học, nhóm của bạn sẽ dùng nó để vẽ bản đồ.</p>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Khái niệm thiết yếu — đọc chậm, 5 ý</h3>
+      <ul>
+        <li><b>Semiconductor (chất bán dẫn)</b> = vật liệu có khả năng dẫn điện <b>ĐIỀU KHIỂN ĐƯỢC</b> — quý không phải vì "dẫn tốt hơn kim loại" (nó không hề), mà vì ta bắt nó lúc dẫn, lúc không.</li>
+        <li><b>Transistor</b> = công tắc bật/tắt <b>điều khiển bằng điện áp</b>, không cần ngón tay — viên gạch nhỏ nhất của mọi con chip số.</li>
+        <li><b>Logic gate (cổng logic)</b> = vài transistor ghép lại thành một phép toán logic: AND, OR, NOT…</li>
+        <li><b>IC (Integrated Circuit — mạch tích hợp)</b> = hàng triệu đến hàng tỷ transistor chế tạo trên <b>một miếng silicon</b> bé bằng móng tay.</li>
+        <li><b>SoC (System on Chip)</b> = cả hệ thống — CPU, memory controller, khối xử lý ảnh, ngoại vi… — tích hợp trên <b>MỘT chip duy nhất</b>.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>2 câu hỏi tự chẩn đoán</h3>
+      <p class="small muted">Trả lời trong đầu trước, rồi mới mở đáp án. Nếu sai cũng không sao — buổi học sẽ xử lý đúng chỗ này.</p>
+      <details class="reveal"><summary>1. Vì sao máy tính dùng 2 mức 0/1 mà không dùng 10 mức điện áp — chẳng phải 10 mức "chở" được nhiều thông tin hơn sao?</summary>
+        <div class="rv-body">Hai mức cách xa nhau nên <b>chịu nhiễu tốt</b>: tín hiệu méo chút vẫn đọc đúng, và mỗi tầng cổng khôi phục lại mức chuẩn — nhờ đó <b>ghép hàng tỷ phần tử</b> nối tiếp mà không tích lũy sai số. Đó là sức mạnh của <b>trừu tượng hóa số</b> (digital abstraction): đổi "độ mịn" lấy khả năng nhân rộng.</div>
+      </details>
+      <details class="reveal"><summary>2. Kỹ sư IC design có tự tay "khắc" từng transistor lên silicon không?</summary>
+        <div class="rv-body">Không. Họ <b>mô tả</b> thiết kế bằng RTL (ngôn ngữ mô tả phần cứng) và kiểm chứng nó; công cụ EDA và <b>foundry</b> (nhà máy như TSMC, Samsung) hiện thực hóa thành silicon. Giống kiến trúc sư vẽ tòa nhà — đội thi công xây. Thiết kế và sản xuất là hai nghề tách biệt.</div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ================= LAYER B ================= -->
+<section id="layer-b" class="layer layer-b">
+  <div class="wrap layer-head">
+    <div class="band">
+      <span class="layer-badge">B</span>
+      <h2>Buổi mentoring 60 phút</h2>
+      <span class="time">🗺 Mentor Session Guide</span>
+    </div>
+    <p class="lead">Kịch bản buổi học — mentor điều phối theo timeline này, không cần đọc hết Layer C để đứng lớp. Học viên nhìn vào đây để biết mình sẽ làm gì.</p>
+  </div>
+  <div class="wrap layer-body">
+    <div class="card">
+      <div class="timeline">
+        <div class="tl-row">
+          <span class="tl-time">0–5′</span>
+          <h4>Icebreaker — tuần đầu tiên</h4>
+          <ul>
+            <li>Mỗi người 1 câu: bạn kỳ vọng làm được gì sau 12 tuần?</li>
+            <li>Kể tên 1 sản phẩm bạn nghĩ có chip do người Việt Nam tham gia thiết kế.</li>
+          </ul>
+        </div>
+        <div class="tl-row">
+          <span class="tl-time">5–15′</span>
+          <h4>Học viên giải thích</h4>
+          <p>2–3 học viên trình bày bài chuẩn bị Layer A: thiết bị, 3 chức năng, "chip nào đảm nhiệm". Cả lớp bổ sung; mentor ghi nhận, chưa sửa vội.</p>
+        </div>
+        <div class="tl-row">
+          <span class="tl-time">15–25′</span>
+          <h4>Mentor sửa &amp; giảng sâu</h4>
+          <p>Chốt 3 điều bắt buộc đúng: (1) semiconductor = <b>dẫn điện điều khiển được</b>, không phải "dẫn kém"; (2) <b>SoC là MỘT IC</b> tích hợp nhiều khối — khác board nhiều chip; (3) <b>thiết kế ≠ sản xuất</b>: kỹ sư mô tả và kiểm chứng, foundry chế tạo. Vẽ chuỗi 6 tầng lên bảng làm khung cho breakout.</p>
+        </div>
+        <div class="tl-row">
+          <span class="tl-time">25–45′</span>
+          <h4>Active design — bản đồ trừu tượng (nhóm 2–3 người)</h4>
+          <p><b>Đề bài:</b> vẽ "bản đồ trừu tượng" <b>6 tầng</b> cho thiết bị nhóm đã chuẩn bị: transistor → logic gate → functional block → digital system → IC → SoC.</p>
+          <ul>
+            <li>Dán nhãn ít nhất <b>2 block cụ thể</b> vào đúng tầng (vd: bộ thu Wi-Fi, bộ điều khiển màn hình).</li>
+            <li>Với mỗi block: ghi rõ nhóm <b>BIẾT</b> (có căn cứ) hay đang <b>ĐOÁN</b>.</li>
+            <li>Chuẩn bị trả lời: "nếu bỏ block này, chức năng nào của thiết bị biến mất?"</li>
+          </ul>
+          <p class="small muted">Artifact nhóm: 1 tờ bản đồ 6 tầng có nhãn block — dùng lại cho bài tập cá nhân ở Layer D.</p>
+        </div>
+        <div class="tl-row">
+          <span class="tl-time">45–55′</span>
+          <h4>Chia sẻ &amp; tranh luận kỹ thuật</h4>
+          <p>Hai nhóm treo bản đồ, nhóm khác chất vấn: <b>"block X nằm tầng nào, vì sao?"</b> Câu ép suy nghĩ thêm: "bộ thu Wi-Fi là một block — bên trong nó có chuỗi tầng riêng không?"</p>
+        </div>
+        <div class="tl-row">
+          <span class="tl-time">55–60′</span>
+          <h4>Chốt &amp; giao việc</h4>
+          <ul>
+            <li><b>Nhớ:</b> bán dẫn = dẫn điện điều khiển được; chuỗi 6 tầng là bản đồ của cả khóa; SoC = MỘT IC.</li>
+            <li><b>Tránh:</b> nhầm "SoC = board nhiều chip"; nhầm thiết kế với sản xuất.</li>
+            <li><b>Artifact sau buổi:</b> bản đồ trừu tượng cá nhân 1 trang + đoạn 5 câu động lực (Layer D).</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <p class="mentor-hint">💡 Bật công tắc <b>Mentor</b> trên thanh tiêu đề để xem ghi chú dành riêng cho mentor (đáp án kỳ vọng, câu hỏi cứu nguy, mở rộng cho học viên giỏi).</p>
+
+    <div class="mentor-only">
+      <div class="mentor-box">
+        <span class="mtag">Mentor only · Tuần 1</span>
+        <h3>Ghi chú vận hành buổi học</h3>
+        <div class="grid2">
+          <div>
+            <h4>Mục tiêu mentor cần chốt được</h4>
+            <ul class="small">
+              <li>Học viên tự vẽ được chuỗi 6 tầng và đặt block vào <b>đúng tầng</b> — có lý do, không đoán mò.</li>
+              <li>Phát biểu đúng 2 định nghĩa nền: semiconductor (điều khiển được) và SoC (một IC, nhiều khối).</li>
+              <li>Gỡ nỗi sợ "ngành quá cao siêu": lộ trình logic số → SystemVerilog → FPGA → project bắt đầu ngay tuần sau.</li>
+            </ul>
+            <h4>Hiểu sai kinh điển (chờ sẵn)</h4>
+            <ul class="small">
+              <li>"Semiconductor = chất dẫn điện kém" — thiếu ý cốt lõi: <b>điều khiển được</b>.</li>
+              <li>"IC design là lập trình phần mềm" — RTL mô tả <em>mạch tồn tại song song</em>, không phải lệnh chạy tuần tự (C5).</li>
+              <li>"FPGA không liên quan IC design" — FPGA là công cụ học và prototype chuẩn của kỹ sư số.</li>
+              <li>"SoC = thiết bị chứa nhiều chip" — nhầm cấp độ; board nhiều chip là hệ thống trên board.</li>
+            </ul>
+          </div>
+          <div>
+            <h4>Câu hỏi chẩn đoán → đáp án tốt → hỏi tiếp</h4>
+            <p class="small"><b>Hỏi:</b> "SoC khác gì một board gắn nhiều chip rời?"<br>
+            <b>Đáp tốt:</b> mọi khối nằm trên <b>một die silicon</b> — đường nối ngắn → nhanh hơn, ít năng lượng hơn, rẻ hơn khi sản lượng lớn.<br>
+            <b>Hỏi tiếp (nếu trả lời đúng):</b> "Vậy vì sao DRAM vẫn thường là chip riêng?" → công nghệ chế tạo khác nhau, dung lượng cần lớn — một trade-off.</p>
+            <p class="small"><b>Cứu nguy (nếu bí):</b> bản đồ thành phố: nhà → dãy phố → quận → thành phố. Nhìn ở mức "quận" không thấy từng viên gạch — nhưng gạch vẫn ở đó; mỗi tầng trừu tượng là một mức phóng to.</p>
+            <p class="small"><b>Mở rộng học viên giỏi:</b> "Vì sao 'nhỏ hơn' thường 'nhanh hơn + ít tốn điện hơn'?" → dây ngắn hơn → điện dung nhỏ hơn → nạp/xả nhanh, ít năng lượng mỗi lần chuyển — mức trực giác là đủ.</p>
+          </div>
+        </div>
+        <div class="co co-warn small"><b>Nhịp buổi học.</b> Tuần đầu dễ thành seminar một chiều — không giảng quá 10 phút liên tục; để học viên nói trước, kể cả nói sai. Phần 25–45′ là lõi: đi từng nhóm hỏi "vì sao block này ở tầng đó?". Lớp im lặng thì hỏi đích danh về thiết bị từng người đã chọn.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= LAYER C ================= -->
+<section id="layer-c" class="layer layer-c">
+  <div class="wrap layer-head">
+    <div class="band">
+      <span class="layer-badge">C</span>
+      <h2>Technical Lab — Deep Dive</h2>
+      <span class="time">🔬 Tự học sâu · sau buổi hoặc khi thực hành</span>
+    </div>
+    <p class="lead">Toàn bộ kỹ thuật chi tiết nằm ở đây, chia thành mục gập/mở. Không bắt buộc đọc hết một lần — đi theo thứ tự khi làm bài tập.</p>
+  </div>
+  <div class="wrap layer-body">
+    <div class="dd-tools"><button data-dd="open">Mở tất cả</button><button data-dd="close">Đóng tất cả</button></div>
+
+    <!-- C1 -->
+    <details class="dd" open>
+      <summary><span class="no">C1</span> Semiconductor &amp; transistor — công tắc điều khiển bằng điện áp <span class="est">~10′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <p><b>Định nghĩa dễ hiểu.</b> Semiconductor là vật liệu "lưng chừng": dẫn điện kém hơn đồng, tốt hơn nhựa. Nhưng điểm quý <em>không</em> nằm ở mức dẫn — mà ở chỗ khả năng dẫn <b>điều khiển được</b>. Pha tạp (doping) một lượng cực nhỏ nguyên tử khác làm thay đổi khả năng dẫn của silicon — một câu đó là đủ cho khóa này; vật lý sâu hơn dành cho hướng device/analog.</p>
+        <p><b>Transistor (MOSFET)</b> là thành quả của khả năng đó: một công tắc 3 cực — Gate (cực điều khiển), Drain và Source. Với loại <b>NMOS</b>: đặt điện áp Gate vượt ngưỡng → hình thành kênh dẫn giữa Drain–Source → dòng điện chạy; bỏ điện áp → kênh biến mất → dòng bị chặn. Loại <b>PMOS</b> làm ngược lại — dẫn khi Gate ở mức <b>thấp</b>. CMOS ghép cặp đối ngẫu NMOS–PMOS này để dựng cổng logic (T3). Ví dụ đời sống: vòi nước cảm ứng — đưa tay vào thì nước chảy, Gate chính là "cảm biến tay" đó.</p>
+        <p><b>Quy mô:</b> một SoC điện thoại hiện đại chứa <b>hàng chục tỷ</b> transistor, mỗi cái cỡ vài chục nanomet — nhỏ hơn virus — bật/tắt hàng tỷ lần mỗi giây. Điều duy nhất mỗi transistor làm được vẫn chỉ là: <em>bật</em> hoặc <em>tắt</em>. Sức mạnh nằm ở cách ghép chúng lại — chủ đề của C2.</p>
+        <div class="co co-warn"><b>Hiểu đúng nghề ngay từ đầu.</b> "Ngành bán dẫn" không có nghĩa là "làm trong nhà máy". Chuỗi giá trị gồm nhiều mắt xích tách biệt: <b>thiết kế</b> (design house), <b>chế tạo</b> (foundry), <b>đóng gói &amp; kiểm thử</b>, công cụ EDA… Kỹ sư IC design làm việc với máy tính và phần mềm — không đứng trong phòng sạch. Chi tiết nghề nghiệp ở C4.</div>
+      </div>
+    </details>
+
+    <!-- C2 -->
+    <details class="dd">
+      <summary><span class="no">C2</span> Chuỗi trừu tượng: transistor → gate → block → system → IC → SoC <span class="est">~12′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <p>Đây là mục <b>trung tâm của tuần 1</b>. Thiết kế số là trò chơi <b>xếp tầng trừu tượng</b>: mỗi tầng che giấu độ phức tạp của tầng dưới và chỉ chìa ra một <b>interface</b> (giao diện — "hợp đồng" giữa hai tầng). Bạn sẽ leo bản đồ này suốt 12 tuần:</p>
+        <div class="tblwrap">
+        <table class="tbl">
+          <tr><th>Tầng</th><th>Đơn vị của tầng</th><th>Ai làm việc ở đây</th><th>Khóa này chạm ở</th></tr>
+          <tr><td><b>1 · Transistor</b></td><td>Công tắc điện áp (NMOS/PMOS)</td><td>Kỹ sư device, analog, foundry</td><td>T1 — hôm nay, mức trực giác</td></tr>
+          <tr><td><b>2 · Logic gate</b></td><td>Vài transistor ghép: AND, OR, NOT…</td><td>Thư viện standard cell</td><td>T3</td></tr>
+          <tr><td><b>3 · Functional block</b></td><td>MUX, adder, register, counter, FSM</td><td>Kỹ sư RTL design</td><td>T4–T6</td></tr>
+          <tr><td><b>4 · Digital system</b></td><td>Controller + datapath: UART, bộ điều khiển đèn giao thông</td><td>Kỹ sư RTL, kiến trúc sư</td><td>T7, T9–T11 (project)</td></tr>
+          <tr><td><b>5 · IC</b></td><td>Hàng triệu → tỷ transistor trên một die silicon</td><td>Cả design house + foundry</td><td>T2, T8</td></tr>
+          <tr><td><b>6 · SoC</b></td><td>CPU + memory controller + ngoại vi… trên MỘT chip</td><td>Kiến trúc sư hệ thống, hàng nghìn kỹ sư</td><td>T1–T2 (bức tranh lớn)</td></tr>
+        </table>
+        </div>
+        <p><b>Vì sao trừu tượng hóa số hoạt động?</b> Mức logic 0/1 là <b>khoảng điện áp</b> quy ước Low/High (không phải "mất điện/có điện"). Hai mức cách xa nhau nên nhiễu nhỏ không phá được; mỗi tầng cổng lại <b>khôi phục</b> tín hiệu về mức chuẩn. Kết quả: ghép hàng tỷ phần tử nối tiếp nhau mà hệ vẫn đúng — điều mà mạch analog nhiều mức không nhân rộng nổi theo cách này.</p>
+        <div class="co co-ok"><b>Chốt.</b> Nhờ chuỗi trừu tượng, <b>hàng nghìn kỹ sư cùng xây một con chip</b> mà không ai cần hiểu hết mọi tầng: người làm block tin vào "hợp đồng" của gate; người ghép SoC tin vào interface của block. Trong khóa này bạn sống chủ yếu ở tầng 3–4 — và T9–11 sẽ tự tay xây một block thật.</div>
+        <div class="wr">
+          <p><b>Tự xếp thử trước khi xem đáp án:</b> "bộ cộng (adder) 4 bit" nằm tầng nào? Còn "ứng dụng camera" trên điện thoại nằm đâu trong bản đồ?</p>
+          <button class="wr-btn wbtn alt" data-label="Hiện đáp án">Hiện đáp án</button>
+          <div class="wr-ans"><div class="co co-info">Adder là <b>functional block — tầng 3</b> (nhiều cổng ghép thành khối có nhiệm vụ rõ ràng). Ứng dụng camera là <b>phần mềm</b> — nằm <em>phía trên</em> toàn bộ chuỗi phần cứng, chạy nhờ CPU trong SoC. Phân biệt được ranh giới phần cứng/phần mềm là dấu hiệu bạn đã hiểu bản đồ.</div></div>
+        </div>
+      </div>
+    </details>
+
+    <!-- C3 -->
+    <details class="dd">
+      <summary><span class="no">C3</span> "Mổ xẻ" smartphone — chip nào làm gì <span class="est">~8′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <p>Board mạch một chiếc smartphone là "vườn thú" IC thu nhỏ — mỗi con đảm nhiệm một mảng việc. Đọc bảng theo cách kỹ sư: <em>chức năng nào biến mất nếu thiếu nó?</em></p>
+        <div class="tblwrap">
+        <table class="tbl">
+          <tr><th>Chip</th><th>Nhiệm vụ</th><th>Nếu thiếu nó…</th></tr>
+          <tr><td><b>SoC</b> (CPU·GPU·NPU·ISP·modem)</td><td>"Bộ não" — một IC duy nhất tích hợp các khối tính toán, đồ họa, AI, xử lý ảnh</td><td>Điện thoại chỉ là vỏ nhựa + pin</td></tr>
+          <tr><td><b>Memory</b> (DRAM + Flash)</td><td>DRAM là "bàn làm việc" khi chạy app; Flash là "tủ hồ sơ" lưu lâu dài — thường là chip riêng</td><td>Không mở nổi app, không lưu nổi ảnh</td></tr>
+          <tr><td><b>PMIC</b> (Power Management IC)</td><td>Biến ~3,7 V của pin thành nhiều mức điện áp cấp riêng từng khối; điều khiển sạc, bảo vệ</td><td>SoC nhận thẳng điện áp pin — hỏng ngay</td></tr>
+          <tr><td><b>RF front-end + modem</b></td><td>Khuếch đại, lọc sóng radio; mã hóa/giải mã dữ liệu 4G/5G/Wi-Fi</td><td>Thành máy nghe nhạc offline</td></tr>
+          <tr><td><b>Camera sensor + ISP</b></td><td>Hàng chục triệu photodiode biến ánh sáng thành tín hiệu điện; ISP xử lý thành ảnh</td><td>Không chụp ảnh, không quét QR</td></tr>
+        </table>
+        </div>
+        <p class="small muted">Fun fact: trong nhiều điện thoại, chip DRAM được xếp chồng <em>ngay trên lưng</em> SoC (Package-on-Package) để rút ngắn đường tín hiệu.</p>
+        <div class="co co-danger"><b>Đừng nhầm hai cấp độ.</b> Cả board này là "hệ thống"; riêng khối SoC mới là "System on Chip" — <b>một IC</b> tích hợp nhiều khối chức năng trên một die. Board chứa nhiều chip là hệ thống trên board, không phải SoC.</div>
+      </div>
+    </details>
+
+    <!-- C4 -->
+    <details class="dd">
+      <summary><span class="no">C4</span> Nghề IC Design — ai làm gì, bàn giao gì <span class="est">~10′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <p>Mỗi vai trò sống ở một tầng của chuỗi trừu tượng và bàn giao một sản phẩm cụ thể:</p>
+        <div class="tblwrap">
+        <table class="tbl">
+          <tr><th>Vai trò</th><th>Làm gì</th><th>Sản phẩm bàn giao</th></tr>
+          <tr><td><b>RTL Design</b> <span class="small muted">(front-end)</span></td><td>Mô tả hành vi mạch bằng SystemVerilog ở mức RTL (Register Transfer Level — mức truyền thanh ghi)</td><td>RTL code + tài liệu spec</td></tr>
+          <tr><td><b>Verification</b> <span class="small muted">(front-end)</span></td><td>Viết testbench, mô phỏng, "săn bug" trước khi chip đi sản xuất</td><td>Test plan, môi trường test, báo cáo coverage</td></tr>
+          <tr><td><b>Physical Design</b> <span class="small muted">(back-end)</span></td><td>Biến netlist (danh sách cổng) thành layout vật lý; tối ưu PPA (Performance–Power–Area)</td><td>Layout gửi foundry (tape-out)</td></tr>
+          <tr><td><b>DFT</b></td><td>Design-for-Test: chèn mạch giúp kiểm tra chip sau sản xuất (scan chain, BIST)</td><td>Cấu trúc test trong thiết kế</td></tr>
+        </table>
+        </div>
+        <p><b>Một câu thực tế:</b> verification thường chiếm <b>phần lớn nhân lực</b> của một dự án chip — đây cũng là cánh cửa vào nghề phổ biến cho kỹ sư mới tại Việt Nam, cùng với RTL design. Ngoài ra còn hướng analog/mixed-signal (PLL, ADC/DAC) làm việc ở mức transistor.</p>
+        <p><b>Thiết kế ≠ sản xuất.</b> Nhiều công ty thiết kế <b>fabless</b> (không sở hữu nhà máy): Apple, Qualcomm, NVIDIA thiết kế — foundry như TSMC chế tạo. Vì vậy sản phẩm cuối của kỹ sư thiết kế là <em>mô tả và bằng chứng kiểm chứng</em>, không phải miếng silicon do chính tay họ khắc.</p>
+        <p><b>FPGA vs ASIC (giới thiệu 2 câu):</b> FPGA là chip cấu hình lại được — công cụ học và prototype của khóa này; ASIC là chip "may đo" chế tạo tại foundry, không sửa được sau sản xuất. T8 sẽ so sánh chi tiết chi phí, tốc độ, điện năng và khi nào chọn gì.</p>
+        <div class="co co-ok"><b>Bạn bắt đầu được ngay.</b> Lộ trình vào nghề chính là 12 tuần này: logic số (T3–6) → SystemVerilog (T7) → FPGA (T8) → project thật (T9–11). Không cần "học xong hết" mới bắt đầu.</div>
+      </div>
+    </details>
+
+    <!-- C5 -->
+    <details class="dd">
+      <summary><span class="no">C5</span> RTL Peek — nhìn mặt chữ của nghề <span class="est">~8′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <p>Đây là <b>guided exposure</b> — chỉ nhìn cho quen mặt, CHƯA cần hiểu cú pháp, càng chưa cần viết. Kỹ sư RTL mô tả phần cứng bằng những dòng như thế này:</p>
+        <div class="rtl-frame">
+          <div class="rtl-head"><span class="ftag ftag-rtl">RTL</span><span class="fname">and_gate.sv</span><span class="muted">· chỉ để làm quen</span></div>
+<pre class="code"><code>module and_gate (
+  input  logic a, b,
+  output logic y
+);
+  assign y = a &amp; b;   // y LUÔN bằng a AND b — một mạch, không phải một lệnh
+endmodule</code></pre>
+          <div class="rtl-meta">
+            <div><b>1 · Mục đích</b>Nhìn mặt chữ RTL cho quen — tuần này chưa cần viết được dòng nào.</div>
+            <div><b>2 · Interface</b>Hai ngõ vào <code>a</code>, <code>b</code> (1 bit); một ngõ ra <code>y</code>.</div>
+            <div><b>3 · Phần cứng suy ra</b>Đúng 1 cổng AND — trên FPGA là một phần của 1 LUT. Không có "máy tính" nào chạy dòng code này cả.</div>
+            <div><b>4 · Ghi chú</b>T4 bạn sẽ tự viết những dòng như này; T7 hệ thống hóa thành kỹ năng RTL nghiêm túc.</div>
+          </div>
+        </div>
+        <div class="widget" data-widget="tt">
+          <div class="wtitle">Đoán hành vi trước khi tin lời chú thích</div>
+          <div class="wnote">Bấm vào ô "?" để chọn giá trị (? → 0 → 1), rồi bấm Kiểm tra: <code>y</code> bằng bao nhiêu với từng cặp a, b?</div>
+          <table class="tbl">
+            <tr><th>a</th><th>b</th><th>y = a &amp; b</th></tr>
+            <tr><td>0</td><td>0</td><td class="tt-cell" data-exp="0"></td></tr>
+            <tr><td>0</td><td>1</td><td class="tt-cell" data-exp="0"></td></tr>
+            <tr><td>1</td><td>0</td><td class="tt-cell" data-exp="0"></td></tr>
+            <tr><td>1</td><td>1</td><td class="tt-cell" data-exp="1"></td></tr>
+          </table>
+          <button class="tt-check wbtn">Kiểm tra</button> <span class="tt-out small"></span>
+        </div>
+        <div class="co co-info"><b>Điều duy nhất cần cảm nhận hôm nay:</b> dòng <code>assign</code> không phải "lệnh chạy rồi xong" — nó là <b>một sợi dây và một cổng logic tồn tại vĩnh viễn</b> trong mạch, lúc nào cũng đang hoạt động. RTL mô tả <em>phần cứng</em>, không phải chương trình chạy từng dòng.</div>
+      </div>
+    </details>
+
+    <!-- C6 vocab -->
+    <details class="dd">
+      <summary><span class="no">C6</span> Từ vựng kỹ thuật tuần 1 <span class="est">~5′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <div class="tblwrap">
+        <table class="tbl vocab">
+          <tr><th>Thuật ngữ</th><th>Nghĩa</th><th>Câu ví dụ (EN)</th></tr>
+          <tr><td>Semiconductor</td><td>Chất bán dẫn — khả năng dẫn điện điều khiển được</td><td class="en">Vietnam is investing in the semiconductor industry.</td></tr>
+          <tr><td>Transistor</td><td>Công tắc điện tử điều khiển bằng điện áp</td><td class="en">This SoC contains billions of transistors.</td></tr>
+          <tr><td>Logic gate</td><td>Cổng logic — vài transistor ghép thành phép toán</td><td class="en">An AND gate outputs 1 only when both inputs are 1.</td></tr>
+          <tr><td>Integrated Circuit (IC)</td><td>Mạch tích hợp trên một miếng silicon</td><td class="en">An IC integrates millions of components on one die.</td></tr>
+          <tr><td>SoC</td><td>MỘT IC tích hợp nhiều khối chức năng</td><td class="en">The SoC integrates CPU, GPU and modem.</td></tr>
+          <tr><td>ASIC</td><td>Chip chuyên dụng, không sửa được sau sản xuất</td><td class="en">Bitcoin miners use ASICs for efficiency.</td></tr>
+          <tr><td>FPGA</td><td>Chip logic cấu hình lại được bằng bitstream</td><td class="en">We prototype the design on an FPGA board first.</td></tr>
+          <tr><td>RTL</td><td>Mức mô tả truyền thanh ghi — "ngôn ngữ" của front-end</td><td class="en">She writes RTL code in SystemVerilog.</td></tr>
+          <tr><td>Verification</td><td>Kiểm chứng thiết kế đúng spec trước sản xuất</td><td class="en">Verification engineers hunt bugs before tape-out.</td></tr>
+          <tr><td>Foundry</td><td>Nhà máy chế tạo chip theo thiết kế khách hàng</td><td class="en">TSMC is the world's largest foundry.</td></tr>
+        </table>
+        </div>
+      </div>
+    </details>
+  </div>
+</section>
+
+<!-- ================= LAYER D ================= -->
+<section id="layer-d" class="layer layer-d">
+  <div class="wrap layer-head">
+    <div class="band">
+      <span class="layer-badge">D</span>
+      <h2>Sau buổi học</h2>
+      <span class="time">📝 Quiz 5 câu · bài tập · phản tư</span>
+    </div>
+  </div>
+  <div class="wrap layer-body">
+
+    <div class="card">
+      <h3>Quiz tự kiểm tra — 5 câu</h3>
+      <p class="small muted">Chọn đáp án; chấm ngay và hiện giải thích. Câu hỏi kiểu dự đoán/suy luận — nếu sai, quay lại đúng mục Layer C được ghi trong giải thích.</p>
+      <div class="quiz" id="quiz">
+        <div class="qz-item" data-answer="C">
+          <p class="qz-q">1. Một bạn hỏi: "đồng dẫn điện tốt hơn silicon nhiều — sao không làm chip bằng đồng?" Câu trả lời đúng bản chất là gì?</p>
+          <button class="qz-opt" data-key="A">Vì đồng đắt và hiếm hơn silicon</button>
+          <button class="qz-opt" data-key="B">Vì ở kích thước nano, silicon thực ra dẫn điện tốt hơn đồng</button>
+          <button class="qz-opt" data-key="C">Vì giá trị của bán dẫn không nằm ở "dẫn tốt" mà ở chỗ <b>điều khiển được</b> lúc dẫn/lúc không — nhờ đó tạo ra công tắc điện áp</button>
+          <button class="qz-opt" data-key="D">Vì đồng không thể chế tạo thành tấm mỏng như wafer</button>
+          <div class="qz-expl"><b>Giải thích:</b> đồng luôn dẫn — không "tắt" được, nên không làm công tắc được. Silicon pha tạp cho ta linh kiện mà điện áp điều khiển dòng điện: transistor. (Đồng vẫn có mặt trong chip — làm dây nối kim loại.) Xem C1.</div>
+        </div>
+        <div class="qz-item" data-answer="B">
+          <p class="qz-q">2. Bạn "phóng to" dần một chiếc smartphone bằng kính hiển vi tưởng tượng. Thứ tự các tầng gặp trên đường đi từ lớn đến nhỏ là gì?</p>
+          <button class="qz-opt" data-key="A">SoC → transistor → logic gate → functional block</button>
+          <button class="qz-opt" data-key="B">Hệ thống/board → IC/SoC → digital system → functional block → logic gate → transistor</button>
+          <button class="qz-opt" data-key="C">Transistor → logic gate → SoC → functional block</button>
+          <button class="qz-opt" data-key="D">Logic gate → transistor → digital system → IC</button>
+          <div class="qz-expl"><b>Giải thích:</b> chuỗi trừu tượng đọc được hai chiều: xây thì từ transistor lên; "zoom" thì từ hệ thống xuống. Block nằm trong system, gate nằm trong block, transistor là đáy. Xem bảng 6 tầng ở C2.</div>
+        </div>
+        <div class="qz-item" data-answer="D">
+          <p class="qz-q">3. Thông cáo báo chí viết: "SoC thế hệ mới tích hợp modem 5G thay vì dùng chip modem rời." Về phần cứng, điều đó nghĩa là gì?</p>
+          <button class="qz-opt" data-key="A">Board có thêm một chip modem thứ hai gắn cạnh SoC</button>
+          <button class="qz-opt" data-key="B">Modem được cài đặt như một phần mềm chạy trên CPU</button>
+          <button class="qz-opt" data-key="C">Modem là thiết bị ngoài, nối với điện thoại qua cáp</button>
+          <button class="qz-opt" data-key="D">Khối modem giờ nằm trên <b>cùng một die silicon</b> với CPU/GPU — đường nối ngắn hơn, tiết kiệm điện và diện tích board</button>
+          <div class="qz-expl"><b>Giải thích:</b> "tích hợp vào SoC" = khối chức năng chuyển vào cùng die. Đó chính là định nghĩa SoC: MỘT IC chứa nhiều khối — và là lý do tích hợp thường nhanh hơn, ít tốn điện hơn. Xem C3 (và bảng tầng ở C2).</div>
+        </div>
+        <div class="qz-item" data-answer="A">
+          <p class="qz-q">4. Cuối dự án, sản phẩm mà kỹ sư RTL design <b>trực tiếp tạo ra và bàn giao</b> là gì?</p>
+          <button class="qz-opt" data-key="A">Bản mô tả thiết kế bằng RTL code + tài liệu spec — để công cụ và các khâu sau hiện thực hóa thành mạch</button>
+          <button class="qz-opt" data-key="B">Con chip vật lý do chính tay họ khắc lên silicon</button>
+          <button class="qz-opt" data-key="C">Board mạch đã hàn đầy đủ linh kiện</button>
+          <button class="qz-opt" data-key="D">Ứng dụng phần mềm chạy trên chip</button>
+          <div class="qz-expl"><b>Giải thích:</b> kỹ sư thiết kế không tự tay chế tạo transistor — họ mô tả và kiểm chứng; foundry sản xuất (mô hình fabless/foundry). Hiểu đúng "sản phẩm của nghề" giúp bạn biết mình đang học kỹ năng gì. Xem C4.</div>
+        </div>
+        <div class="qz-item" data-answer="C">
+          <p class="qz-q">5. Vì sao máy tính dùng 2 mức 0/1 thay vì 10 mức điện áp — dù 10 mức "chở" nhiều thông tin hơn trên mỗi dây?</p>
+          <button class="qz-opt" data-key="A">Vì toán nhị phân dễ học hơn toán thập phân</button>
+          <button class="qz-opt" data-key="B">Vì transistor về vật lý chỉ tạo ra được đúng 2 mức điện áp</button>
+          <button class="qz-opt" data-key="C">Vì 2 mức cách xa nhau chịu nhiễu tốt: tín hiệu méo vẫn đọc đúng và được khôi phục sau mỗi tầng — nên ghép hàng tỷ phần tử mà không tích lũy sai số</button>
+          <button class="qz-opt" data-key="D">Vì chuẩn công nghiệp quy định như vậy từ thời máy tính đầu tiên</button>
+          <div class="qz-expl"><b>Giải thích:</b> mức logic là <em>khoảng điện áp</em>, và transistor hoàn toàn tạo được mức trung gian (mạch analog sống bằng điều đó) — nhưng nhiều mức thì nhiễu nhỏ đã gây đọc sai và sai số tích lũy qua từng tầng. Chọn 2 mức là đánh đổi độ mịn lấy khả năng nhân rộng — nền móng của digital abstraction. Xem C2.</div>
+        </div>
+        <div class="qz-bar"><span class="qz-score"></span><span class="qz-verdict"></span><button class="qz-reset">Làm lại</button></div>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <h3>Bài tập bắt buộc <span class="badge badge-req">nộp trước buổi 2</span></h3>
+        <p><b>Bản đồ trừu tượng cá nhân</b> — hoàn thiện từ bản nháp nhóm ở buổi học thành 1 trang:</p>
+        <ul class="small">
+          <li>Vẽ đủ <b>6 tầng</b> cho thiết bị bạn đã chọn ở Layer A (giữ nguyên thiết bị, đào sâu thêm).</li>
+          <li>Đặt ít nhất <b>3 block có thật</b> vào đúng tầng (vd: bộ thu Wi-Fi, bộ điều khiển màn hình, bộ giải mã âm thanh) — đánh dấu từng block là điều bạn <b>BIẾT</b> (kèm nguồn) hay <b>ĐOÁN</b>.</li>
+          <li>Viết 1 đoạn đúng <b>5 câu</b>: "vì sao tôi quan tâm ngành này".</li>
+        </ul>
+        <p class="small"><b>Nộp (deliverable):</b> 1 trang PDF hoặc ảnh chụp — gồm bản đồ 6 tầng + 3 block có nhãn BIẾT/ĐOÁN + đoạn 5 câu.</p>
+      </div>
+      <div class="card">
+        <h3>Thử thách nâng cao <span class="badge badge-opt">tự chọn</span></h3>
+        <p><b>Quan sát ngành:</b> tìm 1 tin tức bán dẫn trong 6 tháng gần đây (nhà máy mới, chip mới, chính sách…). Viết 5 câu: chuyện gì xảy ra; nó chạm <b>tầng nào</b> của chuỗi trừu tượng (thiết kế? chế tạo? đóng gói?); và ảnh hưởng đến ai. Đây chưa phải đọc tài liệu nghiên cứu — chỉ là tập nhìn ngành bằng bản đồ bạn vừa học.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Rubric tuần 1</h3>
+      <div class="tblwrap">
+      <table class="tbl rubric">
+        <tr><th>Tiêu chí</th><th>Trọng số</th><th>Đạt khi…</th></tr>
+        <tr><td>Hiểu khái niệm</td><td class="pct">25%</td><td>Giải thích bằng lời của mình: semiconductor "điều khiển được" và SoC khác board nhiều chip — kèm ví dụ thật.</td></tr>
+        <tr><td>Kiến trúc</td><td class="pct">20%</td><td>Bản đồ đủ 6 tầng, đúng thứ tự; nói được mỗi tầng che giấu gì của tầng dưới.</td></tr>
+        <tr><td>Thiết kế đúng</td><td class="pct">20%</td><td>Bản đồ đúng tầng, block đặt đúng chỗ: 3 block đủ cụ thể (không ghi chung chung "chip xử lý").</td></tr>
+        <tr><td>Kiểm chứng/đối chiếu</td><td class="pct">20%</td><td>Phân biệt rõ điều mình BIẾT vs điều mình ĐOÁN trên bản đồ; ít nhất 1 block được đối chiếu nguồn công khai (teardown/datasheet).</td></tr>
+        <tr><td>Giao tiếp kỹ thuật</td><td class="pct">15%</td><td>Đoạn 5 câu mạch lạc, dùng đúng thuật ngữ; trả lời được chất vấn "block X nằm tầng nào, vì sao".</td></tr>
+      </table>
+      </div>
+      <p class="small muted">Bản đồ vẽ đẹp chưa phải điểm tối đa — phải giải thích được vì sao mỗi block nằm đúng tầng đó.</p>
+    </div>
+
+    <div class="card">
+      <h3>Tổng kết tuần 1</h3>
+      <div class="ican">
+        <div><b>I can explain</b>① Chuỗi trừu tượng transistor → gate → block → system → IC → SoC, và vì sao nó cho hàng nghìn kỹ sư cùng xây một chip. ② Semiconductor quý vì dẫn điện <em>điều khiển được</em> — nền của transistor-công-tắc. ③ SoC là MỘT IC tích hợp nhiều khối — khác gì board nhiều chip và được lợi gì.</div>
+        <div><b>I can design</b>Vẽ bản đồ trừu tượng 6 tầng cho một thiết bị bất kỳ, đặt các block có thật vào đúng tầng.</div>
+        <div><b>I can verify</b>Đối chiếu bản đồ của mình với nguồn công khai (teardown, datasheet) — tách rõ điều BIẾT khỏi điều ĐOÁN.</div>
+        <div><b>I can connect</b>Ba tuần project (T9–11) bạn sẽ tự xây một hệ trải đúng <b>tầng 3 → tầng 4</b> của bản đồ hôm nay: counter + LED 7 đoạn là functional block (tầng 3); bộ điều khiển đèn giao thông và UART ghép các block đó thành digital system (tầng 4).</div>
+        <div class="unsure"><b>I am still unsure about…</b><textarea class="reflect" id="unsure1" placeholder="Điều tôi giải thích được tuần này mà tuần trước chưa giải thích được là… / Điều tôi còn mơ hồ là… (tự động lưu trên máy bạn)"></textarea></div>
+        <div class="nextwk"><b>Next week</b>Bạn đã có bản đồ tĩnh. T2 trả lời câu hỏi động: <b>một ý tưởng đi qua những chặng nào để thành chip?</b> Requirement → specification → RTL → verification → tape-out. Mang theo 1 ý tưởng hệ thống đơn giản của riêng bạn.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="weeknav">
+      <a href="index.html"><small>← Mục lục</small><b>Mục lục chương trình</b></a>
+      <a class="next" href="Week02.html"><small>Tuần sau →</small><b>T2 · From Idea to Chip</b></a>
+    </div>
+    <div class="footer">
+      <b>IC Design Mentoring — Version 3 · Phase 1</b>
+      <span class="org">Khoa Điện – Điện tử · Trường Kỹ thuật · Đại học Phenikaa</span>
+      <span>Biên soạn: <b style="display:inline">Giảng Viên Đinh Văn Nam</b></span>
+      <span class="cr">© 2026 · Bản quyền thuộc về Giảng Viên Đinh Văn Nam, Khoa Điện-Điện Tử, Trường Kỹ Thuật, Đại học Phenikaa. Tài liệu phục vụ đào tạo — vui lòng giữ nguyên thông tin tác giả khi chia sẻ.</span>
+      <span class="cr">Hoạt động offline — không cần Internet.</span>
+    </div>
+  </div>
+</footer>
+</body>
+</html>

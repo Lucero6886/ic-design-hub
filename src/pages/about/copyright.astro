@@ -1,0 +1,69 @@
+---
+import BaseLayout from "~/layouts/BaseLayout.astro";
+import { AUTHOR, COPYRIGHT, SITE } from "~/config/site";
+import { href } from "~/utils/url";
+const year = new Date().getFullYear();
+---
+
+<BaseLayout
+  title="Bản quyền & Attribution"
+  description="Chính sách bản quyền của hub: quyền sở hữu nội dung gốc, tư liệu bên thứ ba, đóng góp của sinh viên, mã nguồn mở và quy ước trích dẫn."
+  path="about/copyright/"
+>
+  <div class="wrap">
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <a href={href("")}>Trang chủ</a> / <a href={href("about/")}>Giới thiệu</a> / <span>Bản quyền &amp; Attribution</span>
+    </nav>
+    <article class="prose" style="margin-top:10px">
+      <h1>Bản quyền &amp; Attribution</h1>
+
+      <h2>Nội dung giáo dục gốc</h2>
+      <p>Toàn bộ nội dung giáo dục gốc của hub (giáo trình, bài viết, ghi chú nghiên cứu, tài liệu mentoring, đặc tả project do tác giả biên soạn):</p>
+      <blockquote><b>{COPYRIGHT.notice(year)}</b></blockquote>
+      <p>
+        Nội dung gốc <b>chưa phát hành theo giấy phép mở nào</b> (không Creative Commons, không MIT/Apache/GPL cho phần nội dung).
+        "All rights reserved unless otherwise stated" — mọi trường hợp sử dụng lại ngoài trích dẫn học thuật thông thường,
+        vui lòng liên hệ tác giả. Tài liệu phục vụ đào tạo: khi chia sẻ hoặc trích dẫn, giữ nguyên thông tin tác giả và đơn vị.
+      </p>
+
+      <h2>Quy ước trích dẫn hub</h2>
+      <blockquote>
+        "{SITE.title}, {AUTHOR.name}, {AUTHOR.affiliation}." — kèm URL trang và (nếu trích giáo trình) phiên bản, ví dụ
+        <i>"IC Design Foundations, Version 3, Tuần 6"</i>.
+      </blockquote>
+
+      <h2>Tư liệu bên thứ ba</h2>
+      <ul>
+        <li><b>Paper, sách, chuẩn, datasheet</b> được nhắc tới hoặc tóm tắt trên hub giữ nguyên bản quyền của nhà xuất bản/tác giả gốc. Hub chỉ trích dẫn ở mức hợp lý cho mục đích học thuật, luôn kèm nguồn; hub <b>không</b> sở hữu và không tuyên bố sở hữu các tư liệu này.</li>
+        <li><b>Hình vẽ/bảng biểu của bên thứ ba</b>: chỉ dùng khi được phép; luôn ghi nguồn ngay tại chỗ dùng (trường <code>attribution</code> trong bài viết).</li>
+        <li><b>Mã nguồn bên thứ ba</b> (thư viện, framework, code mẫu) giữ giấy phép gốc của nó. Website này được xây bằng các phần mềm mã nguồn mở (Astro và các gói phụ thuộc) — giấy phép tương ứng nằm trong <code>node_modules</code>/tài liệu của từng gói.</li>
+        <li><b>Công cụ EDA/FPGA</b> nhắc tới trên hub (mô phỏng, tổng hợp…) là sản phẩm và nhãn hiệu của chủ sở hữu tương ứng.</li>
+      </ul>
+
+      <h2>Đóng góp của sinh viên &amp; cộng đồng</h2>
+      <ul>
+        <li>Người đóng góp giữ quyền tác giả với phần nội dung mình viết; khi mở Pull Request, người đóng góp xác nhận nội dung là của mình (hoặc có quyền sử dụng) và đồng ý cho hub đăng với ghi nhận tên tác giả.</li>
+        <li>Tên người đóng góp chỉ xuất hiện khi có sự đồng ý công khai rõ ràng. Không bao giờ công bố email, mã số sinh viên, điểm số, repo riêng tư, hay dữ liệu nghiên cứu chưa công bố.</li>
+      </ul>
+
+      <h2>Lịch sử hiệu chỉnh attribution</h2>
+      <p>
+        Các trang thuộc Learning Hub phiên bản trước và giáo trình V3 từng ghi tác giả là
+        "Thạc sỹ Đinh Văn Nam" và ghi bản quyền thuộc về Khoa/Trường/Đại học. Theo quyết định của
+        tác giả (08/2026), danh tính công khai chuẩn là <b>{AUTHOR.name}</b> và bản quyền thuộc về
+        <b>{COPYRIGHT.holderWithAffiliation}</b>. Việc cập nhật hiển thị tác giả/bản quyền trên các
+        trang lưu trữ là <b>bản vá metadata pháp lý/attribution</b> — không thay đổi nội dung giáo
+        dục — và được ghi lại đầy đủ trong <code>docs/CONTENT_CHANGELOG.md</code> của repository.
+        Các file nguồn nguyên trạng trong <code>_source/</code> không bị chỉnh sửa (đối chiếu hash
+        SHA-256 trong <code>docs/audit/PROVENANCE_RECORD.md</code>).
+      </p>
+
+      <h2>Báo vấn đề bản quyền</h2>
+      <p>
+        Nếu bạn cho rằng nội dung nào đó trên hub dùng tư liệu của bạn chưa đúng cách, vui lòng mở
+        issue "Báo lỗi nội dung" trên <a href={SITE.repoUrl}>repository GitHub</a> hoặc liên hệ tác giả —
+        vấn đề attribution được ưu tiên xử lý.
+      </p>
+    </article>
+  </div>
+</BaseLayout>

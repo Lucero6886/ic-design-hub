@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tuần 12: Course Wrap-up & Next Steps | IC Design Mentoring</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Tailwind Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Consolas', 'Monaco', 'Courier New', 'monospace'],
+                    },
+                    colors: {
+                        primary: '#2563eb', // Blue 600
+                        secondary: '#f59e0b', // Amber 500
+                        accent: '#10b981', // Emerald 500
+                        dark: '#1e293b', // Slate 800
+                        light: '#f8fafc', // Slate 50
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Base typography scaled up for better readability */
+        html { font-size: 18px; }
+        
+        details > summary { list-style: none; outline: none; }
+        details > summary::-webkit-details-marker { display: none; }
+        details[open] summary ~ * { animation: fadeIn 0.4s ease-in-out; }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Custom Checkbox */
+        .custom-checkbox {
+            appearance: none;
+            background-color: #fff;
+            margin: 0;
+            font: inherit;
+            color: currentColor;
+            width: 1.4em;
+            height: 1.4em;
+            border: 2px solid #cbd5e1;
+            border-radius: 0.3em;
+            display: grid;
+            place-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+        }
+        .custom-checkbox::before {
+            content: "";
+            width: 0.7em;
+            height: 0.7em;
+            transform: scale(0);
+            transition: 120ms transform ease-in-out;
+            box-shadow: inset 1em 1em white;
+            background-color: white;
+            transform-origin: center;
+            clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+        }
+        .custom-checkbox:checked {
+            background-color: #10b981;
+            border-color: #10b981;
+        }
+        .custom-checkbox:checked::before { transform: scale(1); }
+        .task-item.completed { text-decoration: line-through; color: #94a3b8; }
+
+        /* Skill Tree Animations */
+        .skill-node {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+        .skill-node:hover {
+            transform: scale(1.1);
+            filter: brightness(1.2);
+        }
+        .skill-wire {
+            transition: stroke 0.5s ease-in-out, stroke-width 0.5s ease-in-out;
+        }
+        .core-glow {
+            animation: pulseGlow 2s infinite alternate;
+        }
+        @keyframes pulseGlow {
+            0% { filter: drop-shadow(0 0 15px rgba(250, 204, 21, 0.5)); }
+            100% { filter: drop-shadow(0 0 35px rgba(250, 204, 21, 1)); }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased selection:bg-primary selection:text-white pb-24">
+<div id="lichub-nav-top" data-lichub="v1" role="navigation" aria-label="Điều hướng Learning Hub (bổ sung, không thuộc trang gốc)" style="background:#0f172a;color:#e2e8f0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:13.5px;line-height:1.6;padding:8px 16px;display:flex;flex-wrap:wrap;gap:4px 16px;align-items:center;border-bottom:3px solid #f59e0b"><a href="../../index.html" style="color:#7dd3fc;text-decoration:none;font-weight:600">⌂ Learning Hub</a><span style="font-size:11px;font-weight:700;letter-spacing:.04em;color:#f59e0b;border:1px solid #f59e0b;border-radius:6px;padding:1px 7px;white-space:nowrap">V1 · BẢN LƯU TRỮ GỐC</span><a href="index.html" style="color:#cbd5e1;text-decoration:none">Mục lục V1</a><span style="flex:1"></span><a href="Week11.html" style="color:#7dd3fc;text-decoration:none" title="UART Communication Basics">← Tuần 11</a><span style="color:#475569">Tuần sau →</span><span aria-hidden="true" style="color:#475569">|</span><span style="display:inline-flex;gap:8px;align-items:center"><span style="color:#94a3b8">Chuyển bản:</span> <b aria-current="true" style="color:#f59e0b">V1</b> <a href="../v2/index.html" style="color:#cbd5e1;text-decoration:none">V2</a> <a href="../v3/index.html" style="color:#cbd5e1;text-decoration:none">V3</a></span></div>
+
+
+    <!-- HERO SECTION: CELEBRATION THEME -->
+    <header class="bg-gradient-to-br from-dark via-slate-800 to-primary text-white pt-20 pb-24 px-6 shadow-2xl relative overflow-hidden">
+        <!-- Background Decorations -->
+        <div class="absolute top-0 right-0 opacity-10 pointer-events-none">
+            <i class="fa-solid fa-trophy text-[24rem] -mt-10 -mr-10"></i>
+        </div>
+        
+        <div class="absolute inset-0 overflow-hidden pointer-events-none opacity-20">
+            <div class="absolute top-10 left-10 w-2 h-8 bg-secondary transform rotate-45"></div>
+            <div class="absolute top-24 left-1/4 w-4 h-4 bg-accent rounded-full"></div>
+            <div class="absolute top-16 right-1/3 w-5 h-5 bg-blue-400 rotate-12"></div>
+            <div class="absolute bottom-12 right-24 w-2 h-8 bg-pink-500 transform -rotate-45"></div>
+        </div>
+
+        <div class="max-w-5xl mx-auto relative z-10">
+            <div class="flex flex-wrap items-center gap-3 mb-6">
+                <span class="bg-primary text-white text-sm font-bold px-4 py-1.5 rounded-full uppercase tracking-widest shadow-md">Tuần 12</span>
+                <span class="bg-secondary text-dark text-sm font-bold px-4 py-1.5 rounded-full shadow-md"><i class="fa-solid fa-graduation-cap mr-1"></i> Lễ Tổng Kết</span>
+                <span class="bg-white/20 text-white border border-white/30 text-sm font-semibold px-4 py-1.5 rounded-full backdrop-blur-sm"><i class="fa-solid fa-university mr-1"></i> Phenikaa University</span>
+            </div>
+            
+            <h1 class="text-5xl md:text-6xl lg:text-7xl font-extrabold mb-4 leading-tight text-transparent bg-clip-text bg-gradient-to-r from-white to-amber-200 drop-shadow-sm">
+                Course Wrap-up & Next Steps
+            </h1>
+            <h2 class="text-2xl md:text-3xl font-medium text-slate-200 mb-8 border-l-4 border-secondary pl-5 leading-snug">
+                Nhìn Lại Hành Trình 12 Tuần Và Mở Khóa Chặng Đường Mới
+            </h2>
+            
+            <div class="bg-white/10 backdrop-blur-md rounded-2xl p-6 md:p-8 border border-white/20 mb-10 max-w-4xl shadow-lg">
+                <p class="text-xl leading-relaxed font-light">
+                    <i class="fa-solid fa-quote-left text-secondary opacity-60 mr-3 text-2xl"></i>
+                    Chúc mừng bạn đã đi đến cuối chặng đường Phase 1! Hôm nay, chúng ta không nạp thêm lý thuyết mới. Chúng ta sẽ cùng nhau <strong>Phản tỉnh (Reflect)</strong> về sự trưởng thành của bản thân, tự hào về những gì đã học, nhìn nhận thẳng thắn điểm yếu, và chuẩn bị hành trang cho những <strong>Dự án thực tế (Real Projects)</strong> sắp tới.
+                </p>
+            </div>
+
+            <!-- Session Goals -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+                <div class="flex items-start gap-4">
+                    <div class="bg-white/20 w-12 h-12 flex items-center justify-center rounded-xl text-secondary shrink-0 shadow-inner"><i class="fa-solid fa-seedling text-xl"></i></div>
+                    <p class="text-lg mt-1 font-medium">Nhìn lại quá trình học tập: Từ con số 0 đến việc hiểu cách IC hoạt động.</p>
+                </div>
+                <div class="flex items-start gap-4">
+                    <div class="bg-white/20 w-12 h-12 flex items-center justify-center rounded-xl text-secondary shrink-0 shadow-inner"><i class="fa-solid fa-magnifying-glass-chart text-xl"></i></div>
+                    <p class="text-lg mt-1 font-medium">Đánh giá trung thực về các chủ đề đã nắm vững và phần còn yếu kém.</p>
+                </div>
+                <div class="flex items-start gap-4">
+                    <div class="bg-white/20 w-12 h-12 flex items-center justify-center rounded-xl text-secondary shrink-0 shadow-inner"><i class="fa-solid fa-rocket text-xl"></i></div>
+                    <p class="text-lg mt-1 font-medium">Đề xuất ý tưởng và đăng ký tham gia Mini-Project cho Phase 2.</p>
+                </div>
+                <div class="flex items-start gap-4">
+                    <div class="bg-white/20 w-12 h-12 flex items-center justify-center rounded-xl text-secondary shrink-0 shadow-inner"><i class="fa-solid fa-users text-xl"></i></div>
+                    <p class="text-lg mt-1 font-medium">Gia nhập Core Team để định hướng và dẫn dắt các thế hệ sinh viên tiếp theo.</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto px-4 sm:px-6 -mt-12 relative z-20 space-y-12">
+
+        <!-- BEFORE SESSION SECTION -->
+        <section class="bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden">
+            <div class="bg-blue-50 border-b border-blue-100 px-8 py-5 flex items-center justify-between">
+                <h3 class="text-2xl font-bold text-dark flex items-center gap-3">
+                    <i class="fa-solid fa-mug-hot text-primary"></i> Chuẩn Bị Trước Buổi Lễ
+                </h3>
+            </div>
+            <div class="p-8">
+                <p class="text-xl text-slate-700 mb-8 leading-relaxed">
+                    Kỹ năng quan trọng nhất của một kỹ sư không phải là viết code nhanh nhất, mà là khả năng <strong>Phản tỉnh (Reflection)</strong>. Biết mình đang đứng ở đâu là chìa khóa duy nhất để đi xa hơn.
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- Checklist -->
+                    <div class="bg-slate-50 p-6 rounded-2xl border border-slate-200 hover:border-primary/30 transition-colors duration-300 shadow-sm">
+                        <h4 class="text-xl font-bold text-dark mb-5 border-b border-slate-200 pb-3 flex items-center gap-3">
+                            <i class="fa-solid fa-list-check text-primary"></i> Checklist Tự Đánh Giá
+                        </h4>
+                        <ul class="space-y-4" id="prep-checklist">
+                            <li class="flex items-start gap-4 group">
+                                <input type="checkbox" class="custom-checkbox mt-1" id="task1" onclick="toggleTask(this)">
+                                <label for="task1" class="cursor-pointer text-lg text-slate-700 task-item group-hover:text-primary transition-colors">Xem lại mục lục tài liệu từ Tuần 1 đến Tuần 11</label>
+                            </li>
+                            <li class="flex items-start gap-4 group">
+                                <input type="checkbox" class="custom-checkbox mt-1" id="task2" onclick="toggleTask(this)">
+                                <label for="task2" class="cursor-pointer text-lg text-slate-700 task-item group-hover:text-primary transition-colors">Ghi ra sổ: 1 điều tự hào nhất và 1 kiến thức còn mơ hồ nhất</label>
+                            </li>
+                            <li class="flex items-start gap-4 group">
+                                <input type="checkbox" class="custom-checkbox mt-1" id="task3" onclick="toggleTask(this)">
+                                <label for="task3" class="cursor-pointer text-lg text-slate-700 task-item group-hover:text-primary transition-colors">Tương tác với <strong>"Cây Kỹ Năng" (Skill Tree)</strong> bên dưới</label>
+                            </li>
+                            <li class="flex items-start gap-4 group">
+                                <input type="checkbox" class="custom-checkbox mt-1" id="task4" onclick="toggleTask(this)">
+                                <label for="task4" class="cursor-pointer text-lg text-slate-700 task-item group-hover:text-primary transition-colors">Suy nghĩ về 1 Mini-Project mà bạn khát khao muốn tự tay làm</label>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Tư duy khởi động -->
+                    <div class="bg-amber-50 p-6 rounded-2xl border border-amber-200 relative overflow-hidden shadow-sm">
+                        <i class="fa-regular fa-compass absolute -right-6 -bottom-6 text-[8rem] text-amber-200 opacity-40"></i>
+                        <h4 class="text-xl font-bold text-secondary mb-5 border-b border-amber-200 pb-3 relative z-10 flex items-center gap-2">
+                            <i class="fa-solid fa-lightbulb"></i> Tư Duy Khởi Động
+                        </h4>
+                        <ul class="space-y-4 list-disc list-inside text-lg text-slate-800 relative z-10 leading-relaxed font-medium">
+                            <li>Nếu một em sinh viên khóa dưới hỏi: "Thiết kế vi mạch là học cái gì vậy anh/chị?", bạn sẽ tóm tắt 12 tuần qua như thế nào?</li>
+                            <li>Theo bạn, việc chỉ ngồi nghe lý thuyết so với việc tự tay gõ code nạp xuống Board mạch thật sẽ tạo ra sự khác biệt gì về năng lực?</li>
+                            <li>Cộng đồng Mentoring này đã giúp bạn thay đổi tư duy hay kỹ năng mềm nào ngoài kỹ thuật chưa?</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- KNOWLEDGE ROADMAP & INTERACTIVE SKILL TREE DEMO -->
+        <section class="bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden">
+            <div class="px-8 py-6 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
+                <h3 class="text-2xl font-bold text-dark flex items-center gap-3">
+                    <i class="fa-solid fa-tree text-accent"></i> Cây Kỹ Năng Nền Tảng (IC Design Skill Tree)
+                </h3>
+            </div>
+            
+            <div class="p-8 divide-y divide-slate-100">
+                <div class="pb-6">
+                    <p class="text-slate-700 text-lg leading-relaxed text-center font-medium max-w-3xl mx-auto bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        Hãy trung thực chạm vào các khối kiến thức (Nodes) mà bạn cảm thấy mình đã <strong>hiểu bản chất</strong>. Khi bạn thắp sáng đủ các mảnh ghép nền tảng, cánh cửa đến với <strong>Phase 2: Project Implementation</strong> sẽ chính thức mở ra!
+                    </p>
+                </div>
+
+                <!-- Interactive SVG Skill Tree -->
+                <div class="pt-8">
+                    <div class="bg-slate-900 p-8 rounded-3xl border-2 border-slate-700 shadow-[inset_0_0_80px_rgba(0,0,0,0.6)] relative overflow-hidden flex flex-col lg:flex-row items-center justify-between gap-10 min-h-[500px]">
+                        
+                        <!-- SVG Skill Tree Canvas -->
+                        <div class="w-full lg:w-3/5 flex justify-center relative z-10">
+                            <svg viewBox="0 0 600 450" class="w-full max-w-[550px] font-mono overflow-visible">
+                                <defs>
+                                    <filter id="glow-node">
+                                        <feGaussianBlur stdDeviation="4" result="blur" />
+                                        <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                                    </filter>
+                                    <filter id="glow-core">
+                                        <feGaussianBlur stdDeviation="12" result="blur" />
+                                        <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                                    </filter>
+                                </defs>
+
+                                <!-- Central Core (Phase 2 Target) -->
+                                <g id="coreNode" transform="translate(300, 225)" class="transition-all duration-1000 opacity-20 grayscale">
+                                    <circle cx="0" cy="0" r="55" fill="#1e293b" stroke="#f59e0b" stroke-width="5"/>
+                                    <!-- Inner tech symbol -->
+                                    <polygon points="0,-30 25,12 -25,12" fill="#f59e0b" transform="translate(0, -8)"/>
+                                    <text x="0" y="35" fill="white" font-size="16" font-weight="900" text-anchor="middle" letter-spacing="1">PHASE 2</text>
+                                </g>
+
+                                <!-- Connecting Wires (Dashed initially) -->
+                                <path id="wire-logic" d="M 120 100 L 250 190" fill="none" stroke="#475569" stroke-width="4" stroke-dasharray="8,6" class="skill-wire"/>
+                                <path id="wire-comb" d="M 480 100 L 350 190" fill="none" stroke="#475569" stroke-width="4" stroke-dasharray="8,6" class="skill-wire"/>
+                                <path id="wire-seq" d="M 80 225 L 240 225" fill="none" stroke="#475569" stroke-width="4" stroke-dasharray="8,6" class="skill-wire"/>
+                                <path id="wire-verilog" d="M 520 225 L 360 225" fill="none" stroke="#475569" stroke-width="4" stroke-dasharray="8,6" class="skill-wire"/>
+                                <path id="wire-fpga" d="M 180 370 L 260 270" fill="none" stroke="#475569" stroke-width="4" stroke-dasharray="8,6" class="skill-wire"/>
+                                <path id="wire-uart" d="M 420 370 L 340 270" fill="none" stroke="#475569" stroke-width="4" stroke-dasharray="8,6" class="skill-wire"/>
+
+                                <!-- Satellite Nodes (Clickable) -->
+                                <!-- 1. Logic Gates -->
+                                <g id="node-logic" class="skill-node" transform="translate(120, 100)" onclick="activateNode('logic')">
+                                    <circle cx="0" cy="0" r="35" fill="#0f172a" stroke="#64748b" stroke-width="4"/>
+                                    <text x="0" y="-45" fill="#e2e8f0" font-size="16" font-weight="bold" text-anchor="middle">Logic Gates</text>
+                                    <text x="0" y="6" fill="#94a3b8" font-size="14" text-anchor="middle">AND/OR</text>
+                                </g>
+
+                                <!-- 2. Combinational -->
+                                <g id="node-comb" class="skill-node" transform="translate(480, 100)" onclick="activateNode('comb')">
+                                    <circle cx="0" cy="0" r="35" fill="#0f172a" stroke="#64748b" stroke-width="4"/>
+                                    <text x="0" y="-45" fill="#e2e8f0" font-size="16" font-weight="bold" text-anchor="middle">Comb. Logic</text>
+                                    <text x="0" y="6" fill="#94a3b8" font-size="14" text-anchor="middle">MUX/Adder</text>
+                                </g>
+
+                                <!-- 3. Sequential -->
+                                <g id="node-seq" class="skill-node" transform="translate(80, 225)" onclick="activateNode('seq')">
+                                    <circle cx="0" cy="0" r="35" fill="#0f172a" stroke="#64748b" stroke-width="4"/>
+                                    <text x="0" y="-45" fill="#e2e8f0" font-size="16" font-weight="bold" text-anchor="middle">Seq. Logic</text>
+                                    <text x="0" y="6" fill="#94a3b8" font-size="14" text-anchor="middle">FSM/Clock</text>
+                                </g>
+
+                                <!-- 4. Verilog -->
+                                <g id="node-verilog" class="skill-node" transform="translate(520, 225)" onclick="activateNode('verilog')">
+                                    <circle cx="0" cy="0" r="35" fill="#0f172a" stroke="#64748b" stroke-width="4"/>
+                                    <text x="0" y="-45" fill="#e2e8f0" font-size="16" font-weight="bold" text-anchor="middle">Verilog HDL</text>
+                                    <text x="0" y="6" fill="#94a3b8" font-size="14" text-anchor="middle">Coding</text>
+                                </g>
+
+                                <!-- 5. FPGA Flow -->
+                                <g id="node-fpga" class="skill-node" transform="translate(180, 370)" onclick="activateNode('fpga')">
+                                    <circle cx="0" cy="0" r="35" fill="#0f172a" stroke="#64748b" stroke-width="4"/>
+                                    <text x="0" y="55" fill="#e2e8f0" font-size="16" font-weight="bold" text-anchor="middle">Hardware</text>
+                                    <text x="0" y="6" fill="#94a3b8" font-size="14" text-anchor="middle">FPGA Flow</text>
+                                </g>
+
+                                <!-- 6. System & Comm -->
+                                <g id="node-uart" class="skill-node" transform="translate(420, 370)" onclick="activateNode('uart')">
+                                    <circle cx="0" cy="0" r="35" fill="#0f172a" stroke="#64748b" stroke-width="4"/>
+                                    <text x="0" y="55" fill="#e2e8f0" font-size="16" font-weight="bold" text-anchor="middle">System Comm</text>
+                                    <text x="0" y="6" fill="#94a3b8" font-size="14" text-anchor="middle">UART/RX/TX</text>
+                                </g>
+                            </svg>
+                        </div>
+
+                        <!-- Status Info Panel -->
+                        <div class="w-full lg:w-2/5 flex flex-col justify-center">
+                            <div id="treeStatusPanel" class="bg-slate-800/90 p-8 rounded-2xl border-2 border-slate-600 h-full flex flex-col justify-center shadow-xl backdrop-blur-md">
+                                <h4 class="text-white text-xl font-bold mb-4 border-b border-slate-600 pb-3 flex items-center gap-3">
+                                    <i class="fa-solid fa-chart-pie text-blue-400"></i> Tiến Độ Kích Hoạt
+                                </h4>
+                                
+                                <div class="flex items-center justify-between mb-3 mt-2">
+                                    <span class="text-base text-slate-300 font-medium">Khối kiến thức tự tin:</span>
+                                    <span id="activeCount" class="text-2xl font-bold text-accent font-mono bg-slate-900 px-3 py-1 rounded-lg border border-slate-700">0 / 6</span>
+                                </div>
+                                
+                                <div class="w-full bg-slate-950 rounded-full h-4 mb-8 border border-slate-700 overflow-hidden">
+                                    <div id="progressBar" class="bg-gradient-to-r from-emerald-400 to-emerald-600 h-4 rounded-full transition-all duration-700 shadow-[0_0_10px_#10b981]" style="width: 0%"></div>
+                                </div>
+                                
+                                <div class="bg-black/40 p-4 rounded-xl border border-white/5 min-h-[80px] flex items-center justify-center mb-6">
+                                    <p id="treeMessage" class="text-base text-slate-300 italic text-center font-medium leading-relaxed">
+                                        "Hãy chạm vào các module bên trái màn hình để khẳng định những gì bạn đã thu nạp được."
+                                    </p>
+                                </div>
+                                
+                                <button id="btnUnlockPhase2" class="mt-2 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-white font-bold text-lg py-4 px-6 rounded-xl shadow-[0_0_20px_rgba(245,158,11,0.6)] transition-all transform scale-0 opacity-0 pointer-events-none text-center border border-amber-300/50">
+                                    <i class="fa-solid fa-rocket mr-2 text-xl"></i> MỞ KHÓA PHASE 2
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- STUDENT TASK (REFLECTION) -->
+        <section class="bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden">
+            <div class="bg-amber-50 border-b border-amber-200 px-8 py-5 flex items-center justify-between">
+                <h3 class="text-xl md:text-2xl font-bold text-dark flex items-center gap-3">
+                    <i class="fa-solid fa-users-gear text-secondary"></i> Nhiệm Vụ Của Nhóm (Deep Reflection)
+                </h3>
+                <span class="text-sm bg-amber-200 text-amber-800 px-4 py-1.5 rounded-full font-bold shadow-sm">Thảo luận 15 phút</span>
+            </div>
+            <div class="p-8">
+                <div class="flex items-start gap-5 mb-8 bg-yellow-50 p-5 rounded-2xl border-l-4 border-secondary shadow-sm">
+                    <i class="fa-solid fa-lightbulb text-secondary text-2xl mt-1"></i>
+                    <div>
+                        <p class="text-base font-bold text-slate-800 mb-2">Quy tắc Mentor (Tạo Không Gian An Toàn):</p>
+                        <p class="text-base text-slate-700 italic leading-relaxed">"Buổi hôm nay tuyệt đối không có đúng sai, không đánh giá trình độ kỹ thuật. Khuyến khích sinh viên nói thật, nói thẳng về những gì mình làm được và những gì còn chưa hiểu rõ. Chỉ khi nhìn nhận đúng điểm yếu, chúng ta mới có thể lập kế hoạch khắc phục trong Phase 2."</p>
+                    </div>
+                </div>
+
+                <h4 class="font-bold text-dark mb-5 text-lg uppercase tracking-wider border-b pb-2">3 Chủ Đề Thảo Luận Trong Nhóm (Breakout Room):</h4>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-base text-slate-700">
+                    <div class="bg-emerald-50/50 p-6 rounded-2xl border-t-4 border-emerald-500 border-x border-b border-slate-100 hover:shadow-lg transition-shadow h-full flex flex-col">
+                        <i class="fa-solid fa-medal text-4xl text-emerald-500 mb-4"></i>
+                        <h5 class="font-bold text-dark text-xl mb-3">1. Điều Tự Hào Nhất?</h5>
+                        <p class="text-slate-600 leading-relaxed flex-grow">Sau 12 tuần, sự thay đổi nào về kiến thức hoặc tư duy khiến bạn tự hào nhất? <br><br><span class="text-sm text-emerald-700 bg-emerald-100 px-2 py-1 rounded italic">Ví dụ: Đã không còn sợ khi nhìn thấy code phần cứng Verilog.</span></p>
+                    </div>
+                    
+                    <div class="bg-rose-50/50 p-6 rounded-2xl border-t-4 border-rose-500 border-x border-b border-slate-100 hover:shadow-lg transition-shadow h-full flex flex-col">
+                        <i class="fa-solid fa-dumbbell text-4xl text-rose-500 mb-4"></i>
+                        <h5 class="font-bold text-dark text-xl mb-3">2. Điểm Yếu Nhất?</h5>
+                        <p class="text-slate-600 leading-relaxed flex-grow">Topic nào hoặc khối kỹ năng nào bạn thấy mình vẫn còn mơ hồ và cần phải cày lại nhiều nhất? <br><br><span class="text-sm text-rose-700 bg-rose-100 px-2 py-1 rounded italic">Ví dụ: Mơ hồ về cách thiết kế Máy trạng thái FSM.</span></p>
+                    </div>
+                    
+                    <div class="bg-blue-50/50 p-6 rounded-2xl border-t-4 border-blue-500 border-x border-b border-slate-100 hover:shadow-lg transition-shadow h-full flex flex-col">
+                        <i class="fa-solid fa-lightbulb text-4xl text-blue-500 mb-4"></i>
+                        <h5 class="font-bold text-dark text-xl mb-3">3. Next Project?</h5>
+                        <p class="text-slate-600 leading-relaxed flex-grow">Nếu được cung cấp 1 bộ KIT FPGA thật trong 3 tháng tới, bạn khao khát được tự tay chế tạo hệ thống gì? <br><br><span class="text-sm text-blue-700 bg-blue-100 px-2 py-1 rounded italic">Ví dụ: Máy tính bỏ túi, Bộ điều khiển Động cơ.</span></p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- DURING SESSION (TIMELINE) -->
+        <section class="bg-white rounded-3xl shadow-xl border border-slate-200 p-8">
+            <h3 class="text-2xl font-bold text-dark mb-8 flex items-center gap-3 border-b border-slate-200 pb-4">
+                <i class="fa-solid fa-stopwatch text-accent"></i> Tiến Trình Buổi Lễ (60 Phút)
+            </h3>
+            
+            <div class="relative border-l-2 border-slate-200 ml-4 md:ml-8 space-y-8">
+                <!-- Timeline Items -->
+                <div class="relative pl-8 md:pl-10 group">
+                    <div class="absolute w-5 h-5 bg-accent rounded-full -left-[11px] top-1 border-4 border-white shadow group-hover:scale-125 transition-transform"></div>
+                    <div class="flex flex-col md:flex-row md:items-center gap-2 md:gap-5 mb-2">
+                        <span class="text-accent font-bold text-base w-24 bg-accent/10 px-2 py-1 rounded text-center">0' - 10'</span>
+                        <h4 class="font-bold text-dark text-xl">Looking Back</h4>
+                    </div>
+                    <p class="text-base text-slate-700 bg-slate-50 p-4 rounded-xl border border-slate-100 shadow-sm leading-relaxed">Mentor chiếu lại những bức ảnh, kỷ niệm, hoặc slide có nhiều lỗi từ Tuần 1. Cùng nhau cười và nhìn lại sự ngô nghê ban đầu để thấy mình đã tiến xa thế nào.</p>
+                </div>
+                
+                <div class="relative pl-8 md:pl-10 group">
+                    <div class="absolute w-5 h-5 bg-primary rounded-full -left-[11px] top-1 border-4 border-white shadow group-hover:scale-125 transition-transform"></div>
+                    <div class="flex flex-col md:flex-row md:items-center gap-2 md:gap-5 mb-2">
+                        <span class="text-primary font-bold text-base w-24 bg-primary/10 px-2 py-1 rounded text-center">10' - 30'</span>
+                        <h4 class="font-bold text-dark text-xl">Breakout Room (Deep Talk)</h4>
+                    </div>
+                    <p class="text-base text-slate-700 bg-slate-50 p-4 rounded-xl border border-slate-100 shadow-sm leading-relaxed">Các thành viên vào phòng nhỏ, thảo luận cực sâu về 3 câu hỏi Phản tỉnh (Tự hào - Điểm yếu - Dự án). Khuyến khích bật Camera 100%.</p>
+                </div>
+
+                <div class="relative pl-8 md:pl-10 group">
+                    <div class="absolute w-5 h-5 bg-secondary rounded-full -left-[11px] top-1 border-4 border-white shadow group-hover:scale-125 transition-transform"></div>
+                    <div class="flex flex-col md:flex-row md:items-center gap-2 md:gap-5 mb-2">
+                        <span class="text-secondary font-bold text-base w-24 bg-secondary/10 px-2 py-1 rounded text-center">30' - 45'</span>
+                        <h4 class="font-bold text-dark text-xl">Community Sharing</h4>
+                    </div>
+                    <p class="text-base text-slate-700 bg-slate-50 p-4 rounded-xl border border-slate-100 shadow-sm leading-relaxed">Trở lại Main room. Đại diện nhóm hoặc cá nhân có 1 phút để "pitching" (thuyết trình ngắn) về ý tưởng Project Phase 2 nhằm tìm kiếm đồng đội có cùng đam mê.</p>
+                </div>
+
+                <div class="relative pl-8 md:pl-10 group">
+                    <div class="absolute w-5 h-5 bg-dark rounded-full -left-[11px] top-1 border-4 border-white shadow group-hover:scale-125 transition-transform"></div>
+                    <div class="flex flex-col md:flex-row md:items-center gap-2 md:gap-5 mb-2">
+                        <span class="text-dark font-bold text-base w-24 bg-slate-200 px-2 py-1 rounded text-center">45' - 55'</span>
+                        <h4 class="font-bold text-dark text-xl">Mentor Guidance & Next Step</h4>
+                    </div>
+                    <p class="text-base text-slate-700 bg-slate-50 p-4 rounded-xl border border-slate-100 shadow-sm leading-relaxed">Mentor phân tích chiến lược: <strong class="text-red-500">Hoàn thành 12 tuần không phải là đích đến.</strong> Đây chỉ là bước đệm. Công bố các chương trình tiếp theo (Project Track & Core Team Track).</p>
+                </div>
+
+                <div class="relative pl-8 md:pl-10 group">
+                    <div class="absolute w-5 h-5 bg-pink-500 rounded-full -left-[11px] top-1 border-4 border-white shadow group-hover:scale-125 transition-transform"></div>
+                    <div class="flex flex-col md:flex-row md:items-center gap-2 md:gap-5 mb-2">
+                        <span class="text-pink-500 font-bold text-base w-24 bg-pink-100 px-2 py-1 rounded text-center">55' - 60'</span>
+                        <h4 class="font-bold text-dark text-xl">Wrap-up & Celebration</h4>
+                    </div>
+                    <p class="text-base text-slate-700 bg-slate-50 p-4 rounded-xl border border-slate-100 shadow-sm leading-relaxed">Chụp ảnh tập thể ảo, nhắc nhở điền Form khảo sát cuối khóa và vinh danh những cá nhân có đóng góp xuất sắc nhất Phase 1.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- KEY VOCABULARY -->
+        <section class="bg-slate-50 rounded-3xl shadow-md border border-slate-200 p-8">
+            <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 border-b border-slate-200 pb-4">
+                <div>
+                    <h3 class="text-2xl font-bold text-dark flex items-center gap-3">
+                        <i class="fa-solid fa-language text-accent"></i> Từ Khóa Tinh Thần Kỹ Sư (Mindset Keywords)
+                    </h3>
+                    <p class="text-base text-slate-500 italic mt-2">Ngoài kỹ thuật, đây là những từ khóa sẽ theo bạn suốt sự nghiệp.</p>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Mindset Cards -->
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 hover:border-primary hover:-translate-y-1 hover:shadow-lg transition-all duration-300 group cursor-default">
+                    <h4 class="font-bold text-primary text-xl mb-2 border-b pb-2">Reflection</h4>
+                    <p class="text-base font-bold text-dark mb-2">Phản tỉnh / Nhìn lại</p>
+                    <p class="text-sm text-slate-600 leading-relaxed">Khả năng tự phân tích bản thân, biết rõ mình đang mạnh gì và hổng kiến thức gì một cách khách quan nhất.</p>
+                </div>
+                
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 hover:border-primary hover:-translate-y-1 hover:shadow-lg transition-all duration-300 group cursor-default">
+                    <h4 class="font-bold text-primary text-xl mb-2 border-b pb-2">Growth Mindset</h4>
+                    <p class="text-base font-bold text-dark mb-2">Tư duy phát triển</p>
+                    <p class="text-sm text-slate-600 leading-relaxed">Tin rằng kỹ năng thiết kế phần cứng phức tạp đến mấy cũng học được nhờ nỗ lực. Bug (lỗi) là cơ hội để giỏi hơn.</p>
+                </div>
+                
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 hover:border-primary hover:-translate-y-1 hover:shadow-lg transition-all duration-300 group cursor-default">
+                    <h4 class="font-bold text-primary text-xl mb-2 border-b pb-2">Foundation</h4>
+                    <p class="text-base font-bold text-dark mb-2">Nền tảng cốt lõi</p>
+                    <p class="text-sm text-slate-600 leading-relaxed">12 tuần qua là gốc rễ. Gốc rễ có bám sâu, vững chắc thì cái cây "Kiến trúc hệ thống" sau này mới vươn cao được.</p>
+                </div>
+                
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 hover:border-primary hover:-translate-y-1 hover:shadow-lg transition-all duration-300 group cursor-default">
+                    <h4 class="font-bold text-primary text-xl mb-2 border-b pb-2">Peer Leadership</h4>
+                    <p class="text-base font-bold text-dark mb-2">Dẫn dắt đồng trang lứa</p>
+                    <p class="text-sm text-slate-600 leading-relaxed">Bạn đã nhận được giá trị, giờ là lúc bạn rèn luyện kỹ năng lãnh đạo bằng cách hướng dẫn lại cho thế hệ sau.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- TWO COLUMNS SECTION: MENTOR NOTE & NEXT STEPS -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <section class="bg-blue-600 text-white rounded-3xl shadow-xl p-8 relative overflow-hidden flex flex-col">
+                <i class="fa-solid fa-rocket absolute -right-8 -bottom-8 text-[12rem] text-blue-500 opacity-30"></i>
+                <div class="relative z-10 flex-1">
+                    <h3 class="text-2xl font-bold mb-6 flex items-center gap-3">
+                        <i class="fa-solid fa-lightbulb text-yellow-300"></i> Lời Khuyên Cốt Lõi Từ Mentor
+                    </h3>
+                    
+                    <div class="space-y-6">
+                        <div class="bg-yellow-500/20 p-5 rounded-2xl border border-yellow-400/50 backdrop-blur-sm">
+                            <span class="text-yellow-300 text-sm font-bold uppercase tracking-widest block mb-2"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Ảo Tưởng Phổ Biến</span>
+                            <p class="text-base text-white leading-relaxed font-medium">Nhiều bạn nghĩ: "Hoàn thành khóa 12 tuần là mình đã đủ cứng để ghi vào CV xin việc Thiết kế Vi mạch". <br><br><strong>Sự thật:</strong> Đây mới chỉ là vạch xuất phát. Giải thích được FSM, UART trên giấy là rất tốt, nhưng nhà tuyển dụng cần nhìn thấy <strong>Sản phẩm chạy thật (Portfolio)</strong> của bạn.</p>
+                        </div>
+
+                        <div class="border-t border-blue-400/50 pt-5">
+                            <p class="text-xl font-bold text-yellow-300 italic mb-3">"Phase 1 is Learning. Phase 2 is Building."</p>
+                            <p class="text-base text-blue-50 leading-relaxed">Nếu bạn dừng lại ở đây, mọi thứ sẽ bay mất trong vòng 1 tháng. Bước tiếp theo bắt buộc là: Tham gia một dự án, thiết kế kiến trúc, gõ code, nạp xuống mạch thật, ngồi nhìn đèn LED nhấp nháy theo đúng ý định của bạn và... sửa bug.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="bg-white rounded-3xl shadow-xl border border-slate-200 p-8 flex flex-col">
+                <h3 class="text-2xl font-bold text-dark mb-6 flex items-center gap-3 border-b border-slate-200 pb-4">
+                    <i class="fa-solid fa-door-open text-secondary"></i> Mở Khóa Phase 2 (Định Hướng)
+                </h3>
+                <p class="text-base text-slate-700 mb-6 leading-relaxed">
+                    Hoạt động của cộng đồng không khép lại tại đây. Có 2 con đường song song mở ra cho bạn trong 3 tháng tới:
+                </p>
+                
+                <div class="space-y-6 flex-grow">
+                    <!-- Path 1 -->
+                    <div class="bg-emerald-50 border-l-8 border-emerald-500 p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+                        <h4 class="font-bold text-emerald-800 text-xl flex items-center gap-3 mb-2"><i class="fa-solid fa-microchip text-2xl"></i> 1. Maker Track (Làm Dự Án)</h4>
+                        <p class="text-base text-slate-700 leading-relaxed">Lập team 2-3 người. Đăng ký mượn Board mạch FPGA từ phòng Lab. Bạn tự đề xuất ý tưởng và code một dự án hoàn chỉnh (như Game Console, Giao tiếp Cảm biến). Các Mentor giàu kinh nghiệm sẽ Review Code và hướng dẫn gỡ rối hàng tuần.</p>
+                    </div>
+                    
+                    <!-- Path 2 -->
+                    <div class="bg-amber-50 border-l-8 border-amber-500 p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+                        <h4 class="font-bold text-amber-800 text-xl flex items-center gap-3 mb-2"><i class="fa-solid fa-users text-2xl"></i> 2. Leader Track (Core Team)</h4>
+                        <p class="text-base text-slate-700 leading-relaxed">Trở thành thành viên nòng cốt tổ chức Phase 1 cho sinh viên khóa sau. Đây là cơ hội vàng để bạn rèn luyện bộ kỹ năng mềm: Thuyết trình kỹ thuật, soạn thảo tài liệu (Documentation), và củng cố kiến thức bằng cách dạy lại cho người khác.</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- FINAL TASK & SURVEY -->
+        <section class="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-3xl shadow-md border border-emerald-200 overflow-hidden">
+            <div class="bg-emerald-600 px-8 py-5">
+                <h3 class="text-2xl font-bold text-white flex items-center gap-3">
+                    <i class="fa-solid fa-flag-checkered"></i> Hành Động Cuối Cùng (The Final Task)
+                </h3>
+            </div>
+            <div class="p-8">
+                <!-- Mini Task -->
+                <div class="bg-white p-8 rounded-2xl border border-emerald-100 shadow-md mb-8 relative overflow-hidden">
+                    <div class="absolute right-0 top-0 w-3 h-full bg-emerald-400"></div>
+                    <h4 class="font-bold text-emerald-700 text-2xl mb-4 flex items-center gap-3"><i class="fa-solid fa-pen-nib text-secondary"></i> Viết Reflection Post</h4>
+                    <p class="text-lg text-slate-700 mb-5 leading-relaxed">Mỗi bạn hãy viết một bài Nhìn lại (Reflection) ngắn gọn và chân thành đăng lên Group lớp. Đây là cách để đóng gói kiến thức, truyền động lực cho nhau và lưu giữ kỷ niệm:</p>
+                    <ul class="list-disc list-inside text-lg text-slate-700 space-y-3 ml-2 font-medium bg-slate-50 p-6 rounded-xl border border-slate-200">
+                        <li><strong>What I learned:</strong> 1 kiến thức hoặc sự thay đổi tư duy giá trị nhất.</li>
+                        <li><strong>What I still need to improve:</strong> Lỗ hổng nào bản thân thấy cần đắp thêm.</li>
+                        <li><strong>My next project:</strong> Kể tên ý tưởng dự án khao khát làm trong Phase 2.</li>
+                        <li><strong>Contribution:</strong> Lời cảm ơn hoặc cách bạn muốn đóng góp cho Cộng đồng.</li>
+                    </ul>
+                </div>
+
+                <div class="space-y-4">
+                    <details class="group bg-white rounded-2xl border-2 border-blue-200 transition-all shadow-lg hover:shadow-xl" open>
+                        <summary class="flex items-center justify-between p-6 cursor-pointer font-bold text-blue-900 text-xl transition-colors rounded-2xl bg-blue-50/50 hover:bg-blue-100/50">
+                            <span class="flex items-center gap-3"><i class="fa-solid fa-link text-blue-600 text-2xl"></i> Bước Quyết Định: Điền Khảo Sát Cuối Khóa</span>
+                            <span class="transition-transform duration-300 group-open:rotate-180 bg-blue-200 w-10 h-10 flex items-center justify-center rounded-full text-blue-700">
+                                <i class="fa-solid fa-chevron-down"></i>
+                            </span>
+                        </summary>
+                        <div class="p-8 border-t-2 border-blue-100 bg-white">
+                            <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded-r-lg">
+                                <p class="text-base text-red-700 font-bold flex items-center gap-2">
+                                    <i class="fa-solid fa-triangle-exclamation"></i> Việc hoàn thành Form này là BẮT BUỘC để nhận chứng nhận tham gia chương trình và lấy vé ưu tiên tham gia Phase 2.
+                                </p>
+                            </div>
+                            
+                            <div class="bg-slate-50 border border-slate-200 p-6 rounded-xl shadow-inner mb-6">
+                                <p class="text-sm font-bold text-slate-500 uppercase tracking-widest mb-4">Các câu hỏi quan trọng trong Form:</p>
+                                <ol class="list-decimal list-inside text-lg text-slate-700 space-y-2 font-medium">
+                                    <li>Đánh giá tổng quan về chất lượng chương trình Mentoring?</li>
+                                    <li>Topic (Buổi học) nào bạn thấy ấn tượng sâu sắc nhất?</li>
+                                    <li>Bạn dự định chọn "Maker Track" hay "Leader Track" cho giai đoạn tới?</li>
+                                    <li>Đề xuất cụ thể tên Project hoặc Board mạch bạn muốn sử dụng?</li>
+                                    <li>Bạn có góp ý gì để cải thiện chương trình cho khóa sau?</li>
+                                </ol>
+                            </div>
+                            <!-- Nút bấm nổi bật -->
+                            <a href="https://forms.gle/4ZFMSAyY3GHe2soZA" target="_blank" class="mt-4 bg-gradient-to-r from-blue-600 to-primary hover:from-blue-700 hover:to-blue-800 text-white font-bold py-4 px-8 rounded-xl transition-all flex items-center justify-center gap-3 shadow-xl hover:shadow-2xl hover:-translate-y-1 w-full text-xl">
+                                <i class="fa-brands fa-google text-2xl"></i> HOÀN THÀNH GOOGLE FORM TỔNG KẾT
+                            </a>
+                        </div>
+                    </details>
+                </div>
+            </div>
+        </section>
+        
+    </main>
+
+    <!-- FOOTER LIBRARIES & COPYRIGHT -->
+    <footer class="mt-20 bg-slate-900 text-slate-300 py-16 text-center border-t-8 border-primary">
+        <div class="max-w-4xl mx-auto px-4">
+            <div class="flex justify-center items-center gap-4 mb-8">
+                <i class="fa-solid fa-microchip text-4xl text-slate-600"></i>
+                <div class="h-1 bg-slate-700 w-24 rounded-full"></div>
+                <i class="fa-solid fa-laptop-code text-5xl text-primary drop-shadow-[0_0_15px_rgba(37,99,235,0.8)]"></i>
+                <div class="h-1 bg-slate-700 w-24 rounded-full"></div>
+                <i class="fa-solid fa-users-rays text-4xl text-secondary"></i>
+            </div>
+            
+            <h4 class="text-3xl font-bold text-white mb-4 tracking-wide">IC Design Mentoring Community</h4>
+            <p class="text-2xl italic text-amber-400 font-light mb-12">"Learn a little, build a little, share a little, grow a little."</p>
+            
+            <div class="bg-slate-800/80 inline-block p-6 rounded-2xl border border-slate-700 mx-auto text-center max-w-2xl shadow-lg">
+                <div class="flex items-center justify-center gap-2 mb-3 text-white">
+                    <i class="fa-solid fa-copyright"></i> <span class="font-bold text-lg">Bản quyền nội dung:</span>
+                </div>
+                <p class="text-base text-slate-300 mb-2">Khoa Điện - Điện tử, Trường Kỹ Thuật, Đại học Phenikaa</p>
+                <p class="text-base text-emerald-400 font-medium">Giảng viên biên soạn: ThS. Đinh Văn Nam</p>
+            </div>
+            
+            <p class="text-sm text-slate-500 mt-8 max-w-xl mx-auto leading-relaxed">Tài liệu lưu hành nội bộ, được thiết kế chuyên biệt nhằm phục vụ phương pháp giảng dạy Flipped Classroom và Peer-learning.</p>
+        </div>
+    </footer>
+
+    <!-- INTERACTIVE JAVASCRIPT -->
+    <script>
+        // 1. Checklist Logic
+        function toggleTask(checkbox) {
+            const label = checkbox.nextElementSibling;
+            if (checkbox.checked) {
+                label.classList.add('completed');
+            } else {
+                label.classList.remove('completed');
+            }
+        }
+
+        // 2. Interactive SVG Skill Tree Logic
+        let activeNodes = {
+            logic: false,
+            comb: false,
+            seq: false,
+            verilog: false,
+            fpga: false,
+            uart: false
+        };
+
+        const totalNodes = 6;
+        
+        function activateNode(nodeId) {
+            if (activeNodes[nodeId]) return; // Already active
+            
+            activeNodes[nodeId] = true;
+            
+            // Visual Update Node
+            const nodeGrp = document.getElementById(`node-${nodeId}`);
+            nodeGrp.querySelector('circle').setAttribute('fill', '#10b981'); // Emerald
+            nodeGrp.querySelector('circle').setAttribute('stroke', '#047857');
+            nodeGrp.querySelector('circle').setAttribute('filter', 'url(#glow-node)');
+            nodeGrp.querySelectorAll('text')[0].setAttribute('fill', '#ffffff');
+            nodeGrp.querySelectorAll('text')[1].setAttribute('fill', '#d1fae5');
+            
+            // Visual Update Wire (Animate drawing the wire)
+            const wire = document.getElementById(`wire-${nodeId}`);
+            wire.setAttribute('stroke', '#10b981');
+            wire.setAttribute('stroke-width', '5');
+            wire.removeAttribute('stroke-dasharray');
+
+            // Update Status Panel
+            let count = Object.values(activeNodes).filter(v => v).length;
+            document.getElementById('activeCount').textContent = `${count} / ${totalNodes}`;
+            
+            let percent = (count / totalNodes) * 100;
+            document.getElementById('progressBar').style.width = `${percent}%`;
+
+            // Encouraging Messages
+            let messages = [
+                "Khởi động cực mượt! Bạn còn nhớ Cổng AND/OR chứ?",
+                "Tốt lắm! Mạch tổ hợp (MUX/Adder) đã nắm vững.",
+                "Tuyệt vời! Tư duy bộ nhớ và Clock là trái tim của hệ thống.",
+                "Hardware Description! Bạn đã không còn sợ code Verilog.",
+                "FPGA Flow! Hiểu rõ quy trình nạp code xuống phần cứng thực tế.",
+                "Giao tiếp hệ thống! Sẵn sàng gửi data ra thế giới bên ngoài."
+            ];
+
+            if (count < totalNodes) {
+                document.getElementById('treeMessage').textContent = messages[count - 1];
+            }
+
+            // Check if All activated
+            if (count === totalNodes) {
+                unlockPhase2();
+            }
+        }
+
+        function unlockPhase2() {
+            // Update Message
+            document.getElementById('treeMessage').innerHTML = `<span class="text-amber-400 font-bold text-lg">Chúc mừng! Bạn đã thu thập đủ nền tảng.</span>`;
+            
+            // Glow the Core
+            const core = document.getElementById('coreNode');
+            core.classList.remove('opacity-20', 'grayscale');
+            core.classList.add('opacity-100', 'core-glow');
+            core.querySelector('circle').setAttribute('stroke-width', '6');
+            core.querySelector('text').setAttribute('fill', '#fde68a'); // lighter text
+            
+            // Show Action Button with bounce effect
+            const btnUnlock = document.getElementById('btnUnlockPhase2');
+            btnUnlock.classList.remove('scale-0', 'opacity-0', 'pointer-events-none');
+            btnUnlock.classList.add('scale-100', 'opacity-100');
+
+            // Extra flair: change progress bar color to amber
+            const pBar = document.getElementById('progressBar');
+            pBar.classList.remove('from-emerald-400', 'to-emerald-600', 'shadow-[0_0_10px_#10b981]');
+            pBar.classList.add('from-amber-400', 'to-amber-600', 'shadow-[0_0_15px_#f59e0b]');
+            
+            document.getElementById('activeCount').classList.replace('text-accent', 'text-amber-400');
+            
+            // Auto scroll slightly down to make button prominent (optional UX)
+            setTimeout(() => {
+                btnUnlock.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 500);
+        }
+    </script>
+
+<div id="lichub-nav-bottom" data-lichub="v1" role="navigation" aria-label="Điều hướng Learning Hub (bổ sung, không thuộc trang gốc)" style="background:#0f172a;color:#e2e8f0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:13.5px;line-height:1.6;padding:8px 16px;display:flex;flex-wrap:wrap;gap:4px 16px;align-items:center;border-top:3px solid #f59e0b"><a href="../../index.html" style="color:#7dd3fc;text-decoration:none;font-weight:600">⌂ Learning Hub</a><span style="font-size:11px;font-weight:700;letter-spacing:.04em;color:#f59e0b;border:1px solid #f59e0b;border-radius:6px;padding:1px 7px;white-space:nowrap">V1 · BẢN LƯU TRỮ GỐC</span><a href="index.html" style="color:#cbd5e1;text-decoration:none">Mục lục V1</a><span style="flex:1"></span><a href="Week11.html" style="color:#7dd3fc;text-decoration:none" title="UART Communication Basics">← Tuần 11</a><span style="color:#475569">Tuần sau →</span><span aria-hidden="true" style="color:#475569">|</span><span style="display:inline-flex;gap:8px;align-items:center"><span style="color:#94a3b8">Chuyển bản:</span> <b aria-current="true" style="color:#f59e0b">V1</b> <a href="../v2/index.html" style="color:#cbd5e1;text-decoration:none">V2</a> <a href="../v3/index.html" style="color:#cbd5e1;text-decoration:none">V3</a></span></div>
+</body>
+</html>

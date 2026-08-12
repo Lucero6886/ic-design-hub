@@ -1,0 +1,138 @@
+---
+import BaseLayout from "~/layouts/BaseLayout.astro";
+import { href } from "~/utils/url";
+---
+
+<BaseLayout
+  title="Tìm kiếm"
+  description="Tìm kiếm toàn hub: bài viết, project, nghiên cứu, tài nguyên, lộ trình và toàn bộ giáo trình V1/V2/V3. Gõ được không dấu."
+  path="search/"
+  noindex={true}
+>
+  <div class="wrap">
+    <nav class="crumbs" aria-label="Breadcrumb"><a href={href("")}>Trang chủ</a> / <span>Tìm kiếm</span></nav>
+    <h1 style="margin-top:10px">Tìm kiếm toàn hub</h1>
+    <p class="sec-sub">
+      Bao phủ: bài viết · project · nghiên cứu · lộ trình · tài nguyên · <b>toàn bộ giáo trình V1/V2/V3</b>.
+      Gõ được không dấu (ví dụ <code>tuan tu</code>, <code>fsm</code>, <code>uart</code>).
+    </p>
+
+    <div class="searchbox">
+      <input id="search-input" type="search" placeholder="Ví dụ: FSM, uart, mạch tuần tự, latch…" aria-label="Từ khóa tìm kiếm" autofocus />
+      <div class="scope" role="group" aria-label="Phạm vi tìm kiếm">
+        <button type="button" data-scope="all" aria-pressed="true">Tất cả</button>
+        <button type="button" data-scope="hub" aria-pressed="false">Hub mới</button>
+        <button type="button" data-scope="v3" aria-pressed="false">Giáo trình V3</button>
+        <button type="button" data-scope="v2" aria-pressed="false">V2</button>
+        <button type="button" data-scope="v1" aria-pressed="false">V1</button>
+      </div>
+    </div>
+    <ul id="search-results"></ul>
+    <p id="search-empty" role="status" aria-live="polite"></p>
+    <noscript><p class="muted">Tìm kiếm cần JavaScript. Không có JavaScript, bạn vẫn duyệt được toàn bộ nội dung qua điều hướng của site.</p></noscript>
+  </div>
+
+  <script is:inline define:vars={{ indexUrl: href("search-index.json"), base: href("") }}>
+    /* Tìm kiếm client-side — kế thừa hành vi đã kiểm định của Learning Hub:
+       gập dấu tiếng Việt hai phía (index lẫn truy vấn), mọi term đều phải khớp,
+       ưu tiên khớp tiêu đề. Chỉ mục sinh tự động lúc build (tools/build-search-index.mjs). */
+    (function () {
+      "use strict";
+      var input = document.getElementById("search-input");
+      var list = document.getElementById("search-results");
+      var empty = document.getElementById("search-empty");
+      var scopeBtns = Array.prototype.slice.call(document.querySelectorAll(".scope button"));
+      var scope = "all";
+      var IDX = null;
+
+      function fold(s) {
+        return s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/g, "d");
+      }
+      function load() {
+        if (IDX) return Promise.resolve(IDX);
+        return fetch(indexUrl).then(function (r) { return r.json(); }).then(function (j) { IDX = j; return j; });
+      }
+      function score(e, terms) {
+        var sc = 0;
+        for (var j = 0; j < terms.length; j++) {
+          var t = terms[j];
+          if (!t) continue;
+          var inTitle = e.ft.indexOf(t) >= 0;
+          var inBody = e.fh.indexOf(t) >= 0;
+          if (!inTitle && !inBody) return 0; // mọi term đều phải khớp
+          sc += inTitle ? 3 : 1;
+        }
+        return sc;
+      }
+      function firstHit(e, terms) {
+        for (var i = 0; i < (e.h || []).length; i++) {
+          var fh = fold(e.h[i]);
+          for (var j = 0; j < terms.length; j++) {
+            if (terms[j] && fh.indexOf(terms[j]) >= 0) return e.h[i];
+          }
+        }
+        return "";
+      }
+      function render() {
+        var q = fold(input.value.trim());
+        list.innerHTML = "";
+        if (q.length < 2) { empty.textContent = ""; return; }
+        load().then(function (idx) {
+          var terms = q.split(/\s+/).slice(0, 8);
+          var out = [];
+          for (var i = 0; i < idx.length; i++) {
+            var e = idx[i];
+            if (scope === "hub" && (e.s === "v1" || e.s === "v2" || e.s === "v3")) continue;
+            if ((scope === "v1" || scope === "v2" || scope === "v3") && e.s !== scope) continue;
+            var sc = score(e, terms);
+            if (sc > 0) out.push([sc, e]);
+          }
+          out.sort(function (a, b) { return b[0] - a[0]; });
+          out = out.slice(0, 30);
+          if (!out.length) {
+            empty.textContent = "Không tìm thấy — thử từ khóa khác (có thể gõ không dấu).";
+            return;
+          }
+          empty.textContent = out.length + " kết quả.";
+          for (var k = 0; k < out.length; k++) {
+            var e2 = out[k][1];
+            var li = document.createElement("li");
+            var a = document.createElement("a");
+            a.href = base + e2.p;
+            var src = document.createElement("span");
+            src.className = "src";
+            src.textContent = "[" + e2.l + "]";
+            a.appendChild(src);
+            a.appendChild(document.createTextNode(" " + e2.t));
+            var hit = firstHit(e2, terms);
+            if (hit && hit !== e2.t) {
+              var s2 = document.createElement("span");
+              s2.className = "hit";
+              s2.textContent = "↳ " + hit;
+              a.appendChild(s2);
+            }
+            li.appendChild(a);
+            list.appendChild(li);
+          }
+        }).catch(function () {
+          empty.textContent = "Không tải được chỉ mục tìm kiếm.";
+        });
+      }
+      scopeBtns.forEach(function (b) {
+        b.addEventListener("click", function () {
+          scope = b.getAttribute("data-scope");
+          scopeBtns.forEach(function (x) { x.setAttribute("aria-pressed", String(x === b)); });
+          render();
+        });
+      });
+      var t = null;
+      input.addEventListener("input", function () {
+        clearTimeout(t);
+        t = setTimeout(render, 120);
+      });
+      // hỗ trợ ?q= trên URL
+      var m = location.search.match(/[?&]q=([^&]+)/);
+      if (m) { input.value = decodeURIComponent(m[1].replace(/\+/g, " ")); render(); }
+    })();
+  </script>
+</BaseLayout>

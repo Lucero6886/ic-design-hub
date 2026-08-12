@@ -1,0 +1,1430 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tuần 10 — Counter &amp; 7-Segment Display | IC Design Mentoring</title>
+<meta name="description" content="Tuần 10: Bộ đếm và hiển thị LED 7 đoạn — data path clock → counter → binary → decoder → display, SystemVerilog, demo tương tác.">
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        primary: '#2563eb',
+        secondary: '#f59e0b',
+        accent: '#10b981',
+        danger: '#ef4444',
+        dark: '#0f172a',
+        light: '#f8fafc'
+      },
+      fontFamily: {
+        sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace']
+      }
+    }
+  }
+}
+</script>
+<style>
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Inter', sans-serif; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  section { scroll-margin-top: 90px; }
+
+  /* Code block + syntax highlight thủ công */
+  pre.code {
+    background: #0f172a; color: #e2e8f0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem; line-height: 1.55;
+    border-radius: 0 0 0.75rem 0.75rem;
+    padding: 1rem 1.25rem; overflow-x: auto;
+  }
+  .tk { color: #93c5fd; font-weight: 500; }   /* keyword */
+  .tp { color: #c4b5fd; }                      /* type / enum */
+  .tn { color: #fbbf24; }                      /* number */
+  .tc { color: #86efac; font-style: italic; }  /* comment */
+  .ts { color: #fda4af; }                      /* string */
+
+  /* LED 7 đoạn */
+  .seg { stroke: #1e293b; transition: stroke .18s ease, filter .18s ease; }
+  .seg.on { stroke: #f87171; filter: drop-shadow(0 0 6px rgba(248,113,113,.85)); }
+
+  /* Quiz */
+  .quiz-opt { cursor: pointer; border: 2px solid #e2e8f0; transition: all .15s ease; }
+  .quiz-opt:hover { border-color: #93c5fd; background: #eff6ff; }
+  .quiz-opt.locked { cursor: default; }
+  .quiz-opt.correct { border-color: #10b981; background: #ecfdf5; }
+  .quiz-opt.wrong { border-color: #ef4444; background: #fef2f2; }
+
+  input[type="checkbox"].chk { accent-color: #10b981; width: 1.1rem; height: 1.1rem; }
+
+  .rowhl { background: #dbeafe !important; box-shadow: inset 3px 0 0 #2563eb; }
+  .flash-val { animation: flashval .45s ease; }
+  @keyframes flashval { 0% { background:#fde68a; } 100% { background:transparent; } }
+  @keyframes clkpulse { 0%,100% { opacity:.35; } 50% { opacity:1; } }
+  .clk-run { animation: clkpulse .5s ease infinite; }
+</style>
+</head>
+<body class="bg-slate-100 text-slate-800 antialiased">
+<div id="lichub-nav-top" data-lichub="v2" role="navigation" aria-label="Điều hướng Learning Hub (bổ sung, không thuộc trang gốc)" style="background:#0f172a;color:#e2e8f0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:13.5px;line-height:1.6;padding:8px 16px;display:flex;flex-wrap:wrap;gap:4px 16px;align-items:center;border-bottom:3px solid #38bdf8"><a href="../../index.html" style="color:#7dd3fc;text-decoration:none;font-weight:600">⌂ Learning Hub</a><span style="font-size:11px;font-weight:700;letter-spacing:.04em;color:#38bdf8;border:1px solid #38bdf8;border-radius:6px;padding:1px 7px;white-space:nowrap">V2 · BẢN MỞ RỘNG</span><a href="index.html" style="color:#cbd5e1;text-decoration:none">Mục lục V2</a><span style="flex:1"></span><a href="Week9.html" style="color:#7dd3fc;text-decoration:none" title="Traffic Light Controller">← Tuần 9</a><a href="Week11.html" style="color:#7dd3fc;text-decoration:none" title="UART Communication Basics">Tuần 11 →</a><span aria-hidden="true" style="color:#475569">|</span><span style="display:inline-flex;gap:8px;align-items:center"><span style="color:#94a3b8">Chuyển bản:</span> <a href="../v1/index.html" style="color:#cbd5e1;text-decoration:none">V1</a> <b aria-current="true" style="color:#38bdf8">V2</b> <a href="../v3/index.html" style="color:#cbd5e1;text-decoration:none">V3</a></span></div>
+
+
+<!-- ===================== STICKY NAV ===================== -->
+<nav class="fixed top-0 inset-x-0 z-50 bg-dark/95 backdrop-blur border-b border-slate-700">
+  <div class="max-w-6xl mx-auto px-4">
+    <div class="flex items-center gap-4 h-14">
+      <a href="#hero" class="flex items-center gap-2 shrink-0">
+        <span class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-blue-400 flex items-center justify-center text-white"><i class="fa-solid fa-microchip text-sm"></i></span>
+        <span class="text-white font-bold text-sm hidden sm:inline">IC Design Mentoring</span>
+      </a>
+      <div class="shrink-0">
+        <span class="text-[11px] font-bold text-blue-300 bg-blue-500/15 border border-blue-400/30 rounded-full px-2.5 py-1">Tuần 10/12</span>
+        <div class="w-24 h-1 bg-slate-700 rounded-full mt-1 overflow-hidden"><div class="h-full bg-gradient-to-r from-primary to-accent rounded-full" style="width:83.3%"></div></div>
+      </div>
+      <div class="flex-1 overflow-x-auto no-scrollbar">
+        <div class="flex items-center gap-1 text-[12px] font-medium text-slate-300 whitespace-nowrap">
+          <a href="#core-concepts" class="px-2.5 py-1.5 rounded-lg hover:bg-slate-700 hover:text-white">Khái niệm</a>
+          <a href="#demo" class="px-2.5 py-1.5 rounded-lg hover:bg-slate-700 hover:text-white">Demo</a>
+          <a href="#code-rtl" class="px-2.5 py-1.5 rounded-lg hover:bg-slate-700 hover:text-white">Code RTL</a>
+          <a href="#waveform" class="px-2.5 py-1.5 rounded-lg hover:bg-slate-700 hover:text-white">Waveform</a>
+          <a href="#mistakes" class="px-2.5 py-1.5 rounded-lg hover:bg-slate-700 hover:text-white">Lỗi hay gặp</a>
+          <a href="#quiz" class="px-2.5 py-1.5 rounded-lg hover:bg-slate-700 hover:text-white">Quiz</a>
+          <a href="#homework" class="px-2.5 py-1.5 rounded-lg hover:bg-slate-700 hover:text-white">Bài tập</a>
+          <a href="#vocabulary" class="px-2.5 py-1.5 rounded-lg hover:bg-slate-700 hover:text-white">Từ vựng</a>
+          <a href="#summary" class="px-2.5 py-1.5 rounded-lg hover:bg-slate-700 hover:text-white">Tóm tắt</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- ===================== 1. HERO ===================== -->
+<header id="hero" class="pt-14 bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 text-white">
+  <div class="max-w-6xl mx-auto px-4 py-14 md:py-20">
+    <div class="flex flex-wrap items-center gap-3 mb-5">
+      <span class="text-xs font-bold uppercase tracking-widest bg-white/10 border border-white/20 rounded-full px-3 py-1.5"><i class="fa-solid fa-calendar-week mr-1.5"></i>Tuần 10 / 12</span>
+      <span class="text-xs font-bold uppercase tracking-widest bg-accent/20 text-emerald-200 border border-emerald-300/30 rounded-full px-3 py-1.5"><i class="fa-solid fa-diagram-project mr-1.5"></i>Mini-project trực quan</span>
+    </div>
+    <h1 class="text-3xl md:text-5xl font-black leading-tight">Counter &amp; 7-Segment Display</h1>
+    <p class="mt-2 text-xl md:text-2xl font-semibold text-blue-200">Bộ Đếm Và Hiển Thị LED 7 Đoạn</p>
+    <p class="mt-5 max-w-3xl text-slate-300 leading-relaxed">
+      Tuần 9 bạn đã làm FSM điều khiển đèn giao thông — một <em>controller</em>. Tuần này chúng ta xây một
+      <strong class="text-white">data path (đường dữ liệu)</strong> hoàn chỉnh đầu tiên: xung <strong class="text-white">clock</strong> đều đặn đi vào,
+      <strong class="text-white">counter (bộ đếm)</strong> — thực chất là một thanh ghi 4 flip-flop — tạo ra giá trị nhị phân,
+      <strong class="text-white">decoder (bộ giải mã)</strong> biến giá trị đó thành mẫu sáng, và LED 7 đoạn hiện con số cho con người đọc.
+      Đây là project FPGA đầu tiên mà bạn <em>nhìn thấy</em> mạch số của mình hoạt động bằng mắt thường — khoảnh khắc "nó chạy thật!" của mọi kỹ sư thiết kế số.
+    </p>
+    <div class="grid sm:grid-cols-2 gap-3 mt-8 max-w-4xl">
+      <div class="bg-white/5 border border-white/15 rounded-xl p-4 flex gap-3">
+        <i class="fa-solid fa-bullseye text-secondary mt-1"></i>
+        <p class="text-sm text-slate-200"><strong>Mục tiêu 1.</strong> Giải thích counter là mạch tuần tự: thanh ghi <strong>4 flip-flop</strong> lưu giá trị nhị phân, tăng theo cạnh lên clock, quay về 0 sau 9 (mod-10).</p>
+      </div>
+      <div class="bg-white/5 border border-white/15 rounded-xl p-4 flex gap-3">
+        <i class="fa-solid fa-bullseye text-secondary mt-1"></i>
+        <p class="text-sm text-slate-200"><strong>Mục tiêu 2.</strong> Hiểu decoder 7 đoạn là mạch tổ hợp: bảng chân lý 10 hàng biến 4 bit nhị phân thành 7 tín hiệu a–g.</p>
+      </div>
+      <div class="bg-white/5 border border-white/15 rounded-xl p-4 flex gap-3">
+        <i class="fa-solid fa-bullseye text-secondary mt-1"></i>
+        <p class="text-sm text-slate-200"><strong>Mục tiêu 3.</strong> Vẽ và giải thích trọn vẹn data path: clock → counter → giá trị nhị phân → decoder → LED 7 đoạn.</p>
+      </div>
+      <div class="bg-white/5 border border-white/15 rounded-xl p-4 flex gap-3">
+        <i class="fa-solid fa-bullseye text-secondary mt-1"></i>
+        <p class="text-sm text-slate-200"><strong>Mục tiêu 4.</strong> Viết SystemVerilog cho counter mod-10 + decoder, dùng <strong>tick enable</strong> 1 Hz từ clock 50 MHz (không chia clock kiểu tự chế).</p>
+      </div>
+    </div>
+    <div class="flex flex-wrap gap-3 mt-8 text-sm">
+      <div class="bg-white/5 border border-white/15 rounded-lg px-4 py-2"><i class="fa-solid fa-backward-step text-blue-300 mr-2"></i>Tuần 9: Traffic Light — FSM + timer (chính là một counter!)</div>
+      <div class="bg-white/5 border border-white/15 rounded-lg px-4 py-2"><i class="fa-solid fa-forward-step text-emerald-300 mr-2"></i>Tuần 11: UART — gửi giá trị counter này về PC</div>
+    </div>
+  </div>
+</header>
+
+<main class="max-w-6xl mx-auto px-4 pb-16">
+
+<!-- ===================== 2. LEARNING MAP ===================== -->
+<section id="learning-map" class="pt-12">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-map-location-dot"></i></div>
+    <div>
+      <p class="text-[11px] font-bold text-primary uppercase tracking-wider">Section 02</p>
+      <h2 class="text-2xl font-extrabold text-slate-900">Learning Map — Vị trí tuần này trong hành trình</h2>
+    </div>
+  </div>
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+    <div class="grid md:grid-cols-3 gap-4 items-stretch">
+      <div class="rounded-xl border-2 border-slate-200 bg-slate-50 p-5 relative">
+        <p class="text-[11px] font-bold uppercase text-slate-500 mb-1">Tuần 9 — đã học</p>
+        <h3 class="font-bold text-slate-800"><i class="fa-solid fa-traffic-light text-secondary mr-2"></i>Traffic Light Controller</h3>
+        <p class="text-sm text-slate-600 mt-2">FSM + timer bằng Verilog. Timer đếm giây trong đèn giao thông <strong>chính là một counter</strong> — tuần này ta "mổ xẻ" nó và cho nó hiển thị ra LED.</p>
+        <i class="fa-solid fa-arrow-right hidden md:block absolute -right-4 top-1/2 -translate-y-1/2 text-slate-300 text-xl"></i>
+      </div>
+      <div class="rounded-xl border-2 border-primary bg-blue-50 p-5 relative shadow-md">
+        <p class="text-[11px] font-bold uppercase text-primary mb-1">Tuần 10 — bạn đang ở đây</p>
+        <h3 class="font-bold text-slate-900"><i class="fa-solid fa-stopwatch text-primary mr-2"></i>Counter + 7-Segment</h3>
+        <p class="text-sm text-slate-700 mt-2">Data path hoàn chỉnh: khối <strong>tạo giá trị</strong> (counter — tuần tự) nối với khối <strong>hiển thị</strong> (decoder — tổ hợp). Tư duy ghép khối của Tuần 4 + Tuần 5 thành hệ thống thật.</p>
+        <i class="fa-solid fa-arrow-right hidden md:block absolute -right-4 top-1/2 -translate-y-1/2 text-slate-300 text-xl"></i>
+      </div>
+      <div class="rounded-xl border-2 border-slate-200 bg-slate-50 p-5">
+        <p class="text-[11px] font-bold uppercase text-slate-500 mb-1">Tuần 11 — sắp tới</p>
+        <h3 class="font-bold text-slate-800"><i class="fa-solid fa-tower-broadcast text-accent mr-2"></i>UART Communication</h3>
+        <p class="text-sm text-slate-600 mt-2">Hiển thị cho người xem là chưa đủ — hệ thống còn phải <strong>nói chuyện với hệ thống khác</strong>. Giá trị counter tuần này sẽ được gửi về PC qua UART.</p>
+      </div>
+    </div>
+    <div class="grid md:grid-cols-2 gap-4 mt-5">
+      <div class="rounded-xl bg-amber-50 border border-amber-200 p-4">
+        <p class="text-sm font-bold text-amber-800 mb-2"><i class="fa-solid fa-key mr-1.5"></i>Cần vững trước khi vào bài</p>
+        <ul class="text-sm text-slate-700 space-y-1.5 list-none">
+          <li><i class="fa-solid fa-check text-accent mr-2"></i>Tuần 5: flip-flop lưu 1 bit, register n-bit = n flip-flop, cạnh lên clock</li>
+          <li><i class="fa-solid fa-check text-accent mr-2"></i>Tuần 4: decoder là mạch tổ hợp có bảng chân lý xác định</li>
+          <li><i class="fa-solid fa-check text-accent mr-2"></i>Tuần 7: <span class="font-mono text-xs">always_ff</span> cho mạch tuần tự, <span class="font-mono text-xs">always_comb</span> cho mạch tổ hợp</li>
+        </ul>
+      </div>
+      <div class="rounded-xl bg-emerald-50 border border-emerald-200 p-4">
+        <p class="text-sm font-bold text-emerald-800 mb-2"><i class="fa-solid fa-rocket mr-1.5"></i>Học xong sẽ dùng vào đâu</p>
+        <ul class="text-sm text-slate-700 space-y-1.5 list-none">
+          <li><i class="fa-solid fa-arrow-trend-up text-primary mr-2"></i>Tuần 11: gửi giá trị đếm qua UART về PC</li>
+          <li><i class="fa-solid fa-arrow-trend-up text-primary mr-2"></i>Phase 2: stopwatch (đồng hồ bấm giờ), đồng hồ số, máy đếm sản phẩm</li>
+          <li><i class="fa-solid fa-arrow-trend-up text-primary mr-2"></i>Mọi SoC thật: timer, watchdog, program counter đều là... counter</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 3. BEFORE SESSION ===================== -->
+<section id="before-session" class="pt-12">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-clipboard-check"></i></div>
+    <div>
+      <p class="text-[11px] font-bold text-primary uppercase tracking-wider">Section 03</p>
+      <h2 class="text-2xl font-extrabold text-slate-900">Trước buổi học — Chuẩn bị để thảo luận sâu</h2>
+    </div>
+  </div>
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+    <p class="text-slate-700 leading-relaxed">
+      Buổi này là buổi <strong>ghép khối</strong>: không có khái niệm nào hoàn toàn mới, nhưng bạn sẽ lần đầu nối một khối
+      <strong>tuần tự</strong> (counter) với một khối <strong>tổ hợp</strong> (decoder) thành hệ thống chạy được trên FPGA.
+      Nếu bạn còn mơ hồ flip-flop hay decoder, hãy ôn lại trước — buổi học sẽ tập trung vào việc <em>ghép và debug</em>, không quay lại định nghĩa.
+    </p>
+    <div class="grid md:grid-cols-2 gap-5 mt-6">
+      <div class="rounded-xl border border-slate-200 p-5">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="font-bold text-slate-800"><i class="fa-solid fa-list-check text-primary mr-2"></i>Checklist chuẩn bị</h3>
+          <span id="prep-progress" class="text-xs font-bold text-white bg-primary rounded-full px-2.5 py-1">0/6</span>
+        </div>
+        <div class="space-y-2.5 text-sm text-slate-700">
+          <label class="flex items-start gap-3 cursor-pointer"><input type="checkbox" class="chk prep-chk mt-0.5"><span>Ôn Tuần 5: một D flip-flop lưu <strong>1 bit</strong>; register 4 bit = 4 flip-flop</span></label>
+          <label class="flex items-start gap-3 cursor-pointer"><input type="checkbox" class="chk prep-chk mt-0.5"><span>Ôn Tuần 4: decoder — mỗi tổ hợp input ứng với một output xác định</span></label>
+          <label class="flex items-start gap-3 cursor-pointer"><input type="checkbox" class="chk prep-chk mt-0.5"><span>Xem lại code Tuần 7/9: <span class="font-mono text-xs">always_ff</span> dùng <span class="font-mono text-xs">&lt;=</span>, <span class="font-mono text-xs">always_comb</span> dùng <span class="font-mono text-xs">=</span></span></label>
+          <label class="flex items-start gap-3 cursor-pointer"><input type="checkbox" class="chk prep-chk mt-0.5"><span>Nhìn một LED 7 đoạn thật (đồng hồ, lò vi sóng, cây xăng) và đếm số đoạn sáng của số 8 và số 1</span></label>
+          <label class="flex items-start gap-3 cursor-pointer"><input type="checkbox" class="chk prep-chk mt-0.5"><span>Đổi nhẩm nhị phân: 0101 = ?, 1001 = ?, 9 + 1 trong mod-10 = ?</span></label>
+          <label class="flex items-start gap-3 cursor-pointer"><input type="checkbox" class="chk prep-chk mt-0.5"><span>Chuẩn bị 1 câu hỏi "vì sao" cho breakout room</span></label>
+        </div>
+      </div>
+      <div class="space-y-4">
+        <div class="rounded-xl bg-blue-50 border border-blue-200 p-5">
+          <h3 class="font-bold text-slate-800 mb-2"><i class="fa-solid fa-circle-question text-primary mr-2"></i>3 câu hỏi khởi động</h3>
+          <ol class="text-sm text-slate-700 space-y-2 list-decimal list-inside">
+            <li>Đếm 0 → 9 cần lưu tối đa giá trị 9 = 1001₂. Vậy cần <strong>mấy flip-flop</strong>? Vì sao 3 không đủ?</li>
+            <li>LED 7 đoạn có 7 thanh sáng a–g. Counter chỉ xuất 4 bit. Ai "dịch" 4 bit thành 7 tín hiệu?</li>
+            <li>Clock trên board FPGA là 50 MHz (50 triệu cạnh lên mỗi giây). Nếu counter đếm mỗi cạnh, mắt bạn thấy gì trên LED?</li>
+          </ol>
+        </div>
+        <div class="rounded-xl bg-amber-50 border border-amber-200 p-5">
+          <h3 class="font-bold text-slate-800 mb-2"><i class="fa-solid fa-person-digging text-secondary mr-2"></i>Nhiệm vụ nhỏ (5–10 phút)</h3>
+          <p class="text-sm text-slate-700">Kẻ bảng 3 cột: <em>Số thập phân | Nhị phân 4 bit | Các đoạn sáng (a–g)</em>. Điền cho các số <strong>0, 1, 2</strong> bằng cách nhìn hình LED 7 đoạn. Trong buổi học ta sẽ điền nốt 3–9 và biến bảng này thành... code Verilog. Bảng bạn vừa kẻ chính là <strong>bảng chân lý của decoder</strong>.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 4. CORE CONCEPTS ===================== -->
+<section id="core-concepts" class="pt-12">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-lightbulb"></i></div>
+    <div>
+      <p class="text-[11px] font-bold text-primary uppercase tracking-wider">Section 04</p>
+      <h2 class="text-2xl font-extrabold text-slate-900">Khái niệm cốt lõi — từ trực giác đến kỹ thuật</h2>
+    </div>
+  </div>
+  <div class="space-y-6">
+
+    <!-- Concept 1: Counter -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+      <div class="bg-gradient-to-r from-primary to-blue-500 px-6 py-3 flex items-center gap-3">
+        <span class="w-7 h-7 rounded-full bg-white/20 text-white text-sm font-bold flex items-center justify-center">1</span>
+        <h3 class="text-white font-bold">Counter (bộ đếm) — thanh ghi biết tự cộng 1</h3>
+      </div>
+      <div class="p-6 grid md:grid-cols-2 gap-5">
+        <div class="space-y-3 text-sm text-slate-700 leading-relaxed">
+          <p><strong class="text-primary">Định nghĩa dễ hiểu.</strong> Counter là mạch <em>nhớ một con số</em> và <em>tăng nó lên 1</em> mỗi khi có "nhịp" — giống bạn bấm cái máy đếm người ra vào cửa hàng: mỗi lần bấm, số nhảy lên 1.</p>
+          <p><strong class="text-primary">Bản chất kỹ thuật.</strong> Counter 0–9 là một <strong>thanh ghi 4 bit — tức 4 flip-flop</strong> — kèm hai mạch tổ hợp phục vụ nó: (1) bộ cộng +1 (incrementer) tính "giá trị kế tiếp", (2) <strong>bộ so sánh (comparator)</strong> phát hiện giá trị hiện tại bằng 9 để lần đếm sau quay về 0 thay vì lên 10. Vì 9 = 1001₂ cần 4 bit, nên 3 flip-flop (tối đa 7) không đủ. Đếm 0–9 rồi quay vòng gọi là <strong>mod-10</strong> (modulo-10), còn gọi là BCD counter.</p>
+          <p><strong class="text-primary">Ví dụ đời sống.</strong> Đồng hồ điện tử: chữ số hàng đơn vị của giây chạy 0→9 rồi quay về 0 và "nhả" một nhịp sang hàng chục — đúng nguyên lý mod-10 nối tầng.</p>
+        </div>
+        <div class="space-y-3 text-sm text-slate-700 leading-relaxed">
+          <p><strong class="text-accent">Trong IC / FPGA / ASIC.</strong> Counter có mặt khắp nơi: timer đếm thời gian trong MCU, program counter trong CPU trỏ lệnh kế tiếp, watchdog counter phát hiện treo máy, counter chia tần trong bộ tạo baud rate (gặp lại ở Tuần 11!).</p>
+          <div class="rounded-lg bg-red-50 border border-red-200 p-3">
+            <p class="text-red-700"><i class="fa-solid fa-triangle-exclamation mr-1.5"></i><strong>Lỗi hiểu sai phổ biến:</strong> "counter tự hiển thị được số lên LED". Sai — counter chỉ tạo ra <strong>4 bit nhị phân</strong>. Muốn con người đọc được, phải có decoder dịch 4 bit đó thành mẫu sáng 7 đoạn. <em>Counter tạo giá trị; decoder tạo hình ảnh.</em></p>
+          </div>
+          <div class="rounded-lg bg-slate-50 border border-slate-200 p-3 font-mono text-xs text-slate-600">
+            0000 → 0001 → 0010 → ... → 1000 → 1001 → <span class="text-primary font-bold">0000</span> (wrap tại 9 nhờ comparator)
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Concept 2: Clock & enable tick -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+      <div class="bg-gradient-to-r from-primary to-blue-500 px-6 py-3 flex items-center gap-3">
+        <span class="w-7 h-7 rounded-full bg-white/20 text-white text-sm font-bold flex items-center justify-center">2</span>
+        <h3 class="text-white font-bold">Clock (xung nhịp) &amp; Enable tick — đếm đúng tốc độ mắt người</h3>
+      </div>
+      <div class="p-6 grid md:grid-cols-2 gap-5">
+        <div class="space-y-3 text-sm text-slate-700 leading-relaxed">
+          <p><strong class="text-primary">Định nghĩa dễ hiểu.</strong> Clock là "nhịp tim" của mạch tuần tự: một tín hiệu vuông lên–xuống đều đặn. Flip-flop chỉ cập nhật giá trị tại <strong>cạnh lên (rising edge)</strong> của clock.</p>
+          <p><strong class="text-primary">Bản chất kỹ thuật.</strong> Board FPGA cấp clock 50 MHz — 50 triệu cạnh lên mỗi giây. Nếu counter đếm mọi cạnh, nó chạy hết vòng 0–9 năm triệu lần mỗi giây: LED sáng nhòe như số 8 mờ. Giải pháp chuẩn: một bộ đếm phụ đếm đủ 50.000.000 chu kỳ rồi phát <strong>tick enable</strong> — xung <em>cho phép</em> rộng đúng 1 chu kỳ clock, mỗi giây 1 lần. Counter chính vẫn nối clock 50 MHz, nhưng chỉ đếm khi <span class="font-mono text-xs">en = 1</span>.</p>
+          <p><strong class="text-primary">Ví dụ đời sống.</strong> Kim giây đồng hồ: trái tim bạn đập ~70 nhịp/phút nhưng bạn chỉ bước đi khi có hiệu lệnh — nhịp vẫn đập, hành động thì chờ "enable".</p>
+        </div>
+        <div class="space-y-3 text-sm text-slate-700 leading-relaxed">
+          <p><strong class="text-accent">Trong IC / FPGA / ASIC.</strong> Kỹ thuật <em>clock enable</em> là chuẩn công nghiệp: mọi flip-flop trong FPGA có sẵn chân CE (clock enable). Toàn hệ thống dùng <strong>một clock chung</strong>, các khối chạy "chậm" chỉ khác nhau ở nhịp enable — nhờ vậy công cụ phân tích timing làm việc chính xác.</p>
+          <div class="rounded-lg bg-red-50 border border-red-200 p-3">
+            <p class="text-red-700"><i class="fa-solid fa-triangle-exclamation mr-1.5"></i><strong>Lỗi hiểu sai phổ biến:</strong> "muốn đếm 1 Hz thì tạo clock mới 1 Hz" bằng <span class="font-mono text-xs">assign clk_1hz = ...</span> hoặc lấy một bit của counter làm clock. Đây là <em>gated/derived clock</em> — sinh ra clock lệch pha, glitch, tạo thêm clock domain mà ta chưa học cách xử lý. Xem mục Lỗi hay gặp.</p>
+          </div>
+          <div class="rounded-lg bg-slate-50 border border-slate-200 p-3 font-mono text-xs text-slate-600">
+            clk : ‾\_/‾\_/‾\_/‾\_/‾ (50 MHz, không đổi)<br>
+            en&nbsp;&nbsp;: ____/‾‾\__________ (1 xung / giây, rộng 1 chu kỳ)
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Concept 3: Binary value / BCD -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+      <div class="bg-gradient-to-r from-primary to-blue-500 px-6 py-3 flex items-center gap-3">
+        <span class="w-7 h-7 rounded-full bg-white/20 text-white text-sm font-bold flex items-center justify-center">3</span>
+        <h3 class="text-white font-bold">Binary value (giá trị nhị phân) — "ngôn ngữ" giữa hai khối</h3>
+      </div>
+      <div class="p-6 grid md:grid-cols-2 gap-5">
+        <div class="space-y-3 text-sm text-slate-700 leading-relaxed">
+          <p><strong class="text-primary">Định nghĩa dễ hiểu.</strong> Giá trị counter xuất ra không phải "con số 7 in trên màn hình" mà là 4 dây điện <span class="font-mono text-xs">q[3:0]</span>, mỗi dây ở mức điện áp High hoặc Low — ta <em>quy ước đọc</em> là 0111₂ = 7.</p>
+          <p><strong class="text-primary">Bản chất kỹ thuật.</strong> Mức logic 1/0 là <strong>khoảng điện áp</strong> High/Low (ví dụ chuẩn 3.3 V LVCMOS: trên ~2.0 V đọc là 1, dưới ~0.8 V đọc là 0), không phải "có điện / mất điện" tuyệt đối. Khi giới hạn đếm 0–9, mã 4 bit này gọi là <strong>BCD</strong> (Binary-Coded Decimal — mã nhị phân của từng chữ số thập phân). Các mã 1010–1111 (10–15) là mã <em>không dùng</em> — decoder phải quyết định làm gì nếu lỡ gặp chúng.</p>
+        </div>
+        <div class="space-y-3 text-sm text-slate-700 leading-relaxed">
+          <p><strong class="text-accent">Trong IC / FPGA / ASIC.</strong> Chuẩn giao tiếp giữa các khối trong chip chính là các bus nhị phân như thế này: counter → decoder ở đây, hay CPU → memory với bus địa chỉ 32 bit — cùng một tư duy, chỉ khác độ rộng.</p>
+          <div class="rounded-lg bg-red-50 border border-red-200 p-3">
+            <p class="text-red-700"><i class="fa-solid fa-triangle-exclamation mr-1.5"></i><strong>Lỗi hiểu sai phổ biến:</strong> "4 bit thì đếm được 0–9". Thực ra 4 bit đếm được 0–15 (16 trạng thái); ta <em>chủ động</em> giới hạn 0–9 bằng comparator. Quên comparator → counter chạy tới 15, decoder nhận mã lạ, LED hiển thị sai hoặc tắt.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Concept 4: 7-segment display -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+      <div class="bg-gradient-to-r from-primary to-blue-500 px-6 py-3 flex items-center gap-3">
+        <span class="w-7 h-7 rounded-full bg-white/20 text-white text-sm font-bold flex items-center justify-center">4</span>
+        <h3 class="text-white font-bold">7-Segment Display (LED 7 đoạn) — 7 bóng đèn xếp hình số 8</h3>
+      </div>
+      <div class="p-6 grid md:grid-cols-2 gap-5">
+        <div class="space-y-3 text-sm text-slate-700 leading-relaxed">
+          <p><strong class="text-primary">Định nghĩa dễ hiểu.</strong> LED 7 đoạn là 7 thanh LED đặt theo hình số 8, đặt tên <strong>a, b, c, d, e, f, g</strong> (a trên cùng, đi theo chiều kim đồng hồ, g ở giữa). Muốn hiện số nào, bật đúng tổ hợp thanh: số 1 chỉ cần b + c; số 8 cần cả 7 thanh.</p>
+          <p><strong class="text-primary">Bản chất kỹ thuật.</strong> Có hai kiểu nối: <strong>common cathode</strong> (chân chung nối đất — đưa mức 1 vào thanh nào, thanh đó sáng: <em>active-high</em>) và <strong>common anode</strong> (chân chung nối nguồn — đưa mức 0 mới sáng: <em>active-low</em>). Nhiều board FPGA (DE2, DE10) dùng common anode, nên mẫu bit phải <strong>đảo</strong> so với bảng active-high.</p>
+        </div>
+        <div class="space-y-3 text-sm text-slate-700 leading-relaxed">
+          <p><strong class="text-accent">Trong IC / FPGA / ASIC.</strong> Với hệ nhiều chữ số, người ta không tốn 7 chân × N digit mà <em>quét</em> (multiplexing — nhớ MUX Tuần 4): bật lần lượt từng digit vài trăm Hz, mắt người thấy sáng đồng thời. Đây là bài mở rộng tự nhiên của project tuần này.</p>
+          <div class="rounded-lg bg-red-50 border border-red-200 p-3">
+            <p class="text-red-700"><i class="fa-solid fa-triangle-exclamation mr-1.5"></i><strong>Lỗi hiểu sai phổ biến:</strong> "cứ nạp code là LED hiện đúng". Nếu nhầm active-high/active-low, LED hiển thị "âm bản" — số 8 thành tắt ngóm, số 0 thành chỉ sáng thanh g. Phải đọc schematic (sơ đồ nguyên lý) của board trước.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Concept 5: 7-seg decoder -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+      <div class="bg-gradient-to-r from-primary to-blue-500 px-6 py-3 flex items-center gap-3">
+        <span class="w-7 h-7 rounded-full bg-white/20 text-white text-sm font-bold flex items-center justify-center">5</span>
+        <h3 class="text-white font-bold">7-Segment Decoder (bộ giải mã 7 đoạn) — người phiên dịch tổ hợp</h3>
+      </div>
+      <div class="p-6 grid md:grid-cols-2 gap-5">
+        <div class="space-y-3 text-sm text-slate-700 leading-relaxed">
+          <p><strong class="text-primary">Định nghĩa dễ hiểu.</strong> Decoder 7 đoạn là "người phiên dịch": nhận 4 bit nhị phân, tra bảng, xuất 7 tín hiệu bật/tắt cho a–g. Không nhớ gì, không cần clock — input đổi thì output đổi theo.</p>
+          <p><strong class="text-primary">Bản chất kỹ thuật.</strong> Đây là mạch <strong>tổ hợp thuần túy</strong> đặc tả bằng bảng chân lý 10 hàng (0–9) + quy định cho 6 mã không dùng (10–15). Trong SystemVerilog viết bằng <span class="font-mono text-xs">always_comb</span> + <span class="font-mono text-xs">case</span>, và <strong>bắt buộc có <span class="font-mono text-xs">default</span></strong> — thiếu nhánh default nghĩa là "có input không được định nghĩa output", công cụ tổng hợp buộc phải <em>nhớ giá trị cũ</em> → sinh ra <strong>latch</strong> ngoài ý muốn.</p>
+          <p><strong class="text-primary">Ví dụ đời sống.</strong> Bảng quy đổi điểm chữ: 8.5–10 → A, 7.0–8.4 → B... Mỗi input rơi vào đúng một hàng, tra là ra — không phụ thuộc điểm của học kỳ trước.</p>
+        </div>
+        <div class="space-y-3 text-sm text-slate-700 leading-relaxed">
+          <p><strong class="text-accent">Trong IC / FPGA / ASIC.</strong> Sau synthesis, decoder thành mạng cổng logic (trên FPGA: vài LUT — Look-Up Table). Tín hiệu đi qua nó mất một khoảng <strong>propagation delay (độ trễ lan truyền)</strong> cỡ nano-giây — nhỏ, nhưng <em>không phải bằng 0</em>. Đây là lý do waveform ở Section 9 vẽ seg đổi <em>sau</em> q một chút.</p>
+          <div class="rounded-lg bg-emerald-50 border border-emerald-200 p-3">
+            <p class="text-emerald-800"><i class="fa-solid fa-circle-check mr-1.5"></i><strong>Chốt lại data path tuần này:</strong><br><span class="font-mono text-xs">clock 50MHz → [tick 1Hz] → en → [counter mod-10: 4 FF] → q[3:0] → [decoder tổ hợp] → seg[a..g] → LED</span></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 5. SYSTEM VIEW ===================== -->
+<section id="system-view" class="pt-12">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-sitemap"></i></div>
+    <div>
+      <p class="text-[11px] font-bold text-primary uppercase tracking-wider">Section 05</p>
+      <h2 class="text-2xl font-extrabold text-slate-900">System View — mỗi khối đứng đâu trong hệ thống số?</h2>
+    </div>
+  </div>
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 overflow-x-auto">
+    <p class="text-sm text-slate-600 mb-4">Hệ thống tuần này gồm <strong>3 khối RTL</strong> trong một module top. Nhìn bảng dưới, chú ý cột "Loại mạch": tuần tự và tổ hợp sống chung trong một thiết kế — kỹ năng phân loại này quyết định bạn viết <span class="font-mono text-xs">always_ff</span> hay <span class="font-mono text-xs">always_comb</span>.</p>
+    <table class="w-full text-sm border-collapse min-w-[760px]">
+      <thead>
+        <tr class="bg-dark text-white text-left">
+          <th class="p-3 rounded-tl-lg">Khối</th>
+          <th class="p-3">Input</th>
+          <th class="p-3">Output</th>
+          <th class="p-3">Loại mạch</th>
+          <th class="p-3">Clock?</th>
+          <th class="p-3">Reset?</th>
+          <th class="p-3">Viết SystemVerilog</th>
+          <th class="p-3 rounded-tr-lg">Synthesis ra gì</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-200">
+        <tr class="hover:bg-slate-50">
+          <td class="p-3 font-bold text-primary">tick_1hz<br><span class="font-normal text-xs text-slate-500">bộ tạo nhịp enable</span></td>
+          <td class="p-3">clk 50 MHz, rst</td>
+          <td class="p-3 font-mono text-xs">tick (1 xung/giây)</td>
+          <td class="p-3"><span class="bg-blue-100 text-blue-700 rounded px-2 py-0.5 text-xs font-bold">Tuần tự</span></td>
+          <td class="p-3 text-accent font-bold">Có</td>
+          <td class="p-3 text-accent font-bold">Có</td>
+          <td class="p-3 font-mono text-xs">always_ff, đếm tới 50·10⁶−1</td>
+          <td class="p-3 text-xs">~26 flip-flop + comparator</td>
+        </tr>
+        <tr class="hover:bg-slate-50">
+          <td class="p-3 font-bold text-primary">counter_mod10<br><span class="font-normal text-xs text-slate-500">bộ đếm BCD</span></td>
+          <td class="p-3">clk, rst, en (= tick)</td>
+          <td class="p-3 font-mono text-xs">q[3:0]</td>
+          <td class="p-3"><span class="bg-blue-100 text-blue-700 rounded px-2 py-0.5 text-xs font-bold">Tuần tự</span></td>
+          <td class="p-3 text-accent font-bold">Có</td>
+          <td class="p-3 text-accent font-bold">Có</td>
+          <td class="p-3 font-mono text-xs">always_ff + so sánh q==9</td>
+          <td class="p-3 text-xs">4 flip-flop + incrementer + comparator</td>
+        </tr>
+        <tr class="hover:bg-slate-50">
+          <td class="p-3 font-bold text-primary">seg7_decoder<br><span class="font-normal text-xs text-slate-500">bộ giải mã hiển thị</span></td>
+          <td class="p-3">q[3:0] (hay bcd[3:0])</td>
+          <td class="p-3 font-mono text-xs">seg[6:0] = {a..g}</td>
+          <td class="p-3"><span class="bg-amber-100 text-amber-700 rounded px-2 py-0.5 text-xs font-bold">Tổ hợp</span></td>
+          <td class="p-3 text-slate-400 font-bold">Không</td>
+          <td class="p-3 text-slate-400 font-bold">Không</td>
+          <td class="p-3 font-mono text-xs">always_comb + case + default</td>
+          <td class="p-3 text-xs">Mạng LUT/cổng logic, 0 flip-flop</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="grid md:grid-cols-3 gap-3 mt-5 text-sm">
+      <div class="rounded-lg bg-slate-50 border border-slate-200 p-3"><i class="fa-solid fa-plug text-primary mr-2"></i><strong>Vị trí trong hệ thống lớn:</strong> đây là "output stage" — mọi hệ thống số (đồng hồ, máy đo, thang máy) đều có tầng hiển thị kiểu này sau tầng xử lý.</div>
+      <div class="rounded-lg bg-slate-50 border border-slate-200 p-3"><i class="fa-solid fa-arrows-split-up-and-left text-primary mr-2"></i><strong>Giao kèo giữa các khối:</strong> counter và decoder chỉ "bắt tay" qua bus <span class="font-mono text-xs">q[3:0]</span> — sửa bên trong khối này không ảnh hưởng khối kia. Đó là sức mạnh của thiết kế module hóa.</div>
+      <div class="rounded-lg bg-slate-50 border border-slate-200 p-3"><i class="fa-solid fa-microchip text-primary mr-2"></i><strong>Trên board thật:</strong> seg[6:0] gán vào chân FPGA nối LED (nhớ kiểm tra active-low!), clk gán vào chân oscillator 50 MHz, rst gán vào nút bấm.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 6. INTERACTIVE DEMO ===================== -->
+<section id="demo" class="pt-12">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-gamepad"></i></div>
+    <div>
+      <p class="text-[11px] font-bold text-primary uppercase tracking-wider">Section 06</p>
+      <h2 class="text-2xl font-extrabold text-slate-900">Demo tương tác — chạy trọn data path bằng tay</h2>
+    </div>
+  </div>
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+    <p class="text-sm text-slate-600 mb-1">Bấm <strong>"Cấp 1 cạnh clock"</strong> để phát một cạnh lên (kèm enable), hoặc bật <strong>Tự chạy</strong>. Quan sát giá trị chảy qua từng khối: counter đổi <em>tại cạnh lên</em>, decoder "dịch" ngay sau đó (trễ vài ns), LED đổi hình.</p>
+    <p class="text-xs text-slate-500 mb-4"><i class="fa-solid fa-circle-info mr-1"></i>Counter trong demo là <strong>thanh ghi 4 bit = 4 flip-flop</strong>, đếm 0–9 rồi quay về 0 (mod-10). Việc quay vòng không "tự nhiên" mà do <strong>bộ so sánh phát hiện q = 9</strong> chọn giá trị kế tiếp là 0.</p>
+
+    <!-- Controls -->
+    <div class="flex flex-wrap items-center gap-3 mb-5">
+      <button id="btn-step" class="bg-primary hover:bg-blue-700 text-white font-bold text-sm rounded-lg px-4 py-2.5 shadow"><i class="fa-solid fa-forward-step mr-2"></i>Cấp 1 cạnh clock</button>
+      <button id="btn-auto" class="bg-accent hover:bg-emerald-600 text-white font-bold text-sm rounded-lg px-4 py-2.5 shadow"><i class="fa-solid fa-play mr-2"></i>Tự chạy</button>
+      <button id="btn-reset" class="bg-slate-600 hover:bg-slate-700 text-white font-bold text-sm rounded-lg px-4 py-2.5 shadow"><i class="fa-solid fa-rotate-left mr-2"></i>Reset</button>
+      <label class="text-sm text-slate-600 flex items-center gap-2 ml-auto">Tốc độ tự chạy:
+        <select id="demo-speed" class="border border-slate-300 rounded-lg px-2 py-1.5 text-sm bg-white">
+          <option value="1200">Chậm (1,2 s)</option>
+          <option value="700" selected>Vừa (0,7 s)</option>
+          <option value="300">Nhanh (0,3 s)</option>
+        </select>
+      </label>
+    </div>
+
+    <!-- Data path -->
+    <div class="grid lg:grid-cols-[1fr_auto] gap-6 items-start">
+      <div>
+        <div class="flex flex-wrap items-center justify-center gap-2 bg-slate-50 border border-slate-200 rounded-xl p-4">
+          <!-- clock block -->
+          <div class="text-center">
+            <div id="clk-box" class="w-24 rounded-lg border-2 border-slate-400 bg-white px-2 py-3">
+              <i id="clk-indicator" class="fa-solid fa-wave-square text-2xl text-slate-500"></i>
+              <p class="text-[11px] font-bold mt-1">CLOCK<br><span class="font-normal text-slate-500">+ tick enable</span></p>
+            </div>
+            <p class="text-[10px] text-slate-500 mt-1">cạnh lên: <span id="demo-edges" class="font-bold text-slate-700">0</span></p>
+          </div>
+          <i class="fa-solid fa-arrow-right-long text-slate-400 text-xl"></i>
+          <!-- counter block -->
+          <div class="text-center">
+            <div class="w-40 rounded-lg border-2 border-primary bg-blue-50 px-2 py-3">
+              <p class="text-[11px] font-bold text-primary">COUNTER MOD-10</p>
+              <p class="text-[10px] text-slate-500">thanh ghi 4 bit = 4 FF</p>
+              <div class="flex justify-center gap-1 mt-2">
+                <span id="bit3" class="w-7 h-8 rounded bg-white border-2 border-slate-300 font-mono font-bold flex items-center justify-center text-sm">0</span>
+                <span id="bit2" class="w-7 h-8 rounded bg-white border-2 border-slate-300 font-mono font-bold flex items-center justify-center text-sm">0</span>
+                <span id="bit1" class="w-7 h-8 rounded bg-white border-2 border-slate-300 font-mono font-bold flex items-center justify-center text-sm">0</span>
+                <span id="bit0" class="w-7 h-8 rounded bg-white border-2 border-slate-300 font-mono font-bold flex items-center justify-center text-sm">0</span>
+              </div>
+              <p class="text-[10px] text-slate-500 mt-1">q3 · q2 · q1 · q0</p>
+            </div>
+            <p class="text-[10px] text-slate-500 mt-1">thập phân: <span id="demo-dec" class="font-bold text-primary text-sm">0</span></p>
+          </div>
+          <i class="fa-solid fa-arrow-right-long text-slate-400 text-xl"></i>
+          <!-- decoder block -->
+          <div class="text-center">
+            <div class="w-36 rounded-lg border-2 border-secondary bg-amber-50 px-2 py-3">
+              <p class="text-[11px] font-bold text-amber-700">SEG7 DECODER</p>
+              <p class="text-[10px] text-slate-500">tổ hợp — không FF</p>
+              <p id="seg-active-text" class="font-mono text-xs font-bold text-slate-700 mt-2 min-h-[1.2rem]">a b c d e f</p>
+              <p class="text-[10px] text-slate-500">đoạn đang bật</p>
+            </div>
+            <p class="text-[10px] text-slate-500 mt-1">seg[6:0] = <span id="demo-segbits" class="font-mono font-bold text-amber-700">1111110</span></p>
+          </div>
+          <i class="fa-solid fa-arrow-right-long text-slate-400 text-xl"></i>
+          <!-- display -->
+          <div class="text-center">
+            <div class="rounded-lg border-2 border-slate-700 bg-slate-900 p-3">
+              <svg viewBox="0 0 120 152" width="86" height="110" aria-label="LED 7 đoạn">
+                <line id="seg-a" class="seg on" x1="32" y1="18" x2="88" y2="18"  stroke-width="11" stroke-linecap="round"/>
+                <line id="seg-f" class="seg on" x1="22" y1="28" x2="22" y2="66"  stroke-width="11" stroke-linecap="round"/>
+                <line id="seg-b" class="seg on" x1="98" y1="28" x2="98" y2="66"  stroke-width="11" stroke-linecap="round"/>
+                <line id="seg-g" class="seg"    x1="32" y1="76" x2="88" y2="76"  stroke-width="11" stroke-linecap="round"/>
+                <line id="seg-e" class="seg on" x1="22" y1="86" x2="22" y2="124" stroke-width="11" stroke-linecap="round"/>
+                <line id="seg-c" class="seg on" x1="98" y1="86" x2="98" y2="124" stroke-width="11" stroke-linecap="round"/>
+                <line id="seg-d" class="seg on" x1="32" y1="134" x2="88" y2="134" stroke-width="11" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <p class="text-[10px] text-slate-500 mt-1">LED 7 đoạn (active-high)</p>
+          </div>
+        </div>
+        <div id="demo-explain" class="mt-4 rounded-lg bg-blue-50 border border-blue-200 p-3 text-sm text-slate-700">
+          <i class="fa-solid fa-comment-dots text-primary mr-1.5"></i>Sẵn sàng. Counter đang ở 0 (0000₂) — decoder bật a,b,c,d,e,f để vẽ số 0. Hãy cấp cạnh clock đầu tiên!
+        </div>
+        <div id="demo-wrap-note" class="mt-2 hidden rounded-lg bg-emerald-50 border border-emerald-300 p-3 text-sm text-emerald-800">
+          <i class="fa-solid fa-rotate mr-1.5"></i><strong>Wrap-around!</strong> Bộ so sánh thấy q = 9 (1001₂) nên giá trị kế tiếp được chọn là 0 thay vì 10. Đó chính là dòng <span class="font-mono text-xs">if (q == 4'd9) q &lt;= 0;</span> trong RTL.
+        </div>
+      </div>
+
+      <!-- Decoder truth table -->
+      <div class="w-full lg:w-72">
+        <p class="text-xs font-bold text-slate-600 mb-2"><i class="fa-solid fa-table mr-1.5"></i>Bảng chân lý decoder (hàng đang dùng được tô sáng)</p>
+        <div class="overflow-hidden rounded-xl border border-slate-200">
+          <table class="w-full text-xs font-mono">
+            <thead><tr class="bg-dark text-white"><th class="py-1.5 px-2 text-left">Dec</th><th class="py-1.5 px-2 text-left">q[3:0]</th><th class="py-1.5 px-2 text-left">abcdefg</th></tr></thead>
+            <tbody id="dec-table-body" class="divide-y divide-slate-100 bg-white"></tbody>
+          </table>
+        </div>
+        <p class="text-[11px] text-slate-500 mt-2">Mã 1010–1111 rơi vào nhánh <span class="font-mono">default</span> → tắt hết đoạn (0000000).</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 7. ENGINEERING WORKFLOW ===================== -->
+<section id="workflow" class="pt-12">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-diagram-next"></i></div>
+    <div>
+      <p class="text-[11px] font-bold text-primary uppercase tracking-wider">Section 07</p>
+      <h2 class="text-2xl font-extrabold text-slate-900">Engineering Workflow — làm project này như kỹ sư thật</h2>
+    </div>
+  </div>
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+    <div class="relative border-l-2 border-blue-200 ml-4 space-y-5">
+      <div class="pl-6 relative"><span class="absolute -left-[13px] top-0 w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">1</span>
+        <h3 class="font-bold text-slate-800 text-sm">Requirement (yêu cầu)</h3>
+        <p class="text-sm text-slate-600">"Hiển thị số đếm 0–9 lên LED 7 đoạn, mỗi giây tăng 1, có nút reset về 0." Viết rõ ràng bằng lời trước — chưa đụng code.</p>
+      </div>
+      <div class="pl-6 relative"><span class="absolute -left-[13px] top-0 w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">2</span>
+        <h3 class="font-bold text-slate-800 text-sm">Xác định I/O</h3>
+        <p class="text-sm text-slate-600">Input: <span class="font-mono text-xs">clk</span> (50 MHz từ board), <span class="font-mono text-xs">rst</span> (nút bấm). Output: <span class="font-mono text-xs">seg[6:0]</span> (7 chân LED). Ghi cả mức tích cực: rst nhấn = 1? LED sáng mức 0 hay 1?</p>
+      </div>
+      <div class="pl-6 relative"><span class="absolute -left-[13px] top-0 w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">3</span>
+        <h3 class="font-bold text-slate-800 text-sm">Block diagram (sơ đồ khối)</h3>
+        <p class="text-sm text-slate-600">Chia 3 khối: tick_1hz → counter_mod10 → seg7_decoder. Đặt tên tín hiệu nối khối: <span class="font-mono text-xs">tick</span>, <span class="font-mono text-xs">q[3:0]</span>. "Think in blocks, not in gates" — tư duy Tuần 4.</p>
+      </div>
+      <div class="pl-6 relative"><span class="absolute -left-[13px] top-0 w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">4</span>
+        <h3 class="font-bold text-slate-800 text-sm">Truth table &amp; counting rule</h3>
+        <p class="text-sm text-slate-600">Lập bảng chân lý decoder 10 hàng + default; viết luật đếm: <span class="font-mono text-xs">q_next = (q==9) ? 0 : q+1</span> khi en=1. Đây là "spec" để kiểm tra RTL và waveform sau này.</p>
+      </div>
+      <div class="pl-6 relative"><span class="absolute -left-[13px] top-0 w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">5</span>
+        <h3 class="font-bold text-slate-800 text-sm">Viết RTL từng khối</h3>
+        <p class="text-sm text-slate-600">Mỗi khối một module, khối tuần tự dùng <span class="font-mono text-xs">always_ff</span>, khối tổ hợp dùng <span class="font-mono text-xs">always_comb</span>. Code mẫu ở Section 8.</p>
+      </div>
+      <div class="pl-6 relative"><span class="absolute -left-[13px] top-0 w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">6</span>
+        <h3 class="font-bold text-slate-800 text-sm">Testbench &amp; simulate</h3>
+        <p class="text-sm text-slate-600">Mô phỏng với tick nhanh (để khỏi chờ 50 triệu chu kỳ): kiểm tra đếm 0→9, wrap 9→0, reset giữa chừng, mẫu seg của từng số. Nhìn waveform đối chiếu bảng chân lý.</p>
+      </div>
+      <div class="pl-6 relative"><span class="absolute -left-[13px] top-0 w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">7</span>
+        <h3 class="font-bold text-slate-800 text-sm">Synthesize + gán chân</h3>
+        <p class="text-sm text-slate-600">Quartus/Vivado tổng hợp RTL thành LUT + FF, gán chân theo tài liệu board (pin assignment), kiểm tra báo cáo: đúng ~31 FF (26 + 1 tick + 4 counter)? Có latch cảnh báo không?</p>
+      </div>
+      <div class="pl-6 relative"><span class="absolute -left-[13px] top-0 w-6 h-6 rounded-full bg-accent text-white text-xs font-bold flex items-center justify-center">8</span>
+        <h3 class="font-bold text-slate-800 text-sm">Nạp bitstream &amp; demo</h3>
+        <p class="text-sm text-slate-600">Nạp bitstream để <em>cấu hình</em> FPGA (khác với tape-out ASIC — gửi layout đi sản xuất). LED đếm 0–9 mỗi giây: chúc mừng, bạn vừa hoàn thành data path đầu tiên nhìn được bằng mắt!</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 8. CODE / RTL ===================== -->
+<section id="code-rtl" class="pt-12">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-code"></i></div>
+    <div>
+      <p class="text-[11px] font-bold text-primary uppercase tracking-wider">Section 08</p>
+      <h2 class="text-2xl font-extrabold text-slate-900">Code RTL — SystemVerilog cho 3 khối</h2>
+    </div>
+  </div>
+  <div class="space-y-6">
+    <div class="rounded-xl bg-blue-50 border border-blue-200 p-4 text-sm text-slate-700">
+      <i class="fa-solid fa-compass text-primary mr-1.5"></i><strong>Nguyên tắc xuyên suốt:</strong> khối tuần tự → <span class="font-mono text-xs">always_ff</span> + gán không chặn <span class="font-mono text-xs">&lt;=</span>; khối tổ hợp → <span class="font-mono text-xs">always_comb</span> + gán chặn <span class="font-mono text-xs">=</span> + <span class="font-mono text-xs">default</span> để không sót trường hợp. Mỗi module mô tả một <em>mảnh phần cứng</em> chạy song song — không phải hàm gọi tuần tự như C/Python.
+    </div>
+
+    <!-- Code 1: tick generator -->
+    <div class="rounded-xl overflow-hidden border border-slate-700 shadow">
+      <div class="flex items-center justify-between bg-slate-800 px-4 py-2">
+        <p class="text-xs font-bold text-slate-200"><i class="fa-solid fa-file-code text-blue-300 mr-2"></i>tick_1hz.sv — tạo xung enable 1 Hz từ clock 50 MHz (KHÔNG chia clock)</p>
+        <button class="copy-btn text-xs bg-slate-700 hover:bg-slate-600 text-white rounded-md px-3 py-1.5" data-target="code-tick"><i class="fa-regular fa-copy mr-1"></i>Copy</button>
+      </div>
+<pre class="code"><code id="code-tick"><span class="tk">module</span> <span class="tp">tick_1hz</span> #(
+  <span class="tk">parameter int</span> CLK_FREQ = <span class="tn">50_000_000</span>  <span class="tc">// tần số clock board (Hz)</span>
+)(
+  <span class="tk">input  logic</span> clk,   <span class="tc">// clock 50 MHz — dùng nguyên vẹn, KHÔNG "chia"</span>
+  <span class="tk">input  logic</span> rst,   <span class="tc">// reset đồng bộ, tích cực mức 1</span>
+  <span class="tk">output logic</span> tick   <span class="tc">// xung enable rộng đúng 1 chu kỳ clock, 1 lần/giây</span>
+);
+  <span class="tc">// Đếm 0 .. CLK_FREQ-1 → $clog2 tính số bit cần (26 bit cho 50 triệu)</span>
+  <span class="tk">logic</span> [$clog2(CLK_FREQ)-<span class="tn">1</span>:<span class="tn">0</span>] cnt;
+
+  <span class="tk">always_ff</span> @(<span class="tk">posedge</span> clk) <span class="tk">begin</span>
+    <span class="tk">if</span> (rst) <span class="tk">begin</span>
+      cnt  &lt;= <span class="tn">'0</span>;
+      tick &lt;= <span class="tn">1'b0</span>;
+    <span class="tk">end else if</span> (cnt == CLK_FREQ - <span class="tn">1</span>) <span class="tk">begin</span>
+      cnt  &lt;= <span class="tn">'0</span>;    <span class="tc">// đủ 1 giây → quay về 0</span>
+      tick &lt;= <span class="tn">1'b1</span>; <span class="tc">// phát tick đúng 1 chu kỳ</span>
+    <span class="tk">end else begin</span>
+      cnt  &lt;= cnt + <span class="tn">1'b1</span>;
+      tick &lt;= <span class="tn">1'b0</span>; <span class="tc">// các chu kỳ còn lại: tick = 0</span>
+    <span class="tk">end</span>
+  <span class="tk">end</span>
+<span class="tk">endmodule</span></code></pre>
+      <div class="bg-slate-800/60 px-4 py-3 text-xs text-slate-300 border-t border-slate-700">
+        <i class="fa-solid fa-microchip text-blue-300 mr-1.5"></i><strong>Synthesis ra:</strong> ~26 flip-flop (thanh ghi cnt) + comparator so với 49.999.999 + 1 flip-flop cho tick. Chú ý: <span class="font-mono">tick</span> là <em>dữ liệu</em> đi vào chân enable của khối sau, còn mọi flip-flop vẫn ăn chung clock 50 MHz — đây là điểm khác biệt sống còn so với "chế clock mới".
+      </div>
+    </div>
+
+    <!-- Code 2: counter mod 10 -->
+    <div class="rounded-xl overflow-hidden border border-slate-700 shadow">
+      <div class="flex items-center justify-between bg-slate-800 px-4 py-2">
+        <p class="text-xs font-bold text-slate-200"><i class="fa-solid fa-file-code text-blue-300 mr-2"></i>counter_mod10.sv — bộ đếm BCD 0–9 (mạch tuần tự)</p>
+        <button class="copy-btn text-xs bg-slate-700 hover:bg-slate-600 text-white rounded-md px-3 py-1.5" data-target="code-counter"><i class="fa-regular fa-copy mr-1"></i>Copy</button>
+      </div>
+<pre class="code"><code id="code-counter"><span class="tk">module</span> <span class="tp">counter_mod10</span> (
+  <span class="tk">input  logic</span>       clk,  <span class="tc">// clock hệ thống 50 MHz</span>
+  <span class="tk">input  logic</span>       rst,  <span class="tc">// reset đồng bộ về 0</span>
+  <span class="tk">input  logic</span>       en,   <span class="tc">// tick enable: chỉ đếm khi en = 1</span>
+  <span class="tk">output logic</span> [<span class="tn">3</span>:<span class="tn">0</span>] q    <span class="tc">// giá trị BCD: 4 bit = 4 flip-flop</span>
+);
+  <span class="tk">always_ff</span> @(<span class="tk">posedge</span> clk) <span class="tk">begin</span>  <span class="tc">// tuần tự → always_ff + &lt;=</span>
+    <span class="tk">if</span> (rst)
+      q &lt;= <span class="tn">4'd0</span>;                   <span class="tc">// reset: về 0</span>
+    <span class="tk">else if</span> (en) <span class="tk">begin</span>             <span class="tc">// FF vẫn nhận clock 50 MHz,</span>
+      <span class="tk">if</span> (q == <span class="tn">4'd9</span>)               <span class="tc">//   nhưng chỉ đổi khi en = 1</span>
+        q &lt;= <span class="tn">4'd0</span>;                 <span class="tc">// comparator thấy 9 → wrap về 0 (mod-10)</span>
+      <span class="tk">else</span>
+        q &lt;= q + <span class="tn">4'd1</span>;             <span class="tc">// incrementer: cộng 1</span>
+    <span class="tk">end</span>
+    <span class="tc">// en = 0 → không gán: flip-flop giữ nguyên giá trị (tính "nhớ")</span>
+  <span class="tk">end</span>
+<span class="tk">endmodule</span></code></pre>
+      <div class="bg-slate-800/60 px-4 py-3 text-xs text-slate-300 border-t border-slate-700">
+        <i class="fa-solid fa-microchip text-blue-300 mr-1.5"></i><strong>Synthesis ra:</strong> đúng <strong>4 flip-flop</strong> (thanh ghi q) + mạch tổ hợp "next value" gồm incrementer và comparator <span class="font-mono">q == 9</span> + MUX chọn 0/q+1/q. Trong <span class="font-mono">always_ff</span> chỉ dùng <span class="font-mono">&lt;=</span> — mọi flip-flop cập nhật đồng thời tại cạnh lên.
+      </div>
+    </div>
+
+    <!-- Code 3: decoder -->
+    <div class="rounded-xl overflow-hidden border border-slate-700 shadow">
+      <div class="flex items-center justify-between bg-slate-800 px-4 py-2">
+        <p class="text-xs font-bold text-slate-200"><i class="fa-solid fa-file-code text-blue-300 mr-2"></i>seg7_decoder.sv — giải mã BCD → 7 đoạn (mạch tổ hợp)</p>
+        <button class="copy-btn text-xs bg-slate-700 hover:bg-slate-600 text-white rounded-md px-3 py-1.5" data-target="code-decoder"><i class="fa-regular fa-copy mr-1"></i>Copy</button>
+      </div>
+<pre class="code"><code id="code-decoder"><span class="tk">module</span> <span class="tp">seg7_decoder</span> (
+  <span class="tk">input  logic</span> [<span class="tn">3</span>:<span class="tn">0</span>] bcd,  <span class="tc">// giá trị 0–9 từ counter</span>
+  <span class="tk">output logic</span> [<span class="tn">6</span>:<span class="tn">0</span>] seg   <span class="tc">// {a,b,c,d,e,f,g}, active-high: 1 = sáng</span>
+);
+  <span class="tk">always_comb begin</span>            <span class="tc">// tổ hợp → always_comb + gán chặn =</span>
+    <span class="tk">case</span> (bcd)
+      <span class="tn">4'd0</span>:    seg = <span class="tn">7'b1111110</span>;  <span class="tc">// số 0: sáng a b c d e f</span>
+      <span class="tn">4'd1</span>:    seg = <span class="tn">7'b0110000</span>;  <span class="tc">// số 1: chỉ b, c</span>
+      <span class="tn">4'd2</span>:    seg = <span class="tn">7'b1101101</span>;
+      <span class="tn">4'd3</span>:    seg = <span class="tn">7'b1111001</span>;
+      <span class="tn">4'd4</span>:    seg = <span class="tn">7'b0110011</span>;
+      <span class="tn">4'd5</span>:    seg = <span class="tn">7'b1011011</span>;
+      <span class="tn">4'd6</span>:    seg = <span class="tn">7'b1011111</span>;
+      <span class="tn">4'd7</span>:    seg = <span class="tn">7'b1110000</span>;
+      <span class="tn">4'd8</span>:    seg = <span class="tn">7'b1111111</span>;  <span class="tc">// số 8: cả 7 đoạn</span>
+      <span class="tn">4'd9</span>:    seg = <span class="tn">7'b1111011</span>;
+      <span class="tk">default</span>: seg = <span class="tn">7'b0000000</span>;  <span class="tc">// 10–15: tắt hết. BẮT BUỘC có default —</span>
+    <span class="tk">endcase</span>                        <span class="tc">// thiếu nó là sinh LATCH ngoài ý muốn!</span>
+  <span class="tk">end</span>
+<span class="tk">endmodule</span></code></pre>
+      <div class="bg-slate-800/60 px-4 py-3 text-xs text-slate-300 border-t border-slate-700">
+        <i class="fa-solid fa-microchip text-blue-300 mr-1.5"></i><strong>Synthesis ra:</strong> mạng cổng logic thuần (trên FPGA: 7 LUT 4-input, mỗi LUT tính một đoạn) — <strong>0 flip-flop</strong>. Vì mọi nhánh case + default đều gán seg, output luôn được định nghĩa → không có latch, không cần clock.
+      </div>
+    </div>
+
+    <!-- Code 4: top -->
+    <div class="rounded-xl overflow-hidden border border-slate-700 shadow">
+      <div class="flex items-center justify-between bg-slate-800 px-4 py-2">
+        <p class="text-xs font-bold text-slate-200"><i class="fa-solid fa-file-code text-blue-300 mr-2"></i>top_counter_display.sv — nối 3 khối thành hệ thống</p>
+        <button class="copy-btn text-xs bg-slate-700 hover:bg-slate-600 text-white rounded-md px-3 py-1.5" data-target="code-top"><i class="fa-regular fa-copy mr-1"></i>Copy</button>
+      </div>
+<pre class="code"><code id="code-top"><span class="tk">module</span> <span class="tp">top_counter_display</span> (
+  <span class="tk">input  logic</span>       clk,  <span class="tc">// 50 MHz từ oscillator trên board</span>
+  <span class="tk">input  logic</span>       rst,  <span class="tc">// nút nhấn reset</span>
+  <span class="tk">output logic</span> [<span class="tn">6</span>:<span class="tn">0</span>] seg   <span class="tc">// 7 chân FPGA nối LED 7 đoạn</span>
+);
+  <span class="tk">logic</span>       tick;         <span class="tc">// dây nối: xung enable 1 Hz</span>
+  <span class="tk">logic</span> [<span class="tn">3</span>:<span class="tn">0</span>] value;        <span class="tc">// dây nối: giá trị đếm BCD</span>
+
+  <span class="tc">// 1) Nhịp 1 giây — enable pulse, KHÔNG phải clock mới</span>
+  <span class="tp">tick_1hz</span> #(.CLK_FREQ(<span class="tn">50_000_000</span>)) u_tick (
+    .clk(clk), .rst(rst), .tick(tick)
+  );
+
+  <span class="tc">// 2) Bộ đếm mod-10: 4 flip-flop, đếm khi tick = 1</span>
+  <span class="tp">counter_mod10</span> u_cnt (
+    .clk(clk), .rst(rst), .en(tick), .q(value)
+  );
+
+  <span class="tc">// 3) Giải mã hiển thị: tổ hợp thuần túy, không clock</span>
+  <span class="tp">seg7_decoder</span> u_dec (
+    .bcd(value), .seg(seg)
+  );
+
+  <span class="tc">// Board common-anode (LED sáng mức 0)? → thêm: assign seg_n = ~seg;</span>
+<span class="tk">endmodule</span></code></pre>
+      <div class="bg-slate-800/60 px-4 py-3 text-xs text-slate-300 border-t border-slate-700">
+        <i class="fa-solid fa-microchip text-blue-300 mr-1.5"></i><strong>Đọc top module như đọc sơ đồ khối:</strong> ba instance chạy <em>song song</em> — không có "gọi hàm theo thứ tự". Cả hệ thống: ~31 flip-flop (26 + 1 tick + 4 counter) + logic tổ hợp. Tín hiệu <span class="font-mono">tick</span>, <span class="font-mono">value</span> chính là các mũi tên trong block diagram.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 9. WAVEFORM / TIMING ===================== -->
+<section id="waveform" class="pt-12">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-wave-square"></i></div>
+    <div>
+      <p class="text-[11px] font-bold text-primary uppercase tracking-wider">Section 09</p>
+      <h2 class="text-2xl font-extrabold text-slate-900">Waveform &amp; Timing — tín hiệu lan truyền qua data path</h2>
+    </div>
+  </div>
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+    <p class="text-sm text-slate-600 mb-4">Waveform dưới phóng to hai lần đếm liên tiếp: <strong>8 → 9</strong> và <strong>9 → 0 (wrap)</strong>. Chú ý ba độ trễ có thật: flip-flop đổi sau cạnh lên một khoảng t<sub>CQ</sub> (clock-to-Q), decoder cộng thêm t<sub>pd</sub> (propagation delay) — <em>không có gì đổi "ngay lập tức"</em>.</p>
+    <div class="overflow-x-auto">
+      <svg viewBox="0 0 780 340" class="min-w-[700px] w-full" aria-label="Giản đồ thời gian counter và decoder">
+        <!-- grid: rising edges -->
+        <line x1="240" y1="12" x2="240" y2="250" stroke="#94a3b8" stroke-dasharray="4 4"/>
+        <line x1="360" y1="12" x2="360" y2="250" stroke="#e2e8f0" stroke-dasharray="4 4"/>
+        <line x1="600" y1="12" x2="600" y2="250" stroke="#94a3b8" stroke-dasharray="4 4"/>
+        <text x="240" y="268" text-anchor="middle" font-size="11" fill="#475569">cạnh lên ↑ (en=1)</text>
+        <text x="360" y="268" text-anchor="middle" font-size="11" fill="#94a3b8">cạnh lên (en=0)</text>
+        <text x="600" y="268" text-anchor="middle" font-size="11" fill="#475569">cạnh lên ↑ (en=1)</text>
+        <!-- clk -->
+        <text x="8" y="45" font-size="12" font-weight="bold" fill="#2563eb">clk</text>
+        <polyline points="50,58 120,58 120,28 180,28 180,58 240,58 240,28 300,28 300,58 360,58 360,28 420,28 420,58 480,58 480,28 540,28 540,58 600,58 600,28 660,28 660,58 720,58 720,28 755,28" fill="none" stroke="#2563eb" stroke-width="2.5"/>
+        <!-- en -->
+        <text x="8" y="105" font-size="12" font-weight="bold" fill="#f59e0b">en (tick)</text>
+        <polyline points="50,118 120,118 120,92 240,92 240,118 480,118 480,92 600,92 600,118 755,118" fill="none" stroke="#f59e0b" stroke-width="2.5"/>
+        <text x="180" y="86" text-anchor="middle" font-size="10" fill="#b45309">rộng đúng 1 chu kỳ</text>
+        <!-- q bus -->
+        <text x="8" y="165" font-size="12" font-weight="bold" fill="#10b981">q[3:0]</text>
+        <polyline points="50,150 244,150 252,166 244,182 50,182 50,150" fill="#ecfdf5" stroke="#10b981" stroke-width="2"/>
+        <polyline points="252,150 604,150 612,166 604,182 260,182 252,166 252,150" fill="#ecfdf5" stroke="#10b981" stroke-width="2" transform="translate(0,0)"/>
+        <polyline points="612,150 755,150 755,182 620,182 612,166 612,150" fill="#ecfdf5" stroke="#10b981" stroke-width="2"/>
+        <text x="150" y="170" text-anchor="middle" font-size="12" font-weight="bold" fill="#047857">8 (1000)</text>
+        <text x="430" y="170" text-anchor="middle" font-size="12" font-weight="bold" fill="#047857">9 (1001)</text>
+        <text x="685" y="170" text-anchor="middle" font-size="12" font-weight="bold" fill="#047857">0 (0000)</text>
+        <!-- seg bus -->
+        <text x="8" y="225" font-size="12" font-weight="bold" fill="#ef4444">seg[6:0]</text>
+        <polyline points="50,210 262,210 270,226 262,242 50,242 50,210" fill="#fef2f2" stroke="#ef4444" stroke-width="2"/>
+        <polyline points="270,210 622,210 630,226 622,242 278,242 270,226 270,210" fill="#fef2f2" stroke="#ef4444" stroke-width="2"/>
+        <polyline points="630,210 755,210 755,242 638,242 630,226 630,210" fill="#fef2f2" stroke="#ef4444" stroke-width="2"/>
+        <text x="155" y="230" text-anchor="middle" font-size="11" font-weight="bold" fill="#b91c1c">1111111 ("8")</text>
+        <text x="445" y="230" text-anchor="middle" font-size="11" font-weight="bold" fill="#b91c1c">1111011 ("9")</text>
+        <text x="695" y="230" text-anchor="middle" font-size="11" font-weight="bold" fill="#b91c1c">1111110 ("0")</text>
+        <!-- delay annotations -->
+        <path d="M 240 292 L 252 292" stroke="#0f172a" stroke-width="1.5" marker-end="url(#arr10)"/>
+        <text x="262" y="296" font-size="11" fill="#0f172a">t<tspan font-size="8" dy="3">CQ</tspan><tspan dy="-3">: q đổi sau cạnh lên (FF không tức thời)</tspan></text>
+        <path d="M 252 316 L 270 316" stroke="#0f172a" stroke-width="1.5" marker-end="url(#arr10)"/>
+        <text x="280" y="320" font-size="11" fill="#0f172a">t<tspan font-size="8" dy="3">pd</tspan><tspan dy="-3">: seg đổi sau q — trễ lan truyền qua decoder tổ hợp</tspan></text>
+        <defs><marker id="arr10" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 z" fill="#0f172a"/></marker></defs>
+      </svg>
+    </div>
+    <div class="grid md:grid-cols-3 gap-4 mt-5 text-sm">
+      <div class="rounded-xl bg-slate-50 border border-slate-200 p-4">
+        <p class="font-bold text-slate-800 mb-1"><i class="fa-solid fa-arrow-up text-primary mr-1.5"></i>Khi nào q thay đổi?</p>
+        <p class="text-slate-600">Chỉ tại <strong>cạnh lên của clk khi en=1</strong>. Cạnh lên ở giữa (en=0): q giữ nguyên 9 — flip-flop "nhớ". Đó là lý do LED đứng yên 1 giây dù clock chạy 50 triệu nhịp.</p>
+      </div>
+      <div class="rounded-xl bg-slate-50 border border-slate-200 p-4">
+        <p class="font-bold text-slate-800 mb-1"><i class="fa-solid fa-hourglass-half text-secondary mr-1.5"></i>Trễ lan truyền qua decoder</p>
+        <p class="text-slate-600">seg = f(q) nhưng phải chờ tín hiệu <em>lan truyền</em> qua các LUT/cổng: vài ns. Ở nhịp 1 Hz thì vô hại; ở thiết kế 500 MHz, chuỗi trễ như vậy quyết định <strong>critical path</strong>.</p>
+      </div>
+      <div class="rounded-xl bg-slate-50 border border-slate-200 p-4">
+        <p class="font-bold text-slate-800 mb-1"><i class="fa-solid fa-scale-balanced text-accent mr-1.5"></i>Setup / hold nhập môn</p>
+        <p class="text-slate-600">Dữ liệu vào chân D của flip-flop phải <strong>ổn định trước cạnh lên (setup)</strong> và <strong>giữ thêm một chút sau cạnh (hold)</strong>. Tín hiệu en của ta ổn định cả chu kỳ nên rất an toàn.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 10. ACTIVE LEARNING ===================== -->
+<section id="active-learning" class="pt-12">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-people-group"></i></div>
+    <div>
+      <p class="text-[11px] font-bold text-primary uppercase tracking-wider">Section 10</p>
+      <h2 class="text-2xl font-extrabold text-slate-900">Kịch bản buổi học 60 phút — Active Learning</h2>
+    </div>
+  </div>
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+    <div class="space-y-3">
+      <div class="flex gap-4 items-start rounded-xl border border-slate-200 p-4">
+        <span class="shrink-0 w-16 text-center"><span class="block text-lg font-black text-primary">5'</span><span class="text-[10px] text-slate-500">00–05</span></span>
+        <div><h3 class="font-bold text-sm text-slate-800">Quick check-in</h3><p class="text-sm text-slate-600">Hỏi nhanh cả lớp: "Đếm 0–9 cần mấy flip-flop? Vì sao?" — chốt lại ngay: 4 FF, vì 9 = 1001₂. Ai trả lời "10" là tín hiệu cần chỉnh trước khi vào bài.</p></div>
+      </div>
+      <div class="flex gap-4 items-start rounded-xl border border-slate-200 p-4">
+        <span class="shrink-0 w-16 text-center"><span class="block text-lg font-black text-primary">10'</span><span class="text-[10px] text-slate-500">05–15</span></span>
+        <div><h3 class="font-bold text-sm text-slate-800">Student presentation</h3><p class="text-sm text-slate-600">1–2 bạn trình bày nhiệm vụ chuẩn bị: bảng "số → đoạn sáng" cho 0, 1, 2 và sơ đồ khối đề xuất. Cả lớp đối chiếu với bảng của mình.</p></div>
+      </div>
+      <div class="flex gap-4 items-start rounded-xl border border-slate-200 p-4">
+        <span class="shrink-0 w-16 text-center"><span class="block text-lg font-black text-primary">10'</span><span class="text-[10px] text-slate-500">15–25</span></span>
+        <div><h3 class="font-bold text-sm text-slate-800">Mentor correction</h3><p class="text-sm text-slate-600">Mentor chạy demo tương tác (Section 6), nhấn 3 điểm: counter = 4 FF + comparator; decoder = bảng chân lý, không nhớ; tick enable ≠ clock mới. Sửa trực tiếp các nhầm lẫn vừa lộ ra.</p></div>
+      </div>
+      <div class="flex gap-4 items-start rounded-xl border border-slate-200 p-4 bg-blue-50/50 border-blue-200">
+        <span class="shrink-0 w-16 text-center"><span class="block text-lg font-black text-primary">20'</span><span class="text-[10px] text-slate-500">25–45</span></span>
+        <div><h3 class="font-bold text-sm text-slate-800">Breakout room</h3><p class="text-sm text-slate-600">Nhóm 3–4 bạn làm nhiệm vụ ở Section 11: hoàn thiện bảng chân lý decoder + block diagram + kịch bản debug. Mentor đảo qua các phòng, chỉ gợi ý bằng câu hỏi.</p></div>
+      </div>
+      <div class="flex gap-4 items-start rounded-xl border border-slate-200 p-4">
+        <span class="shrink-0 w-16 text-center"><span class="block text-lg font-black text-primary">10'</span><span class="text-[10px] text-slate-500">45–55</span></span>
+        <div><h3 class="font-bold text-sm text-slate-800">Group sharing</h3><p class="text-sm text-slate-600">Mỗi nhóm 2 phút: Reporter trình bày một điểm nhóm tự tin nhất + một điểm còn tranh cãi. Mentor cho các nhóm "chấm chéo" bảng chân lý của nhau.</p></div>
+      </div>
+      <div class="flex gap-4 items-start rounded-xl border border-slate-200 p-4">
+        <span class="shrink-0 w-16 text-center"><span class="block text-lg font-black text-accent">5'</span><span class="text-[10px] text-slate-500">55–60</span></span>
+        <div><h3 class="font-bold text-sm text-slate-800">Wrap-up</h3><p class="text-sm text-slate-600">Chốt data path một câu: "counter tạo giá trị — decoder tạo hình ảnh". Giao homework, hé lộ tuần 11: "LED cho người đứng cạnh board xem; muốn PC ở xa xem thì làm sao? → UART."</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 11. BREAKOUT ROOM GUIDE ===================== -->
+<section id="breakout" class="pt-12">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-users-rectangle"></i></div>
+    <div>
+      <p class="text-[11px] font-bold text-primary uppercase tracking-wider">Section 11</p>
+      <h2 class="text-2xl font-extrabold text-slate-900">Breakout Room Guide — thảo luận có sản phẩm</h2>
+    </div>
+  </div>
+  <div class="grid md:grid-cols-2 gap-5">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+      <h3 class="font-bold text-slate-800 mb-3"><i class="fa-solid fa-comments text-primary mr-2"></i>Câu hỏi thảo luận (phân tích, không thuộc lòng)</h3>
+      <ol class="space-y-3 text-sm text-slate-700 list-decimal list-inside">
+        <li><strong>Debug:</strong> board chạy nhưng khi counter = 3 LED lại hiện số 2. Lỗi có thể nằm ở khối nào (counter? decoder? gán chân?) — nêu cách <em>cô lập</em> từng khối để tìm thủ phạm.</li>
+        <li><strong>Thiết kế lại:</strong> đổi đề bài thành đếm 0–5 (xúc xắc điện tử, mod-6). Những dòng RTL nào phải sửa? Số flip-flop có giảm không? Vì sao vẫn cần 3 FF?</li>
+        <li><strong>Mở rộng:</strong> hiển thị 00–99 cần thêm khối gì? So sánh hai phương án: 2 decoder + 14 chân vs 1 decoder + quét MUX. Phương án nào tốn chân, phương án nào tốn logic?</li>
+        <li><strong>Board thực tế:</strong> board của nhóm dùng LED common anode (sáng mức 0). Bảng chân lý và code đổi ở đâu — đổi cả bảng hay chỉ thêm một dòng đảo?</li>
+        <li><strong>Phản biện:</strong> bạn cùng nhóm đề xuất "cho nhanh, lấy <span class="font-mono text-xs">cnt[25]</span> của tick_1hz làm clock cho counter". Skeptic hãy chỉ ra rủi ro và cách làm đúng.</li>
+      </ol>
+    </div>
+    <div class="space-y-5">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+        <h3 class="font-bold text-slate-800 mb-3"><i class="fa-solid fa-user-gear text-primary mr-2"></i>Vai trò trong nhóm</h3>
+        <div class="grid grid-cols-2 gap-3 text-sm">
+          <div class="rounded-lg bg-blue-50 border border-blue-200 p-3"><p class="font-bold text-primary">Facilitator</p><p class="text-slate-600 text-xs mt-1">Giữ nhịp thảo luận, đảm bảo ai cũng nói, canh giờ từng câu hỏi.</p></div>
+          <div class="rounded-lg bg-emerald-50 border border-emerald-200 p-3"><p class="font-bold text-emerald-700">Note keeper</p><p class="text-slate-600 text-xs mt-1">Ghi bảng chân lý + block diagram của nhóm vào file/giấy nộp.</p></div>
+          <div class="rounded-lg bg-amber-50 border border-amber-200 p-3"><p class="font-bold text-amber-700">Reporter</p><p class="text-slate-600 text-xs mt-1">Trình bày 2 phút ở phần group sharing.</p></div>
+          <div class="rounded-lg bg-red-50 border border-red-200 p-3"><p class="font-bold text-red-600">Skeptic / Checker</p><p class="text-slate-600 text-xs mt-1">Soi lỗi: "default đâu?", "mấy FF?", "active-low chưa?", phản biện câu 5.</p></div>
+        </div>
+      </div>
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+        <h3 class="font-bold text-slate-800 mb-3"><i class="fa-solid fa-box-open text-primary mr-2"></i>Sản phẩm nhóm nộp cuối buổi</h3>
+        <ul class="text-sm text-slate-700 space-y-2">
+          <li><i class="fa-solid fa-square-check text-accent mr-2"></i><strong>Bảng chân lý decoder đầy đủ</strong>: 10 hàng 0–9 + hàng default (10–15), ghi rõ active-high hay active-low.</li>
+          <li><i class="fa-solid fa-square-check text-accent mr-2"></i><strong>Block diagram</strong> 3 khối với tên tín hiệu và độ rộng bus (tick: 1 bit, q: 4 bit, seg: 7 bit).</li>
+          <li><i class="fa-solid fa-square-check text-accent mr-2"></i><strong>Kịch bản debug</strong> 3 bước cho câu hỏi 1 (ví dụ: mô phỏng decoder riêng → kiểm tra counter trên waveform → soát pin assignment).</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 12. COMMON MISTAKES ===================== -->
+<section id="mistakes" class="pt-12">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-danger/10 text-danger flex items-center justify-center"><i class="fa-solid fa-triangle-exclamation"></i></div>
+    <div>
+      <p class="text-[11px] font-bold text-danger uppercase tracking-wider">Section 12</p>
+      <h2 class="text-2xl font-extrabold text-slate-900">Lỗi hay gặp — và cách sửa đúng</h2>
+    </div>
+  </div>
+  <div class="grid md:grid-cols-2 gap-4">
+    <div class="bg-white rounded-2xl border-l-4 border-danger shadow-sm p-5">
+      <h3 class="font-bold text-red-600 text-sm mb-1"><i class="fa-solid fa-ban mr-1.5"></i>1. Tự chế clock: gated clock / derived clock</h3>
+      <p class="text-sm text-slate-700"><strong>Sai:</strong> <span class="font-mono text-xs">assign clk_1hz = clk &amp;&amp; en;</span> hoặc lấy bit đếm <span class="font-mono text-xs">cnt[25]</span> làm clock cho counter.</p>
+      <p class="text-sm text-slate-600 mt-1.5"><strong>Vì sao nguy hiểm:</strong> clock "chế" có glitch, lệch pha (skew) so với clock gốc, và tạo thêm clock domain — công cụ timing không phân tích nổi, mạch lúc chạy lúc không.</p>
+      <p class="text-sm text-emerald-700 mt-1.5"><strong>Sửa đúng:</strong> mọi flip-flop dùng chung clk 50 MHz; tốc độ chậm điều khiển bằng <strong>tick enable</strong> (xung en rộng 1 chu kỳ) như code Section 8.</p>
+    </div>
+    <div class="bg-white rounded-2xl border-l-4 border-danger shadow-sm p-5">
+      <h3 class="font-bold text-red-600 text-sm mb-1"><i class="fa-solid fa-ban mr-1.5"></i>2. Quên default trong always_comb → latch</h3>
+      <p class="text-sm text-slate-700"><strong>Sai:</strong> case chỉ liệt kê 0–9, không có <span class="font-mono text-xs">default</span>. Khi bcd = 10–15, seg "không được bảo gì".</p>
+      <p class="text-sm text-slate-600 mt-1.5"><strong>Vì sao nguy hiểm:</strong> tổng hợp buộc phải <em>giữ giá trị cũ</em> → sinh <strong>latch</strong> — phần tử nhớ ngoài ý muốn, nhạy glitch, phá tính "tổ hợp thuần" của decoder.</p>
+      <p class="text-sm text-emerald-700 mt-1.5"><strong>Sửa đúng:</strong> luôn có <span class="font-mono text-xs">default: seg = 7'b0000000;</span> (hoặc gán mặc định đầu khối). Kiểm tra log synthesis: chữ "latch inferred" = báo động đỏ.</p>
+    </div>
+    <div class="bg-white rounded-2xl border-l-4 border-secondary shadow-sm p-5">
+      <h3 class="font-bold text-amber-600 text-sm mb-1"><i class="fa-solid fa-circle-exclamation mr-1.5"></i>3. Nhầm = và &lt;= giữa hai loại always</h3>
+      <p class="text-sm text-slate-700"><strong>Sai:</strong> dùng <span class="font-mono text-xs">=</span> (blocking) trong <span class="font-mono text-xs">always_ff</span>, hoặc <span class="font-mono text-xs">&lt;=</span> trong <span class="font-mono text-xs">always_comb</span>.</p>
+      <p class="text-sm text-slate-600 mt-1.5"><strong>Vì sao nguy hiểm:</strong> mô phỏng và phần cứng thật có thể khác nhau (race), đọc code không đoán được thứ tự cập nhật.</p>
+      <p class="text-sm text-emerald-700 mt-1.5"><strong>Sửa đúng:</strong> quy tắc máy móc mà đúng: <strong>always_ff đi với &lt;=; always_comb đi với =</strong>. Không trộn.</p>
+    </div>
+    <div class="bg-white rounded-2xl border-l-4 border-secondary shadow-sm p-5">
+      <h3 class="font-bold text-amber-600 text-sm mb-1"><i class="fa-solid fa-circle-exclamation mr-1.5"></i>4. Quên comparator 9 — counter chạy tới 15</h3>
+      <p class="text-sm text-slate-700"><strong>Sai:</strong> chỉ viết <span class="font-mono text-xs">q &lt;= q + 1;</span> — 4 bit tự wrap tại 15 (mod-16), không phải tại 9.</p>
+      <p class="text-sm text-slate-600 mt-1.5"><strong>Vì sao nguy hiểm:</strong> sau số 9, decoder nhận 1010–1111 → LED tắt 6 giây mỗi vòng (nhờ default). Không có default thì còn tệ hơn: hình tùy ý.</p>
+      <p class="text-sm text-emerald-700 mt-1.5"><strong>Sửa đúng:</strong> mod-10 phải có so sánh: <span class="font-mono text-xs">if (q == 4'd9) q &lt;= 0; else q &lt;= q + 1;</span> Wrap là <em>quyết định thiết kế</em>, không phải quà tặng của phần cứng.</p>
+    </div>
+    <div class="bg-white rounded-2xl border-l-4 border-secondary shadow-sm p-5">
+      <h3 class="font-bold text-amber-600 text-sm mb-1"><i class="fa-solid fa-circle-exclamation mr-1.5"></i>5. Nhầm common anode / common cathode</h3>
+      <p class="text-sm text-slate-700"><strong>Sai:</strong> nạp bảng active-high lên board common anode (LED sáng mức 0).</p>
+      <p class="text-sm text-slate-600 mt-1.5"><strong>Vì sao nguy hiểm:</strong> hiển thị "âm bản": số 8 → tắt hết, số 1 → sáng 5 đoạn. Sinh viên tưởng RTL sai và sửa lung tung vào logic đúng.</p>
+      <p class="text-sm text-emerald-700 mt-1.5"><strong>Sửa đúng:</strong> đọc schematic board trước; nếu active-low chỉ cần đảo một chỗ ở top: <span class="font-mono text-xs">assign seg_n = ~seg;</span> — giữ decoder chuẩn để tái sử dụng.</p>
+    </div>
+    <div class="bg-white rounded-2xl border-l-4 border-danger shadow-sm p-5">
+      <h3 class="font-bold text-red-600 text-sm mb-1"><i class="fa-solid fa-ban mr-1.5"></i>6. Nối thẳng counter vào LED, bỏ decoder</h3>
+      <p class="text-sm text-slate-700"><strong>Sai:</strong> gán <span class="font-mono text-xs">q[3:0]</span> trực tiếp vào 4 chân LED 7 đoạn (hoặc kỳ vọng LED "tự hiểu" nhị phân).</p>
+      <p class="text-sm text-slate-600 mt-1.5"><strong>Vì sao nguy hiểm:</strong> LED 7 đoạn không biết nhị phân — mỗi thanh chỉ là một bóng đèn. Thiếu decoder là thiếu hẳn một tầng chức năng, hiển thị vô nghĩa.</p>
+      <p class="text-sm text-emerald-700 mt-1.5"><strong>Sửa đúng:</strong> luôn tách hai vai: <strong>counter tạo giá trị, decoder tạo mẫu sáng</strong>. Tư duy "think in blocks" của Tuần 4 chính là để tránh lỗi này.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 13. MINI-PROJECT CONNECTION ===================== -->
+<section id="mini-project" class="pt-12">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-accent/10 text-accent flex items-center justify-center"><i class="fa-solid fa-cubes"></i></div>
+    <div>
+      <p class="text-[11px] font-bold text-accent uppercase tracking-wider">Section 13</p>
+      <h2 class="text-2xl font-extrabold text-slate-900">Mini-project — từ bài học đến sản phẩm</h2>
+    </div>
+  </div>
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+    <p class="text-sm text-slate-700 mb-4">Counter + decoder + display là "bộ ba" xuất hiện trong gần như mọi project hiển thị số. Ba mức triển khai gợi ý — chọn theo sức của nhóm:</p>
+    <div class="grid md:grid-cols-3 gap-4">
+      <div class="rounded-xl border-2 border-emerald-200 bg-emerald-50/50 p-5">
+        <p class="text-xs font-bold text-emerald-700 uppercase mb-1">Cơ bản ★</p>
+        <h3 class="font-bold text-slate-800 text-sm">Digital counter 0–9</h3>
+        <p class="text-sm text-slate-600 mt-2">Chính là bài học hôm nay: tick 1 Hz → counter mod-10 → decoder → 1 LED 7 đoạn. Thêm nút reset. Đích: chạy được trên board, giải thích được từng khối.</p>
+        <p class="text-xs text-slate-500 mt-2"><i class="fa-solid fa-cube mr-1"></i>Khối: tick_1hz, counter_mod10, seg7_decoder</p>
+      </div>
+      <div class="rounded-xl border-2 border-blue-200 bg-blue-50/50 p-5">
+        <p class="text-xs font-bold text-primary uppercase mb-1">Nâng cao ★★</p>
+        <h3 class="font-bold text-slate-800 text-sm">Máy đếm sản phẩm / up-down counter</h3>
+        <p class="text-sm text-slate-600 mt-2">Đếm theo nút bấm (mỗi lần nhấn +1, nút khác −1). Phát sinh vấn đề thật: <strong>debounce</strong> nút bấm (nhớ lại FF Tuần 5) và phát hiện cạnh nhấn — chính là dạng tick enable!</p>
+        <p class="text-xs text-slate-500 mt-2"><i class="fa-solid fa-cube mr-1"></i>Khối: debouncer, edge detector, up/down counter, decoder</p>
+      </div>
+      <div class="rounded-xl border-2 border-amber-200 bg-amber-50/50 p-5">
+        <p class="text-xs font-bold text-amber-700 uppercase mb-1">Thử thách ★★★</p>
+        <h3 class="font-bold text-slate-800 text-sm">Stopwatch 00–59</h3>
+        <p class="text-sm text-slate-600 mt-2">Hai chữ số: hàng đơn vị mod-10 <em>nối tầng</em> sang hàng chục mod-6 (đơn vị wrap 9→0 thì phát enable cho hàng chục). Nút start/stop điều khiển en — một FSM bé xíu từ Tuần 6.</p>
+        <p class="text-xs text-slate-500 mt-2"><i class="fa-solid fa-cube mr-1"></i>Khối: tick, 2 counter nối tầng, 2 decoder, FSM start/stop</p>
+      </div>
+    </div>
+    <div class="mt-4 rounded-lg bg-slate-50 border border-slate-200 p-4 text-sm text-slate-700">
+      <i class="fa-solid fa-link text-primary mr-1.5"></i><strong>Nối sang Tuần 11:</strong> thêm khối uart_tx để board gửi giá trị đếm về PC — sản phẩm biến từ "đồ chơi nhìn tại chỗ" thành "thiết bị đo đạc có giao tiếp". Đó chính là kiến trúc của máy đếm sản phẩm công nghiệp thật.
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 14. QUIZ ===================== -->
+<section id="quiz" class="pt-12">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-circle-question"></i></div>
+    <div>
+      <p class="text-[11px] font-bold text-primary uppercase tracking-wider">Section 14</p>
+      <h2 class="text-2xl font-extrabold text-slate-900">Quiz — 9 câu tự kiểm tra</h2>
+    </div>
+  </div>
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
+      <p class="text-sm text-slate-600">Chọn đáp án — chấm ngay từng câu, kèm giải thích. Đọc kỹ giải thích cả khi trả lời đúng!</p>
+      <div class="flex items-center gap-3">
+        <span id="quiz-score" class="text-sm font-bold text-primary bg-blue-50 border border-blue-200 rounded-full px-4 py-1.5">Đúng 0/9 · đã làm 0</span>
+        <button id="quiz-reset" class="text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-full px-4 py-1.5"><i class="fa-solid fa-rotate-left mr-1"></i>Làm lại</button>
+      </div>
+    </div>
+    <div id="quiz-container" class="space-y-5"></div>
+  </div>
+</section>
+
+<!-- ===================== 15. HOMEWORK ===================== -->
+<section id="homework" class="pt-12">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-pen-ruler"></i></div>
+    <div>
+      <p class="text-[11px] font-bold text-primary uppercase tracking-wider">Section 15</p>
+      <h2 class="text-2xl font-extrabold text-slate-900">Bài tập về nhà — 3 mức</h2>
+    </div>
+  </div>
+  <div class="space-y-5">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+      <div class="bg-emerald-500/10 border-b border-emerald-200 px-6 py-3"><h3 class="font-bold text-emerald-700"><i class="fa-solid fa-seedling mr-2"></i>Mức 1 — Nhận biết &amp; giải thích (bắt buộc)</h3></div>
+      <div class="p-6 grid md:grid-cols-3 gap-4 text-sm">
+        <div><p class="font-bold text-slate-800 mb-1">Yêu cầu nộp</p><p class="text-slate-600">Một trang A4/markdown: vẽ lại data path 4 khối (tick → counter → decoder → LED) bằng tay, kèm 3 câu trả lời: (a) vì sao counter 0–9 cần đúng 4 flip-flop; (b) vì sao phải có decoder giữa counter và LED; (c) tick enable khác "clock chia" ở điểm nào.</p></div>
+        <div><p class="font-bold text-slate-800 mb-1">Gợi ý làm bài</p><p class="text-slate-600">Trả lời câu (c) bằng 2 gạch đầu dòng: FF vẫn ăn clock 50 MHz nào? Tín hiệu nào quyết định "được đếm"? Xem lại demo Section 6 nếu bí.</p></div>
+        <div><p class="font-bold text-slate-800 mb-1">Tiêu chí đánh giá</p><p class="text-slate-600">Đúng thuật ngữ (flip-flop, comparator, mod-10, propagation delay); sơ đồ ghi rõ độ rộng bus; câu (c) không nói "tạo clock 1 Hz".</p></div>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+      <div class="bg-blue-500/10 border-b border-blue-200 px-6 py-3"><h3 class="font-bold text-primary"><i class="fa-solid fa-compass-drafting mr-2"></i>Mức 2 — Thiết kế &amp; lập bảng</h3></div>
+      <div class="p-6 grid md:grid-cols-3 gap-4 text-sm">
+        <div><p class="font-bold text-slate-800 mb-1">Yêu cầu nộp</p><p class="text-slate-600">(a) Bảng chân lý decoder đầy đủ 10 hàng + default, cột hex nếu thích; (b) waveform vẽ tay 12 nhịp en thể hiện wrap 9→0 với q và seg; (c) thiết kế lại counter mod-6 (0–5): block diagram + luật đếm.</p></div>
+        <div><p class="font-bold text-slate-800 mb-1">Gợi ý làm bài</p><p class="text-slate-600">Waveform: vẽ seg đổi <em>hơi trễ</em> sau q (ghi chú t_pd) — chi tiết này ăn điểm. Mod-6: comparator so với mấy? Cần mấy FF (gợi ý: 5 = 101₂)?</p></div>
+        <div><p class="font-bold text-slate-800 mb-1">Tiêu chí đánh giá</p><p class="text-slate-600">Bảng đúng 100% (đối chiếu demo); waveform thể hiện đúng thời điểm cạnh lên + trễ; mod-6 chỉ rõ 3 FF và so sánh với 5.</p></div>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+      <div class="bg-amber-500/10 border-b border-amber-200 px-6 py-3"><h3 class="font-bold text-amber-700"><i class="fa-solid fa-rocket mr-2"></i>Mức 3 — RTL &amp; mini-project</h3></div>
+      <div class="p-6 grid md:grid-cols-3 gap-4 text-sm">
+        <div><p class="font-bold text-slate-800 mb-1">Yêu cầu nộp</p><p class="text-slate-600">RTL stopwatch 00–59: counter đơn vị mod-10 nối tầng counter chục mod-6 (đơn vị wrap thì enable hàng chục), 2 decoder; + testbench kiểm tra wrap 59→00 và reset; + ảnh waveform mô phỏng.</p></div>
+        <div><p class="font-bold text-slate-800 mb-1">Gợi ý làm bài</p><p class="text-slate-600">Tín hiệu nối tầng: <span class="font-mono text-xs">carry = en &amp;&amp; (unit == 9)</span> — một dòng assign tổ hợp. Testbench: dùng tick giả nhanh (vd mỗi 4 chu kỳ) để mô phỏng ngắn. Tự hỏi: có latch không? Chạy synthesis thử xem báo cáo FF = 4 + 3 + 26?</p></div>
+        <div><p class="font-bold text-slate-800 mb-1">Tiêu chí đánh giá</p><p class="text-slate-600">Compile 0 lỗi 0 warning latch; wrap 59→00 đúng trên waveform; luôn dùng always_ff/&lt;= và always_comb/= chuẩn; code có comment tiếng Việt giải thích phần cứng.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 16. RUBRIC ===================== -->
+<section id="rubric" class="pt-12">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-table-list"></i></div>
+    <div>
+      <p class="text-[11px] font-bold text-primary uppercase tracking-wider">Section 16</p>
+      <h2 class="text-2xl font-extrabold text-slate-900">Rubric tự đánh giá năng lực tuần 10</h2>
+    </div>
+  </div>
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 overflow-x-auto">
+    <table class="w-full text-sm border-collapse min-w-[820px]">
+      <thead>
+        <tr class="text-left">
+          <th class="p-3 bg-dark text-white rounded-tl-lg w-44">Tiêu chí</th>
+          <th class="p-3 bg-red-50 text-red-700 border-b-2 border-red-200">Chưa đạt</th>
+          <th class="p-3 bg-amber-50 text-amber-700 border-b-2 border-amber-200">Đạt cơ bản</th>
+          <th class="p-3 bg-blue-50 text-blue-700 border-b-2 border-blue-200">Khá</th>
+          <th class="p-3 bg-emerald-50 text-emerald-700 border-b-2 border-emerald-200 rounded-tr-lg">Tốt</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-200 text-slate-700">
+        <tr><td class="p-3 font-bold">Hiểu counter</td><td class="p-3">Nghĩ counter "tự hiện số", không nói được số FF</td><td class="p-3">Biết counter 0–9 dùng 4 FF, đếm theo cạnh clock</td><td class="p-3">Giải thích được incrementer + comparator 9 + wrap mod-10</td><td class="p-3">Tự thiết kế mod-N bất kỳ, giải thích chọn số FF bằng log₂</td></tr>
+        <tr><td class="p-3 font-bold">Hiểu decoder &amp; display</td><td class="p-3">Không phân biệt decoder với counter</td><td class="p-3">Nêu được decoder là tổ hợp, tra bảng chân lý</td><td class="p-3">Viết đúng bảng 10 hàng + default; hiểu active-high/low</td><td class="p-3">Phân tích được quét nhiều digit bằng MUX, ước lượng LUT</td></tr>
+        <tr><td class="p-3 font-bold">Xác định I/O &amp; block</td><td class="p-3">Không vẽ được sơ đồ khối</td><td class="p-3">Vẽ 3 khối nhưng thiếu tên/độ rộng tín hiệu</td><td class="p-3">Sơ đồ đủ tín hiệu, độ rộng bus, chiều mũi tên</td><td class="p-3">Chỉ rõ khối nào tuần tự/tổ hợp, cần clock/reset hay không</td></tr>
+        <tr><td class="p-3 font-bold">Viết RTL</td><td class="p-3">Nhầm always_ff/always_comb, chia clock tự chế</td><td class="p-3">Counter + decoder chạy mô phỏng, còn warning</td><td class="p-3">Dùng tick enable đúng, có default, 0 latch</td><td class="p-3">RTL sạch + testbench self-check + nối tầng 2 digit</td></tr>
+        <tr><td class="p-3 font-bold">Đọc waveform</td><td class="p-3">Không chỉ được thời điểm q đổi</td><td class="p-3">Chỉ được q đổi tại cạnh lên khi en=1</td><td class="p-3">Giải thích t_CQ và t_pd của decoder trên waveform</td><td class="p-3">Suy luận setup/hold, dự đoán lỗi nếu en đổi sát cạnh</td></tr>
+        <tr><td class="p-3 font-bold">Debug &amp; ứng dụng</td><td class="p-3">LED sai là "chịu"</td><td class="p-3">Biết nghi ngờ theo tầng: counter? decoder? chân?</td><td class="p-3">Cô lập lỗi bằng mô phỏng từng khối</td><td class="p-3">Kể được 2–3 ứng dụng thật (timer, PC, watchdog) và cách project mở rộng</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ===================== 17. MENTOR NOTES ===================== -->
+<section id="mentor-notes" class="pt-12">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-dark text-amber-400 flex items-center justify-center"><i class="fa-solid fa-chalkboard-user"></i></div>
+    <div>
+      <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Section 17</p>
+      <h2 class="text-2xl font-extrabold text-slate-900">Mentor Notes — dành riêng cho người dẫn dắt</h2>
+    </div>
+  </div>
+  <div class="bg-dark text-slate-200 rounded-2xl shadow-lg p-6 md:p-8 border-t-4 border-amber-400">
+    <div class="grid md:grid-cols-2 gap-6 text-sm">
+      <div>
+        <h3 class="font-bold text-amber-300 mb-2"><i class="fa-solid fa-bullhorn mr-2"></i>Nhấn mạnh gì trong buổi này</h3>
+        <ul class="space-y-2 text-slate-300">
+          <li>• Câu thần chú của tuần: <strong class="text-white">"Counter tạo giá trị — Decoder tạo hình ảnh"</strong>. Lặp lại ít nhất 3 lần, bắt sinh viên nhắc lại.</li>
+          <li>• Đây là lần đầu ghép tuần tự + tổ hợp thành hệ thống: hãy chỉ vào từng khối hỏi "khối này cần clock không?".</li>
+          <li>• Tick enable là kỹ thuật sinh viên sẽ dùng lại nguyên xi ở UART tuần 11 (baud tick) — đầu tư kỹ ở đây, tuần sau nhàn.</li>
+        </ul>
+        <h3 class="font-bold text-amber-300 mt-5 mb-2"><i class="fa-solid fa-user-slash mr-2"></i>Sinh viên hay hiểu sai ở đâu</h3>
+        <ul class="space-y-2 text-slate-300">
+          <li>• Nghĩ "4 bit = tự đếm 0–9" — không thấy vai trò comparator; demo wrap 9→0 để khui ra.</li>
+          <li>• Nghĩ tick là "clock 1 Hz mới" — vẽ 2 waveform cạnh nhau: clk vẫn dày đặc, en thưa thớt.</li>
+          <li>• Copy bảng seg trên mạng không rõ active-low → LED âm bản, rồi đổ lỗi cho RTL.</li>
+        </ul>
+      </div>
+      <div>
+        <h3 class="font-bold text-amber-300 mb-2"><i class="fa-solid fa-microphone-lines mr-2"></i>Câu hỏi vấn đáp nên dùng (kèm đáp án kỳ vọng)</h3>
+        <div class="space-y-3">
+          <div class="bg-white/5 rounded-lg p-3 border border-white/10"><p class="font-semibold text-white">"q đang là 9, nhờ đâu nhịp sau nó về 0?"</p><p class="text-slate-400 mt-1">Kỳ vọng: mạch tổ hợp next-value có comparator q==9; nếu đúng thì chọn 0, sai thì chọn q+1; FF nạp giá trị đó tại cạnh lên khi en=1.</p></div>
+          <div class="bg-white/5 rounded-lg p-3 border border-white/10"><p class="font-semibold text-white">"Tick enable khác chia clock chỗ nào?"</p><p class="text-slate-400 mt-1">Kỳ vọng: FF vẫn ăn clock gốc 50 MHz (một clock domain duy nhất); en chỉ là dữ liệu điều khiển. Chia clock tạo clock mới → skew/glitch/khó phân tích timing.</p></div>
+          <div class="bg-white/5 rounded-lg p-3 border border-white/10"><p class="font-semibold text-white">"Nếu xóa dòng default trong decoder thì synthesis nói gì?"</p><p class="text-slate-400 mt-1">Kỳ vọng: cảnh báo "inferred latch" — vì tồn tại input mà output không được gán, công cụ phải thêm phần tử nhớ.</p></div>
+        </div>
+        <h3 class="font-bold text-amber-300 mt-5 mb-2"><i class="fa-solid fa-bridge mr-2"></i>Cách nối sang tuần 11</h3>
+        <p class="text-slate-300">Kết buổi bằng một câu hỏi mở: <em>"LED 7 đoạn chỉ phục vụ người đứng cạnh board. Nếu thầy muốn xem giá trị đếm từ laptop — thậm chí vẽ đồ thị — thì cần gì?"</em> → Cần gửi dữ liệu nối tiếp qua một giao thức: <strong class="text-white">UART, tuần 11</strong>. Gợi ý trước: "baud rate generator tuần sau chính là tick_1hz hôm nay, chỉ đổi con số chia."</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 18. KEY VOCABULARY ===================== -->
+<section id="vocabulary" class="pt-12">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><i class="fa-solid fa-book"></i></div>
+    <div>
+      <p class="text-[11px] font-bold text-primary uppercase tracking-wider">Section 18</p>
+      <h2 class="text-2xl font-extrabold text-slate-900">Key Vocabulary — từ vựng kỹ thuật tuần 10</h2>
+    </div>
+  </div>
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 overflow-x-auto">
+    <table class="w-full text-sm border-collapse min-w-[820px]">
+      <thead><tr class="bg-dark text-white text-left"><th class="p-3 rounded-tl-lg">English term</th><th class="p-3">Nghĩa tiếng Việt</th><th class="p-3">Giải thích kỹ thuật</th><th class="p-3 rounded-tr-lg">Example sentence</th></tr></thead>
+      <tbody class="divide-y divide-slate-200 text-slate-700">
+        <tr><td class="p-3 font-bold text-primary">Counter</td><td class="p-3">Bộ đếm</td><td class="p-3">Thanh ghi n-bit + logic next-value (+1, wrap); đổi giá trị tại cạnh lên clock.</td><td class="p-3 italic text-slate-500">"The mod-10 counter wraps from 9 back to 0."</td></tr>
+        <tr><td class="p-3 font-bold text-primary">Flip-flop</td><td class="p-3">Phần tử nhớ 1 bit</td><td class="p-3">Lưu đúng 1 bit; cập nhật tại cạnh clock. Counter 0–9 cần 4 flip-flop.</td><td class="p-3 italic text-slate-500">"Each flip-flop stores exactly one bit."</td></tr>
+        <tr><td class="p-3 font-bold text-primary">Register</td><td class="p-3">Thanh ghi</td><td class="p-3">Nhóm n flip-flop dùng chung clock, lưu giá trị n bit.</td><td class="p-3 italic text-slate-500">"The count value is held in a 4-bit register."</td></tr>
+        <tr><td class="p-3 font-bold text-primary">Clock</td><td class="p-3">Xung nhịp</td><td class="p-3">Tín hiệu vuông tuần hoàn; mọi flip-flop trong một domain cập nhật theo cạnh của nó.</td><td class="p-3 italic text-slate-500">"The board provides a 50 MHz clock."</td></tr>
+        <tr><td class="p-3 font-bold text-primary">Enable (tick)</td><td class="p-3">Tín hiệu cho phép</td><td class="p-3">Xung dữ liệu rộng 1 chu kỳ; FF chỉ nạp giá trị mới khi enable = 1. Thay thế an toàn cho "chia clock".</td><td class="p-3 italic text-slate-500">"Use a one-cycle enable tick instead of a divided clock."</td></tr>
+        <tr><td class="p-3 font-bold text-primary">Reset</td><td class="p-3">Đặt lại</td><td class="p-3">Đưa thanh ghi về giá trị biết trước (0); có kiểu đồng bộ (theo clock) và bất đồng bộ.</td><td class="p-3 italic text-slate-500">"Press reset to clear the counter to zero."</td></tr>
+        <tr><td class="p-3 font-bold text-primary">BCD</td><td class="p-3">Mã nhị phân của chữ số thập phân</td><td class="p-3">Binary-Coded Decimal: mỗi chữ số 0–9 mã hóa bằng 4 bit; mã 1010–1111 không dùng.</td><td class="p-3 italic text-slate-500">"A BCD digit needs four bits."</td></tr>
+        <tr><td class="p-3 font-bold text-primary">Comparator</td><td class="p-3">Bộ so sánh</td><td class="p-3">Mạch tổ hợp báo hai giá trị bằng/lớn/nhỏ; ở đây phát hiện q == 9 để wrap.</td><td class="p-3 italic text-slate-500">"A comparator detects when the count reaches 9."</td></tr>
+        <tr><td class="p-3 font-bold text-primary">Decoder</td><td class="p-3">Bộ giải mã</td><td class="p-3">Mạch tổ hợp ánh xạ mã đầu vào → mẫu đầu ra theo bảng chân lý; không nhớ, không clock.</td><td class="p-3 italic text-slate-500">"The decoder converts BCD into segment signals."</td></tr>
+        <tr><td class="p-3 font-bold text-primary">7-segment display</td><td class="p-3">LED 7 đoạn</td><td class="p-3">7 thanh LED a–g xếp hình số 8; common cathode (active-high) hoặc common anode (active-low).</td><td class="p-3 italic text-slate-500">"Digit 8 lights all seven segments."</td></tr>
+        <tr><td class="p-3 font-bold text-primary">Propagation delay</td><td class="p-3">Độ trễ lan truyền</td><td class="p-3">Thời gian tín hiệu đi qua mạch tổ hợp (ns); output không đổi "ngay lập tức".</td><td class="p-3 italic text-slate-500">"Segment outputs change after a small propagation delay."</td></tr>
+        <tr><td class="p-3 font-bold text-primary">Modulo (mod-N)</td><td class="p-3">Đếm quay vòng chu kỳ N</td><td class="p-3">Counter mod-N có N trạng thái 0..N−1 rồi quay về 0; mod-10 = BCD counter.</td><td class="p-3 italic text-slate-500">"A mod-6 counter is used for the tens digit of seconds."</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ===================== 19. FINAL SUMMARY ===================== -->
+<section id="summary" class="pt-12">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-accent/10 text-accent flex items-center justify-center"><i class="fa-solid fa-flag-checkered"></i></div>
+    <div>
+      <p class="text-[11px] font-bold text-accent uppercase tracking-wider">Section 19</p>
+      <h2 class="text-2xl font-extrabold text-slate-900">Tổng kết — mang gì về sau tuần 10?</h2>
+    </div>
+  </div>
+  <div class="grid md:grid-cols-2 gap-5">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+      <h3 class="font-bold text-slate-800 mb-3"><i class="fa-solid fa-star text-secondary mr-2"></i>5 ý chính cần nhớ</h3>
+      <ol class="space-y-2.5 text-sm text-slate-700 list-decimal list-inside">
+        <li>Data path tuần này: <strong>clock → tick enable → counter → giá trị nhị phân → decoder → LED 7 đoạn</strong> — mỗi mũi tên là một bus có tên, có độ rộng.</li>
+        <li>Counter 0–9 là <strong>thanh ghi 4 flip-flop</strong> + incrementer + <strong>comparator phát hiện 9</strong> để wrap (mod-10). Wrap là quyết định thiết kế, không tự có.</li>
+        <li>Đếm chậm bằng <strong>tick enable</strong> trên một clock 50 MHz duy nhất — tuyệt đối không "chế" clock bằng assign hay bit counter.</li>
+        <li>Decoder là <strong>tổ hợp thuần</strong>: always_comb + case + <strong>default bắt buộc</strong> (thiếu là sinh latch); output trễ t_pd chứ không tức thời.</li>
+        <li>Counter tạo giá trị — decoder tạo hình ảnh: tách khối rõ ràng thì debug được từng tầng, tái sử dụng được từng module.</li>
+      </ol>
+      <div class="mt-5 rounded-xl bg-gradient-to-r from-slate-900 to-blue-900 text-white p-5">
+        <p class="text-sm italic leading-relaxed"><i class="fa-solid fa-quote-left text-blue-300 mr-2"></i>Khoảnh khắc LED nhảy số đầu tiên, bạn không còn "học về mạch số" nữa — bạn là người <strong>làm ra</strong> mạch số. Hãy giữ cảm giác đó: mọi con chip lớn cũng chỉ là nhiều khối nhỏ được ghép cẩn thận như hôm nay.</p>
+        <p class="text-xs text-blue-300 mt-2 font-bold">— Mentor note</p>
+      </div>
+    </div>
+    <div class="space-y-5">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+        <h3 class="font-bold text-slate-800 mb-3"><i class="fa-solid fa-person-circle-question text-primary mr-2"></i>3 câu tự phản tỉnh</h3>
+        <ul class="text-sm text-slate-700 space-y-2">
+          <li>1. Nếu phải vẽ lại toàn bộ data path từ trí nhớ, tôi kẹt ở mũi tên nào?</li>
+          <li>2. Tôi giải thích được cho bạn cùng lớp vì sao tick enable an toàn hơn chia clock chưa?</li>
+          <li>3. Gặp LED hiển thị sai, bước debug ĐẦU TIÊN của tôi là gì — và vì sao là bước đó?</li>
+        </ul>
+      </div>
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="font-bold text-slate-800"><i class="fa-solid fa-list-check text-accent mr-2"></i>Sau buổi học, tôi có thể…</h3>
+          <span id="sum-progress" class="text-xs font-bold text-white bg-accent rounded-full px-2.5 py-1">0/5</span>
+        </div>
+        <div class="space-y-2.5 text-sm text-slate-700">
+          <label class="flex items-start gap-3 cursor-pointer"><input type="checkbox" class="chk sum-chk mt-0.5"><span>Vẽ block diagram tick → counter → decoder → LED với tên và độ rộng tín hiệu</span></label>
+          <label class="flex items-start gap-3 cursor-pointer"><input type="checkbox" class="chk sum-chk mt-0.5"><span>Giải thích counter 0–9 = 4 flip-flop + comparator wrap tại 9</span></label>
+          <label class="flex items-start gap-3 cursor-pointer"><input type="checkbox" class="chk sum-chk mt-0.5"><span>Viết seg7_decoder bằng always_comb + case + default không sinh latch</span></label>
+          <label class="flex items-start gap-3 cursor-pointer"><input type="checkbox" class="chk sum-chk mt-0.5"><span>Tạo nhịp 1 Hz đúng chuẩn bằng tick enable từ clock 50 MHz</span></label>
+          <label class="flex items-start gap-3 cursor-pointer"><input type="checkbox" class="chk sum-chk mt-0.5"><span>Chỉ trên waveform thời điểm q đổi và giải thích độ trễ của seg</span></label>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<!-- ===================== FOOTER ===================== -->
+<footer class="bg-dark text-slate-300 mt-16">
+  <div class="max-w-6xl mx-auto px-4 py-8">
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+      <a href="Week9.html" class="group flex items-center gap-2 text-sm font-bold hover:text-white"><i class="fa-solid fa-arrow-left text-blue-400 group-hover:-translate-x-1 transition-transform"></i>Tuần 9 — Traffic Light Controller</a>
+      <div class="text-center">
+        <p class="text-xs text-slate-500">Chương trình Mentoring Thiết kế Vi mạch số — 12 tuần</p>
+        <p class="text-[11px] text-slate-600 mt-1">Tuần 10: Counter &amp; 7-Segment Display</p>
+        <p class="text-[11px] text-slate-600 mt-1">Bản quyền © Khoa Điện - Điện tử, Trường Kỹ thuật Phenikaa, Đại học Phenikaa · Giảng viên: ThS. Đinh Văn Nam</p>
+      </div>
+      <a href="Week11.html" class="group flex items-center gap-2 text-sm font-bold hover:text-white">Tuần 11 — UART Communication Basics<i class="fa-solid fa-arrow-right text-emerald-400 group-hover:translate-x-1 transition-transform"></i></a>
+    </div>
+  </div>
+</footer>
+<script>
+// ================= Checklist progress =================
+function bindChecklist(cls, progressId) {
+  var boxes = document.querySelectorAll('.' + cls);
+  var label = document.getElementById(progressId);
+  if (!label || !boxes.length) return;
+  boxes.forEach(function (b) {
+    b.addEventListener('change', function () {
+      var done = document.querySelectorAll('.' + cls + ':checked').length;
+      label.textContent = done + '/' + boxes.length;
+    });
+  });
+}
+bindChecklist('prep-chk', 'prep-progress');
+bindChecklist('sum-chk', 'sum-progress');
+
+// ================= Copy code =================
+function fallbackCopy(text, done) {
+  var ta = document.createElement('textarea');
+  ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.appendChild(ta); ta.select();
+  try { document.execCommand('copy'); } catch (e) {}
+  document.body.removeChild(ta); done();
+}
+document.querySelectorAll('.copy-btn').forEach(function (btn) {
+  btn.addEventListener('click', function () {
+    var el = document.getElementById(btn.getAttribute('data-target'));
+    if (!el) return;
+    var text = el.textContent;
+    var done = function () {
+      var old = btn.innerHTML;
+      btn.innerHTML = '<i class="fa-solid fa-check mr-1"></i>Đã copy!';
+      btn.disabled = true;
+      setTimeout(function () { btn.innerHTML = old; btn.disabled = false; }, 1600);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done).catch(function () { fallbackCopy(text, done); });
+    } else { fallbackCopy(text, done); }
+  });
+});
+
+// ================= Demo: clock -> counter -> decoder -> LED =================
+// Mẫu đoạn active-high, thứ tự [a,b,c,d,e,f,g]
+var SEG_MAP = [
+  [1,1,1,1,1,1,0], // 0
+  [0,1,1,0,0,0,0], // 1
+  [1,1,0,1,1,0,1], // 2
+  [1,1,1,1,0,0,1], // 3
+  [0,1,1,0,0,1,1], // 4
+  [1,0,1,1,0,1,1], // 5
+  [1,0,1,1,1,1,1], // 6
+  [1,1,1,0,0,0,0], // 7
+  [1,1,1,1,1,1,1], // 8
+  [1,1,1,1,0,1,1]  // 9
+];
+var SEG_NAMES = ['a','b','c','d','e','f','g'];
+var demoCount = 0, demoEdges = 0, autoTimer = null;
+
+// Dựng bảng chân lý decoder (10 hàng)
+var decBody = document.getElementById('dec-table-body');
+for (var i = 0; i < 10; i++) {
+  var tr = document.createElement('tr');
+  tr.id = 'dec-row-' + i;
+  tr.innerHTML = '<td class="py-1 px-2 font-bold">' + i + '</td>' +
+                 '<td class="py-1 px-2">' + i.toString(2).padStart(4, '0') + '</td>' +
+                 '<td class="py-1 px-2">' + SEG_MAP[i].join('') + '</td>';
+  decBody.appendChild(tr);
+}
+
+function renderDemo(prev, wrapped) {
+  var bin = demoCount.toString(2).padStart(4, '0');
+  for (var b = 0; b < 4; b++) {
+    var el = document.getElementById('bit' + (3 - b));
+    el.textContent = bin[b];
+    if (bin[b] === '1') { el.classList.add('border-primary', 'bg-blue-100'); }
+    else { el.classList.remove('border-primary', 'bg-blue-100'); }
+    el.classList.remove('flash-val'); void el.offsetWidth; el.classList.add('flash-val');
+  }
+  document.getElementById('demo-dec').textContent = demoCount;
+  document.getElementById('demo-edges').textContent = demoEdges;
+  var pattern = SEG_MAP[demoCount];
+  var act = [];
+  for (var s = 0; s < 7; s++) {
+    var seg = document.getElementById('seg-' + SEG_NAMES[s]);
+    if (pattern[s] === 1) { seg.classList.add('on'); act.push(SEG_NAMES[s]); }
+    else { seg.classList.remove('on'); }
+  }
+  document.getElementById('seg-active-text').textContent = act.join(' ');
+  document.getElementById('demo-segbits').textContent = pattern.join('');
+  document.querySelectorAll('#dec-table-body tr').forEach(function (r) { r.classList.remove('rowhl'); });
+  var row = document.getElementById('dec-row-' + demoCount);
+  if (row) row.classList.add('rowhl');
+  document.getElementById('demo-wrap-note').classList.toggle('hidden', !wrapped);
+  var ex = document.getElementById('demo-explain');
+  if (prev === null) {
+    ex.innerHTML = '<i class="fa-solid fa-comment-dots text-primary mr-1.5"></i>Đã reset: q = 0000₂. Decoder tra hàng 0 → bật a b c d e f, LED vẽ số 0.';
+  } else {
+    ex.innerHTML = '<i class="fa-solid fa-comment-dots text-primary mr-1.5"></i><strong>Cạnh lên #' + demoEdges +
+      ' (en = 1):</strong> counter chuyển ' + prev + ' → ' + demoCount +
+      ' (' + demoCount.toString(2).padStart(4, '0') + '₂). Sau t<sub>pd</sub>, decoder bật: <strong>' + act.join(', ') + '</strong>.' +
+      (wrapped ? ' <span class="text-emerald-700 font-bold">Comparator thấy 9 → wrap về 0!</span>' : '');
+  }
+}
+
+function stepClock() {
+  demoEdges++;
+  var prev = demoCount;
+  var wrapped = (prev === 9);            // comparator: q == 9 ?
+  demoCount = wrapped ? 0 : demoCount + 1; // MUX chọn 0 hoặc q+1
+  renderDemo(prev, wrapped);
+}
+
+var btnAuto = document.getElementById('btn-auto');
+var clkInd = document.getElementById('clk-indicator');
+function stopAuto() {
+  if (autoTimer) { clearInterval(autoTimer); autoTimer = null; }
+  btnAuto.innerHTML = '<i class="fa-solid fa-play mr-2"></i>Tự chạy';
+  clkInd.classList.remove('clk-run');
+}
+function startAuto() {
+  var period = parseInt(document.getElementById('demo-speed').value, 10);
+  autoTimer = setInterval(stepClock, period);
+  btnAuto.innerHTML = '<i class="fa-solid fa-pause mr-2"></i>Dừng';
+  clkInd.classList.add('clk-run');
+}
+document.getElementById('btn-step').addEventListener('click', function () { stepClock(); });
+btnAuto.addEventListener('click', function () { autoTimer ? stopAuto() : startAuto(); });
+document.getElementById('demo-speed').addEventListener('change', function () {
+  if (autoTimer) { clearInterval(autoTimer); autoTimer = null; startAuto(); }
+});
+document.getElementById('btn-reset').addEventListener('click', function () {
+  stopAuto(); demoCount = 0; demoEdges = 0; renderDemo(null, false);
+});
+renderDemo(null, false);
+document.getElementById('demo-explain').innerHTML =
+  '<i class="fa-solid fa-comment-dots text-primary mr-1.5"></i>Sẵn sàng. Counter đang ở 0 (0000₂) — decoder bật a b c d e f để vẽ số 0. Hãy cấp cạnh clock đầu tiên!';
+
+// ================= Quiz =================
+var QUIZ = [
+  { q: 'Counter đếm 0–9 cần bao nhiêu flip-flop? Vì sao?',
+    opts: ['10 flip-flop — mỗi con số một flip-flop', '4 flip-flop — vì giá trị lớn nhất 9 = 1001₂ cần 4 bit', '3 flip-flop — vì 2³ = 8 đã gần 10', '7 flip-flop — theo số đoạn của LED'],
+    ans: 1,
+    ex: 'Mỗi flip-flop lưu đúng 1 bit. Cần biểu diễn tối đa số 9 = 1001₂ → 4 bit → 4 flip-flop. 3 FF chỉ lưu được tối đa 7. Phương án 10 FF là mã one-hot — tốn phần cứng, không phải cách counter nhị phân thông dụng.' },
+  { q: 'Trong kiến trúc tick enable của bài, phát biểu nào ĐÚNG?',
+    opts: ['Counter nhận một clock 1 Hz riêng, tách khỏi 50 MHz', 'Flip-flop của counter vẫn nhận clock 50 MHz, nhưng chỉ nạp giá trị mới khi en = 1', 'tick là một clock mới nên cần phân tích clock domain', 'Khi en = 0, flip-flop bị ngắt khỏi clock'],
+    ans: 1,
+    ex: 'Toàn thiết kế chỉ có MỘT clock 50 MHz. tick chỉ là tín hiệu dữ liệu rộng 1 chu kỳ đi vào điều kiện if (en) — flip-flop luôn nhận clock, chỉ là "được phép đổi" hay không. Vì vậy không sinh clock domain mới.' },
+  { q: 'seg7_decoder thuộc loại mạch nào và nên viết bằng gì?',
+    opts: ['Tuần tự — always_ff vì có 10 trạng thái', 'Tổ hợp — always_comb + case + default', 'Tổ hợp — nhưng vẫn cần clock để đồng bộ', 'Tuần tự — vì dùng case là có nhớ'],
+    ans: 1,
+    ex: 'Decoder chỉ là ánh xạ input → output theo bảng chân lý: không nhớ, không clock → mạch tổ hợp, viết bằng always_comb với gán chặn =. case chỉ là cách liệt kê bảng chân lý, không tạo ra "trạng thái".' },
+  { q: 'Nếu case trong always_comb chỉ liệt kê 0–9 và KHÔNG có default, điều gì xảy ra?',
+    opts: ['Trình biên dịch báo lỗi, không chạy được', 'Không sao vì counter không bao giờ vượt quá 9', 'Công cụ synthesis suy ra latch — phần tử nhớ ngoài ý muốn', 'Mạch chạy nhanh hơn vì ít trường hợp hơn'],
+    ans: 2,
+    ex: 'Với input 1010–1111, output không được gán → để "output giữ giá trị cũ", công cụ phải thêm latch. Latch nhạy glitch và phá tính tổ hợp thuần. Dù counter đúng chỉ ra 0–9, decoder là module độc lập — phải tự bảo vệ mình bằng default.' },
+  { q: 'Vì sao counter từ 9 quay về 0 mà không đếm tiếp lên 10?',
+    opts: ['Vì 4 bit không chứa nổi số 10', 'Vì comparator phát hiện q == 9 và logic next-value chọn 0 thay vì q+1', 'Vì LED 7 đoạn không hiển thị được số 10', 'Vì tick enable chỉ phát 10 lần'],
+    ans: 1,
+    ex: '4 bit thừa sức chứa 10 (1010₂) — nếu không can thiệp, counter sẽ chạy tới 15 rồi mới tự wrap (mod-16). Quay về 0 sau 9 là QUYẾT ĐỊNH THIẾT KẾ, hiện thực bằng comparator q==9 + MUX chọn giá trị kế tiếp.' },
+  { q: 'Sau một cạnh lên clock (en = 1), tín hiệu seg thay đổi vào lúc nào?',
+    opts: ['Đúng thời điểm cạnh lên, tức thời', 'Sau t_CQ của flip-flop, cộng thêm t_pd lan truyền qua decoder', 'Tại cạnh xuống kế tiếp của clock', 'Sau đúng một chu kỳ clock'],
+    ans: 1,
+    ex: 'Chuỗi trễ có thật: cạnh lên → q đổi sau t_CQ (clock-to-Q của FF) → tín hiệu lan truyền qua các cổng/LUT của decoder mất thêm t_pd → seg đổi. Không có gì "ngay lập tức" trong mạch thật — cộng dồn các trễ này chính là nền của phân tích timing.' },
+  { q: 'Để hiển thị số 1 trên LED 7 đoạn (active-high), cần bật những đoạn nào?',
+    opts: ['a và b', 'b và c', 'c và d', 'e và f'],
+    ans: 1,
+    ex: 'Số 1 là hai vạch dọc bên phải: đoạn b (phải-trên) và c (phải-dưới) → seg = 7\'b0110000 theo thứ tự {a,b,c,d,e,f,g}. Bạn có thể kiểm chứng ngay trên demo ở Section 6.' },
+  { q: 'Cách tạo nhịp đếm 1 giây ĐÚNG chuẩn thiết kế đồng bộ là?',
+    opts: ['assign clk_1hz = clk &amp;&amp; en; rồi cấp clk_1hz cho counter', 'Lấy bit cao của bộ đếm chia (cnt[25]) làm clock cho counter', 'Bộ đếm phụ phát xung tick rộng 1 chu kỳ, nối vào chân enable của counter', 'Dùng #50_000_000 trong RTL để trì hoãn 1 giây'],
+    ans: 2,
+    ex: 'Phương án 1 là gated clock, phương án 2 là derived clock — cả hai tạo clock mới có skew/glitch và thêm clock domain. Phương án 4 (#delay) chỉ tồn tại trong mô phỏng, không tổng hợp được. Chuẩn mực: một clock + tick enable.' },
+  { q: 'Board dùng LED common anode (đoạn sáng khi chân = 0). Cách xử lý gọn và đúng nhất?',
+    opts: ['Viết lại toàn bộ 10 hàng bảng chân lý theo active-low', 'Giữ decoder active-high chuẩn, đảo một lần ở top: assign seg_n = ~seg;', 'Đảo clock trước khi đưa vào counter', 'Không cần làm gì, LED tự thích nghi'],
+    ans: 1,
+    ex: 'Đảo một chỗ ở top vừa gọn vừa giữ module decoder chuẩn để tái sử dụng trên board khác. Viết lại cả bảng cũng "chạy" nhưng dễ sai và khóa chết module vào một loại board. Đảo clock thì... không liên quan gì đến LED.' }
+];
+
+var quizContainer = document.getElementById('quiz-container');
+var quizScoreEl = document.getElementById('quiz-score');
+var quizAnswered = 0, quizCorrect = 0;
+
+function updateQuizScore() {
+  quizScoreEl.textContent = 'Đúng ' + quizCorrect + '/' + QUIZ.length + ' · đã làm ' + quizAnswered;
+}
+
+function buildQuiz() {
+  quizAnswered = 0; quizCorrect = 0; updateQuizScore();
+  quizContainer.innerHTML = '';
+  var letters = ['A', 'B', 'C', 'D'];
+  QUIZ.forEach(function (item, qi) {
+    var card = document.createElement('div');
+    card.className = 'rounded-xl border border-slate-200 p-5';
+    var optsHtml = item.opts.map(function (o, oi) {
+      return '<button class="quiz-opt w-full text-left rounded-lg px-4 py-2.5 text-sm text-slate-700" data-q="' + qi + '" data-o="' + oi + '">' +
+             '<span class="font-bold mr-2 text-primary">' + letters[oi] + '.</span>' + o + '</button>';
+    }).join('');
+    card.innerHTML =
+      '<p class="font-bold text-slate-800 text-sm mb-3"><span class="inline-flex w-6 h-6 rounded-full bg-primary text-white text-xs items-center justify-center mr-2">' + (qi + 1) + '</span>' + item.q + '</p>' +
+      '<div class="space-y-2">' + optsHtml + '</div>' +
+      '<div id="quiz-ex-' + qi + '" class="hidden mt-3 rounded-lg bg-slate-50 border border-slate-200 p-3 text-sm text-slate-700"></div>';
+    quizContainer.appendChild(card);
+  });
+  quizContainer.querySelectorAll('.quiz-opt').forEach(function (btn) {
+    btn.addEventListener('click', onQuizPick);
+  });
+}
+
+function onQuizPick(e) {
+  var btn = e.currentTarget;
+  var qi = parseInt(btn.getAttribute('data-q'), 10);
+  var oi = parseInt(btn.getAttribute('data-o'), 10);
+  var siblings = quizContainer.querySelectorAll('.quiz-opt[data-q="' + qi + '"]');
+  if (btn.classList.contains('locked')) return;
+  var item = QUIZ[qi];
+  quizAnswered++;
+  if (oi === item.ans) quizCorrect++;
+  siblings.forEach(function (s) {
+    s.classList.add('locked');
+    var so = parseInt(s.getAttribute('data-o'), 10);
+    if (so === item.ans) s.classList.add('correct');
+    else if (so === oi) s.classList.add('wrong');
+  });
+  var exEl = document.getElementById('quiz-ex-' + qi);
+  var ok = (oi === item.ans);
+  exEl.innerHTML = (ok
+    ? '<p class="font-bold text-emerald-600 mb-1"><i class="fa-solid fa-circle-check mr-1.5"></i>Chính xác!</p>'
+    : '<p class="font-bold text-red-600 mb-1"><i class="fa-solid fa-circle-xmark mr-1.5"></i>Chưa đúng — đáp án là ' + ['A','B','C','D'][item.ans] + '.</p>') +
+    '<p>' + item.ex + '</p>';
+  exEl.classList.remove('hidden');
+  updateQuizScore();
+}
+
+document.getElementById('quiz-reset').addEventListener('click', buildQuiz);
+buildQuiz();
+</script>
+</body>
+</html>

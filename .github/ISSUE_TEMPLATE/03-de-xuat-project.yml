@@ -1,0 +1,38 @@
+name: "Đề xuất project"
+description: "Đề xuất một project học tập / FPGA / nghiên cứu cho hub"
+title: "[Project] "
+labels: ["project-proposal"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: "Bài toán"
+      description: "Hệ gì, giải vấn đề gì, cho ai."
+    validations:
+      required: true
+  - type: textarea
+    id: objectives
+    attributes:
+      label: "Mục tiêu học tập / nghiên cứu"
+      description: "Làm xong project này, người làm học được gì / trả lời được câu hỏi nghiên cứu nào?"
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: "Phạm vi & công cụ dự kiến"
+      description: "Module chính, nền tảng (FPGA/mô phỏng), toolchain, thời lượng ước tính."
+    validations:
+      required: true
+  - type: input
+    id: prereq
+    attributes:
+      label: "Cần biết trước"
+      placeholder: "vd: FSM (Tuần 6), style RTL (Tuần 7)"
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: "Cam kết"
+      options:
+        - label: "Đề xuất không chứa thông tin cá nhân của người khác hoặc dữ liệu chưa được phép công bố"
+          required: true

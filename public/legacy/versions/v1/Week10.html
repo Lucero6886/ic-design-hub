@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tuần 10: Counter and 7-Segment Display | IC Design Mentoring</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Consolas', 'Monaco', 'Courier New', 'monospace'],
+                    },
+                    colors: {
+                        primary: '#2563eb', // Blue 600
+                        secondary: '#f59e0b', // Amber 500
+                        accent: '#10b981', // Emerald 500
+                        dark: '#1e293b', // Slate 800
+                        light: '#f8fafc', // Slate 50
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        details > summary { list-style: none; }
+        details > summary::-webkit-details-marker { display: none; }
+        details[open] summary ~ * { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .custom-checkbox {
+            appearance: none;
+            background-color: #fff;
+            margin: 0;
+            font: inherit;
+            color: currentColor;
+            width: 1.25em;
+            height: 1.25em;
+            border: 2px solid #cbd5e1;
+            border-radius: 0.25em;
+            display: grid;
+            place-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+        }
+        .custom-checkbox::before {
+            content: "";
+            width: 0.65em;
+            height: 0.65em;
+            transform: scale(0);
+            transition: 120ms transform ease-in-out;
+            box-shadow: inset 1em 1em white;
+            background-color: white;
+            transform-origin: center;
+            clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+        }
+        .custom-checkbox:checked {
+            background-color: #10b981;
+            border-color: #10b981;
+        }
+        .custom-checkbox:checked::before { transform: scale(1); }
+        .task-item.completed { text-decoration: line-through; color: #94a3b8; }
+        
+        /* 7-Segment Display SVG animations */
+        .seg-on {
+            fill: #ef4444; /* Bright Red */
+            filter: drop-shadow(0 0 5px rgba(239, 68, 68, 0.8));
+            transition: all 0.15s ease;
+        }
+        .seg-off {
+            fill: #334155; /* Dim slate */
+            filter: none;
+            transition: all 0.15s ease;
+        }
+        .data-wire { transition: all 0.2s ease; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased selection:bg-primary selection:text-white pb-20">
+<div id="lichub-nav-top" data-lichub="v1" role="navigation" aria-label="Điều hướng Learning Hub (bổ sung, không thuộc trang gốc)" style="background:#0f172a;color:#e2e8f0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:13.5px;line-height:1.6;padding:8px 16px;display:flex;flex-wrap:wrap;gap:4px 16px;align-items:center;border-bottom:3px solid #f59e0b"><a href="../../index.html" style="color:#7dd3fc;text-decoration:none;font-weight:600">⌂ Learning Hub</a><span style="font-size:11px;font-weight:700;letter-spacing:.04em;color:#f59e0b;border:1px solid #f59e0b;border-radius:6px;padding:1px 7px;white-space:nowrap">V1 · BẢN LƯU TRỮ GỐC</span><a href="index.html" style="color:#cbd5e1;text-decoration:none">Mục lục V1</a><span style="flex:1"></span><a href="Week9.html" style="color:#7dd3fc;text-decoration:none" title="Traffic Light Controller">← Tuần 9</a><a href="Week11.html" style="color:#7dd3fc;text-decoration:none" title="UART Communication Basics">Tuần 11 →</a><span aria-hidden="true" style="color:#475569">|</span><span style="display:inline-flex;gap:8px;align-items:center"><span style="color:#94a3b8">Chuyển bản:</span> <b aria-current="true" style="color:#f59e0b">V1</b> <a href="../v2/index.html" style="color:#cbd5e1;text-decoration:none">V2</a> <a href="../v3/index.html" style="color:#cbd5e1;text-decoration:none">V3</a></span></div>
+
+
+    <header class="bg-gradient-to-br from-dark to-slate-700 text-white pt-16 pb-20 px-6 shadow-xl relative overflow-hidden">
+        <div class="absolute top-0 right-0 opacity-10 pointer-events-none">
+            <i class="fa-solid fa-calculator text-[20rem] -mt-10 -mr-10"></i>
+        </div>
+        
+        <div class="max-w-4xl mx-auto relative z-10">
+            <div class="flex flex-wrap items-center gap-3 mb-4">
+                <span class="bg-primary text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Tuần 10</span>
+                <span class="bg-secondary text-dark text-xs font-bold px-3 py-1 rounded-full"><i class="fa-solid fa-plug mr-1"></i> Tích Hợp Hệ Thống</span>
+                <span class="bg-white/20 text-white border border-white/30 text-xs font-semibold px-3 py-1 rounded-full"><i class="fa-solid fa-university mr-1"></i> Phenikaa University</span>
+            </div>
+            
+            <h1 class="text-4xl md:text-5xl font-extrabold mb-3 leading-tight text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-300">
+                Counter & 7-Segment Display
+            </h1>
+            <h2 class="text-xl md:text-2xl font-medium text-slate-300 mb-6 border-l-4 border-primary pl-4">
+                Bộ Đếm Và Giải Mã Hiển Thị LED 7 Đoạn
+            </h2>
+            
+            <div class="bg-white/10 backdrop-blur-md rounded-xl p-5 border border-white/20 mb-8 max-w-3xl">
+                <p class="text-lg leading-relaxed">
+                    <i class="fa-solid fa-quote-left text-primary opacity-50 mr-2"></i>
+                    Tuần này chúng ta sẽ tự tay lắp ghép một hệ thống hoàn chỉnh. Từ một nhịp tim (Clock) kích hoạt bộ não ghi nhớ (Counter), sinh ra ngôn ngữ nhị phân (Binary) đưa vào bộ dịch thuật (Decoder) để phát sáng lên một con số cho con người đọc (LED 7-Segment).
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="flex items-start gap-3">
+                    <div class="bg-white/20 w-8 h-8 flex items-center justify-center rounded-lg text-secondary shrink-0"><i class="fa-solid fa-stopwatch-20"></i></div>
+                    <p class="text-sm mt-1">Hiểu rõ nguyên lý đếm nhịp và lưu trữ của Counter.</p>
+                </div>
+                <div class="flex items-start gap-3">
+                    <div class="bg-white/20 w-8 h-8 flex items-center justify-center rounded-lg text-secondary shrink-0"><i class="fa-solid fa-eye"></i></div>
+                    <p class="text-sm mt-1">Nắm vững cách điều khiển từng đoạn LED trên 7-segment display.</p>
+                </div>
+                <div class="flex items-start gap-3">
+                    <div class="bg-white/20 w-8 h-8 flex items-center justify-center rounded-lg text-secondary shrink-0"><i class="fa-solid fa-puzzle-piece"></i></div>
+                    <p class="text-sm mt-1">Biết cách chia tách một project lớn thành các khối chức năng (Block Design).</p>
+                </div>
+                <div class="flex items-start gap-3">
+                    <div class="bg-white/20 w-8 h-8 flex items-center justify-center rounded-lg text-secondary shrink-0"><i class="fa-solid fa-microchip"></i></div>
+                    <p class="text-sm mt-1">Tự tin hiện thực hóa một mini-project từ lý thuyết lên board FPGA.</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 sm:px-6 -mt-10 relative z-20 space-y-8">
+
+        <section class="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
+            <div class="bg-blue-50 border-b border-blue-100 px-6 py-4 flex items-center justify-between">
+                <h3 class="text-xl font-bold text-dark flex items-center gap-2">
+                    <i class="fa-solid fa-mug-hot text-primary"></i> Chuẩn Bị Trước Buổi Học
+                </h3>
+            </div>
+            <div class="p-6">
+                <p class="text-slate-600 mb-6">
+                    Đừng cố học thuộc lòng bảng chân lý của LED 7 đoạn! Hãy hiểu bản chất của nó là 7 cái bóng đèn nhỏ xếp thành hình số 8. Việc của kỹ sư là lập trình xem đèn nào bật, đèn nào tắt.
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 hover:border-primary/30 transition-colors">
+                        <h4 class="font-bold text-dark mb-4 border-b pb-2 flex items-center gap-2">
+                            <i class="fa-solid fa-list-check text-primary"></i> Checklist Tự Học
+                        </h4>
+                        <ul class="space-y-3" id="prep-checklist">
+                            <li class="flex items-start gap-3 group">
+                                <input type="checkbox" class="custom-checkbox mt-0.5" id="task1" onclick="toggleTask(this)">
+                                <label for="task1" class="cursor-pointer text-sm text-slate-700 task-item group-hover:text-primary transition-colors">Ôn lại mạch tuần tự: Counter và Clock hoạt động ra sao?</label>
+                            </li>
+                            <li class="flex items-start gap-3 group">
+                                <input type="checkbox" class="custom-checkbox mt-0.5" id="task2" onclick="toggleTask(this)">
+                                <label for="task2" class="cursor-pointer text-sm text-slate-700 task-item group-hover:text-primary transition-colors">Tìm hiểu cấu tạo LED 7 đoạn (Gồm các đoạn a, b, c, d, e, f, g)</label>
+                            </li>
+                            <li class="flex items-start gap-3 group">
+                                <input type="checkbox" class="custom-checkbox mt-0.5" id="task3" onclick="toggleTask(this)">
+                                <label for="task3" class="cursor-pointer text-sm text-slate-700 task-item group-hover:text-primary transition-colors">Chơi với Demo Data Flow System bên dưới</label>
+                            </li>
+                            <li class="flex items-start gap-3 group">
+                                <input type="checkbox" class="custom-checkbox mt-0.5" id="task4" onclick="toggleTask(this)">
+                                <label for="task4" class="cursor-pointer text-sm text-slate-700 task-item group-hover:text-primary transition-colors">Tưởng tượng: Cần bao nhiêu dây nối để điều khiển 1 con số?</label>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-blue-50 p-5 rounded-xl border border-blue-200 relative overflow-hidden">
+                        <i class="fa-regular fa-lightbulb absolute -right-4 -bottom-4 text-6xl text-blue-200 opacity-50"></i>
+                        <h4 class="font-bold text-primary mb-4 border-b border-blue-200 pb-2 relative z-10">Tư Duy Khởi Động</h4>
+                        <ul class="space-y-3 list-disc list-inside text-sm text-slate-700 relative z-10">
+                            <li>Máy tính lưu trữ con số dưới dạng Nhị phân (0101). Nhưng con người lại đọc số Thập phân (5). Vậy "cầu nối" ở giữa là gì?</li>
+                            <li>Nếu bạn muốn hiển thị số "1" trên LED 7 đoạn, bạn cần cấp điện cho những thanh LED nào?</li>
+                            <li>Một dự án hiển thị đồng hồ điện tử cần sự phối hợp của những khối phần cứng nào?</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
+                <h3 class="text-xl font-bold text-dark flex items-center gap-2">
+                    <i class="fa-solid fa-microchip text-primary"></i> Khái Niệm & Demo Hệ Thống
+                </h3>
+            </div>
+            
+            <div class="p-6 divide-y divide-slate-100">
+                <div class="py-5 first:pt-0">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="text-lg font-bold text-primary mb-2 flex items-center gap-2">
+                                <span class="bg-primary/10 text-primary w-6 h-6 rounded-full flex items-center justify-center text-sm">1</span> Counter (Mạch tuần tự)
+                            </h4>
+                            <p class="text-slate-600 text-sm leading-relaxed mb-4">
+                                Bộ đếm chịu trách nhiệm cập nhật giá trị đếm mỗi khi có sườn lên của xung Clock. Nó sinh ra một mã nhị phân 4-bit (chạy từ <code>0000</code> đến <code>1001</code>).
+                            </p>
+                        </div>
+                        <div>
+                            <h4 class="text-lg font-bold text-primary mb-2 flex items-center gap-2">
+                                <span class="bg-primary/10 text-primary w-6 h-6 rounded-full flex items-center justify-center text-sm">2</span> Decoder (Mạch tổ hợp)
+                            </h4>
+                            <p class="text-slate-600 text-sm leading-relaxed mb-4">
+                                Khối giải mã nhận tín hiệu 4-bit nhị phân và biến đổi nó thành 7 tín hiệu bật/tắt (a,b,c,d,e,f,g) tương ứng với từng thanh sáng trên LED 7 đoạn.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Interactive System Demo (Counter + Decoder + Display) -->
+                <div class="py-5">
+                    <div class="bg-slate-900 p-6 rounded-2xl border border-slate-700 shadow-inner overflow-hidden relative">
+                        <div class="mb-6 flex justify-between items-center relative z-10">
+                            <div>
+                                <h4 class="text-lg font-bold text-white flex items-center gap-2"><i class="fa-solid fa-gamepad text-secondary"></i> System Data Flow: Counter to Display</h4>
+                                <p class="text-xs text-slate-400 mt-1">Bấm kích xung Clock để thấy dữ liệu đi từ dạng Nhị phân sang định dạng Hiển thị LED.</p>
+                            </div>
+                            <button id="btnPulse" class="bg-primary hover:bg-blue-500 text-white font-bold py-2 px-6 rounded-xl shadow-[0_4px_0_#1e3a8a] active:translate-y-1 active:shadow-none transition-all flex items-center gap-2">
+                                <i class="fa-solid fa-bolt text-yellow-300"></i> Pulse CLK
+                            </button>
+                        </div>
+                        
+                        <!-- SVG Canvas for the entire system flow -->
+                        <div class="w-full relative flex justify-center py-6 overflow-x-auto">
+                            <svg viewBox="0 0 800 300" class="min-w-[700px] h-auto font-mono drop-shadow-md">
+                                <defs>
+                                    <!-- Glow filter for LEDs -->
+                                    <filter id="led-glow" x="-20%" y="-20%" width="140%" height="140%">
+                                        <feGaussianBlur stdDeviation="3" result="blur" />
+                                        <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                                    </filter>
+                                </defs>
+
+                                <!-- 1. CLOCK SOURCE -->
+                                <path id="animClk" d="M 50 180 L 120 180" stroke="#cbd5e1" stroke-width="3" stroke-dasharray="5,5" fill="none" class="data-wire"/>
+                                <text x="85" y="170" fill="#cbd5e1" text-anchor="middle" font-weight="bold">CLK</text>
+
+                                <!-- 2. COUNTER BLOCK -->
+                                <rect x="120" y="80" width="140" height="140" rx="10" fill="#1e293b" stroke="#3b82f6" stroke-width="3"/>
+                                <text x="190" y="110" fill="white" font-weight="bold" font-size="16" text-anchor="middle">4-bit Counter</text>
+                                <text x="190" y="145" fill="#64748b" font-size="12" text-anchor="middle">(Mod 10)</text>
+                                <!-- Internal State -->
+                                <rect x="150" y="170" width="80" height="30" rx="4" fill="#0f172a" stroke="#3b82f6"/>
+                                <text id="countDecimal" x="190" y="191" fill="#3b82f6" font-weight="bold" font-size="18" text-anchor="middle">0</text>
+                                
+                                <!-- 3. DATA BUS (4-bit binary) -->
+                                <!-- 4 wires representing binary values -->
+                                <g transform="translate(260, 100)">
+                                    <path id="wireB3" d="M 0 0 L 100 0" stroke="#475569" stroke-width="3" class="data-wire"/>
+                                    <text id="txtB3" x="50" y="-8" fill="#475569" font-size="14" font-weight="bold" text-anchor="middle">0</text>
+                                    
+                                    <path id="wireB2" d="M 0 30 L 100 30" stroke="#475569" stroke-width="3" class="data-wire"/>
+                                    <text id="txtB2" x="50" y="22" fill="#475569" font-size="14" font-weight="bold" text-anchor="middle">0</text>
+                                    
+                                    <path id="wireB1" d="M 0 60 L 100 60" stroke="#475569" stroke-width="3" class="data-wire"/>
+                                    <text id="txtB1" x="50" y="52" fill="#475569" font-size="14" font-weight="bold" text-anchor="middle">0</text>
+                                    
+                                    <path id="wireB0" d="M 0 90 L 100 90" stroke="#475569" stroke-width="3" class="data-wire"/>
+                                    <text id="txtB0" x="50" y="82" fill="#475569" font-size="14" font-weight="bold" text-anchor="middle">0</text>
+                                </g>
+
+                                <!-- 4. DECODER BLOCK -->
+                                <rect x="360" y="50" width="160" height="200" rx="10" fill="#1e293b" stroke="#f59e0b" stroke-width="3"/>
+                                <text x="440" y="80" fill="white" font-weight="bold" font-size="16" text-anchor="middle">BCD to 7-Seg</text>
+                                <text x="440" y="100" fill="#f59e0b" font-weight="bold" font-size="14" text-anchor="middle">Decoder</text>
+                                
+                                <path d="M 440 120 L 440 220" stroke="#64748b" stroke-width="1" stroke-dasharray="2,2"/>
+                                <text x="390" y="180" fill="#64748b" font-size="10" text-anchor="middle">4 inputs</text>
+                                <text x="490" y="180" fill="#64748b" font-size="10" text-anchor="middle">7 outputs</text>
+
+                                <!-- 5. DECODED BUS (7 wires) -->
+                                <g transform="translate(520, 60)">
+                                    <path id="wireSegA" d="M 0 0 L 70 0" stroke="#475569" stroke-width="2" class="data-wire"/>
+                                    <text x="35" y="-5" fill="#94a3b8" font-size="10" text-anchor="middle">a</text>
+                                    
+                                    <path id="wireSegB" d="M 0 30 L 70 30" stroke="#475569" stroke-width="2" class="data-wire"/>
+                                    <text x="35" y="25" fill="#94a3b8" font-size="10" text-anchor="middle">b</text>
+                                    
+                                    <path id="wireSegC" d="M 0 60 L 70 60" stroke="#475569" stroke-width="2" class="data-wire"/>
+                                    <text x="35" y="55" fill="#94a3b8" font-size="10" text-anchor="middle">c</text>
+                                    
+                                    <path id="wireSegD" d="M 0 90 L 70 90" stroke="#475569" stroke-width="2" class="data-wire"/>
+                                    <text x="35" y="85" fill="#94a3b8" font-size="10" text-anchor="middle">d</text>
+                                    
+                                    <path id="wireSegE" d="M 0 120 L 70 120" stroke="#475569" stroke-width="2" class="data-wire"/>
+                                    <text x="35" y="115" fill="#94a3b8" font-size="10" text-anchor="middle">e</text>
+                                    
+                                    <path id="wireSegF" d="M 0 150 L 70 150" stroke="#475569" stroke-width="2" class="data-wire"/>
+                                    <text x="35" y="145" fill="#94a3b8" font-size="10" text-anchor="middle">f</text>
+                                    
+                                    <path id="wireSegG" d="M 0 180 L 70 180" stroke="#475569" stroke-width="2" class="data-wire"/>
+                                    <text x="35" y="175" fill="#94a3b8" font-size="10" text-anchor="middle">g</text>
+                                </g>
+
+                                <!-- 6. 7-SEGMENT DISPLAY -->
+                                <g transform="translate(630, 80) scale(0.8)">
+                                    <!-- Background Box -->
+                                    <rect x="-30" y="-30" width="130" height="210" rx="10" fill="#020617" stroke="#334155" stroke-width="4"/>
+                                    
+                                    <!-- Segments -->
+                                    <!-- A (Top) -->
+                                    <polygon id="seg-A" points="15,0 55,0 60,10 50,20 20,20 10,10" class="seg-off" />
+                                    <!-- B (Top Right) -->
+                                    <polygon id="seg-B" points="62,12 72,22 72,62 62,72 52,62 52,22" class="seg-off" />
+                                    <!-- C (Bottom Right) -->
+                                    <polygon id="seg-C" points="62,78 72,88 72,128 62,138 52,128 52,88" class="seg-off" />
+                                    <!-- D (Bottom) -->
+                                    <polygon id="seg-D" points="15,150 55,150 60,140 50,130 20,130 10,140" class="seg-off" />
+                                    <!-- E (Bottom Left) -->
+                                    <polygon id="seg-E" points="8,78 18,88 18,128 8,138 -2,128 -2,88" class="seg-off" />
+                                    <!-- F (Top Left) -->
+                                    <polygon id="seg-F" points="8,12 18,22 18,62 8,72 -2,62 -2,22" class="seg-off" />
+                                    <!-- G (Middle) -->
+                                    <polygon id="seg-G" points="12,75 22,65 50,65 60,75 50,85 22,85" class="seg-off" />
+                                </g>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
+            <div class="bg-amber-50 border-b border-amber-200 px-6 py-4 flex items-center justify-between">
+                <h3 class="text-xl font-bold text-dark flex items-center gap-2">
+                    <i class="fa-solid fa-users-gear text-secondary"></i> Nhiệm Vụ Của Nhóm
+                </h3>
+                <span class="text-xs bg-amber-200 text-amber-800 px-3 py-1 rounded-full font-bold shadow-sm">Thuyết trình 10 phút</span>
+            </div>
+            <div class="p-6">
+                <div class="flex items-start gap-4 mb-6 bg-yellow-50 p-4 rounded-xl border-l-4 border-secondary shadow-sm">
+                    <i class="fa-solid fa-lightbulb text-secondary text-xl mt-1"></i>
+                    <div>
+                        <p class="text-sm font-bold text-slate-800 mb-1">Quy tắc Mentor:</p>
+                        <p class="text-sm text-slate-600 italic">"Hãy tập trung giải thích Sơ đồ khối (Block Diagram) của hệ thống. Dữ liệu đi từ đâu, qua khối nào biến đổi thành gì, và cuối cùng hiện ra màn hình như thế nào. Tránh nói sâu về các phương trình boolean phức tạp."</p>
+                    </div>
+                </div>
+
+                <h4 class="font-bold text-dark mb-3 text-sm uppercase tracking-wider">Gợi ý nội dung Slide nhóm (5-7 trang):</h4>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-slate-700 mb-2">
+                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 flex gap-3 items-center hover:border-amber-300 transition-colors">
+                        <span class="bg-dark text-white rounded w-6 h-6 flex items-center justify-center shrink-0 font-bold text-xs">1</span>
+                        <p class="font-medium">Chức năng của Counter là gì? Nó liên quan gì đến Clock?</p>
+                    </div>
+                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 flex gap-3 items-center hover:border-amber-300 transition-colors">
+                        <span class="bg-dark text-white rounded w-6 h-6 flex items-center justify-center shrink-0 font-bold text-xs">2</span>
+                        <p class="font-medium">Giải thích tại sao cần khối Decoder đứng giữa Counter và LED.</p>
+                    </div>
+                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 flex gap-3 items-center hover:border-amber-300 transition-colors">
+                        <span class="bg-dark text-white rounded w-6 h-6 flex items-center justify-center shrink-0 font-bold text-xs">3</span>
+                        <p class="font-medium">Cách cấu tạo của LED 7 đoạn và quy luật sáng/tắt (Ví dụ cho số 3 và số 8).</p>
+                    </div>
+                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 flex gap-3 items-center hover:border-amber-300 transition-colors">
+                        <span class="bg-dark text-white rounded w-6 h-6 flex items-center justify-center shrink-0 font-bold text-xs">4</span>
+                        <p class="font-medium">Vẽ sơ đồ khối (Block Diagram) tổng thể kết nối 3 thành phần.</p>
+                    </div>
+                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 flex gap-3 items-center sm:col-span-2 hover:border-amber-300 transition-colors bg-gradient-to-r from-amber-50 to-white">
+                        <span class="bg-secondary text-white rounded w-6 h-6 flex items-center justify-center shrink-0 font-bold text-xs"><i class="fa-solid fa-code"></i></span>
+                        <p class="font-medium">Verilog Idea: Sẽ dùng <code>case</code> statement trong khối Decoder như thế nào?</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
+            <h3 class="text-xl font-bold text-dark mb-6 flex items-center gap-2 border-b pb-4">
+                <i class="fa-solid fa-stopwatch text-accent"></i> Tiến Trình Buổi Học (60 Phút)
+            </h3>
+            
+            <div class="relative border-l-2 border-slate-200 ml-3 md:ml-6 space-y-6">
+                <!-- Timeline Items -->
+                <div class="relative pl-6 md:pl-8 group">
+                    <div class="absolute w-4 h-4 bg-accent rounded-full -left-[9px] top-1 border-4 border-white shadow group-hover:scale-125 transition-transform"></div>
+                    <div class="flex flex-col md:flex-row md:items-center gap-1 md:gap-4 mb-1">
+                        <span class="text-accent font-bold text-sm w-16 bg-accent/10 px-2 py-0.5 rounded text-center">0' - 5'</span>
+                        <h4 class="font-bold text-dark text-lg">Quick Check-in</h4>
+                    </div>
+                    <p class="text-sm text-slate-600 bg-slate-50 p-2 rounded border border-slate-100">Khởi động: Máy tính tính toán bằng Nhị phân, vậy sao con người vẫn xem được số Thập phân?</p>
+                </div>
+                
+                <div class="relative pl-6 md:pl-8 group">
+                    <div class="absolute w-4 h-4 bg-primary rounded-full -left-[9px] top-1 border-4 border-white shadow group-hover:scale-125 transition-transform"></div>
+                    <div class="flex flex-col md:flex-row md:items-center gap-1 md:gap-4 mb-1">
+                        <span class="text-primary font-bold text-sm w-16 bg-primary/10 px-2 py-0.5 rounded text-center">5' - 15'</span>
+                        <h4 class="font-bold text-dark text-lg">Student Presentation</h4>
+                    </div>
+                    <p class="text-sm text-slate-600 bg-slate-50 p-2 rounded border border-slate-100">Đại diện nhóm thuyết trình về Hệ thống Bộ đếm và LED 7 đoạn.</p>
+                </div>
+
+                <div class="relative pl-6 md:pl-8 group">
+                    <div class="absolute w-4 h-4 bg-dark rounded-full -left-[9px] top-1 border-4 border-white shadow group-hover:scale-125 transition-transform"></div>
+                    <div class="flex flex-col md:flex-row md:items-center gap-1 md:gap-4 mb-1">
+                        <span class="text-dark font-bold text-sm w-16 bg-slate-200 px-2 py-0.5 rounded text-center">15' - 25'</span>
+                        <h4 class="font-bold text-dark text-lg">Mentor Guidance</h4>
+                    </div>
+                    <p class="text-sm text-slate-600 bg-slate-50 p-2 rounded border border-slate-100">Mentor nhận xét. Nhấn mạnh khái niệm <strong class="text-red-500">Block Design (Module hóa)</strong>: Đừng viết Counter và Decoder chung vào 1 file khổng lồ.</p>
+                </div>
+
+                <div class="relative pl-6 md:pl-8 group">
+                    <div class="absolute w-4 h-4 bg-secondary rounded-full -left-[9px] top-1 border-4 border-white shadow group-hover:scale-125 transition-transform"></div>
+                    <div class="flex flex-col md:flex-row md:items-center gap-1 md:gap-4 mb-1">
+                        <span class="text-secondary font-bold text-sm w-16 bg-secondary/10 px-2 py-0.5 rounded text-center">25' - 45'</span>
+                        <h4 class="font-bold text-dark text-lg">Breakout Room</h4>
+                    </div>
+                    <p class="text-sm text-slate-600 bg-slate-50 p-2 rounded border border-slate-100">Các nhóm thảo luận nâng cấp hệ thống (Ví dụ: Thêm nút Reset, Nút đảo chiều đếm Up/Down).</p>
+                </div>
+
+                <div class="relative pl-6 md:pl-8 group">
+                    <div class="absolute w-4 h-4 bg-purple-500 rounded-full -left-[9px] top-1 border-4 border-white shadow group-hover:scale-125 transition-transform"></div>
+                    <div class="flex flex-col md:flex-row md:items-center gap-1 md:gap-4 mb-1">
+                        <span class="text-purple-500 font-bold text-sm w-16 bg-purple-100 px-2 py-0.5 rounded text-center">45' - 55'</span>
+                        <h4 class="font-bold text-dark text-lg">Group Sharing</h4>
+                    </div>
+                    <p class="text-sm text-slate-600 bg-slate-50 p-2 rounded border border-slate-100">Đại diện trình bày sơ đồ khối của hệ thống đếm nâng cấp.</p>
+                </div>
+
+                <div class="relative pl-6 md:pl-8 group">
+                    <div class="absolute w-4 h-4 bg-emerald-600 rounded-full -left-[9px] top-1 border-4 border-white shadow group-hover:scale-125 transition-transform"></div>
+                    <div class="flex flex-col md:flex-row md:items-center gap-1 md:gap-4 mb-1">
+                        <span class="text-emerald-600 font-bold text-sm w-16 bg-emerald-100 px-2 py-0.5 rounded text-center">55' - 60'</span>
+                        <h4 class="font-bold text-dark text-lg">Wrap-up & Task</h4>
+                    </div>
+                    <p class="text-sm text-slate-600 bg-slate-50 p-2 rounded border border-slate-100">Hướng dẫn đăng ký tham gia nhóm Demo FPGA thực tế cho bài đếm giây. Điền form điểm danh.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- BREAKOUT ROOM GUIDE -->
+        <section class="bg-gradient-to-br from-slate-800 to-dark text-white rounded-2xl shadow-lg overflow-hidden border border-slate-700">
+            <div class="px-6 py-4 border-b border-white/10 flex flex-wrap items-center justify-between gap-2">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-comments text-secondary text-xl"></i>
+                    <h3 class="text-xl font-bold">Hướng Dẫn Breakout Room</h3>
+                </div>
+                <span class="text-[10px] uppercase font-bold bg-white/10 px-2 py-1 rounded text-slate-300">System Integration</span>
+            </div>
+
+            <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    <h4 class="font-semibold text-secondary mb-3 uppercase tracking-wider text-sm flex items-center gap-2">
+                        <i class="fa-regular fa-message"></i> Yêu cầu Thảo Luận
+                    </h4>
+                    <p class="text-sm text-slate-300 mb-4 italic bg-black/20 p-3 rounded">Nâng cấp bài toán: Làm thế nào để thiết kế một <strong>Đồng hồ bấm giờ thể thao (Stopwatch)</strong> đơn giản chỉ đếm từ 0 đến 9, có thể Dừng/Tiếp tục và Reset về 0?</p>
+                    <ul class="space-y-3">
+                        <li class="bg-white/5 p-3 rounded-lg text-sm border-l-2 border-secondary hover:bg-white/10 transition-colors">
+                            <span class="font-bold text-secondary mr-2">Q1.</span> Hệ thống cần thêm những nút bấm (Inputs) ngoại vi nào ngoài Clock?
+                        </li>
+                        <li class="bg-white/5 p-3 rounded-lg text-sm border-l-2 border-secondary hover:bg-white/10 transition-colors">
+                            <span class="font-bold text-secondary mr-2">Q2.</span> Tín hiệu Reset và Enable sẽ kết nối vào Block nào? (Counter hay Decoder)? Tại sao?
+                        </li>
+                        <li class="bg-white/5 p-3 rounded-lg text-sm border-l-2 border-secondary hover:bg-white/10 transition-colors">
+                            <span class="font-bold text-secondary mr-2">Q3.</span> Nếu muốn đếm đến 99, chúng ta cần bao nhiêu bộ Counter và bao nhiêu LED 7 đoạn? Nối chúng với nhau thế nào?
+                        </li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold text-accent mb-3 uppercase tracking-wider text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-users"></i> Vai Trò Tổ Chức Nhóm
+                    </h4>
+                    <div class="space-y-2 mb-4 bg-black/20 p-3 rounded-xl border border-white/5">
+                        <div class="flex items-center gap-3">
+                            <div class="bg-white/10 w-8 h-8 rounded-full flex items-center justify-center shrink-0"><i class="fa-solid fa-user-tie text-accent text-sm"></i></div>
+                            <p class="text-sm"><strong class="text-white">Facilitator:</strong> Điều hướng nhóm tập trung vào sơ đồ khối (Block level), không vẽ cổng logic chi tiết.</p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="bg-white/10 w-8 h-8 rounded-full flex items-center justify-center shrink-0"><i class="fa-solid fa-pen-clip text-accent text-sm"></i></div>
+                            <p class="text-sm"><strong class="text-white">Note Keeper:</strong> Vẽ nháp sơ đồ các khối hộp (Box) và các đường dây (bus) nối giữa chúng.</p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="bg-white/10 w-8 h-8 rounded-full flex items-center justify-center shrink-0"><i class="fa-solid fa-bullhorn text-accent text-sm"></i></div>
+                            <p class="text-sm"><strong class="text-white">Reporter:</strong> Trình bày luồng dữ liệu của hệ thống Stopwatch khi quay về Main room.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- KEY VOCABULARY BILINGUAL -->
+        <section class="bg-slate-50 rounded-2xl shadow-sm border border-slate-200 p-6">
+            <h3 class="text-xl font-bold text-dark flex items-center gap-2 mb-6">
+                <i class="fa-solid fa-language text-accent"></i> Từ Vựng Tiếng Anh Chuyên Ngành
+            </h3>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 hover:border-primary transition-all duration-300">
+                    <h4 class="font-bold text-primary text-lg mb-1">Counter</h4>
+                    <p class="text-sm font-bold text-dark mb-1">Bộ đếm</p>
+                    <p class="text-[11px] text-slate-500">Mạch tuần tự sinh ra giá trị đếm tăng hoặc giảm theo từng nhịp Clock.</p>
+                </div>
+                
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 hover:border-primary transition-all duration-300">
+                    <h4 class="font-bold text-primary text-lg mb-1">Decoder</h4>
+                    <p class="text-sm font-bold text-dark mb-1">Bộ giải mã</p>
+                    <p class="text-[11px] text-slate-500">Mạch tổ hợp dịch tín hiệu từ Nhị phân sang mẫu điều khiển hiển thị.</p>
+                </div>
+                
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 hover:border-primary transition-all duration-300">
+                    <h4 class="font-bold text-primary text-lg mb-1">Active High</h4>
+                    <p class="text-sm font-bold text-dark mb-1">Tích cực mức cao</p>
+                    <p class="text-[11px] text-slate-500">Loại LED 7 đoạn sáng khi cấp tín hiệu 1 (chung cực Âm - Common Cathode).</p>
+                </div>
+                
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 hover:border-primary transition-all duration-300">
+                    <h4 class="font-bold text-primary text-lg mb-1">Enable (EN)</h4>
+                    <p class="text-sm font-bold text-dark mb-1">Cho phép</p>
+                    <p class="text-[11px] text-slate-500">Tín hiệu quyết định bộ đếm có được phép chạy tiếp hay tạm dừng (Pause).</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- TWO COLUMNS SECTION: MENTOR NOTE & PROJECTS -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- MENTOR QUICK NOTE -->
+            <section class="bg-blue-600 text-white rounded-2xl shadow-lg p-6 relative overflow-hidden flex flex-col">
+                <i class="fa-solid fa-cube absolute -right-6 -bottom-6 text-9xl text-blue-500 opacity-30"></i>
+                <div class="relative z-10 flex-1">
+                    <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-lightbulb text-yellow-300"></i> Lời Khuyên Từ Mentor
+                    </h3>
+                    
+                    <div class="space-y-4">
+                        <div class="bg-yellow-500/20 p-3 rounded-lg border border-yellow-400/50 backdrop-blur-sm">
+                            <span class="text-yellow-300 text-xs font-bold uppercase tracking-wider block mb-1"><i class="fa-solid fa-triangle-exclamation"></i> Sửa Lỗi Tư Duy (Misconception)</span>
+                            <p class="text-sm text-white leading-relaxed">Đừng viết một module Verilog khổng lồ xử lý từ Clock đếm số cho đến việc gán chân cho LED. <strong>Sự thật:</strong> Hãy tách riêng Module `counter.v` và Module `decoder_7seg.v`, sau đó dùng một file `top_module.v` (Top-level) để nối dây chúng lại. Đó mới là tư duy Kiến trúc sư vi mạch thực thụ.</p>
+                        </div>
+
+                        <div class="border-t border-blue-400/50 pt-3">
+                            <p class="text-base font-bold text-yellow-300 italic mb-2">"Divide and Conquer."</p>
+                            <p class="text-sm text-blue-50 leading-relaxed">Kỹ năng chia nhỏ hệ thống (Block Design) quan trọng hơn việc cắm đầu vào code ngay. Bất cứ dự án lớn nào cũng chỉ là sự lắp ghép của nhiều khối chức năng nhỏ đã được test kỹ.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- MINI PROJECT CONNECTION -->
+            <section class="bg-white rounded-2xl shadow-lg border border-slate-200 p-6 flex flex-col">
+                <h3 class="text-xl font-bold text-dark mb-4 flex items-center gap-2 border-b pb-3">
+                    <i class="fa-solid fa-plug-circle-bolt text-secondary"></i> Kết Nối Dự Án (Mini-Projects)
+                </h3>
+                <p class="text-sm text-slate-600 mb-4">
+                    Kiến thức tuần này là nền tảng bắt buộc để làm mọi bài tập trên Board mạch FPGA thực tế:
+                </p>
+                <div class="grid grid-cols-2 gap-3 flex-grow">
+                    <div class="bg-slate-50 border border-slate-100 rounded-lg p-3 flex flex-col items-center justify-center text-center hover:border-emerald-300 transition-colors shadow-sm">
+                        <i class="fa-solid fa-arrow-up-1-9 text-2xl text-emerald-600 mb-2"></i>
+                        <h4 class="font-bold text-xs text-dark">Mod-10 Counter</h4>
+                        <p class="text-[10px] text-slate-500 mt-1">Bộ đếm từ 0-9 tự động reset</p>
+                    </div>
+                    <div class="bg-slate-50 border border-slate-100 rounded-lg p-3 flex flex-col items-center justify-center text-center hover:border-blue-400 transition-colors shadow-sm">
+                        <i class="fa-solid fa-sort text-2xl text-blue-500 mb-2"></i>
+                        <h4 class="font-bold text-xs text-dark">Up/Down Counter</h4>
+                        <p class="text-[10px] text-slate-500 mt-1">Đếm tiến/lùi dùng nút gạt Switch</p>
+                    </div>
+                    <div class="bg-slate-50 border border-slate-100 rounded-lg p-3 flex flex-col items-center justify-center text-center hover:border-amber-400 transition-colors shadow-sm">
+                        <i class="fa-solid fa-stopwatch text-2xl text-amber-500 mb-2"></i>
+                        <h4 class="font-bold text-xs text-dark">Digital Stopwatch</h4>
+                        <p class="text-[10px] text-slate-500 mt-1">Đồng hồ bấm giờ với Start/Pause/Reset</p>
+                    </div>
+                    <div class="bg-slate-50 border border-slate-100 rounded-lg p-3 flex flex-col items-center justify-center text-center hover:border-purple-400 transition-colors shadow-sm">
+                        <i class="fa-solid fa-microchip text-2xl text-purple-500 mb-2"></i>
+                        <h4 class="font-bold text-xs text-dark">FPGA Display</h4>
+                        <p class="text-[10px] text-slate-500 mt-1">Nạp code hiện số lên Board Altera/Xilinx</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- AFTER SESSION -->
+        <section class="bg-emerald-50 rounded-2xl shadow-sm border border-emerald-200 overflow-hidden">
+            <div class="bg-emerald-100/50 px-6 py-4 border-b border-emerald-200">
+                <h3 class="text-xl font-bold text-emerald-800 flex items-center gap-2">
+                    <i class="fa-solid fa-forward-step"></i> Hành Động Sau Buổi Học
+                </h3>
+            </div>
+            <div class="p-6">
+                <!-- Mini Task -->
+                <div class="bg-white p-5 rounded-xl border border-emerald-100 shadow-sm mb-6 relative overflow-hidden">
+                    <div class="absolute right-0 top-0 w-1 h-full bg-emerald-400"></div>
+                    <h4 class="font-bold text-emerald-700 mb-2 flex items-center gap-2"><i class="fa-solid fa-fire text-secondary"></i> Task Tuần Này (System Blocks)</h4>
+                    <p class="text-sm text-slate-700 mb-3">Mỗi bạn hãy chọn một <strong>phiên bản Counter</strong> (Đếm sản phẩm, Bấm giờ, Xếp hàng lấy số...) và post thiết kế khối lên Group lớp:</p>
+                    <ul class="list-disc list-inside text-sm text-slate-600 space-y-1 ml-2 font-mono bg-slate-50 p-3 rounded border border-slate-200">
+                        <li><strong>Version:</strong> (VD: Đếm số lượng xe ra vào cổng)</li>
+                        <li><strong>Inputs:</strong> (VD: Nút cảm biến xe qua, Nút Reset)</li>
+                        <li><strong>Outputs:</strong> 7-segment LED hiển thị số lượng</li>
+                        <li><strong>Blocks:</strong> (VD: Khối xử lý tín hiệu cảm biến -> Khối Counter đếm số -> Khối Decoder dịch ra LED)</li>
+                    </ul>
+                </div>
+
+                <!-- Accordions for Outcomes and Reflection -->
+                <div class="space-y-3">
+                    <details class="group bg-white rounded-lg border border-slate-200 transition-all">
+                        <summary class="flex items-center justify-between p-4 cursor-pointer font-semibold text-slate-800 group-open:text-emerald-700 hover:bg-slate-50 transition-colors rounded-lg">
+                            <span class="flex items-center gap-2"><i class="fa-solid fa-clipboard-check text-emerald-500"></i> Mục tiêu sinh viên đạt được</span>
+                            <span class="transition-transform duration-300 group-open:rotate-180">
+                                <i class="fa-solid fa-chevron-down text-slate-400"></i>
+                            </span>
+                        </summary>
+                        <div class="p-4 border-t border-slate-100 text-sm text-slate-600 bg-slate-50/50">
+                            <ul class="space-y-2">
+                                <li class="flex items-start gap-2"><i class="fa-solid fa-check text-emerald-500 mt-1"></i> Giải thích được sự phối hợp giữa Clock và Counter trong mạch tuần tự.</li>
+                                <li class="flex items-start gap-2"><i class="fa-solid fa-check text-emerald-500 mt-1"></i> Hiểu bản chất hoạt động của bộ giải mã (Decoder) hiển thị LED 7 đoạn.</li>
+                                <li class="flex items-start gap-2"><i class="fa-solid fa-check text-emerald-500 mt-1"></i> Biết cách chia tách dự án thành các khối (Block-based design).</li>
+                                <li class="flex items-start gap-2"><i class="fa-solid fa-check text-emerald-500 mt-1"></i> Có khả năng kết nối lý thuyết Module Verilog với linh kiện thực tế trên FPGA.</li>
+                                <li class="flex items-start gap-2"><i class="fa-solid fa-check text-emerald-500 mt-1"></i> Sẵn sàng làm bài tập thiết kế hệ thống đếm số hoàn chỉnh.</li>
+                            </ul>
+                        </div>
+                    </details>
+
+                    <details class="group bg-white rounded-lg border border-slate-200 transition-all">
+                        <summary class="flex items-center justify-between p-4 cursor-pointer font-semibold text-slate-800 group-open:text-blue-700 hover:bg-slate-50 transition-colors rounded-lg">
+                            <span class="flex items-center gap-2"><i class="fa-solid fa-link text-blue-500"></i> Điền Google Form (Bắt buộc sau buổi học)</span>
+                            <span class="transition-transform duration-300 group-open:rotate-180">
+                                <i class="fa-solid fa-chevron-down text-slate-400"></i>
+                            </span>
+                        </summary>
+                        <div class="p-4 border-t border-slate-100 bg-blue-50/30">
+                            <p class="text-sm text-slate-600 mb-4">Vui lòng hoàn thành Form để Mentor đánh giá chất lượng buổi học và chuẩn bị project thực hành.</p>
+                            <div class="bg-white border border-slate-200 p-4 rounded-lg shadow-sm">
+                                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Mentor sẽ hỏi 5 nội dung sau:</p>
+                                <ol class="list-decimal list-inside text-sm text-slate-700 space-y-1.5 font-medium">
+                                    <li>Xác nhận tham gia buổi học Week 10?</li>
+                                    <li>Em hiểu nguyên lý Counter + 7-Segment Display ở mức nào (1-5)?</li>
+                                    <li>Phần nào gây lúng túng nhất: Clock, Counter, Decoder hay mã hiển thị LED?</li>
+                                    <li>Em muốn thử làm phiên bản Đồng hồ đếm nào cho bài tập thực hành?</li>
+                                    <li>Em có hứng thú tham gia nhóm ráp mạch Demo FPGA không?</li>
+                                </ol>
+                            </div>
+                            <a href="https://forms.gle/4ZFMSAyY3GHe2soZA" target="_blank" class="mt-4 bg-primary hover:bg-blue-700 text-white font-semibold py-2.5 px-6 rounded-lg transition-colors inline-flex items-center gap-2 shadow-md hover:shadow-lg">
+                                <i class="fa-brands fa-google"></i> Mở Google Form Tuần 10
+                            </a>
+                        </div>
+                    </details>
+                </div>
+            </div>
+        </section>
+        
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="mt-16 bg-slate-900 text-slate-300 py-12 text-center border-t-4 border-primary">
+        <div class="max-w-4xl mx-auto px-4">
+            <div class="flex justify-center items-center gap-3 mb-6">
+                <i class="fa-solid fa-microchip text-2xl text-slate-600"></i>
+                <div class="h-px bg-slate-700 w-16"></div>
+                <i class="fa-solid fa-laptop-code text-2xl text-primary drop-shadow-[0_0_8px_rgba(37,99,235,0.8)]"></i>
+                <div class="h-px bg-slate-700 w-16"></div>
+                <i class="fa-solid fa-users-rays text-2xl text-secondary"></i>
+            </div>
+            
+            <h4 class="text-xl font-bold text-white mb-2">IC Design Mentoring Community</h4>
+            <p class="text-lg italic text-slate-400 font-light mb-8">"Learn a little, build a little, share a little, grow a little."</p>
+            
+            <div class="bg-slate-800/80 inline-block p-4 rounded-xl border border-slate-700 mx-auto text-center max-w-2xl">
+                <div class="flex items-center justify-center gap-2 mb-2 text-white">
+                    <i class="fa-solid fa-copyright"></i> <span class="font-bold">Bản quyền nội dung:</span>
+                </div>
+                <p class="text-sm text-slate-300 mb-1">Khoa Điện - Điện tử, Trường Kỹ Thuật, Đại học Phenikaa</p>
+                <p class="text-sm text-amber-400 font-medium">Giảng viên biên soạn: ThS. Đinh Văn Nam</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- INTERACTIVE JAVASCRIPT -->
+    <script>
+        // 1. Checklist Logic
+        function toggleTask(checkbox) {
+            const label = checkbox.nextElementSibling;
+            if (checkbox.checked) {
+                label.classList.add('completed');
+            } else {
+                label.classList.remove('completed');
+            }
+        }
+
+        // 2. Interactive SVG System Demo Logic (Counter -> Decoder -> Display)
+        document.addEventListener('DOMContentLoaded', () => {
+            const btnPulse = document.getElementById('btnPulse');
+            const countDecimal = document.getElementById('countDecimal');
+            const animClk = document.getElementById('animClk');
+            
+            // Binary text elements
+            const txtB = [
+                document.getElementById('txtB0'),
+                document.getElementById('txtB1'),
+                document.getElementById('txtB2'),
+                document.getElementById('txtB3')
+            ];
+            
+            // Binary wire elements
+            const wireB = [
+                document.getElementById('wireB0'),
+                document.getElementById('wireB1'),
+                document.getElementById('wireB2'),
+                document.getElementById('wireB3')
+            ];
+
+            // 7-Segment SVG paths
+            const segElements = {
+                a: document.getElementById('seg-A'),
+                b: document.getElementById('seg-B'),
+                c: document.getElementById('seg-C'),
+                d: document.getElementById('seg-D'),
+                e: document.getElementById('seg-E'),
+                f: document.getElementById('seg-F'),
+                g: document.getElementById('seg-G')
+            };
+
+            // 7-Segment Wire paths
+            const segWires = {
+                a: document.getElementById('wireSegA'),
+                b: document.getElementById('wireSegB'),
+                c: document.getElementById('wireSegC'),
+                d: document.getElementById('wireSegD'),
+                e: document.getElementById('wireSegE'),
+                f: document.getElementById('wireSegF'),
+                g: document.getElementById('wireSegG')
+            };
+
+            // Truth table for Active-High 7-segment display (a,b,c,d,e,f,g)
+            const segments = {
+                0: [1, 1, 1, 1, 1, 1, 0],
+                1: [0, 1, 1, 0, 0, 0, 0],
+                2: [1, 1, 0, 1, 1, 0, 1],
+                3: [1, 1, 1, 1, 0, 0, 1],
+                4: [0, 1, 1, 0, 0, 1, 1],
+                5: [1, 0, 1, 1, 0, 1, 1],
+                6: [1, 0, 1, 1, 1, 1, 1],
+                7: [1, 1, 1, 0, 0, 0, 0],
+                8: [1, 1, 1, 1, 1, 1, 1],
+                9: [1, 1, 1, 1, 0, 1, 1]
+            };
+
+            let countValue = 0;
+
+            function updateDisplay(val) {
+                // 1. Update Counter Decimal Text
+                countDecimal.textContent = val;
+
+                // 2. Convert to 4-bit binary
+                let binStr = val.toString(2).padStart(4, '0');
+                
+                // 3. Update Binary Bus (Data wires)
+                // binStr is like "0101". binStr[0] is MSB (B3), binStr[3] is LSB (B0)
+                for (let i = 0; i < 4; i++) {
+                    let bit = parseInt(binStr[3 - i]); // Reverse to map B0 to B3 correctly
+                    txtB[i].textContent = bit;
+                    if (bit === 1) {
+                        txtB[i].setAttribute('fill', '#3b82f6'); // blue
+                        wireB[i].setAttribute('stroke', '#3b82f6');
+                    } else {
+                        txtB[i].setAttribute('fill', '#475569'); // slate
+                        wireB[i].setAttribute('stroke', '#475569');
+                    }
+                }
+
+                // 4. Update Decoder & 7-Segment Display
+                const segPattern = segments[val];
+                const segKeys = ['a', 'b', 'c', 'd', 'e', 'f', 'g'];
+                
+                segKeys.forEach((key, index) => {
+                    const isOn = segPattern[index] === 1;
+                    
+                    if (isOn) {
+                        segElements[key].classList.remove('seg-off');
+                        segElements[key].classList.add('seg-on');
+                        
+                        segWires[key].setAttribute('stroke', '#ef4444'); // red
+                        segWires[key].setAttribute('stroke-width', '3');
+                    } else {
+                        segElements[key].classList.remove('seg-on');
+                        segElements[key].classList.add('seg-off');
+                        
+                        segWires[key].setAttribute('stroke', '#475569');
+                        segWires[key].setAttribute('stroke-width', '2');
+                    }
+                });
+            }
+
+            function triggerPulse() {
+                // Disable button during animation
+                btnPulse.disabled = true;
+                btnPulse.classList.add('opacity-70', 'scale-95');
+
+                // Animate Clock Wire
+                animClk.setAttribute('stroke', '#10b981'); // emerald
+                animClk.setAttribute('stroke-width', '4');
+
+                setTimeout(() => {
+                    // Update Value (Mod 10)
+                    countValue = (countValue + 1) % 10;
+                    updateDisplay(countValue);
+
+                    // Reset Clock Wire
+                    animClk.setAttribute('stroke', '#cbd5e1');
+                    animClk.setAttribute('stroke-width', '3');
+                    
+                    // Re-enable button
+                    btnPulse.disabled = false;
+                    btnPulse.classList.remove('opacity-70', 'scale-95');
+
+                }, 300);
+            }
+
+            btnPulse.addEventListener('click', triggerPulse);
+            
+            // Initial render
+            updateDisplay(countValue);
+        });
+    </script>
+
+<div id="lichub-nav-bottom" data-lichub="v1" role="navigation" aria-label="Điều hướng Learning Hub (bổ sung, không thuộc trang gốc)" style="background:#0f172a;color:#e2e8f0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:13.5px;line-height:1.6;padding:8px 16px;display:flex;flex-wrap:wrap;gap:4px 16px;align-items:center;border-top:3px solid #f59e0b"><a href="../../index.html" style="color:#7dd3fc;text-decoration:none;font-weight:600">⌂ Learning Hub</a><span style="font-size:11px;font-weight:700;letter-spacing:.04em;color:#f59e0b;border:1px solid #f59e0b;border-radius:6px;padding:1px 7px;white-space:nowrap">V1 · BẢN LƯU TRỮ GỐC</span><a href="index.html" style="color:#cbd5e1;text-decoration:none">Mục lục V1</a><span style="flex:1"></span><a href="Week9.html" style="color:#7dd3fc;text-decoration:none" title="Traffic Light Controller">← Tuần 9</a><a href="Week11.html" style="color:#7dd3fc;text-decoration:none" title="UART Communication Basics">Tuần 11 →</a><span aria-hidden="true" style="color:#475569">|</span><span style="display:inline-flex;gap:8px;align-items:center"><span style="color:#94a3b8">Chuyển bản:</span> <b aria-current="true" style="color:#f59e0b">V1</b> <a href="../v2/index.html" style="color:#cbd5e1;text-decoration:none">V2</a> <a href="../v3/index.html" style="color:#cbd5e1;text-decoration:none">V3</a></span></div>
+</body>
+</html>

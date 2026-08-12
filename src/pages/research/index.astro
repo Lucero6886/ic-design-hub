@@ -1,0 +1,71 @@
+---
+import BaseLayout from "~/layouts/BaseLayout.astro";
+import EntryList from "~/components/EntryList.astro";
+import { href } from "~/utils/url";
+import { getPublished, label } from "~/utils/content";
+
+const notes = await getPublished("research");
+const roadmaps = notes.filter((n) => n.data.kind === "roadmap");
+const others = notes.filter((n) => n.data.kind !== "roadmap");
+---
+
+<BaseLayout
+  title="Nghiên cứu"
+  description="Khu vực nghiên cứu: lộ trình nghiên cứu, ghi chú, đọc paper, câu hỏi nghiên cứu và phương pháp — dành cho sinh viên bước từ kỹ thuật sang nghiên cứu."
+  path="research/"
+>
+  <section class="hero">
+    <div class="wrap">
+      <div class="kicker">Research</div>
+      <h1>Nghiên cứu</h1>
+      <p class="sub">
+        Từ câu hỏi kỹ thuật (engineering question) đến câu hỏi nghiên cứu (research question):
+        lộ trình, ghi chú, đọc paper và phương pháp — với mức bằng chứng ghi rõ trên từng nội dung.
+      </p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="co warn">
+        <b>Quy ước học thuật của khu vực này:</b> mỗi nội dung nghiên cứu đều gắn nhãn mức bằng
+        chứng — <i>kiến thức đã xác lập · kinh nghiệm kỹ thuật · giả thuyết · câu hỏi nghiên cứu ·
+        có bằng chứng thực nghiệm · diễn giải của tác giả</i>. Ý tưởng nghiên cứu không bao giờ được
+        trình bày như kết luận đã xác lập; nguồn chưa kiểm chứng được đánh dấu rõ.
+      </div>
+
+      <h2 class="sec" style="margin-top:22px">Lộ trình nghiên cứu</h2>
+      <EntryList
+        items={roadmaps.map((r) => ({
+          url: href(`research/${r.id}/`),
+          title: r.data.title,
+          summary: r.data.summary,
+          date: r.data.date,
+          updated: r.data.updated,
+          track: r.data.track,
+          badges: [{ text: label(r.data.kind), tone: "acc" }],
+        }))}
+        emptyText="Chưa có lộ trình nghiên cứu công bố."
+      />
+
+      <h2 class="sec" style="margin-top:28px">Ghi chú · đọc paper · câu hỏi nghiên cứu</h2>
+      <EntryList
+        items={others.map((r) => ({
+          url: href(`research/${r.id}/`),
+          title: r.data.title,
+          summary: r.data.summary,
+          date: r.data.date,
+          updated: r.data.updated,
+          track: r.data.track,
+          tags: r.data.tags,
+          badges: [
+            { text: label(r.data.kind), tone: "acc" },
+            { text: label(r.data.status), tone: "gray" },
+            { text: label(r.data.evidenceLevel), tone: "warn" },
+          ],
+        }))}
+        emptyText="Chưa có ghi chú nghiên cứu. Ghi chú mới chỉ cần một file Markdown — xem docs/AUTHORING_GUIDE.md."
+      />
+    </div>
+  </section>
+</BaseLayout>

@@ -1,0 +1,82 @@
+---
+import BaseLayout from "~/layouts/BaseLayout.astro";
+import EntryList from "~/components/EntryList.astro";
+import { href } from "~/utils/url";
+import { getPublished, label } from "~/utils/content";
+import { TRACKS, trackById } from "~/data/tracks";
+
+export async function getStaticPaths() {
+  const [articles, research, projects, resources, paths] = await Promise.all([
+    getPublished("articles"),
+    getPublished("research"),
+    getPublished("projects"),
+    getPublished("resources"),
+    getPublished("learning-paths"),
+  ]);
+  const tags = new Set<string>();
+  for (const e of [...articles, ...research, ...projects, ...resources, ...paths]) {
+    const d = e.data as { tags?: string[]; track?: string };
+    for (const t of d.tags ?? []) tags.add(t);
+    if (d.track) tags.add(d.track);
+  }
+  // luôn tạo trang cho track "active" để taxonomy không có link chết
+  for (const t of TRACKS.filter((x) => x.status === "active")) tags.add(t.id);
+  return [...tags].map((tag) => ({ params: { tag } }));
+}
+
+const { tag } = Astro.params;
+const track = trackById(tag);
+
+const [articles, research, projects, resources, paths] = await Promise.all([
+  getPublished("articles"),
+  getPublished("research"),
+  getPublished("projects"),
+  getPublished("resources"),
+  getPublished("learning-paths"),
+]);
+
+function hasTag(d: { tags?: string[]; track?: string }): boolean {
+  return (d.tags ?? []).includes(tag!) || d.track === tag;
+}
+
+const items = [
+  ...articles.filter((e) => hasTag(e.data)).map((e) => ({
+    url: href(`articles/${e.id}/`), title: e.data.title, summary: e.data.summary,
+    date: e.data.date, badges: [{ text: "Bài viết", tone: "acc" as const }], tags: e.data.tags,
+  })),
+  ...research.filter((e) => hasTag(e.data)).map((e) => ({
+    url: href(`research/${e.id}/`), title: e.data.title, summary: e.data.summary,
+    date: e.data.date, badges: [{ text: label(e.data.kind), tone: "acc" as const }], tags: e.data.tags,
+  })),
+  ...projects.filter((e) => hasTag(e.data)).map((e) => ({
+    url: href(`projects/${e.id}/`), title: e.data.title, summary: e.data.summary,
+    date: e.data.date, badges: [{ text: "Project", tone: "acc" as const }], tags: e.data.tags,
+  })),
+  ...paths.filter((e) => hasTag(e.data)).map((e) => ({
+    url: href(`learn/${e.id}/`), title: e.data.title, summary: e.data.summary,
+    date: e.data.date, badges: [{ text: "Lộ trình", tone: "acc" as const }], tags: e.data.tags,
+  })),
+  ...resources.filter((e) => hasTag(e.data)).map((e) => ({
+    url: e.data.url ?? href("resources/"), title: e.data.title, summary: e.data.summary,
+    date: e.data.date, badges: [{ text: "Tài nguyên", tone: "gray" as const }], tags: e.data.tags,
+  })),
+].sort((a, b) => (b.date?.valueOf() ?? 0) - (a.date?.valueOf() ?? 0));
+---
+
+<BaseLayout
+  title={track ? `Track: ${track.label}` : `Tag: #${tag}`}
+  description={track ? track.description : `Nội dung gắn tag ${tag}.`}
+  path={`tags/${tag}/`}
+>
+  <div class="wrap">
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <a href={href("")}>Trang chủ</a> / <a href={href("tags/")}>Chủ đề &amp; tag</a> / <span>#{tag}</span>
+    </nav>
+    <h1 style="margin-top:10px">{track ? track.label : `#${tag}`}</h1>
+    {track && <p class="sec-sub">{track.description}</p>}
+    <EntryList
+      items={items}
+      emptyText="Chưa có nội dung cho chủ đề này — khu vực đang chờ tài liệu thật, không lấp bằng nội dung tự sinh."
+    />
+  </div>
+</BaseLayout>

@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="Giảng Viên Đinh Văn Nam">
+<meta name="copyright" content="© 2026 · Bản quyền thuộc về Giảng Viên Đinh Văn Nam, Khoa Điện-Điện Tử, Trường Kỹ Thuật, Đại học Phenikaa">
+<meta name="description" content="IC Design Mentoring — Version 3, Phase 1 (12 tuần). Khoa Điện – Điện tử · Trường Kỹ thuật · Đại học Phenikaa. Biên soạn: Giảng Viên Đinh Văn Nam.">
+<title>Tuần 8 — FPGA vs ASIC | IC Design Mentoring v3</title>
+<link rel="stylesheet" href="css/style.css">
+<script src="js/app.js" defer></script>
+</head>
+<body data-week="08">
+
+<!-- ================= TOP BAR ================= -->
+<header class="topbar">
+  <div class="topbar-in">
+    <a class="brand" href="index.html"><span class="logo">IC</span>
+      <span>IC Design Mentoring<small>Tuần 8/12 · FPGA vs ASIC</small></span></a>
+    <nav class="layer-chips">
+      <a class="chip" href="../../index.html" title="Learning Hub — cổng ba phiên bản giáo trình; đây là V3, bản hiện hành được khuyến nghị">⌂ Hub · V3</a>
+      <a class="chip chip-a" href="#layer-a"><span class="dot"></span>A · Trước buổi</a>
+      <a class="chip chip-b" href="#layer-b"><span class="dot"></span>B · Buổi học 60′</a>
+      <a class="chip chip-c" href="#layer-c"><span class="dot"></span>C · Lab</a>
+      <a class="chip chip-d" href="#layer-d"><span class="dot"></span>D · Sau buổi</a>
+      <a class="chip" href="index.html">Mục lục</a>
+    </nav>
+    <span class="mentor-sw" title="Hiện/ẩn nội dung dành riêng cho mentor"><span class="tr"></span> Mentor</span>
+  </div>
+  <div class="scrollbar"><div></div></div>
+</header>
+
+<!-- ================= HERO ================= -->
+<section class="hero">
+  <div class="wrap">
+    <div class="pill-row">
+      <span class="pill">Tuần 8 / 12</span>
+      <span class="pill acc">Chọn nền tảng · trade-off</span>
+      <span class="pill">Khoa Điện – Điện tử · ĐH Phenikaa</span>
+    </div>
+    <h1>FPGA vs ASIC</h1>
+    <p class="sub">Cùng một RTL — hai đích đến phần cứng. Học cách chọn bằng phân tích đánh đổi.</p>
+    <p>Tuần 7 bạn đã viết RTL sạch. Nhưng RTL chỉ là bản mô tả — nó phải "hạ cánh" xuống phần cứng thật. Hai đích đến: <b>FPGA</b> — chip sản xuất sẵn, cấu hình lại được vô số lần; <b>ASIC</b> — mạch đúc cứng cho một nhiệm vụ. Không bên nào tốt tuyệt đối — chỉ có bên hợp hơn với sản lượng, tiến độ, rủi ro. Tuần này bạn học cách chọn như một kỹ sư — và đọc <b>bài báo khoa học đầu tiên</b>.</p>
+    <div class="outcomes">
+      <div class="outcome"><b>Mục tiêu 1.</b> Mô tả bên trong FPGA (LUT, FF, BRAM, DSP, routing, clocking) và ASIC (standard cell, tape-out); map RTL sang tài nguyên FPGA.</div>
+      <div class="outcome"><b>Mục tiêu 2.</b> Tính điểm hòa vốn từ NRE + unit cost với bộ số bất kỳ — dán nhãn "ví dụ minh họa" cho mọi con số giả định.</div>
+      <div class="outcome"><b>Mục tiêu 3.</b> So sánh hai nền tảng theo PPA, time-to-market, flexibility, risk; giải thích chiến lược "FPGA prototype trước, ASIC sau".</div>
+      <div class="outcome"><b>Mục tiêu 4.</b> Phân biệt 5 nấc simulation → synthesis → implementation → configuration → hardware test; đọc abstract một paper FPGA, trả lời 4 câu định vị.</div>
+    </div>
+    <div class="pos">
+      <div><b>Tuần trước — T7.</b> Quy tắc viết RTL sạch: blocking/non-blocking, tránh latch, reset — bản mô tả sẵn sàng cho synthesis.</div>
+      <div><b>Tuần này — T8.</b> RTL "đổ" vào phần cứng nào: FPGA hay ASIC — quyết định bằng trade-off.</div>
+      <div><b>Tuần sau — T9.</b> Project A: đèn giao thông — controller FSM + datapath timer, làm theo hướng FPGA thật.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= LAYER A ================= -->
+<section id="layer-a" class="layer layer-a">
+  <div class="wrap layer-head">
+    <div class="band">
+      <span class="layer-badge">A</span>
+      <h2>Trước buổi học</h2>
+      <span class="time">⏱ 15–25 phút · chỉ cần đọc phần này</span>
+    </div>
+    <p class="lead">Bạn KHÔNG cần đọc Layer C trước buổi học. Chuẩn bị đủ ở đây là bạn sẵn sàng thảo luận. Layer C dành cho lúc thực hành sau buổi.</p>
+  </div>
+  <div class="wrap layer-body">
+    <div class="grid2">
+      <div class="card">
+        <h3>Vì sao tuần này quan trọng</h3>
+        <p>T9–11 bạn làm project theo hướng <b>FPGA</b>. Tuần này trả lời hai câu nền: vì sao giai đoạn học và prototype chọn FPGA, và cùng một RTL "đổ" vào phần cứng nào ở mỗi nền tảng. Đây cũng là bài học trade-off đầu tiên — kiểu câu hỏi theo bạn suốt sự nghiệp.</p>
+        <p class="small muted"><b>Điều kiện tiên quyết:</b> T7 — RTL là bản mô tả; synthesis suy ra phần cứng từ mô tả đó.</p>
+      </div>
+      <div class="card">
+        <h3>Hoạt động chuẩn bị (10′)</h3>
+        <p>Tra giá <b>một board FPGA học tập</b> phổ biến (Tang Nano 9K, Basys 3, DE10-Lite…). Ghi ra giấy: giá bán + <b>2 thông số nhà sản xuất công bố</b> — số LUT và số FF. Mang đến buổi học: các con số này được dùng trong hội đồng quyết định nền tảng.</p>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Khái niệm thiết yếu — đọc chậm, 5 ý</h3>
+      <ul>
+        <li><b>FPGA</b> = chip sản xuất sẵn chứa mảng <b>LUT + FF + BRAM + DSP</b> nối bằng routing lập trình được; cấu hình bằng <b>bitstream</b> — nạp lại vô số lần.</li>
+        <li><b>ASIC</b> = mạch chế tạo cố định bằng <b>standard cell</b> tại foundry; sau <b>tape-out</b>, logic không đổi được nữa.</li>
+        <li><b>NRE vs unit cost:</b> NRE trả một lần (thiết kế, mask, tape-out); unit cost trả cho từng chip. Tổng chi phí = NRE + unit × N. FPGA <b>tránh được NRE mask/fabrication của ASIC</b> — nhưng chi phí kỹ sư, tool, board, verification vẫn tồn tại.</li>
+        <li><b>PPA</b> (Performance–Power–Area): cùng RTL, ASIC thường thắng cả ba trục; FPGA thắng flexibility, time-to-market, rủi ro thấp.</li>
+        <li><b>Time-to-market &amp; risk:</b> vòng sửa lỗi FPGA tính bằng giờ (nạp lại bitstream); lỗi ASIC sau tape-out = <b>respin</b> — bộ mask mới, nhiều tháng chờ.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>2 câu hỏi tự chẩn đoán</h3>
+      <p class="small muted">Trả lời trong đầu trước, rồi mới mở đáp án. Nếu sai cũng không sao — buổi học sẽ xử lý đúng chỗ này.</p>
+      <details class="reveal"><summary>1. "Nạp bitstream" có làm thay đổi vật lý con chip FPGA không?</summary>
+        <div class="rv-body">Không. Bitstream chỉ <b>cấu hình</b>: đổ nội dung các bảng LUT, đặt trạng thái các switch. Silicon không đổi một nguyên tử — mất nguồn là mất cấu hình (dòng SRAM-based), nạp lại được vô số lần. Khác bản chất với tape-out của ASIC — vốn là <em>sản xuất vật lý</em>.</div>
+      </details>
+      <details class="reveal"><summary>2. Sản phẩm bán 1.000 chiếc và sản phẩm bán 10.000.000 chiếc — trực giác bạn chọn nền tảng nào cho mỗi bên, vì sao?</summary>
+        <div class="rv-body">1.000 chiếc: <b>FPGA</b> — NRE khổng lồ của ASIC chia cho 1.000 chiếc là vô lý. 10.000.000 chiếc: <b>ASIC</b> — NRE chia nhỏ gần như biến mất, unit cost thấp và PPA thắng áp đảo, <em>với điều kiện spec đã ổn định</em>. Buổi học biến trực giác này thành phép tính hòa vốn (số minh họa ở C3).</div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ================= LAYER B ================= -->
+<section id="layer-b" class="layer layer-b">
+  <div class="wrap layer-head">
+    <div class="band">
+      <span class="layer-badge">B</span>
+      <h2>Buổi mentoring 60 phút</h2>
+      <span class="time">🗺 Mentor Session Guide</span>
+    </div>
+    <p class="lead">Kịch bản buổi học — mentor điều phối theo timeline này, không cần đọc hết Layer C để đứng lớp. Học viên nhìn vào đây để biết mình sẽ làm gì.</p>
+  </div>
+  <div class="wrap layer-body">
+    <div class="card">
+      <div class="timeline">
+        <div class="tl-row">
+          <span class="tl-time">0–5′</span>
+          <h4>Retrieval — kiểm tra tuần 7</h4>
+          <ul>
+            <li>Hai luật vàng: khối tuần tự gán gì, khối tổ hợp gán gì?</li>
+            <li>Latch ngoài ý muốn sinh ra khi nào — phòng bằng gì?</li>
+            <li>Vì sao nói "reset là quyết định kiến trúc, không phải phản xạ"?</li>
+          </ul>
+        </div>
+        <div class="tl-row">
+          <span class="tl-time">5–15′</span>
+          <h4>Học viên giải thích</h4>
+          <p>1–2 học viên lên bảng giải thích FPGA và ASIC bằng hình ảnh tự chọn, kèm số đã tra (giá board, LUT/FF). Cả lớp so số để cảm nhận độ chênh nhiều bậc so với chi phí một ASIC. Mentor chưa sửa vội.</p>
+        </div>
+        <div class="tl-row">
+          <span class="tl-time">15–25′</span>
+          <h4>Mentor sửa &amp; giảng sâu</h4>
+          <p>Chốt 3 điều bắt buộc đúng: (1) <b>bitstream = cấu hình</b> (đảo ngược được); <b>tape-out = sản xuất</b> (không đảo ngược); (2) <b>LUT = truth table đổ vào SRAM</b>: <code>always_comb</code> → LUT, <code>always_ff</code> → FF, mảng lớn → BRAM, phép nhân → DSP; (3) không có bên thắng tuyệt đối — tổng chi phí = NRE + unit × N (mọi số là <b>minh họa</b>) cùng các trục PPA, time-to-market, risk.</p>
+        </div>
+        <div class="tl-row">
+          <span class="tl-time">25–45′</span>
+          <h4>Active design — hội đồng quyết định nền tảng (nhóm 2–3 người)</h4>
+          <p><b>Đề bài:</b> nhóm là hội đồng kỹ thuật quyết định nền tảng cho 3 kịch bản:</p>
+          <ul>
+            <li><b>A.</b> Thiết bị đo chuyên dụng — 500 chiếc/năm, ra thị trường trong 6 tháng.</li>
+            <li><b>B.</b> Chip tai nghe TWS, 20 triệu chiếc, spec ổn định.</li>
+            <li><b>C.</b> Startup AI camera — thuật toán chưa chốt, đổi hằng tháng.</li>
+          </ul>
+          <p class="small muted">Nhóm lập bảng trade-off (PPA · NRE · unit cost · time-to-market · risk · flexibility), chốt khuyến nghị + 2 lý do định lượng cho mỗi kịch bản — dùng bộ số minh họa ở C3. <b>Artifact nhóm:</b> bảng quyết định 3 kịch bản (1 tờ giấy).</p>
+        </div>
+        <div class="tl-row">
+          <span class="tl-time">45–55′</span>
+          <h4>Chia sẻ &amp; tranh luận kỹ thuật</h4>
+          <p>Hai nhóm trình bày, nhóm khác phản biện chéo: sản lượng B chỉ còn 100.000 thì đổi ý không — tính lại tại chỗ? Kịch bản C cần điều kiện gì mới dám tape-out? Con số nào của nhóm bạn quên nhãn "minh họa"?</p>
+        </div>
+        <div class="tl-row">
+          <span class="tl-time">55–60′</span>
+          <h4>Chốt &amp; giao việc</h4>
+          <ul>
+            <li><b>Nhớ:</b> bitstream = cấu hình, tape-out = sản xuất; tổng chi phí = NRE + unit × N; mọi khuyến nghị bắt đầu bằng "tùy vào…".</li>
+            <li><b>Tránh:</b> nói "FPGA NRE = 0" — nói đúng: tránh NRE mask/fab của ASIC, chi phí kỹ sư/tool/board/verification vẫn còn.</li>
+            <li><b>Artifact sau buổi:</b> bảng quyết định hoàn thiện + bài đọc paper đầu tiên (Layer D).</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <p class="mentor-hint">💡 Bật công tắc <b>Mentor</b> trên thanh tiêu đề để xem ghi chú dành riêng cho mentor (đáp án kỳ vọng, câu hỏi cứu nguy, mở rộng cho học viên giỏi).</p>
+
+    <div class="mentor-only">
+      <div class="mentor-box">
+        <span class="mtag">Mentor only · Tuần 8</span>
+        <h3>Ghi chú vận hành buổi học</h3>
+        <div class="grid2">
+          <div>
+            <h4>Mục tiêu mentor cần chốt được</h4>
+            <ul class="small">
+              <li>Map đúng RTL → tài nguyên (comb→LUT, ff→FF, mảng→BRAM, nhân→DSP).</li>
+              <li>Tự tính hòa vốn với bộ số bất kỳ — <b>tự giác dán nhãn "số minh họa"</b>.</li>
+              <li>Phân biệt 5 nấc từ simulation đến hardware test.</li>
+            </ul>
+            <h4>Hiểu sai kinh điển (chờ sẵn)</h4>
+            <ul class="small">
+              <li>"FPGA miễn phí NRE" — sửa: tránh NRE <em>mask/fabrication</em> của ASIC; chi phí kỹ sư, IP, tool, board, verification vẫn còn.</li>
+              <li>"ASIC luôn tốt hơn" — chỉ đúng khi sản lượng lớn và spec ổn định.</li>
+              <li>"Bitstream là firmware chạy trên CPU trong FPGA" — bitstream <em>cấu hình</em> phần cứng, không gì "thực thi" nó.</li>
+              <li>"Nạp bitstream = tape-out phiên bản nhỏ" — khác bản chất: cấu hình vs sản xuất.</li>
+            </ul>
+          </div>
+          <div>
+            <h4>Câu hỏi chẩn đoán → đáp án tốt → hỏi tiếp</h4>
+            <p class="small"><b>Hỏi:</b> "LUT 4-input hiện thực một hàm logic kiểu gì?"<br>
+            <b>Đáp tốt:</b> bảng tra 16 hàng — truth table T3 đổ vào SRAM nhỏ; 4 input làm địa chỉ.<br>
+            <b>Hỏi tiếp:</b> "Hàm 5 biến?" → tool ghép nhiều LUT qua routing — mỗi lần ghép thêm trễ.</p>
+            <p class="small"><b>Cứu nguy (nếu bí):</b> FPGA = LEGO lắp lại được; ASIC = khuôn ép — nhưng khuôn <em>rất đắt</em>, <em>không sửa được</em>; mọi số liệu hôm nay là minh họa, không phải giá thị trường.</p>
+            <p class="small"><b>Mở rộng học viên giỏi:</b> "Vì sao cùng RTL, bản FPGA thường chạy tần số thấp hơn ASIC?" → routing lập trình được + LUT tổng quát cho trễ lớn hơn dây cố định + cell chuyên dụng → critical path dài hơn.</p>
+          </div>
+        </div>
+        <div class="co co-warn small"><b>Nhịp buổi học.</b> Phần 25–45′ là lõi: đi từng nhóm, ép mỗi lập luận có ít nhất 2 con số. Tuần bị soát kỹ nhất về phát ngôn chi phí — nghe "NRE = 0" hay "vài xu mỗi chip" là dừng, sửa công khai bằng bản đúng C3. Nhóm nhanh: tính lại kịch bản B với 100k.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= LAYER C ================= -->
+<section id="layer-c" class="layer layer-c">
+  <div class="wrap layer-head">
+    <div class="band">
+      <span class="layer-badge">C</span>
+      <h2>Technical Lab — Deep Dive</h2>
+      <span class="time">🔬 Tự học sâu · sau buổi hoặc khi thực hành</span>
+    </div>
+    <p class="lead">Toàn bộ kỹ thuật chi tiết nằm ở đây, chia thành mục gập/mở. Không bắt buộc đọc hết một lần — đi theo thứ tự khi làm bài tập.</p>
+  </div>
+  <div class="wrap layer-body">
+    <div class="dd-tools"><button data-dd="open">Mở tất cả</button><button data-dd="close">Đóng tất cả</button></div>
+
+    <details class="dd" open>
+      <summary><span class="no">C1</span> Bên trong FPGA: LUT, FF, BRAM, DSP, routing, clocking <span class="est">~12′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <p><b>FPGA là IC thật, sản xuất sẵn</b> — bên trong là "kho vật liệu" chưa nối: hàng nghìn đến hàng triệu <b>logic cell</b> (mô hình rút gọn của khóa học: mỗi cell ≈ 1 <b>LUT</b> + 1 <b>FF</b>; chip thật gom nhiều LUT và FF vào một slice/ALM nên số liệu utilization phải đọc theo tài liệu của dòng chip), khối <b>BRAM</b> và <b>DSP</b>, ma trận <b>routing</b> lập trình được, mạng clock chuyên dụng, chân I/O. Bitstream cấu hình tất cả thành mạch của bạn.</p>
+        <ul>
+          <li><b>LUT (Look-Up Table)</b> — SRAM nhỏ 2<sup>k</sup> bit (k = 4–6 tùy dòng chip): hiện thực <em>mọi</em> hàm tổ hợp k biến bằng cách đổ truth table T3 vào; k input làm địa chỉ. <b>FF</b> nằm sẵn cạnh mỗi LUT — nơi <code>always_ff</code> sống; <code>enable</code> nối chân clock-enable (CE).</li>
+          <li><b>BRAM (Block RAM)</b> — khối nhớ dựng sẵn (vài chục Kbit/khối): mảng dữ liệu lớn suy ra BRAM thay vì "đốt" hàng nghìn FF. <b>DSP block</b> — khối nhân-cộng cứng cho phép nhân rộng.</li>
+          <li><b>Routing</b> — chuỗi switch lập trình được nối mọi thứ: chiếm phần lớn diện tích chip và phần lớn trễ đường tín hiệu.</li>
+          <li><b>Clocking</b> — clock đi mạng phân phối chuyên dụng, ít lệch pha. Vì thế quy tắc T5/T9: <b>một clock duy nhất, nhịp chậm bằng tick/clock-enable, cấm derived clock</b> — clock tự chế bằng logic đi routing thường, chất lượng không kiểm soát.</li>
+        </ul>
+        <div class="tblwrap">
+        <table class="tbl">
+          <tr><th>Bạn viết trong RTL</th><th>FPGA suy ra tài nguyên</th></tr>
+          <tr><td>Khối <code>always_comb</code> (decode, so sánh, next_state)</td><td>LUT (+ carry chain cho cộng/so sánh)</td></tr>
+          <tr><td>Khối <code>always_ff</code> — thanh ghi <code>state</code>, <code>count</code></td><td>FF trong logic cell; <code>enable</code>/<code>tick</code> → chân CE</td></tr>
+          <tr><td>Mảng lớn, ví dụ <code>logic [7:0] mem [0:1023]</code></td><td>BRAM (1 KB gọn trong 1 khối)</td></tr>
+          <tr><td>Phép nhân <code>a * b</code> đủ rộng</td><td>DSP block</td></tr>
+        </table>
+        </div>
+        <div class="widget" data-widget="tt">
+          <div class="wtitle">Bạn là bitstream: nạp nội dung LUT 2-input để hiện thực y = a XOR b</div>
+          <div class="wnote">Bấm từng ô "?": ? → 0 → 1. Bốn ô là 4 bit SRAM của LUT 2-input — đổ đúng truth table là LUT "thành" cổng XOR. Bitstream làm việc này cho hàng trăm nghìn LUT cùng lúc.</div>
+          <div class="tblwrap">
+          <table class="tbl">
+            <tr><th>a</th><th>b</th><th>nội dung LUT = ?</th></tr>
+            <tr><td>0</td><td>0</td><td class="tt-cell" data-exp="0"></td></tr>
+            <tr><td>0</td><td>1</td><td class="tt-cell" data-exp="1"></td></tr>
+            <tr><td>1</td><td>0</td><td class="tt-cell" data-exp="1"></td></tr>
+            <tr><td>1</td><td>1</td><td class="tt-cell" data-exp="0"></td></tr>
+          </table>
+          </div>
+          <button class="tt-check wbtn">Kiểm tra</button> <span class="tt-out small"></span>
+        </div>
+        <div class="co co-danger"><b>FPGA không "chạy" Verilog.</b> Không bộ xử lý nào đọc từng dòng code trong FPGA. Synthesis dịch RTL thành cấu hình LUT/FF/routing; sau khi nạp, mạch <em>tồn tại vật lý</em> trong fabric, mọi khối chạy song song. Động từ đúng: FPGA được <em>cấu hình</em> theo RTL, không <em>thực thi</em> RTL.</div>
+      </div>
+    </details>
+
+    <details class="dd">
+      <summary><span class="no">C2</span> ASIC &amp; standard cell: đúc cứng một lần <span class="est">~8′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <p><b>ASIC</b> đi con đường khác từ điểm rẽ synthesis: RTL được ánh xạ vào <b>thư viện standard cell</b> — các "viên gạch" NAND/NOR/INV/DFF… foundry đã đặc tả sẵn cho một quy trình (ví dụ 28 nm). Tiếp theo là <b>physical design</b>: floorplan → place &amp; route (vẽ dây kim loại thật) → clock tree; rồi <b>signoff</b> — kiểm timing/power/DRC/LVS lần cuối, vì sau bước kế tiếp không sửa được nữa.</p>
+        <p><b>Tape-out</b> = bàn giao layout cuối cùng cho foundry: làm bộ <b>mask</b> (mặt nạ quang khắc), in lên wafer, cắt, đóng gói, test — nhiều tháng. Ẩn dụ một câu: khuôn ép công nghiệp — làm khuôn rất đắt và lâu; khi sản lượng lớn, đơn giá mỗi sản phẩm <em>có thể</em> thấp hơn nhiều lần, nhưng con số cụ thể phụ thuộc quy trình, die size, sản lượng và yield (tỷ lệ chip đạt).</p>
+        <ul>
+          <li><b>Không sửa được sau chế tạo</b> → verification phải cực nặng <em>trước</em> tape-out + chèn <b>DFT</b> (mạch phục vụ test từng chip xuất xưởng).</li>
+          <li><b>Bug lọt qua tape-out = respin:</b> sửa thiết kế + bộ mask mới + nhiều tháng chờ — lý do các công ty ASIC dùng cả "farm" FPGA để prototype chip của họ trước.</li>
+          <li><b>Spec phải "đóng băng"</b> trước khi đúc — nhiều startup trả giá vì tape-out spec thị trường chưa xác nhận.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="dd">
+      <summary><span class="no">C3</span> Kinh tế học con chip: NRE, unit cost, điểm hòa vốn <span class="est">~12′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <div class="co co-fix"><span class="tag">Hiệu chỉnh kỹ thuật so với v2</span> Bản v2 viết "FPGA: NRE ≈ 0" và "mỗi sản phẩm ép ra chỉ tốn vài xu" — hai cách nói tắt nguy hiểm. Phiên bản đúng: <b>(1)</b> FPGA <b>tránh được NRE mask/fabrication của ASIC</b>, nhưng chi phí kỹ sư, IP, tool, board, verification, tích hợp vẫn tồn tại; <b>(2)</b> đơn giá ASIC khi sản lượng lớn <em>có thể</em> thấp hơn nhiều lần — con số cụ thể phụ thuộc quy trình, die size, sản lượng, yield. Mọi con số trong mục này là <b>ví dụ minh họa</b> để học cách suy luận, không phải giá thị trường.</div>
+        <p><b>NRE (Non-Recurring Engineering)</b> — mọi khoản trả <em>một lần</em>, không phụ thuộc số chip bán ra: lương đội thiết kế, license EDA, mask, tape-out, kiểm mẫu đầu. <b>Unit cost</b> — chi phí cho <em>từng con chip</em>: silicon, đóng gói, test. Mô hình đơn giản:</p>
+        <p class="center"><code>Tổng chi phí = NRE + unit_cost × N</code> &nbsp;·&nbsp; <code>Hòa vốn N* = ΔNRE ÷ Δunit_cost</code></p>
+        <p><b>Bộ số minh họa dùng cả tuần</b> (giả định — đã dán nhãn): FPGA unit 25$/chip, NRE thiết kế (nhân lực, IP, tool, board, verification) có ở CẢ HAI phương án; bài toán này <b>giả định hai phần đó xấp xỉ bằng nhau nên triệt tiêu khi lấy hiệu</b> — đó là lý do bỏ được khỏi phép tính, KHÔNG phải vì nó nhỏ. Thực tế NRE thiết kế/kiểm chứng phía ASIC còn nặng hơn (physical design, DFT, signoff, chương trình test), nên điểm hòa vốn thật còn dịch sang phải. Con số 2.000.000$ dưới đây là phần NRE <b>riêng của ASIC</b> (mask, tape-out, lô mẫu đầu); unit 2$/chip. Hòa vốn: N* = 2.000.000 ÷ (25 − 2) ≈ <b>87.000 chiếc</b>.</p>
+        <div class="tblwrap">
+        <table class="tbl">
+          <tr><th>Sản lượng N (ví dụ minh họa)</th><th>FPGA: 25$ × N</th><th>ASIC: 2.000.000$ + 2$ × N</th><th>Rẻ hơn — và rẻ hơn bao nhiêu tiền</th></tr>
+          <tr><td>1.000</td><td>25.000$</td><td>2.002.000$</td><td>FPGA — rẻ hơn ≈ 1.977.000$</td></tr>
+          <tr><td>≈ 87.000</td><td>≈ 2.175.000$</td><td>≈ 2.174.000$</td><td>Xấp xỉ — vùng hòa vốn</td></tr>
+          <tr><td>1.000.000</td><td>25.000.000$</td><td>4.000.000$</td><td>ASIC — rẻ hơn ≈ 21.000.000$</td></tr>
+        </table>
+        </div>
+        <p class="small">Đồ thị bằng lời: hai đường thẳng trên trục (N, tổng chi phí) — FPGA xuất phát gần gốc, dốc 25$/chiếc; ASIC xuất phát tận 2.000.000$, dốc thoải 2$/chiếc. Trái giao điểm: FPGA rẻ hơn; phải: ASIC rẻ hơn. Giao điểm là hòa vốn. Bẫy kinh điển: chỉ so đơn giá từng chip mà quên cộng NRE. <b>Vì sao cột cuối ghi hiệu số chứ không ghi "gấp mấy lần"?</b> Vì phần NRE thiết kế chung đã bị bỏ khỏi cả hai cột: cộng nó trở lại thì <em>hiệu</em> không đổi (2.000.000 − 23N), nhưng <em>tỉ số</em> đổi rất mạnh — thêm 500.000$ chung, mức "80 lần" tại N = 1.000 tụt còn khoảng 5 lần. Chỉ phát biểu đại lượng nào bất biến với giả định của mình: đó là kỷ luật đọc mô hình chi phí.</p>
+        <div class="wr">
+          <p><b>Predict-before-check.</b> Bộ số minh họa khác: ASIC NRE 1.500.000$, unit 3$; FPGA unit 40$; sản lượng 100.000. Phương án nào rẻ hơn về chi phí, hòa vốn ở đâu? Tính trên giấy rồi mới bấm.</p>
+          <button class="wr-btn wbtn alt" data-label="Hiện đáp án">Hiện đáp án</button>
+          <div class="wr-ans"><div class="co co-ok">FPGA: 40 × 100.000 = 4.000.000$; ASIC: 1.500.000 + 3 × 100.000 = 1.800.000$ → <b>ASIC rẻ hơn về chi phí</b>. N* = 1.500.000 ÷ 37 ≈ 40.500 — 100.000 nằm bên phải. Nhưng chi phí chỉ là <em>một trục</em>: trước khi "đúc" còn phải hỏi spec ổn định chưa, chịu nổi rủi ro respin không (C4).</div></div>
+        </div>
+      </div>
+    </details>
+
+    <details class="dd">
+      <summary><span class="no">C4</span> PPA, time-to-market, risk — và chiến lược "FPGA trước, ASIC sau" <span class="est">~8′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <p><b>PPA</b> = Performance (tần số), Power (điện), Area (diện tích silicon) — bộ ba thước đo chất lượng mọi thiết kế số. Cùng một RTL, bản ASIC thường nhanh hơn, tốn điện ít hơn và nhỏ hơn bản FPGA — vì tín hiệu FPGA phải xuyên routing lập trình được và LUT tổng quát, còn ASIC dùng dây cố định + cell chuyên dụng đã tối ưu. Xu hướng điển hình để xây trực giác — mức chênh phụ thuộc dòng chip, công nghệ, thiết kế.</p>
+        <ul>
+          <li><b>Time-to-market</b> (bậc độ lớn minh họa, không phải số đo chuẩn): FPGA — từ RTL đến bitstream chạy trên board thường tính bằng <b>ngày đến tuần</b>. ASIC — tính bằng <b>quý đến năm</b>: thiết kế, signoff, chế tạo, đóng gói, test. Điều cần nhớ là <em>khoảng cách một đến hai bậc độ lớn</em> giữa hai flow, không phải con số cụ thể — nó phụ thuộc quy mô thiết kế, công nghệ và foundry.</li>
+          <li><b>Flexibility:</b> FPGA đổi được cả chức năng sau xuất xưởng; ASIC đông cứng sau tape-out.</li>
+          <li><b>Risk:</b> bug FPGA = sửa RTL, tổng hợp, nạp lại — tính bằng giờ. Bug ASIC sau tape-out = respin — mask mới, nhiều tháng, có thể lỡ thị trường.</li>
+        </ul>
+        <p><b>Chiến lược kinh điển:</b> <b>giai đoạn 1</b> — dựng và kiểm chứng RTL trên FPGA: sửa nhanh, rủi ro thấp, demo sớm; <b>giai đoạn 2</b> — khi spec ổn định và sản lượng dự báo vượt hòa vốn, chuyển cùng bộ RTL (điều chỉnh phần phụ thuộc nền tảng như BRAM/DSP primitive) sang flow ASIC tối ưu PPA và unit cost. Hãy viết RTL "ASIC-ready": mô tả hành vi bằng RTL chuẩn, không gọi primitive đặc thù khi chưa cần — phong cách T7.</p>
+        <div class="co co-info"><b>Bạn "đủ nền" — chưa phải "đủ 100%".</b> Sau tuần này bạn đủ nền lên FPGA làm project T9–11: thiết kế đồng bộ nhỏ, một clock, có testbench. Phía trước còn nguyên dãy chủ đề: timing constraints, STA, CDC, chiến lược reset theo domain, dùng BRAM/PLL-MMCM, đọc synthesis report và utilization, timing closure, physical implementation, formal verification, DFT, on-chip debug. Chúng thuộc Phase 2 và nghề nghiệp — biết mình chưa biết gì cũng là một năng lực.</div>
+      </div>
+    </details>
+
+    <details class="dd">
+      <summary><span class="no">C5</span> 5 nấc từ RTL đến phần cứng chạy thật <span class="est">~8′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <p>Từ T9, mỗi lần "chạy project" bạn leo 5 nấc. Mỗi nấc trả lời một câu hỏi khác — và <b>bắt một lớp lỗi khác</b>. Trộn lẫn các nấc là nguồn hiểu nhầm phổ biến nhất.</p>
+        <div class="tblwrap">
+        <table class="tbl">
+          <tr><th>Nấc</th><th>Trả lời câu hỏi</th><th>Artifact</th><th>Lỗi lộ ra ở đây</th></tr>
+          <tr><td>1 · RTL simulation</td><td>Hành vi logic có đúng spec không?</td><td>Waveform + log testbench</td><td>Bug logic: sai điều kiện wrap, sai next_state, quên default</td></tr>
+          <tr><td>2 · Synthesis</td><td>RTL suy ra phần cứng gì, tốn bao nhiêu tài nguyên?</td><td>Netlist + resource report (LUT/FF/BRAM/DSP)</td><td>Code không tổng hợp được; latch ngoài ý muốn; phần cứng khác dự đoán</td></tr>
+          <tr><td>3 · Implementation</td><td>Đặt vào chip cụ thể — có kịp timing không?</td><td>Design đã place &amp; route + timing report</td><td>Vi phạm timing trên critical path (STA — Phase 2)</td></tr>
+          <tr><td>4 · Configuration</td><td>Bitstream đã xuống board đúng chưa?</td><td>File bitstream đã nạp</td><td>Sai gán chân (pin constraint); quên nạp bản mới sau khi sửa</td></tr>
+          <tr><td>5 · Hardware test</td><td>Mạch thật chạy đúng trong thế giới thật không?</td><td>Hệ chạy trên board</td><td>Chân cắm/điện áp; nút bấm rung (T9); tín hiệu bất đồng bộ từ ngoài (T11)</td></tr>
+        </table>
+        </div>
+        <div class="co co-warn"><b>Mô phỏng đúng ≠ phần cứng chạy đúng tần số.</b> RTL simulation không biết gì về trễ routing trên con chip cụ thể — nó chỉ chứng minh <em>logic</em> đúng. Đạt 50 MHz hay không chỉ lộ ở nấc 3 (timing report); đèn LED không sáng vì sai chân thì tận nấc 5 mới thấy. Vượt nấc 1 là điều kiện cần, chưa bao giờ là đủ.</div>
+      </div>
+    </details>
+
+    <details class="dd">
+      <summary><span class="no">C6</span> Bài đọc nghiên cứu đầu tiên — đọc abstract như kỹ sư <span class="est">~12′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <p>Lần đầu bạn chạm vào <b>bài báo khoa học</b>. Mục tiêu KHÔNG phải hiểu hết — mà là <b>định vị</b> bài báo trong 15 phút: giải quyết gì, ý tưởng gì, đo bằng gì. Kỹ năng này dùng lại ở T12 khi bạn tự đề xuất hướng nghiên cứu.</p>
+        <p><b>4 bước:</b></p>
+        <ul>
+          <li><b>Bước 1 — Tìm:</b> trên IEEE Xplore hoặc Google Scholar với từ khóa <code>FPGA accelerator</code> hoặc <code>FPGA traffic controller</code>; chọn 1 bài có hình <b>system diagram</b> (sơ đồ khối hệ thống).</li>
+          <li><b>Bước 2 — Đọc abstract 2 lần:</b> lần 1 nắm đại ý; lần 2 gạch chân vấn đề — giải pháp — kết quả có số.</li>
+          <li><b>Bước 3 — Nhìn system diagram:</b> săn khối quen: có FSM không? BRAM/bộ nhớ? counter, UART, datapath/controller? Chú thích ít nhất 2 khối bạn nhận ra.</li>
+          <li><b>Bước 4 — Trả lời 4 câu ra giấy:</b> (1) Bài giải quyết <b>vấn đề gì</b>? (2) <b>Ý tưởng đề xuất</b> là gì? (3) <b>Nền tảng phần cứng</b> nào (dòng FPGA, board)? (4) <b>Metric nào</b> được báo cáo — LUT/FF, MHz, mW, fps, latency…?</li>
+        </ul>
+        <p><b>Khung phân biệt khi đọc:</b></p>
+        <ul>
+          <li><b>Textbook knowledge vs research contribution:</b> điều cộng đồng đã xác lập (như C1–C5) vs điều <em>mới</em> bài báo bổ sung — câu hỏi (2) chính là đi tìm contribution.</li>
+          <li><b>Claim vs evidence:</b> điều tác giả <em>tuyên bố</em> ("nhanh hơn 3,2 lần") vs số liệu <em>chứng minh</em> (đo trên board nào, baseline nào). Nối từng claim với evidence — claim không có evidence là cờ đỏ.</li>
+        </ul>
+        <div class="co co-ok"><b>Được phép không hiểu.</b> Gặp thuật ngữ lạ (pipeline, dataflow, HLS…) cứ ghi lại rồi đi tiếp — bạn đọc để định vị, không phải tái tạo. Nhận ra "khối này là FSM mình học T6" trong một paper thật là khoảnh khắc đáng giá nhất của bài tập.</div>
+      </div>
+    </details>
+
+    <details class="dd">
+      <summary><span class="no">C7</span> Từ vựng kỹ thuật tuần 8 <span class="est">~5′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <div class="tblwrap">
+        <table class="tbl vocab">
+          <tr><th>Thuật ngữ</th><th>Nghĩa</th><th>Câu ví dụ (EN)</th></tr>
+          <tr><td>LUT (Look-Up Table)</td><td>SRAM nhỏ hiện thực hàm tổ hợp bằng truth table</td><td class="en">This design uses 3,200 LUTs.</td></tr>
+          <tr><td>BRAM (Block RAM)</td><td>Khối nhớ dựng sẵn trong fabric FPGA</td><td class="en">The frame buffer maps to two BRAM blocks.</td></tr>
+          <tr><td>DSP block</td><td>Khối nhân-cộng cứng cho xử lý tín hiệu</td><td class="en">The filter consumes eight DSP blocks.</td></tr>
+          <tr><td>Routing</td><td>Ma trận kết nối lập trình được trong fabric</td><td class="en">Routing delay dominates the critical path.</td></tr>
+          <tr><td>Bitstream</td><td>File cấu hình toàn bộ LUT/FF/routing của FPGA</td><td class="en">Loading a new bitstream takes only seconds.</td></tr>
+          <tr><td>Standard cell</td><td>Ô logic chuẩn từ thư viện foundry — "viên gạch" ASIC</td><td class="en">The RTL was mapped to a 28nm standard-cell library.</td></tr>
+          <tr><td>Tape-out</td><td>Bàn giao layout cuối cùng cho foundry sản xuất</td><td class="en">After tape-out, no logic change is possible.</td></tr>
+          <tr><td>NRE cost</td><td>Chi phí kỹ thuật trả một lần, không phụ thuộc sản lượng</td><td class="en">Mask NRE dominates the budget at advanced nodes.</td></tr>
+          <tr><td>Unit cost</td><td>Chi phí cho từng con chip: silicon, đóng gói, test</td><td class="en">High volume drives the unit cost down.</td></tr>
+          <tr><td>PPA</td><td>Performance–Power–Area: bộ ba thước đo thiết kế</td><td class="en">The ASIC version wins on all three PPA axes.</td></tr>
+        </table>
+        </div>
+      </div>
+    </details>
+  </div>
+</section>
+
+<!-- ================= LAYER D ================= -->
+<section id="layer-d" class="layer layer-d">
+  <div class="wrap layer-head">
+    <div class="band">
+      <span class="layer-badge">D</span>
+      <h2>Sau buổi học</h2>
+      <span class="time">📝 Quiz 5 câu · bài tập · phản tư</span>
+    </div>
+  </div>
+  <div class="wrap layer-body">
+
+    <div class="card">
+      <h3>Quiz tự kiểm tra — 5 câu</h3>
+      <p class="small muted">Chọn đáp án; chấm ngay và hiện giải thích. Câu hỏi kiểu dự đoán/suy luận — nếu sai, quay lại đúng mục Layer C được ghi trong giải thích.</p>
+      <div class="quiz" id="quiz">
+        <div class="qz-item" data-answer="B">
+          <p class="qz-q">1. Về bản chất, một LUT 4-input trong FPGA là gì?</p>
+          <button class="qz-opt" data-key="A">Một CPU nhỏ đọc và thực thi từng dòng Verilog</button>
+          <button class="qz-opt" data-key="B">Một SRAM 16 ô chứa truth table: 4 input làm địa chỉ, ô được trỏ tới là giá trị hàm; bitstream đổ nội dung vào</button>
+          <button class="qz-opt" data-key="C">Một cổng AND 4 đầu vào được chế tạo cố định</button>
+          <button class="qz-opt" data-key="D">Một khối nhớ lớn để lưu dữ liệu của ứng dụng</button>
+          <div class="qz-expl"><b>Giải thích:</b> LUT = truth table T3 đổ vào SRAM nhỏ — hiện thực được <em>mọi</em> hàm 4 biến, không riêng AND. Lưu dữ liệu là việc của BRAM. Hàm nhiều biến → ghép nhiều LUT qua routing, thêm trễ. Xem C1.</div>
+        </div>
+        <div class="qz-item" data-answer="D">
+          <p class="qz-q">2. Phát biểu nào về chi phí FPGA/ASIC là <b>chính xác</b>?</p>
+          <button class="qz-opt" data-key="A">FPGA có NRE = 0 nên tổng chi phí luôn thấp hơn ASIC</button>
+          <button class="qz-opt" data-key="B">ASIC chỉ tốn vài xu mỗi chip nên sản lượng nào cũng rẻ hơn</button>
+          <button class="qz-opt" data-key="C">NRE của ASIC được foundry hoàn lại khi bán đủ chip</button>
+          <button class="qz-opt" data-key="D">FPGA tránh được NRE mask/fabrication của ASIC, nhưng chi phí kỹ sư, IP, tool, board, verification vẫn tồn tại; đơn giá ASIC khi sản lượng lớn có thể thấp hơn nhiều lần — con số phụ thuộc quy trình, die size, sản lượng, yield</button>
+          <div class="qz-expl"><b>Giải thích:</b> phiên bản đã hiệu chỉnh so với v2 — "NRE = 0" và "vài xu mỗi chip" đều là cách nói tắt làm hỏng phép so sánh. Mọi con số break-even phải kèm nhãn "ví dụ minh họa". Xem C3.</div>
+        </div>
+        <div class="qz-item" data-answer="A">
+          <p class="qz-q">3. (Số minh họa) ASIC: NRE 1.000.000$, unit 1$. FPGA: unit 20$, NRE bổ sung tạm bỏ qua. Sản lượng 30.000 — xét riêng chi phí, chọn gì?</p>
+          <button class="qz-opt" data-key="A">FPGA — tổng 600.000$ so với 1.030.000$ của ASIC; hòa vốn ≈ 52.600 chiếc còn ở phía trước</button>
+          <button class="qz-opt" data-key="B">ASIC — vì 1$/chip rẻ hơn hẳn 20$/chip</button>
+          <button class="qz-opt" data-key="C">ASIC — vì NRE chia đều khiến đơn giá thực tế giảm về dưới 1$</button>
+          <button class="qz-opt" data-key="D">Hai phương án tốn đúng bằng nhau tại 30.000 chiếc</button>
+          <div class="qz-expl"><b>Giải thích:</b> FPGA: 20 × 30.000 = 600.000$; ASIC: 1.000.000 + 1 × 30.000 = 1.030.000$. Hòa vốn N* = 1.000.000 ÷ 19 ≈ 52.600 chiếc — 30.000 nằm bên trái điểm đó. Chỉ so đơn giá từng chip là bẫy kinh điển; mọi số ở đây là minh họa. Xem C3.</div>
+        </div>
+        <div class="qz-item" data-answer="C">
+          <p class="qz-q">4. Testbench pass 100% ở RTL simulation. Điều đó <b>nghĩa là gì — và KHÔNG nghĩa là gì</b>?</p>
+          <button class="qz-opt" data-key="A">Thiết kế chắc chắn chạy đúng trên board ở mọi tần số</button>
+          <button class="qz-opt" data-key="B">Phần cứng vật lý đã được kiểm chứng đầy đủ</button>
+          <button class="qz-opt" data-key="C">Hành vi logic khớp testbench ở mức RTL; chưa nói gì về đạt tần số trên chip thật (lộ ở implementation) hay gán chân đúng (lộ ở hardware test)</button>
+          <button class="qz-opt" data-key="D">Synthesis chắc chắn sẽ không báo lỗi hay cảnh báo nào</button>
+          <div class="qz-expl"><b>Giải thích:</b> mỗi nấc bắt một lớp lỗi riêng: logic ở nấc 1, latch/tài nguyên ở 2, timing ở 3, pin constraint ở 4, thế giới thật ở 5. Mô phỏng đúng là điều kiện cần, chưa bao giờ đủ. Xem C5.</div>
+        </div>
+        <div class="qz-item" data-answer="D">
+          <p class="qz-q">5. Project T9: bạn viết <code>always_ff</code> cho thanh ghi <code>state</code> 2 bit và <code>count</code> 4 bit. Trên FPGA, chúng "đổ" vào tài nguyên nào?</p>
+          <button class="qz-opt" data-key="A">BRAM — vì chúng là phần tử nhớ</button>
+          <button class="qz-opt" data-key="B">DSP block — vì timer phải thực hiện phép cộng</button>
+          <button class="qz-opt" data-key="C">Chỉ LUT — mọi thứ trong FPGA đều là LUT</button>
+          <button class="qz-opt" data-key="D">6 FF trong logic cell (2 + 4); logic next_state và +1 vào các LUT quanh đó; <code>enable</code>/<code>tick</code> nối chân clock-enable</button>
+          <div class="qz-expl"><b>Giải thích:</b> quy tắc map: <code>always_ff</code> → FF, <code>always_comb</code> → LUT; BRAM chỉ suy ra cho mảng nhớ lớn, DSP cho phép nhân rộng. Mỗi dòng always_ff bạn viết tuần sau sẽ được <b>suy ra</b> thành FF trên board — công cụ vẫn có quyền tối ưu: bỏ FF hằng số, gộp FF trùng, map shift register dài vào SRL/BRAM. Xem C1.</div>
+        </div>
+        <div class="qz-bar"><span class="qz-score"></span><span class="qz-verdict"></span><button class="qz-reset">Làm lại</button></div>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <h3>Bài tập bắt buộc <span class="badge badge-req">nộp trước buổi 9</span></h3>
+        <p><b>Bảng quyết định nền tảng</b> — hoàn thiện artifact breakout thành 1 trang.</p>
+        <ul class="small">
+          <li>3 kịch bản A/B/C (thiết bị đo 500 chiếc · TWS 20 triệu · startup AI camera) — mỗi kịch bản: khuyến nghị FPGA / ASIC / "FPGA trước, ASIC sau".</li>
+          <li>Mỗi kịch bản đúng <b>3 dòng lý do</b>, ít nhất 2 dòng có con số (bộ số C3 hoặc tự giả định — <b>tự dán nhãn "số minh họa"</b>).</li>
+          <li>Thêm 1 dòng mỗi kịch bản: <b>điều kiện đảo chiều</b> — "quyết định đổi nếu…".</li>
+        </ul>
+        <p class="small"><b>Nộp (deliverable):</b> 1 trang bảng quyết định + 3 dòng kết luận: khi nào FPGA thắng, khi nào ASIC thắng, khi nào dùng hai giai đoạn.</p>
+      </div>
+      <div class="card">
+        <h3>Thử thách nâng cao <span class="badge badge-opt">tự chọn</span></h3>
+        <p><b>Bài đọc research đầu tiên</b> — theo 4 bước ở C6 với 1 paper FPGA tự chọn. Nộp: trả lời <b>4 câu định vị</b> (vấn đề? ý tưởng? nền tảng phần cứng? metric?) + ảnh system diagram đã <b>chú thích 2 khối bạn nhận ra</b> (có FSM không? BRAM không?).</p>
+        <div class="eqrq">
+          <div class="eq"><b>Câu hỏi kỹ thuật</b>Chọn FPGA hay ASIC cho sản phẩm này?</div>
+          <div class="arr">→</div>
+          <div class="rq"><b>Câu hỏi nghiên cứu</b>Mô hình break-even nhạy thế nào với yield, giá tool, chi phí respin? Metric nào còn thiếu trong mô hình đơn giản của ta — và ai đã từng mô hình hóa nó?</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Rubric tuần 8</h3>
+      <div class="tblwrap">
+      <table class="tbl rubric">
+        <tr><th>Tiêu chí</th><th>Trọng số</th><th>Đạt khi…</th></tr>
+        <tr><td>Hiểu khái niệm</td><td class="pct">25%</td><td>Giải thích LUT/FF/BRAM/DSP và standard cell bằng lời mình; phân biệt bitstream (cấu hình) với tape-out (sản xuất).</td></tr>
+        <tr><td>Kiến trúc</td><td class="pct">20%</td><td>Map đúng RTL → tài nguyên: always_comb→LUT, always_ff→FF, mảng lớn <b>đọc đồng bộ</b> (địa chỉ hoặc output có thanh ghi) → BRAM; nếu đọc tổ hợp thì ra distributed RAM/LUT, phép nhân→DSP — trên ví dụ của chính mình.</td></tr>
+        <tr><td>Phân tích đúng</td><td class="pct">20%</td><td>Tính break-even đúng số học với bộ số bất kỳ; mọi con số trong bài nộp có nhãn "ví dụ minh họa".</td></tr>
+        <tr><td>Verification</td><td class="pct">20%</td><td>Phân biệt 5 nấc sim→synthesis→implementation→configuration→hardware test; nói đúng lỗi nào lộ ở nấc nào.</td></tr>
+        <tr><td>Giao tiếp kỹ thuật</td><td class="pct">15%</td><td>Bảo vệ khuyến nghị bằng con số + nêu điều kiện đảo chiều ("nếu sản lượng ×10 thì…").</td></tr>
+      </table>
+      </div>
+      <p class="small muted">Chọn đúng chưa phải điểm tối đa — phải nói được con số nào là minh họa và mô hình còn thiếu gì.</p>
+    </div>
+
+    <div class="card">
+      <h3>Tổng kết tuần 8</h3>
+      <div class="ican">
+        <div><b>I can explain</b>① Bên trong FPGA (LUT/FF/BRAM/DSP/routing) và vì sao bitstream là cấu hình, không phải sản xuất. ② Tổng chi phí = NRE + unit × N, cách tìm hòa vốn — và vì sao "FPGA NRE = 0" là phát biểu sai. ③ Vì sao cùng RTL, ASIC thường thắng PPA còn FPGA thắng time-to-market/flexibility/risk.</div>
+        <div><b>I can design</b>Lập bảng quyết định nền tảng: chọn trục so sánh, điền số minh họa có nhãn, chốt khuyến nghị kèm điều kiện đảo chiều.</div>
+        <div><b>I can verify</b>Phân biệt 5 nấc từ RTL simulation đến hardware test, chỉ đúng lớp lỗi ở từng nấc — biết "mô phỏng pass" mới là điều kiện cần.</div>
+        <div><b>I can connect</b>T9 bắt đầu project FPGA: mỗi <code>always_ff</code> tôi viết thành FF thật trên board, <code>always_comb</code> thành LUT — và tôi biết danh sách chủ đề còn phía trước (timing constraints, STA, CDC…), không ảo tưởng "đủ 100%".</div>
+        <div class="unsure"><b>I am still unsure about…</b><textarea class="reflect" id="unsure8" placeholder="Điều tôi giải thích được tuần này mà tuần trước chưa giải thích được là… / Điều tôi còn mơ hồ là… (tự động lưu trên máy bạn)"></textarea></div>
+        <div class="nextwk"><b>Next week</b>Đã chọn xong "sân chơi" — FPGA. T9 xây công trình đầu tiên: Project A — từ spec an toàn giao thông ("luôn có ít nhất một hướng ĐỎ") đến controller FSM + datapath timer chạy được. Ôn state diagram T6 trước buổi.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="weeknav">
+      <a href="Week07.html"><small>← Tuần trước</small><b>T7 · Writing Clean RTL in SystemVerilog</b></a>
+      <a class="next" href="Week09.html"><small>Tuần sau →</small><b>T9 · Project A — FSM Traffic Controller</b></a>
+    </div>
+    <div class="footer">
+      <b>IC Design Mentoring — Version 3 · Phase 1</b>
+      <span class="org">Khoa Điện – Điện tử · Trường Kỹ thuật · Đại học Phenikaa</span>
+      <span>Biên soạn: <b style="display:inline">Giảng Viên Đinh Văn Nam</b></span>
+      <span class="cr">© 2026 · Bản quyền thuộc về Giảng Viên Đinh Văn Nam, Khoa Điện-Điện Tử, Trường Kỹ Thuật, Đại học Phenikaa. Tài liệu phục vụ đào tạo — vui lòng giữ nguyên thông tin tác giả khi chia sẻ.</span>
+      <span class="cr">Hoạt động offline — không cần Internet.</span>
+    </div>
+  </div>
+</footer>
+</body>
+</html>

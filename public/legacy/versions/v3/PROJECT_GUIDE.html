@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="Giảng Viên Đinh Văn Nam">
+<meta name="copyright" content="© 2026 · Bản quyền thuộc về Giảng Viên Đinh Văn Nam, Khoa Điện-Điện Tử, Trường Kỹ Thuật, Đại học Phenikaa">
+<meta name="description" content="Đặc tả project tích hợp (Tuần 9–11) — IC Design Mentoring Version 3. Khoa Điện – Điện tử · Trường Kỹ thuật · Đại học Phenikaa. Biên soạn: Giảng Viên Đinh Văn Nam.">
+<title>Đặc tả project tích hợp (Tuần 9–11) | IC Design Mentoring v3</title>
+<link rel="stylesheet" href="css/style.css">
+<script src="js/app.js" defer></script>
+</head>
+<body data-week="doc">
+
+<header class="topbar">
+  <div class="topbar-in">
+    <a class="brand" href="index.html"><span class="logo">IC</span>
+      <span>IC Design Mentoring<small>Tài liệu vận hành · Version 3</small></span></a>
+    <nav class="layer-chips">
+      <a class="chip" href="../../index.html" title="Learning Hub — cổng ba phiên bản giáo trình; đây là V3, bản hiện hành được khuyến nghị">⌂ Hub · V3</a>
+      <a class="chip" href="README.html">README</a>
+      <a class="chip" href="CURRICULUM_MAP.html">Curriculum Map</a>
+      <a class="chip" href="MENTOR_GUIDE.html">Mentor Guide</a>
+      <span class="chip active">Project Guide</span>
+      <a class="chip" href="TECHNICAL_AUDIT.html">Technical Audit</a>
+      <a class="chip" href="CHANGELOG_V2_TO_V3.html">Changelog</a>
+      <a class="chip" href="VALIDATION_REPORT.html">Validation</a>
+      <a class="chip" href="implementation-notes.html">Implementation Notes</a>
+      <a class="chip" href="index.html">← Mục lục</a>
+    </nav>
+  </div>
+  <div class="scrollbar"><div></div></div>
+</header>
+
+<section class="doc-hero">
+  <div class="wrap">
+    <div class="pill-row">
+      <span class="pill">Tài liệu vận hành</span>
+      <span class="pill acc">Project Guide</span>
+      <span class="pill">Khoa Điện – Điện tử · ĐH Phenikaa</span>
+    </div>
+    <h1>Đặc tả project tích hợp (Tuần 9–11)</h1>
+    <p class="sub">Smart Traffic Controller: spec · kiến trúc · interface · milestone · verification</p>
+    <p class="src">Bản văn bản gốc: <b>PROJECT_GUIDE.md</b> · cùng thư mục</p>
+  </div>
+</section>
+
+<main class="wrap doc-main">
+<nav class="doc-toc"><b>Nội dung tài liệu</b><ul class="plain"><li><a href="#m-1-dac-ta-he-thong-system-specification">1. Đặc tả hệ thống (system specification)</a></li><li><a href="#m-2-kien-truc-amp-so-do-khoi">2. Kiến trúc &amp; sơ đồ khối</a></li><li><a href="#m-3-interface-tung-module-hop-dong-co-dinh">3. Interface từng module (hợp đồng cố định)</a></li><li><a href="#m-4-milestones">4. Milestones</a></li><li><a href="#m-5-verification-plan">5. Verification plan</a></li><li><a href="#m-6-ket-qua-ky-vong-amp-fpga-deployment-tuy-chon">6. Kết quả kỳ vọng &amp; FPGA deployment (tùy chọn)</a></li><li><a href="#m-7-rubric-project-dung-cho-m2m4-cham-cong-don-v">7. Rubric project (dùng cho M2–M4, chấm cộng dồn về T12)</a></li><li><a href="#m-8-mo-rong-khong-bat-buoc-co-huong-dan-trong-ba">8. Mở rộng (không bắt buộc, có hướng dẫn trong bài)</a></li></ul></nav>
+<article class="doc-body">
+<p>Một project duy nhất, lớn dần qua ba tuần, bảo vệ ở tuần 12. Tài liệu này là đặc tả kỹ thuật gốc; các trang Week09/10/11.html dạy cách xây từng phần.</p>
+<h2 id="m-1-dac-ta-he-thong-system-specification">1. Đặc tả hệ thống (system specification)</h2>
+<p><strong>Yêu cầu chức năng</strong></p>
+<ol>
+<li>Điều khiển đèn ngã tư hai hướng NS/EW, mỗi hướng {đỏ, vàng, xanh}; chu trình GREEN_NS → YELLOW_NS → GREEN_EW → YELLOW_EW → lặp.</li>
+<li>Thời lượng xanh/vàng là parameter (<code>GREEN_TICKS</code> mặc định 10, <code>YELLOW_TICKS</code> mặc định 3, đơn vị giây, mỗi pha ≤ 15 s để timer 4 bit đủ).</li>
+<li>Hiển thị số giây còn lại của pha trên LED 7 đoạn (1 digit; 2 digit multiplexed là mở rộng).</li>
+<li>Mỗi giây gửi một dòng trạng thái dạng <code>GN 09\n</code> (6 byte ASCII) về PC qua UART 8N1, baud mặc định 115200.</li>
+<li>Sau reset (<code>rst_n</code> = 0): hệ ở GREEN_NS, timer nạp đầy — hành vi xác định.</li>
+</ol>
+<p><strong>Yêu cầu an toàn (safety invariant)</strong> — kiểm tự động trong testbench ở MỌI cạnh clock:</p>
+<blockquote>
+<p>Tại mọi thời điểm sau reset, ít nhất một trong hai hướng đang ĐỎ. Tương đương: không bao giờ <code>ns_light != LAMP_RED &amp;&amp; ew_light != LAMP_RED</code>.</p>
+</blockquote>
+<p><strong>Ràng buộc thiết kế</strong></p>
+<ul>
+<li>MỘT clock duy nhất <code>clk</code> (50 MHz mặc định, parameter hóa). Mọi nhịp chậm (1 Hz, baud) đều là <strong>clock-enable</strong> từ counter — cấm derived clock (<code>@(posedge tick)</code>, lấy bit counter làm clock).</li>
+<li>Reset <code>rst_n</code> bất đồng bộ, tích cực mức thấp, dùng thống nhất.</li>
+<li>SystemVerilog synthesizable; style theo Week07 (3 ngôi nhà, <code>&lt;=</code> tuần tự, default-trước tổ hợp, nối port theo tên).</li>
+</ul>
+<h2 id="m-2-kien-truc-amp-so-do-khoi">2. Kiến trúc &amp; sơ đồ khối</h2>
+<p>Mục này mô tả kiến trúc ở hai mức: <strong>mức đỉnh</strong> (các module nối với nhau ra sao) và <strong>mức bên trong <code>traffic_ctrl</code></strong> (controller và datapath phối hợp thế nào). Hình vẽ để hình dung; <strong>bảng liên kết tín hiệu ở §2.4 mới là bản đặc tả chuẩn</strong> — khi hình và bảng khác nhau, lấy bảng làm gốc, và bảng này khớp từng dòng với <code>traffic_system_top.sv</code> (Tuần 11).</p>
+<h3>2.1 Quy ước đọc sơ đồ</h3>
+<div class="tblwrap"><table class="tbl">
+<thead>
+<tr>
+<th>Ký hiệu</th>
+<th>Nghĩa</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Mũi tên xanh dương</td>
+<td>Đường tín hiệu; đầu mũi tên chỉ <strong>chiều truyền</strong> (từ nguồn tới đích)</td>
+</tr>
+<tr>
+<td><code>[n]</code> cạnh tên tín hiệu</td>
+<td><strong>Độ rộng bit</strong>. Ví dụ <code>time_left [4]</code> là bus 4 bit, khai báo <code>logic [3:0]</code></td>
+</tr>
+<tr>
+<td>Mũi tên cam</td>
+<td>Đường <strong>phản hồi</strong> (feedback) trong cơ chế bắt tay — đích trả thông tin ngược về nguồn</td>
+</tr>
+<tr>
+<td>Nét đứt xám</td>
+<td>Phân phối <code>clk</code> và <code>rst_n</code> — vẽ tách riêng để sơ đồ tín hiệu không bị rối</td>
+</tr>
+<tr>
+<td>● Chấm tròn</td>
+<td><strong>Điểm nối</strong>: một nguồn chia tín hiệu cho nhiều đích (fan-out)</td>
+</tr>
+<tr>
+<td>Hai đường cắt nhau <strong>không</strong> có chấm</td>
+<td><strong>Không nối</strong> — chỉ là giao nhau khi vẽ trên mặt phẳng</td>
+</tr>
+</tbody></table></div>
+<p>Quy ước chấm-nối/không-nối là chuẩn đọc sơ đồ mạch; học viên cần quen ngay từ đây vì mọi schematic và block diagram trong ngành đều dùng.</p>
+<h3>2.2 Cây phân cấp module (module hierarchy)</h3>
+<pre class="code" data-nohl><code>traffic_system_top                          ← module đỉnh: CHỈ khai báo dây và nối module,
+│                                             không chứa logic nào của riêng nó
+├── u_tick : tick_gen     #(DIV)            ← T9  · tuần tự
+├── u_ctrl : traffic_ctrl #(GREEN_TICKS, YELLOW_TICKS)  ← T9 · tuần tự (chứa controller + datapath)
+├── u_seg  : seg7_decoder                   ← T10 · TỔ HỢP thuần (không có clk)
+├── u_stat : status_tx                      ← T11 · tuần tự
+└── u_tx   : uart_tx      #(CLK_HZ, BAUD)   ← T11 · tuần tự
+</code></pre>
+<p><code>display_mux</code> (mở rộng T10) không nằm trong cây trên: nếu dùng, nó thay chỗ <code>u_seg</code> và <strong>chứa bên trong một instance <code>seg7_decoder</code></strong> — tức là hierarchy sâu thêm một tầng, phần còn lại của hệ không đổi.</p>
+<h3>2.3 Sơ đồ khối mức đỉnh</h3>
+<p><img src="assets/fig-system-top.svg" alt="Sơ đồ khối mức đỉnh của traffic_system_top: tick_gen, traffic_ctrl, seg7_decoder, status_tx, uart_tx và các đường tín hiệu giữa chúng"></p>
+<p><em>Hình 1 — Sơ đồ khối mức đỉnh (<code>traffic_system_top</code>). Nhãn T9/T10/T11 cho biết module được xây ở tuần nào.</em></p>
+<p>Đọc hình theo <strong>ba luồng</strong>, mỗi luồng trả lời một câu hỏi:</p>
+<ol>
+<li><strong>Luồng nhịp — &quot;hệ đếm thời gian bằng gì?&quot;</strong> <code>clk</code> (50 MHz) vào <code>tick_gen</code>; <code>tick_gen</code> đếm đủ <code>DIV</code> chu kỳ thì phát một xung <code>tick</code> rộng đúng 1 chu kỳ. Xung này đi tới <strong>cả hai</strong> khối cần nhịp giây: <code>traffic_ctrl</code> (để đếm thời lượng pha) và <code>status_tx</code> (để mỗi giây gửi một dòng trạng thái). Chấm tròn trên đường <code>tick</code> chính là điểm chia đó.</li>
+<li><strong>Luồng trạng thái — &quot;hệ đang ở pha nào, còn mấy giây?&quot;</strong> <code>traffic_ctrl</code> phát ba nhóm output: <code>ns_light</code>/<code>ew_light</code> ra LED đèn; <code>time_left</code> chia cho <strong>hai</strong> đích (<code>seg7_decoder</code> để hiển thị và <code>status_tx</code> để báo cáo); <code>phase</code> tới <code>status_tx</code>.</li>
+<li><strong>Luồng báo cáo — &quot;làm sao nói chuyện với PC?&quot;</strong> <code>status_tx</code> ghép chuỗi 6 byte rồi đưa từng byte sang <code>uart_tx</code> qua cặp <code>tx_start</code>/<code>tx_data</code>; <code>uart_tx</code> trả về <code>tx_busy</code> để <code>status_tx</code> biết khi nào được gửi byte kế tiếp. Đây là <strong>bắt tay hai chiều</strong> — lý do phải có mũi tên cam đi ngược.</li>
+</ol>
+<p>Hai chi tiết dễ bỏ sót nhưng rất quan trọng về học thuật:</p>
+<ul>
+<li><code>clk</code>/<code>rst_n</code> đi tới <strong>mọi khối tuần tự</strong> (<code>tick_gen</code>, <code>traffic_ctrl</code>, <code>status_tx</code>, <code>uart_tx</code>), không chỉ tới khối đầu tiên. Toàn hệ nằm trong <strong>một miền clock duy nhất</strong>.</li>
+<li><code>seg7_decoder</code> <strong>không</strong> có <code>clk</code> và <strong>không</strong> có flip-flop nào, vì nó là mạch tổ hợp thuần: output chỉ là hàm của <code>bcd</code> hiện tại. Đây là khối duy nhất trong hệ như vậy — dùng nó để kiểm tra học viên có phân biệt được tổ hợp và tuần tự hay không.</li>
+</ul>
+<h3>2.4 Bảng liên kết tín hiệu (đặc tả chuẩn)</h3>
+<p>Bảng dưới liệt kê <strong>toàn bộ tín hiệu ở mức đỉnh</strong>: cổng của <code>traffic_system_top</code> và dây nối giữa các module. Tín hiệu <em>bên trong</em> một module không thuộc bảng này (<code>next_state</code>, <code>timer_done</code> — §2.5; <code>baud_tick</code> — §2.6). Đây là bản đặc tả không mơ hồ mà hình vẽ không thể thay thế: mỗi dòng ghi rõ nguồn, các đích, độ rộng.</p>
+<p><strong>Cổng của <code>traffic_system_top</code></strong></p>
+<div class="tblwrap"><table class="tbl">
+<thead>
+<tr>
+<th>Tín hiệu</th>
+<th>Chiều</th>
+<th>Rộng</th>
+<th>Nối tới</th>
+<th>Ý nghĩa</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>clk</code></td>
+<td>vào</td>
+<td>1 bit</td>
+<td><code>u_tick</code>, <code>u_ctrl</code>, <code>u_stat</code>, <code>u_tx</code></td>
+<td>Clock hệ thống (mặc định 50 MHz), từ thạch anh/PLL trên board</td>
+</tr>
+<tr>
+<td><code>rst_n</code></td>
+<td>vào</td>
+<td>1 bit</td>
+<td><code>u_tick</code>, <code>u_ctrl</code>, <code>u_stat</code>, <code>u_tx</code></td>
+<td>Reset bất đồng bộ, tích cực mức thấp</td>
+</tr>
+<tr>
+<td><code>ns_light</code></td>
+<td>ra</td>
+<td>3 bit <code>[2:0]</code></td>
+<td>chân LED trên board</td>
+<td>Đèn hướng Bắc–Nam, mã <code>{đỏ, vàng, xanh}</code></td>
+</tr>
+<tr>
+<td><code>ew_light</code></td>
+<td>ra</td>
+<td>3 bit <code>[2:0]</code></td>
+<td>chân LED trên board</td>
+<td>Đèn hướng Đông–Tây, cùng mã</td>
+</tr>
+<tr>
+<td><code>seg</code></td>
+<td>ra</td>
+<td>7 bit <code>[6:0]</code></td>
+<td>chân LED 7 đoạn</td>
+<td>Bảy đoạn <code>{g,f,e,d,c,b,a}</code></td>
+</tr>
+<tr>
+<td><code>tx</code></td>
+<td>ra</td>
+<td>1 bit</td>
+<td>chân nối cầu USB-UART</td>
+<td>Đường nối tiếp ra PC, idle mức 1</td>
+</tr>
+</tbody></table></div>
+<p><strong>Dây nối nội bộ giữa các module</strong></p>
+<div class="tblwrap"><table class="tbl">
+<thead>
+<tr>
+<th>Tín hiệu</th>
+<th>Rộng</th>
+<th>Nguồn</th>
+<th>Đích</th>
+<th>Ý nghĩa</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>tick</code></td>
+<td>1 bit</td>
+<td><code>u_tick.tick</code></td>
+<td><code>u_ctrl.tick</code>, <code>u_stat.tick</code></td>
+<td>Xung <strong>enable</strong> rộng đúng 1 chu kỳ <code>clk</code>, phát 1 lần mỗi giây. <strong>Không phải clock</strong></td>
+</tr>
+<tr>
+<td><code>phase</code></td>
+<td>2 bit <code>[1:0]</code></td>
+<td><code>u_ctrl.phase</code></td>
+<td><code>u_stat.phase</code></td>
+<td>Mã pha hiện tại: 0 = GREEN_NS, 1 = YELLOW_NS, 2 = GREEN_EW, 3 = YELLOW_EW</td>
+</tr>
+<tr>
+<td><code>time_left</code></td>
+<td>4 bit <code>[3:0]</code></td>
+<td><code>u_ctrl.time_left</code></td>
+<td><code>u_seg.bcd</code>, <code>u_stat.time_left</code></td>
+<td>Số giây còn lại của pha. <strong>Fan-out 2</strong> — chính là chấm tròn trên Hình 1</td>
+</tr>
+<tr>
+<td><code>tx_start</code></td>
+<td>1 bit</td>
+<td><code>u_stat.tx_start</code></td>
+<td><code>u_tx.start</code></td>
+<td>Xung 1 chu kỳ: yêu cầu <code>uart_tx</code> phát một byte</td>
+</tr>
+<tr>
+<td><code>tx_data</code></td>
+<td>8 bit <code>[7:0]</code></td>
+<td><code>u_stat.tx_data</code></td>
+<td><code>u_tx.data</code></td>
+<td>Byte cần phát, được <code>uart_tx</code> chốt lại tại thời điểm <code>start</code></td>
+</tr>
+<tr>
+<td><code>tx_busy</code></td>
+<td>1 bit</td>
+<td><code>u_tx.busy</code></td>
+<td><code>u_stat.tx_busy</code></td>
+<td><strong>Phản hồi</strong>: bằng 1 khi <code>uart_tx</code> đang phát khung; <code>status_tx</code> phải đợi nó về 0 mới gửi byte kế</td>
+</tr>
+</tbody></table></div>
+<p>Đếm lại cho khớp: hệ có đúng <strong>6 dây nội bộ</strong> (<code>tick</code>, <code>phase</code>, <code>time_left</code>, <code>tx_start</code>, <code>tx_data</code>, <code>tx_busy</code>) và <strong>6 cổng</strong> ở mức đỉnh (2 vào: <code>clk</code>, <code>rst_n</code>; 4 ra: <code>ns_light</code>, <code>ew_light</code>, <code>seg</code>, <code>tx</code>). Nếu code của nhóm sinh ra nhiều/ít hơn, kiến trúc đã lệch khỏi đặc tả.</p>
+<h3>2.5 Bên trong <code>traffic_ctrl</code> — mô hình Controller / Datapath</h3>
+<p><img src="assets/fig-controller-datapath.svg" alt="Bên trong traffic_ctrl: khối controller là FSM ba khối, khối datapath là timer; next_state đi sang datapath, timer_done quay về controller"></p>
+<p><em>Hình 2 — Bên trong <code>traffic_ctrl</code>. Đây là mô hình <strong>controller–datapath</strong> kinh điển của thiết kế số.</em></p>
+<p>Hai khối trao đổi đúng <strong>hai</strong> tín hiệu, và mỗi tín hiệu có một vai trò được đặt tên trong lý thuyết thiết kế số:</p>
+<ul>
+<li><strong><code>next_state</code> — tín hiệu điều khiển (control signal), đi từ controller xuống datapath.</strong> Controller &quot;ra lệnh&quot;: pha kế tiếp là pha nào, để datapath biết phải nạp thời lượng nào vào timer.</li>
+<li><strong><code>timer_done</code> — tín hiệu trạng thái (status signal), đi từ datapath ngược lên controller.</strong> Datapath &quot;báo cáo&quot;: đã đếm hết giờ, controller được phép chuyển pha.</li>
+</ul>
+<p>Chiều đi ngược nhau của hai tín hiệu này chính là đặc trưng của mô hình: <strong>điều khiển đi xuống, trạng thái đi lên</strong>. Nhận ra được cặp control/status trong một thiết kế bất kỳ là một trong những kỹ năng đọc kiến trúc quan trọng nhất của khóa học.</p>
+<p>Vì sao phải tách? Nếu nhét thời gian vào trạng thái (mỗi giây một state), FSM sẽ có hàng chục state và <strong>đổi thời lượng đèn phải vẽ lại toàn bộ FSM</strong>. Tách ra: FSM cố định 4 state, thời lượng chỉ là <code>parameter</code> của datapath. Đây là lý do kiến trúc này được dạy ở mọi giáo trình thiết kế số, và là câu hỏi vấn đáp bắt buộc ở Tuần 12.</p>
+<h3>2.6 Năm quy tắc kiến trúc đọc được từ hai hình</h3>
+<ol>
+<li><strong>Một miền clock duy nhất.</strong> Mọi flip-flop trong hệ đóng theo cùng cạnh lên của <code>clk</code>. Không có clock thứ hai ở bất kỳ đâu.</li>
+<li><strong>Nhịp chậm là clock-enable, không phải clock.</strong> <code>tick</code> (1 Hz) và <code>baud_tick</code> (trong <code>uart_tx</code>) đều là tín hiệu dữ liệu điều khiển việc <em>cho phép cập nhật</em>; cấm <code>@(posedge tick)</code> và cấm lấy bit của counter làm clock.</li>
+<li><strong>Mạch tổ hợp không có clk.</strong> <code>seg7_decoder</code> là ví dụ đối chứng trong hệ — nhìn vào sơ đồ phải trả lời được ngay vì sao nó không nhận <code>clk</code>.</li>
+<li><strong>Hai khối chạy khác nhịp thì nối bằng bắt tay.</strong> Mỗi khi có <code>tick</code>, <code>status_tx</code> muốn đẩy 6 byte liên tiếp theo nhịp <code>clk</code> — vài chu kỳ một byte. <code>uart_tx</code> thì cần trọn 10 bit-time (≈ 10 × CLK_HZ/BAUD chu kỳ) mới xong <strong>một</strong> byte. Bên sản xuất nhanh hơn bên tiêu thụ hàng nghìn lần, nên phải có <code>tx_busy</code> phản hồi để ghìm <code>status_tx</code> lại; không có nó, 5 byte sau bị nuốt mất.</li>
+<li><strong>Hợp đồng interface: module đã giao thì không sửa lại.</strong> Các tuần sau chỉ <em>nối thêm dây</em> vào cổng có sẵn. <code>phase</code> và <code>time_left</code> được <code>traffic_ctrl</code> xuất ra ngay từ Tuần 9 dù Tuần 9 chưa dùng tới — đó là chủ đích thiết kế cho hai tuần kế tiếp. Nhóm nào phải sửa <code>traffic_ctrl</code> khi làm T10/T11 thì dừng lại và hỏi: &quot;có cách nào không sửa không?&quot;</li>
+</ol>
+<h2 id="m-3-interface-tung-module-hop-dong-co-dinh">3. Interface từng module (hợp đồng cố định)</h2>
+<div class="tblwrap"><table class="tbl">
+<thead>
+<tr>
+<th>Module</th>
+<th>Tuần</th>
+<th>Ports</th>
+<th>Ghi chú</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>tick_gen #(DIV)</code></td>
+<td>9</td>
+<td>in: <code>clk, rst_n</code> · out: <code>tick</code></td>
+<td>tick rộng đúng 1 chu kỳ clk; DIV = f_clk (50_000_000 → 1 Hz); mô phỏng dùng DIV nhỏ (10)</td>
+</tr>
+<tr>
+<td><code>traffic_ctrl #(GREEN_TICKS, YELLOW_TICKS)</code></td>
+<td>9</td>
+<td>in: <code>clk, rst_n, tick</code> · out: <code>ns_light[2:0], ew_light[2:0], phase[1:0], time_left[3:0]</code></td>
+<td>Mã đèn: RED=3&#39;b100, YELLOW=3&#39;b010, GREEN=3&#39;b001. phase: 0=GREEN_NS, 1=YELLOW_NS, 2=GREEN_EW, 3=YELLOW_EW</td>
+</tr>
+<tr>
+<td><code>seg7_decoder</code></td>
+<td>10</td>
+<td>in: <code>bcd[3:0]</code> · out: <code>seg[6:0]</code></td>
+<td>Tổ hợp thuần; seg = {g,f,e,d,c,b,a}, active-high (đổi cực theo board); ngoài 0–9 hiện &quot;-&quot;</td>
+</tr>
+<tr>
+<td><code>display_mux #(REFRESH_DIV)</code></td>
+<td>10 (mở rộng)</td>
+<td>in: <code>clk, rst_n, digit1[3:0], digit0[3:0]</code> · out: <code>seg[6:0], an[1:0]</code></td>
+<td>Quét ~1 kHz; chứa 1 instance seg7_decoder</td>
+</tr>
+<tr>
+<td><code>uart_tx #(CLK_HZ, BAUD)</code></td>
+<td>11</td>
+<td>in: <code>clk, rst_n, start, data[7:0]</code> · out: <code>tx, busy</code></td>
+<td>8N1, LSB first, idle=1; start khi busy bị bỏ qua (ghi trong spec)</td>
+</tr>
+<tr>
+<td><code>status_tx</code></td>
+<td>11</td>
+<td>in: <code>clk, rst_n, tick, phase[1:0], time_left[3:0], tx_busy</code> · out: <code>tx_start, tx_data[7:0]</code></td>
+<td>Mỗi tick gửi 6 byte &quot;PP TT\n&quot; qua handshake start/busy</td>
+</tr>
+<tr>
+<td><code>traffic_system_top #(CLK_HZ, BAUD)</code></td>
+<td>11</td>
+<td>in: <code>clk, rst_n</code> · out: <code>ns_light, ew_light, seg, tx</code></td>
+<td>Chỉ instantiate + nối dây</td>
+</tr>
+</tbody></table></div>
+<p>RTL đầy đủ của từng module nằm trong Layer C các trang: tick_gen + traffic_ctrl + tb_traffic (Week09), seg7_decoder + display_mux (Week10), uart_tx + status_tx + traffic_system_top + tb_uart_tx (Week11).</p>
+<h2 id="m-4-milestones">4. Milestones</h2>
+<div class="tblwrap"><table class="tbl">
+<thead>
+<tr>
+<th>Mốc</th>
+<th>Hạn</th>
+<th>Bằng chứng phải có</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>M1 — Thiết kế giấy</td>
+<td>trong buổi T9</td>
+<td>State diagram 4 pha + bảng output (có cột kiểm invariant) + waveform 12 tick dự đoán</td>
+</tr>
+<tr>
+<td>M2 — Lõi chạy đúng</td>
+<td>trước buổi T10</td>
+<td>tick_gen + traffic_ctrl + tb pass invariant; waveform 1 chu kỳ đèn chú thích 4 lần chuyển pha</td>
+</tr>
+<tr>
+<td>M3 — Hệ có màn hình</td>
+<td>trước buổi T11</td>
+<td>Top T9+T10 mô phỏng; waveform chỗ chuyển pha: time_left nạp lại + seg đổi; 3 dòng &quot;tôi phải sửa gì để ghép&quot;</td>
+</tr>
+<tr>
+<td>M4 — Hệ hoàn chỉnh</td>
+<td>trước buổi T12</td>
+<td>traffic_system_top mô phỏng ra frame UART đúng (start bit dài đúng CLK_HZ/BAUD chu kỳ — 8 chu kỳ với tỉ lệ thu nhỏ 8:1; đừng nhầm với <code>DIV</code> của <code>tick_gen</code>. Thứ tự bit đúng LSB-first); nếu có board: ảnh serial terminal</td>
+</tr>
+<tr>
+<td>M5 — Bảo vệ</td>
+<td>buổi T12</td>
+<td>Demo + phiếu bảo vệ 9 mục + trả lời vấn đáp + portfolio 12 mục</td>
+</tr>
+</tbody></table></div>
+<h2 id="m-5-verification-plan">5. Verification plan</h2>
+<ul>
+<li><strong>Mọi mốc mô phỏng với tham số thu nhỏ</strong> (DIV=10; GREEN=6/YELLOW=2; CLK_HZ/BAUD tỉ lệ nhỏ như 8:1) — logic không đổi, mô phỏng nhanh.</li>
+<li><strong>Invariant an toàn</strong> (T9): chạy ở mọi cạnh clock, mọi kịch bản; testbench có kịch bản reset giữa chừng.</li>
+<li><strong>Self-check hiển thị</strong> (T10): so seg với bảng giải mã của time_left tại mỗi tick; edge case: thời điểm nạp lại timer; giá trị ngoài 0–9 phải ra &quot;-&quot;.</li>
+<li><strong>Đo bằng số cho UART</strong> (T11): độ dài start bit đếm bằng chu kỳ; thứ tự bit của 0x41; start-khi-busy bị bỏ qua; khung liền nhau nối bằng idle mức 1.</li>
+<li>Edge case chung phải chạm: reset (giữ vài chu kỳ, thả giữa chừng hoạt động), giá trị min/max (timer 0, time_left lớn nhất), biên chuyển (tick trùng timer_done), tràn counter (mô phỏng đủ &gt;1 chu kỳ lặp).</li>
+<li>Nguyên tắc: <strong>kết luận phải có bằng chứng</strong> — mỗi mốc nộp waveform có chú thích tay, không nộp &quot;em thấy chạy đúng&quot;.</li>
+</ul>
+<h2 id="m-6-ket-qua-ky-vong-amp-fpga-deployment-tuy-chon">6. Kết quả kỳ vọng &amp; FPGA deployment (tùy chọn)</h2>
+<ul>
+<li>Bắt buộc: toàn hệ mô phỏng đúng như mục 5. Không bắt buộc có board.</li>
+<li>Nếu có board (Basys/DE10/Tang Nano…): gán chân theo sơ đồ board (clk, rst_n vào nút/switch, ns/ew ra LED, seg ra LED 7 đoạn, tx vào chân cầu USB-UART); synthesis → implementation → nạp bitstream (T8: đây là configuration, không phải &quot;ghi chương trình&quot;); mở PuTTY/Tera Term đúng baud. Lưu ý thực tế: cực tính LED 7 đoạn (common anode/cathode) có thể ngược — đổi ở một chỗ duy nhất (seg7_decoder), đúng bài học interface.</li>
+</ul>
+<h2 id="m-7-rubric-project-dung-cho-m2m4-cham-cong-don-v">7. Rubric project (dùng cho M2–M4, chấm cộng dồn về T12)</h2>
+<div class="tblwrap"><table class="tbl">
+<thead>
+<tr>
+<th>Tiêu chí</th>
+<th>Trọng số</th>
+<th>Đạt khi…</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Hiểu khái niệm</td>
+<td>25%</td>
+<td>Giải thích được mọi quyết định: vì sao tách controller/datapath, vì sao enable không phải clock, vì sao nạp N−1…</td>
+</tr>
+<tr>
+<td>Kiến trúc</td>
+<td>20%</td>
+<td>Đúng hợp đồng interface; module cũ không bị sửa khi tích hợp; block diagram khớp code</td>
+</tr>
+<tr>
+<td>RTL đúng</td>
+<td>20%</td>
+<td>Style Week07; compile sạch không latch; hành vi khớp spec (chu trình pha, khung UART)</td>
+</tr>
+<tr>
+<td>Verification</td>
+<td>20%</td>
+<td>Đủ plan mục 5; invariant + số đo; waveform chú thích làm bằng chứng</td>
+</tr>
+<tr>
+<td>Giao tiếp kỹ thuật</td>
+<td>15%</td>
+<td>Kể được ít nhất 1 bug thật + cách tìm; trình bày mạch lạc tại M5</td>
+</tr>
+</tbody></table></div>
+<h2 id="m-8-mo-rong-khong-bat-buoc-co-huong-dan-trong-ba">8. Mở rộng (không bắt buộc, có hướng dẫn trong bài)</h2>
+<ul>
+<li>All-red clearance phase (T9 nâng cao — thiết kế giấy).</li>
+<li>Display 2 digit multiplexed, GREEN_TICKS &gt; 9 (T10 nâng cao).</li>
+<li>Thông điệp UART dài hơn: <code>S=GN T=09\n</code> (10 byte) thay cho mặc định <code>GN 09\n</code> (6 byte); parity 8E1 (T11 nâng cao).</li>
+<li>Nút bộ hành (cần synchronizer 2 FF — cơ hội dạy 5.6 bằng thực hành, Phase 2).</li>
+</ul>
+</article>
+
+<div class="doc-foot-nav">
+      <a class="home" href="index.html">← Mục lục chương trình</a>
+      <a href="README.html">README</a>
+      <a href="CURRICULUM_MAP.html">Curriculum Map</a>
+      <a href="MENTOR_GUIDE.html">Mentor Guide</a>
+      <a href="TECHNICAL_AUDIT.html">Technical Audit</a>
+      <a href="CHANGELOG_V2_TO_V3.html">Changelog</a>
+      <a href="VALIDATION_REPORT.html">Validation</a>
+      <a href="implementation-notes.html">Implementation Notes</a>
+</div>
+
+<div class="footer">
+      <b>IC Design Mentoring — Version 3 · Phase 1</b>
+      <span class="org">Khoa Điện – Điện tử · Trường Kỹ thuật · Đại học Phenikaa</span>
+      <span>Biên soạn: <b style="display:inline">Giảng Viên Đinh Văn Nam</b></span>
+      <span class="cr">© 2026 · Bản quyền thuộc về Giảng Viên Đinh Văn Nam, Khoa Điện-Điện Tử, Trường Kỹ Thuật, Đại học Phenikaa. Tài liệu phục vụ đào tạo — vui lòng giữ nguyên thông tin tác giả khi chia sẻ.</span>
+      <span class="cr">Hoạt động offline — không cần Internet.</span>
+    </div>
+</main>
+</body>
+</html>

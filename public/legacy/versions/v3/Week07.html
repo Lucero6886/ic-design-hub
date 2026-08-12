@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="Giảng Viên Đinh Văn Nam">
+<meta name="copyright" content="© 2026 · Bản quyền thuộc về Giảng Viên Đinh Văn Nam, Khoa Điện-Điện Tử, Trường Kỹ Thuật, Đại học Phenikaa">
+<meta name="description" content="IC Design Mentoring — Version 3, Phase 1 (12 tuần). Khoa Điện – Điện tử · Trường Kỹ thuật · Đại học Phenikaa. Biên soạn: Giảng Viên Đinh Văn Nam.">
+<title>Tuần 7 — Writing Clean RTL in SystemVerilog | IC Design Mentoring v3</title>
+<link rel="stylesheet" href="css/style.css">
+<script src="js/app.js" defer></script>
+</head>
+<body data-week="07">
+
+<header class="topbar">
+  <div class="topbar-in">
+    <a class="brand" href="index.html"><span class="logo">IC</span>
+      <span>IC Design Mentoring<small>Tuần 7/12 · Writing Clean RTL</small></span></a>
+    <nav class="layer-chips">
+      <a class="chip" href="../../index.html" title="Learning Hub — cổng ba phiên bản giáo trình; đây là V3, bản hiện hành được khuyến nghị">⌂ Hub · V3</a>
+      <a class="chip chip-a" href="#layer-a"><span class="dot"></span>A · Trước buổi</a>
+      <a class="chip chip-b" href="#layer-b"><span class="dot"></span>B · Buổi học 60′</a>
+      <a class="chip chip-c" href="#layer-c"><span class="dot"></span>C · Lab</a>
+      <a class="chip chip-d" href="#layer-d"><span class="dot"></span>D · Sau buổi</a>
+      <a class="chip" href="index.html">Mục lục</a>
+    </nav>
+    <span class="mentor-sw" title="Hiện/ẩn nội dung dành riêng cho mentor"><span class="tr"></span> Mentor</span>
+  </div>
+  <div class="scrollbar"><div></div></div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <div class="pill-row">
+      <span class="pill">Tuần 7 / 12</span>
+      <span class="pill acc">Kỷ luật RTL</span>
+      <span class="pill">Khoa Điện – Điện tử · ĐH Phenikaa</span>
+    </div>
+    <h1>Writing Clean RTL in SystemVerilog</h1>
+    <p class="sub">Hệ thống hóa cách viết RTL sạch — mô tả ĐÚNG phần cứng mình muốn</p>
+    <p>Bạn đã <b>viết RTL suốt ba tuần rồi</b>: mux tổ hợp (T4), counter (T5), FSM (T6) — đó là giai đoạn làm quen có dẫn dắt. Tuần này không giới thiệu "Verilog là gì" nữa; tuần này <b>gọi tên từng luật</b> bạn đã dùng, giải thích vì sao luật tồn tại, và luyện kỹ năng quan trọng nhất của kỹ sư RTL: <b>nhìn code, nói ra phần cứng</b>.</p>
+    <div class="outcomes">
+      <div class="outcome"><b>Mục tiêu 1.</b> Dùng đúng "ba ngôi nhà" của mô tả: <code>assign</code>, <code>always_comb</code>, <code>always_ff</code> — và giải thích được vì sao chọn.</div>
+      <div class="outcome"><b>Mục tiêu 2.</b> Phát biểu chính xác <code>wire</code> / <code>reg</code> / <code>logic</code> là gì — và vì sao <code>reg</code> không có nghĩa là "thanh ghi".</div>
+      <div class="outcome"><b>Mục tiêu 3.</b> Áp dụng thành thạo 2 luật gán: <code>=</code> cho tổ hợp, <code>&lt;=</code> cho tuần tự; chống latch bằng default.</div>
+      <div class="outcome"><b>Mục tiêu 4.</b> Đọc một đoạn RTL bất kỳ và trả lời "phần cứng nào được suy ra?"; phân biệt construct tổng hợp được và chỉ-mô-phỏng.</div>
+    </div>
+    <div class="pos">
+      <div><b>Tuần trước — T6.</b> FSM 3 khối: bạn đã dùng gần hết luật RTL mà chưa gọi tên chúng.</div>
+      <div><b>Tuần này — T7.</b> Chuẩn hóa toàn bộ kỷ luật viết RTL — nền code cho project 3 tuần tới.</div>
+      <div><b>Tuần sau — T8.</b> FPGA vs ASIC: cùng một RTL "đổ" vào hai loại phần cứng như thế nào.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= LAYER A ================= -->
+<section id="layer-a" class="layer layer-a">
+  <div class="wrap layer-head">
+    <div class="band">
+      <span class="layer-badge">A</span>
+      <h2>Trước buổi học</h2>
+      <span class="time">⏱ 15–25 phút · chỉ cần đọc phần này</span>
+    </div>
+    <p class="lead">Bạn KHÔNG cần đọc Layer C trước buổi học. Chuẩn bị đủ ở đây là bạn sẵn sàng thảo luận. Layer C dành cho lúc thực hành sau buổi.</p>
+  </div>
+  <div class="wrap layer-body">
+    <div class="grid2">
+      <div class="card">
+        <h3>Vì sao tuần này quan trọng</h3>
+        <p>Từ T9, code của bạn sẽ được <b>ghép vào hệ thống chung</b> — code ẩu của một người thành bug của cả nhóm. RTL sạch không phải thẩm mỹ: mỗi luật tồn tại để <b>mô phỏng khớp phần cứng</b> và để người khác (và chính bạn 3 tháng sau) đọc hiểu được.</p>
+        <p class="small muted"><b>Điều kiện tiên quyết:</b> T4–T6 — bạn đã viết <code>always_comb</code>, <code>always_ff</code>, FSM 3 khối.</p>
+      </div>
+      <div class="card">
+        <h3>Hoạt động chuẩn bị (10′)</h3>
+        <p>Mở lại 3 file RTL bạn đã viết ở T4–T6. <b>Đánh dấu bằng bút</b> những dòng bạn viết "theo mẫu" mà chưa chắc mình giải thích được vì sao (ví dụ: vì sao chỗ này <code>&lt;=</code>, chỗ kia <code>=</code>?). Mang danh sách đó đến lớp — đó chính là chương trình nghị sự của buổi học.</p>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Khái niệm thiết yếu — đọc chậm, 5 ý</h3>
+      <ul>
+        <li><b>RTL không phải chương trình.</b> File .sv không được "chạy từng dòng" trên chip: nó được synthesis dịch thành <b>mạng cổng/FF tương đương</b>. Mọi khối mô tả <b>tồn tại song song</b>, cùng lúc.</li>
+        <li><b>Ba ngôi nhà:</b> <code>assign</code> — tổ hợp 1 biểu thức; <code>always_comb</code> — tổ hợp nhiều nhánh (default trước, gán <code>=</code>); <code>always_ff</code> — tuần tự (gán <code>&lt;=</code>, có chiến lược reset).</li>
+        <li><b><code>logic</code> thay cho <code>reg</code>:</b> <code>reg</code> là kiểu biến lịch sử của Verilog, cái tên gây hiểu lầm — nó <em>không</em> hứa hẹn thanh ghi vật lý nào.</li>
+        <li><b>Latch = tai nạn:</b> đường code tổ hợp nào không gán giá trị → công cụ phải "nhớ giá trị cũ" → sinh latch ngoài ý muốn.</li>
+        <li><b>Mô phỏng được ≠ tổng hợp được:</b> <code>#10</code>, <code>initial</code>, <code>$display</code> sống trong testbench; phần cứng không có "sleep".</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>2 câu hỏi tự chẩn đoán</h3>
+      <details class="reveal"><summary>1. Đảo thứ tự hai dòng <code>assign sum = a ^ b;</code> và <code>assign carry = a &amp; b;</code> — phần cứng có đổi không?</summary>
+        <div class="rv-body">Không. Mỗi <code>assign</code> là một mạch riêng, cả hai tồn tại song song và "nghe" a, b liên tục. Không có khái niệm "dòng trên chạy trước" — đây là khác biệt gốc so với ngôn ngữ phần mềm.</div>
+      </details>
+      <details class="reveal"><summary>2. Khai báo <code>reg q;</code> có chắc chắn tạo ra một thanh ghi (flip-flop) không?</summary>
+        <div class="rv-body">Không. <code>reg</code> chỉ là luật cú pháp Verilog: "tín hiệu này được gán trong khối thủ tục". Nếu khối gán đủ mọi nhánh và không có cạnh clock → kết quả là mạch tổ hợp, không FF nào cả. SystemVerilog dùng <code>logic</code> chính để xóa hiểu lầm này.</div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ================= LAYER B ================= -->
+<section id="layer-b" class="layer layer-b">
+  <div class="wrap layer-head">
+    <div class="band">
+      <span class="layer-badge">B</span>
+      <h2>Buổi mentoring 60 phút</h2>
+      <span class="time">🗺 Mentor Session Guide</span>
+    </div>
+    <p class="lead">Kịch bản buổi học — mentor điều phối theo timeline này, không cần đọc hết Layer C để đứng lớp.</p>
+  </div>
+  <div class="wrap layer-body">
+    <div class="card">
+      <div class="timeline">
+        <div class="tl-row">
+          <span class="tl-time">0–5′</span>
+          <h4>Retrieval — kiểm tra tuần 6</h4>
+          <ul>
+            <li>FSM 3 khối gồm những khối nào, khối nào tuần tự?</li>
+            <li>Vì sao phải vẽ state diagram trước khi code?</li>
+            <li>Output của Moore machine đổi vào thời điểm nào?</li>
+          </ul>
+        </div>
+        <div class="tl-row">
+          <span class="tl-time">5–15′</span>
+          <h4>Học viên giải thích</h4>
+          <p>Chiếu đoạn RTL 6 dòng (counter enable của T5). Lần lượt 2–3 học viên "đọc thành phần cứng": chỉ vào từng dòng và nói mạch gì được suy ra. Cả lớp bổ sung; mentor ghi lại các chỗ ấp úng — đó là mục cần sửa ở phần sau.</p>
+        </div>
+        <div class="tl-row">
+          <span class="tl-time">15–25′</span>
+          <h4>Mentor sửa &amp; giảng sâu</h4>
+          <p>Chốt 3 luật bằng 3 cặp ví dụ đúng/sai: (1) song song — đảo dòng không đổi mạch; (2) <code>=</code> vs <code>&lt;=</code> — shift register 2 FF thành 1 FF nếu dùng sai; (3) default chống latch. Nhấn mạnh: các luật này <b>compiler không bắt hộ</b> — code sai vẫn compile.</p>
+        </div>
+        <div class="tl-row">
+          <span class="tl-time">25–45′</span>
+          <h4>Active design — Hội đồng review RTL (nhóm 2–3 người)</h4>
+          <p><b>Đề bài:</b> mỗi nhóm nhận 3 đoạn RTL có lỗi cài sẵn (mentor in từ mục C7 và bài "săn bug" T5). Nhiệm vụ:</p>
+          <ul>
+            <li>Tìm lỗi và <b>phân loại</b>: latch / blocking-nonblocking / reset / width.</li>
+            <li>Với mỗi lỗi: mô tả <b>hậu quả trên phần cứng hoặc mô phỏng</b> (không chỉ "sai cú pháp").</li>
+            <li>Đề xuất bản sửa.</li>
+          </ul>
+          <p class="small muted">Artifact nhóm: biên bản review — bảng 3 cột (lỗi / hậu quả / bản sửa).</p>
+        </div>
+        <div class="tl-row">
+          <span class="tl-time">45–55′</span>
+          <h4>Chia sẻ &amp; tranh luận kỹ thuật</h4>
+          <p>Các nhóm so biên bản. Câu hỏi ép suy nghĩ: lỗi nào mô phỏng <em>vẫn chạy đúng</em> nhưng phần cứng sai (hoặc ngược lại)? Lỗi nào công cụ synthesis sẽ cảnh báo (latch inferred) và lỗi nào im lặng?</p>
+        </div>
+        <div class="tl-row">
+          <span class="tl-time">55–60′</span>
+          <h4>Chốt &amp; giao việc</h4>
+          <ul>
+            <li><b>Nhớ:</b> RTL mô tả phần cứng song song; <code>=</code> tổ hợp, <code>&lt;=</code> tuần tự; default trước case/if.</li>
+            <li><b>Tránh:</b> tin rằng "compile sạch = đúng".</li>
+            <li><b>Artifact sau buổi:</b> "Style card" cá nhân 10 luật + sửa 3 đoạn RTL lỗi (Layer D).</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <p class="mentor-hint">💡 Bật công tắc <b>Mentor</b> trên thanh tiêu đề để xem ghi chú dành riêng cho mentor.</p>
+
+    <div class="mentor-only">
+      <div class="mentor-box">
+        <span class="mtag">Mentor only · Tuần 7</span>
+        <h3>Ghi chú vận hành buổi học</h3>
+        <div class="grid2">
+          <div>
+            <h4>Mục tiêu mentor cần chốt được</h4>
+            <ul class="small">
+              <li>Học viên bỏ hẳn mô hình "code chạy từng dòng"; nói được "phần cứng suy ra" cho mọi snippet của T4–T6.</li>
+              <li>Hai luật gán và luật default trở thành phản xạ, có lý do — không phải mê tín.</li>
+              <li>Phân biệt construct RTL và construct testbench.</li>
+            </ul>
+            <h4>Hiểu sai kinh điển (chờ sẵn)</h4>
+            <ul class="small">
+              <li>"<code>reg</code> tạo thanh ghi" — dùng câu hỏi chẩn đoán bên phải để bóc.</li>
+              <li>"Dòng trên chạy trước dòng dưới" — di sản tư duy C.</li>
+              <li>"Compile sạch là xong" — chưa: latch, blocking sai vẫn compile êm.</li>
+              <li>"<code>#10</code> dùng được trên FPGA để delay" — phần cứng không có sleep; muốn chờ N chu kỳ phải đếm (T5).</li>
+            </ul>
+          </div>
+          <div>
+            <h4>Câu hỏi chẩn đoán → đáp án tốt → hỏi tiếp</h4>
+            <p class="small"><b>Hỏi:</b> "Khối <code>always_comb</code> gán <code>y</code> đủ mọi nhánh, không có clock — <code>y</code> khai báo <code>logic</code>. Có FF nào không?"<br>
+            <b>Đáp tốt:</b> Không — hành vi quyết định phần cứng, không phải từ khóa khai báo.<br>
+            <b>Hỏi tiếp:</b> "Vậy điều gì quyết định một tín hiệu thành FF?" → được gán trong <code>always_ff</code> theo cạnh clock.</p>
+            <p class="small"><b>Cứu nguy (nếu bí):</b> so sánh bản vẽ kiến trúc: mọi phòng trong bản vẽ tồn tại <em>đồng thời</em> khi xây xong; thứ tự vẽ các phòng trên giấy không quyết định phòng nào "chạy trước".</p>
+            <p class="small"><b>Mở rộng học viên giỏi:</b> "Trong <code>always_comb</code>, vì sao lại dùng <code>=</code> mà không phải <code>&lt;=</code>? Điều gì xảy ra với chuỗi logic nhiều bước trong cùng một khối nếu dùng <code>&lt;=</code>?" (giá trị trung gian không lan truyền trong cùng lượt tính → mô phỏng lệch, khó dò).</p>
+          </div>
+        </div>
+        <div class="co co-warn small"><b>Nhịp buổi học.</b> Đừng biến 15–25′ thành bài giảng cú pháp — chỉ 3 luật, mỗi luật một cặp ví dụ đúng/sai. Phần review 25–45′ là lõi: bắt các nhóm nói <b>hậu quả</b>, không dừng ở "thiếu else". Nhóm nhanh: cho thêm câu "một tín hiệu bị gán ở HAI khối always khác nhau thì sao?" (multiple drivers — lỗi phải tránh tuyệt đối).</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= LAYER C ================= -->
+<section id="layer-c" class="layer layer-c">
+  <div class="wrap layer-head">
+    <div class="band">
+      <span class="layer-badge">C</span>
+      <h2>Technical Lab — Deep Dive</h2>
+      <span class="time">🔬 Tự học sâu · sau buổi hoặc khi thực hành</span>
+    </div>
+    <p class="lead">Toàn bộ luật RTL — mỗi mục một luật, kèm ví dụ đúng/sai. Dùng như tài liệu tra cứu suốt project T9–11.</p>
+  </div>
+  <div class="wrap layer-body">
+    <div class="dd-tools"><button data-dd="open">Mở tất cả</button><button data-dd="close">Đóng tất cả</button></div>
+
+    <details class="dd" open>
+      <summary><span class="no">C1</span> Module, port, hierarchy — đơn vị lắp ghép của phần cứng <span class="est">~10′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <p>Module = "chiếc hộp" phần cứng có tên + chân giao tiếp (port). Hệ thống lớn = các hộp lắp vào nhau (hierarchy) — đúng tư duy "think in blocks" của T4. Từ T9, nhóm bạn sẽ chia việc theo module, gặp nhau ở <b>interface</b>.</p>
+        <div class="rtl-frame">
+          <div class="rtl-head"><span class="ftag ftag-rtl">RTL</span><span class="fname">majority3.sv — module + instantiation</span></div>
+<pre class="code"><code>// Module con: bầu đa số 2/3 — thuần tổ hợp
+module majority3 (
+  input  logic a, b, c,
+  output logic y
+);
+  assign y = (a &amp; b) | (b &amp; c) | (a &amp; c);
+endmodule
+
+// Module cha: lắp 2 bản sao (instance) của majority3
+module vote_unit (
+  input  logic [2:0] grp0, grp1,
+  output logic       all_pass
+);
+  logic p0, p1;
+  // Nối port THEO TÊN (.port(dây)) — an toàn, tự tài liệu hóa
+  majority3 u0 (.a(grp0[0]), .b(grp0[1]), .c(grp0[2]), .y(p0));
+  majority3 u1 (.a(grp1[0]), .b(grp1[1]), .c(grp1[2]), .y(p1));
+  assign all_pass = p0 &amp; p1;
+endmodule</code></pre>
+          <div class="rtl-meta">
+            <div><b>Phần cứng suy ra</b>HAI bản sao vật lý của mạch majority (instance ≠ "gọi hàm" — mỗi instance là phần cứng riêng, tồn tại song song).</div>
+            <div><b>Bug kinh điển</b>Nối port theo vị trí rồi đổi thứ tự khai báo port trong module con → dây nối nhầm chân, compile vẫn sạch. Luôn nối theo tên.</div>
+          </div>
+        </div>
+      </div>
+    </details>
+
+    <details class="dd">
+      <summary><span class="no">C2</span> <code>wire</code> / <code>reg</code> / <code>logic</code> — nói cho chính xác <span class="est">~8′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <div class="co co-fix"><span class="tag">Hiệu chỉnh kỹ thuật so với v2</span> Cách nói gọn "logic thay cho wire và reg" dễ bị hiểu thành "ba từ này là một". Phát biểu chuẩn ở dưới — xem <code>TECHNICAL_AUDIT.md</code> mục 5.3.</div>
+        <ul>
+          <li><b><code>wire</code></b> là một <b>net</b> — mô hình "sợi dây" nối các phần tử, được lái bởi <code>assign</code> hoặc output của instance. Nó không lưu gì cả.</li>
+          <li><b><code>reg</code></b> là <b>kiểu biến</b> của Verilog cổ điển, bắt buộc dùng cho tín hiệu được gán bên trong khối thủ tục (<code>always</code>). Cái tên là tai nạn lịch sử: <code>reg</code> <em>có thể</em> thành FF, <em>có thể</em> thành mạch tổ hợp — tùy cách bạn viết khối.</li>
+          <li><b><code>logic</code></b> là kiểu dữ liệu <b>biến</b> của SystemVerilog, thay thế hầu hết chỗ người mới từng phải dùng <code>reg</code>, và cũng dùng được nơi cần <code>wire</code> 1 driver. Nhờ đó bạn không phải đoán "chỗ này wire hay reg?".</li>
+          <li><b>Nhưng</b> <code>logic</code> không có nghĩa "wire và reg là một": <b>net</b> (có thể nhiều driver, có điện trở kéo…) và <b>biến</b> (một driver, gán trong khối) vẫn là hai khái niệm khác nhau của ngôn ngữ. Mức nhập môn: <b>dùng <code>logic</code> ở mọi nơi</b>, hiểu <code>wire</code>/<code>reg</code> để đọc được code cũ.</li>
+        </ul>
+        <div class="co co-info"><b>Câu thần chú:</b> từ khóa khai báo không quyết định phần cứng — <b>cách gán trong khối nào</b> mới quyết định (xem C3).</div>
+      </div>
+    </details>
+
+    <details class="dd">
+      <summary><span class="no">C3</span> Ba ngôi nhà: <code>assign</code> · <code>always_comb</code> · <code>always_ff</code> <span class="est">~12′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <div class="tblwrap">
+        <table class="tbl">
+          <tr><th>Ngôi nhà</th><th>Mô tả gì</th><th>Luật gán</th><th>Phần cứng suy ra</th></tr>
+          <tr><td><code>assign y = biểu_thức;</code></td><td>Tổ hợp, 1 biểu thức</td><td>—</td><td>Mạng cổng/LUT hoạt động liên tục</td></tr>
+          <tr><td><code>always_comb</code></td><td>Tổ hợp nhiều nhánh (if/case)</td><td><code>=</code> (blocking) + <b>default trước</b></td><td>Mạng cổng/LUT + MUX; <b>không FF</b></td></tr>
+          <tr><td><code>always_ff @(posedge clk or negedge rst_n)</code></td><td>Tuần tự — trạng thái</td><td><code>&lt;=</code> (non-blocking)</td><td>FF + logic trước chân D</td></tr>
+        </table>
+        </div>
+        <p><b>Ngữ nghĩa song song.</b> Hai <code>assign</code>, ba khối <code>always</code> — tất cả là các mạch <b>cùng tồn tại</b>. Thứ tự viết trong file không có nghĩa thời gian:</p>
+        <div class="rtl-frame">
+          <div class="rtl-head"><span class="ftag ftag-rtl">RTL</span><span class="fname">half_adder.sv — hai mạch song song</span></div>
+<pre class="code"><code>module half_adder (
+  input  logic a, b,
+  output logic sum, carry
+);
+  // Hai assign = HAI mạch độc lập, song song.
+  // Đảo thứ tự 2 dòng → phần cứng KHÔNG đổi!
+  assign sum   = a ^ b;   // cổng XOR
+  assign carry = a &amp; b;   // cổng AND
+endmodule</code></pre>
+        </div>
+        <div class="co co-danger"><b>Luật một-người-lái (single driver).</b> Mỗi tín hiệu chỉ được gán từ MỘT khối (hoặc một assign). Gán <code>y</code> ở hai khối khác nhau = hai mạch cùng lái một sợi dây — lỗi thiết kế phải tránh tuyệt đối.</div>
+      </div>
+    </details>
+
+    <details class="dd">
+      <summary><span class="no">C4</span> Hai luật gán và các bẫy kinh điển <span class="est">~15′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <h4>Luật 1 — <code>&lt;=</code> trong <code>always_ff</code></h4>
+        <p>Mọi FF cập nhật <b>đồng thời</b> tại cạnh clock. <code>&lt;=</code> mô tả đúng: chụp mọi vế phải trước, cập nhật mọi vế trái cùng lúc. Dùng <code>=</code> tạo phụ thuộc thứ tự — chuỗi 2 tầng flip-flop biến thành trễ 1 tầng (hai FF cùng nhận d; công cụ có thể gộp còn 1) (bạn đã săn bug này ở T5 mục C7).</p>
+        <h4>Luật 2 — <code>=</code> + default trong <code>always_comb</code></h4>
+        <div class="grid2">
+          <div class="rtl-frame">
+            <div class="rtl-head"><span class="ftag ftag-bad">SAI</span><span class="fname">sinh latch</span></div>
+<pre class="code"><code>always_comb begin
+  if (en)
+    y = d;
+  // en = 0 thì y bằng gì?
+  // → tool phải "nhớ y cũ"
+  // → LATCH ngoài ý muốn!
+end</code></pre>
+          </div>
+          <div class="rtl-frame">
+            <div class="rtl-head"><span class="ftag ftag-rtl">ĐÚNG</span><span class="fname">default trước</span></div>
+<pre class="code"><code>always_comb begin
+  y = 1'b0;      // default: mọi
+                 // nhánh đều có giá trị
+  if (en) y = d; // ghi đè khi en=1
+end
+// y luôn được gán → MUX sạch</code></pre>
+          </div>
+        </div>
+        <h4>Bẫy 3 — độ rộng bit (width)</h4>
+        <p>Với <code>logic [3:0] x = 4'd15;</code>, bản thân biểu thức <code>x + 1</code> cho <b>16</b> — hằng <code>1</code> không khai kích thước nên cả biểu thức được tính ở 32 bit. Chỉ khi <b>gán ngược vào chính 4 bit</b> (<code>x &lt;= x + 1;</code>) kết quả mới bị cắt còn 0 — đó mới là "wrap" của counter: đôi khi là chủ đích, đôi khi là bug (timer tràn). Viết <code>x &lt;= x + 1'b1;</code> thì <em>khác cơ chế</em>: mọi toán hạng và vế trái đều ≤ 4 bit nên phép cộng được tính ngay ở 4 bit và tự quay vòng — giá trị 16 không bao giờ tồn tại. Kết quả cuối giống nhau, đường đi khác nhau; đó là lý do phải biết luật độ rộng chứ không đoán. Gán tín hiệu 8 bit vào 4 bit → cắt cụt bit cao, thường chỉ có <em>warning</em>. Thói quen tốt: khai báo width có chủ đích, dùng <code>$clog2(N)</code> cho counter, đọc hết warning của công cụ.</p>
+        <div class="co co-warn"><b>Cả ba bẫy đều compile sạch.</b> Đó là lý do nghề này cần review + mô phỏng + đọc log synthesis ("latch inferred" là cờ đỏ phải xử lý), không phải chỉ cần "build pass".</div>
+      </div>
+    </details>
+
+    <details class="dd">
+      <summary><span class="no">C5</span> Chiến lược reset &amp; khởi tạo <span class="est">~8′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <p>T5 mục C6 đã nói phần bản chất (khởi tạo phụ thuộc công nghệ: FPGA config thường khởi tạo xác định; ASIC cần chiến lược chủ động; mô phỏng hiện <code>X</code> = "chưa biết"). Ở mức kỷ luật viết code, khóa này chốt một chuẩn thống nhất:</p>
+        <ul>
+          <li>Khóa dùng <b><code>rst_n</code> bất đồng bộ, tích cực mức thấp</b>: <code>always_ff @(posedge clk or negedge rst_n)</code>, nhánh đầu <code>if (!rst_n)</code>.</li>
+          <li><b>Thanh ghi trạng thái điều khiển</b> (state FSM, con trỏ, cờ, counter điều khiển) — luôn có nhánh reset về giá trị xác định.</li>
+          <li><b>Thanh ghi datapath thuần dữ liệu</b> (giá trị sẽ bị ghi đè trước khi dùng) — reset là <em>lựa chọn</em>, không phải luật; thêm reset cho tất cả làm tăng diện tích/routing. Trong khóa này, khi lưỡng lự → cứ reset (an toàn cho người mới), nhưng phải biết đây là quyết định kiến trúc.</li>
+          <li>Đồng bộ hay bất đồng bộ, thả reset lúc nào (reset release) — chủ đề sâu của Phase 2; ở Phase 1 chỉ cần dùng nhất quán một kiểu.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="dd">
+      <summary><span class="no">C6</span> Tổng hợp được vs chỉ-mô-phỏng <span class="est">~8′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <div class="grid2">
+          <div class="rtl-frame">
+            <div class="rtl-head"><span class="ftag ftag-bad">KHÔNG tổng hợp được</span><span class="fname">tư duy sleep()</span></div>
+<pre class="code"><code>// Ý định: nháy LED mỗi 100 ns
+// — nghĩ như sleep() trong C. SAI.
+always @(posedge clk) begin
+  led = ~led;
+  #100;  // delay mô phỏng —
+         // phần cứng KHÔNG có sleep!
+end</code></pre>
+          </div>
+          <div class="rtl-frame">
+            <div class="rtl-head"><span class="ftag ftag-rtl">ĐÚNG</span><span class="fname">muốn chờ → ĐẾM</span></div>
+<pre class="code"><code>// Chờ N chu kỳ = counter (T5)
+parameter int unsigned MAX = 24_999_999;
+logic [24:0] cnt;
+always_ff @(posedge clk or negedge rst_n) begin
+  if (!rst_n) begin cnt &lt;= '0; led &lt;= 1'b0; end
+  else if (cnt == MAX) begin
+    cnt &lt;= '0;
+    led &lt;= ~led;   // đảo mỗi 0,5 s @ 50 MHz
+  end else
+    cnt &lt;= cnt + 1'b1;
+end</code></pre>
+          </div>
+        </div>
+        <p class="small">Sống trong <b>testbench</b> (hợp lệ và quan trọng, nhưng không sinh ra phần cứng): <code>#delay</code>, <code>$display/$monitor/$error</code>, <code>repeat @(posedge clk)</code>, <code>initial</code>. Sống trong <b>RTL</b>: <code>assign</code>, <code>always_comb</code>, <code>always_ff</code>, hằng số/parameter. Nhầm nhà = bug hoặc không tổng hợp được.</p>
+        <p class="small"><b>Một ngoại lệ cần biết cho đúng:</b> công cụ tổng hợp FPGA <em>có</em> chấp nhận <code>initial</code> để đặt giá trị FF lúc nạp bitstream (§C1 Tuần 8) — nên nói "<code>initial</code> không tổng hợp được" là nói tắt sai. Quy ước của khóa học: vẫn xếp <code>initial</code> vào ô testbench, vì nó không có trong flow ASIC, và vì giá trị đó <b>chỉ được áp đúng một lần, tại thời điểm nạp cấu hình</b>: mỗi lần bật nguồn hay nạp lại bitstream đều nạp lại giá trị ấy, nhưng khi mạch đang chạy thì không có cách nào áp lại. Nó không thay thế được <code>rst_n</code> — trạng thái ban đầu của RTL phải đến từ nhánh reset (§C6 Tuần 5).</p>
+      </div>
+    </details>
+
+    <details class="dd">
+      <summary><span class="no">C7</span> Luyện mắt: "phần cứng nào được suy ra?" + săn bug tổng hợp <span class="est">~15′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <p><b>Drill 4 câu.</b> Với mỗi snippet: nói to phần cứng suy ra, RỒI mới mở đáp án.</p>
+        <div class="wr">
+          <pre class="code standalone"><code>assign y = (a &amp; b) | c;</code></pre>
+          <button class="wr-btn wbtn alt" data-label="Hiện đáp án">Hiện đáp án</button>
+          <div class="wr-ans"><div class="co co-ok">Mạng tổ hợp (AND–OR, hoặc 1 LUT trên FPGA). Không FF. Hoạt động liên tục.</div></div>
+        </div>
+        <div class="wr">
+          <pre class="code standalone"><code>always_ff @(posedge clk) q &lt;= d;</code></pre>
+          <button class="wr-btn wbtn alt" data-label="Hiện đáp án">Hiện đáp án</button>
+          <div class="wr-ans"><div class="co co-ok">Đúng 1 D-FF. Không có reset — hợp lệ; giá trị ban đầu phụ thuộc công nghệ (C5). Nếu q là trạng thái điều khiển thì nên thêm reset.</div></div>
+        </div>
+        <div class="wr">
+          <pre class="code standalone"><code>always_comb begin
+  y = 2'd0;                 // default
+  case (sel)
+    2'd1: y = a;
+    2'd2: y = b;
+    default: y = 2'd0;
+  endcase
+end</code></pre>
+          <button class="wr-btn wbtn alt" data-label="Hiện đáp án">Hiện đáp án</button>
+          <div class="wr-ans"><div class="co co-ok">MUX/logic chọn theo <code>sel</code> — thuần tổ hợp, không latch (mọi nhánh đều gán y).</div></div>
+        </div>
+        <div class="wr">
+          <pre class="code standalone"><code>always_comb if (en) y = d;</code></pre>
+          <button class="wr-btn wbtn alt" data-label="Hiện đáp án">Hiện đáp án</button>
+          <div class="wr-ans"><div class="co co-danger">Latch! <code>en = 0</code> không gán y → công cụ chèn phần tử nhớ theo mức. Sửa: default trước (<code>y = 1'b0;</code>). Log synthesis sẽ báo "latch inferred".</div></div>
+        </div>
+
+        <p style="margin-top:14px"><b>Săn bug tổng hợp — 3 lỗi trong 1 module.</b> Đề: <code>grant</code> là tổ hợp theo <code>mode/req</code>; <code>cnt</code> là counter 2 bit có reset bất đồng bộ. Bấm vào dòng nghi ngờ.</p>
+        <pre class="code bughunt"><code><span class="bh-line">module ctrl (</span>
+<span class="bh-line">  input  logic clk, rst_n, mode, req,</span>
+<span class="bh-line">  output logic grant,</span>
+<span class="bh-line">  output logic [1:0] cnt</span>
+<span class="bh-line">);</span>
+<span class="bh-line" data-bug data-msg="Thiếu default: khi mode = 0, grant không được gán → latch. Sửa: grant = 1'b0; ngay dòng đầu khối, rồi if (mode) grant = req;">  always_comb if (mode) grant = req;</span>
+<span class="bh-line" data-bug data-msg="Ý định reset BẤT đồng bộ nhưng danh sách nhạy thiếu or negedge rst_n → thành reset đồng bộ, lệch với ý định thiết kế. Sửa: always_ff @(posedge clk or negedge rst_n).">  always_ff @(posedge clk) begin</span>
+<span class="bh-line">    if (!rst_n) cnt &lt;= 2'd0;</span>
+<span class="bh-line" data-bug data-msg="Blocking '=' trong khối tuần tự — trộn kiểu gán trong cùng khối luôn là cờ đỏ. Sửa: cnt &lt;= cnt + 2'd1;">    else        cnt = cnt + 2'd1;</span>
+<span class="bh-line">  end</span>
+<span class="bh-line">endmodule</span></code></pre>
+        <div class="bh-out">Chưa tìm thấy lỗi nào — bấm vào dòng code để kiểm tra. Có đúng 3 dòng lỗi.</div>
+      </div>
+    </details>
+
+    <details class="dd">
+      <summary><span class="no">C8</span> Research literacy: giải phẫu một bài báo kỹ thuật <span class="est">~8′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <p>Từ tuần sau bạn sẽ đọc (một phần) bài báo thật. Chuẩn bị trước "bản đồ giải phẫu" — mọi paper kỹ thuật đều có khung này:</p>
+        <div class="tblwrap">
+        <table class="tbl">
+          <tr><th>Phần</th><th>Trả lời câu hỏi</th><th>Đọc khi nào</th></tr>
+          <tr><td>Title + Abstract</td><td>Bài toán gì, ý tưởng gì, kết quả chính?</td><td>LUÔN đọc trước — 2 phút quyết định có đọc tiếp</td></tr>
+          <tr><td>Contribution</td><td>Cái gì MỚI so với trước đó? (khác "kiến thức giáo khoa")</td><td>Cuối phần mở đầu</td></tr>
+          <tr><td>Method / System diagram</td><td>Họ xây cái gì, kiến trúc ra sao?</td><td>Nhìn hình trước, đọc chữ sau</td></tr>
+          <tr><td>Experiment / Results</td><td>Đo gì, trên nền tảng nào, số liệu nào?</td><td>Khi cần bằng chứng</td></tr>
+          <tr><td>Conclusion</td><td>Claim cuối có khớp evidence không?</td><td>Đối chiếu với Abstract</td></tr>
+        </table>
+        </div>
+        <p class="small"><b>Hai cặp phân biệt phải nhớ:</b> kiến thức giáo khoa ≠ đóng góp nghiên cứu (paper phải có cái mới); <b>claim ≠ evidence</b> (mọi tuyên bố cần số liệu/thí nghiệm đỡ sau lưng — thói quen bạn đã luyện từ waveform: kết luận phải khớp bằng chứng). T8 sẽ giao bài đọc đầu tiên: chỉ abstract + system diagram, 4 câu hỏi.</p>
+      </div>
+    </details>
+
+    <details class="dd">
+      <summary><span class="no">C9</span> Từ vựng kỹ thuật tuần 7 <span class="est">~5′</span><span class="chev">▶</span></summary>
+      <div class="dd-body">
+        <div class="tblwrap">
+        <table class="tbl vocab">
+          <tr><th>Thuật ngữ</th><th>Nghĩa</th><th>Câu ví dụ (EN)</th></tr>
+          <tr><td>RTL (Register-Transfer Level)</td><td>Mức mô tả: dữ liệu chuyển giữa các thanh ghi qua logic tổ hợp</td><td class="en">We code the design at RTL.</td></tr>
+          <tr><td>Module</td><td>Đơn vị phần cứng có tên + port</td><td class="en">Each module has a clean interface.</td></tr>
+          <tr><td>Instance / Instantiation</td><td>Bản sao vật lý của module trong thiết kế</td><td class="en">The top level instantiates two counters.</td></tr>
+          <tr><td>Net (wire)</td><td>"Sợi dây" nối phần tử, không lưu giá trị</td><td class="en">A wire models a physical connection.</td></tr>
+          <tr><td>Variable (logic)</td><td>Kiểu biến SystemVerilog dùng trong khối thủ tục và assign</td><td class="en">Use logic instead of reg in new code.</td></tr>
+          <tr><td>Blocking assignment (=)</td><td>Gán tuần tự trong lượt tính — dùng cho tổ hợp</td><td class="en">Use blocking assignments in always_comb.</td></tr>
+          <tr><td>Non-blocking (&lt;=)</td><td>Gán đồng thời cuối bước thời gian — dùng cho tuần tự</td><td class="en">Sequential logic uses non-blocking assignments.</td></tr>
+          <tr><td>Latch inference</td><td>Latch sinh ra ngoài ý muốn do thiếu gán</td><td class="en">The log warns about an inferred latch.</td></tr>
+          <tr><td>Synthesizable subset</td><td>Phần ngôn ngữ dịch được thành phần cứng</td><td class="en">Delays are not synthesizable.</td></tr>
+          <tr><td>Coding style</td><td>Bộ quy ước viết code nhất quán</td><td class="en">A strict coding style prevents bugs.</td></tr>
+        </table>
+        </div>
+      </div>
+    </details>
+  </div>
+</section>
+
+<!-- ================= LAYER D ================= -->
+<section id="layer-d" class="layer layer-d">
+  <div class="wrap layer-head">
+    <div class="band">
+      <span class="layer-badge">D</span>
+      <h2>Sau buổi học</h2>
+      <span class="time">📝 Quiz 5 câu · bài tập · phản tư</span>
+    </div>
+  </div>
+  <div class="wrap layer-body">
+
+    <div class="card">
+      <h3>Quiz tự kiểm tra — 5 câu</h3>
+      <p class="small muted">Chọn đáp án; chấm ngay và hiện giải thích.</p>
+      <div class="quiz" id="quiz">
+        <div class="qz-item" data-answer="B">
+          <p class="qz-q">1. Một module có <code>assign s = a ^ b;</code> rồi <code>assign c = a &amp; b;</code>. Đảo thứ tự hai dòng thì điều gì xảy ra?</p>
+          <button class="qz-opt" data-key="A">Mạch tính c trước, s sau</button>
+          <button class="qz-opt" data-key="B">Không gì cả — hai mạch song song, phần cứng y nguyên</button>
+          <button class="qz-opt" data-key="C">Lỗi biên dịch vì s dùng trước khi khai báo xong</button>
+          <button class="qz-opt" data-key="D">Kết quả mô phỏng đổi nhưng phần cứng giữ nguyên</button>
+          <div class="qz-expl"><b>Giải thích:</b> mỗi <code>assign</code> là một mạch tồn tại song song; thứ tự dòng trong file không mang nghĩa thời gian. Đây là khác biệt nền tảng với ngôn ngữ phần mềm. Xem C3.</div>
+        </div>
+        <div class="qz-item" data-answer="D">
+          <p class="qz-q">2. Phát biểu nào về <code>reg</code> là <b>chính xác</b>?</p>
+          <button class="qz-opt" data-key="A"><code>reg</code> luôn tạo ra một thanh ghi vật lý</button>
+          <button class="qz-opt" data-key="B"><code>reg</code> chỉ dùng được trong testbench</button>
+          <button class="qz-opt" data-key="C"><code>reg</code> và <code>wire</code> là hai tên của cùng một thứ</button>
+          <button class="qz-opt" data-key="D"><code>reg</code> là kiểu biến cho tín hiệu gán trong khối thủ tục — phần cứng sinh ra là FF hay tổ hợp tùy cách viết khối</button>
+          <div class="qz-expl"><b>Giải thích:</b> cái tên <code>reg</code> là tai nạn lịch sử. Hành vi của khối (có cạnh clock? gán đủ nhánh?) quyết định phần cứng, không phải từ khóa khai báo. SystemVerilog dùng <code>logic</code> để xóa hiểu lầm này. Xem C2.</div>
+        </div>
+        <div class="qz-item" data-answer="A">
+          <p class="qz-q">3. Trong <code>always_comb</code> có <code>case</code> mà một nhánh không gán output và không có default. Hậu quả?</p>
+          <button class="qz-opt" data-key="A">Latch được suy ra — mạch không còn thuần tổ hợp, log synthesis cảnh báo</button>
+          <button class="qz-opt" data-key="B">Lỗi biên dịch ngay lập tức</button>
+          <button class="qz-opt" data-key="C">Output tự động bằng 0 ở nhánh thiếu</button>
+          <button class="qz-opt" data-key="D">Không sao — simulator tự xử lý</button>
+          <div class="qz-expl"><b>Giải thích:</b> "nhánh không gán" nghĩa là "giữ giá trị cũ" → cần phần tử nhớ → latch ngoài ý muốn. Code vẫn compile êm — vì vậy phải có phản xạ default-trước và đọc log. Xem C4.</div>
+        </div>
+        <div class="qz-item" data-answer="C">
+          <p class="qz-q">4. Vì sao <code>#100</code> không dùng được để "chờ" trong RTL nạp lên FPGA?</p>
+          <button class="qz-opt" data-key="A">Vì FPGA chỉ hỗ trợ delay là bội số của 10 ns</button>
+          <button class="qz-opt" data-key="B">Vì cú pháp <code>#</code> chỉ có trong VHDL</button>
+          <button class="qz-opt" data-key="C">Vì <code>#delay</code> là khái niệm mô phỏng — phần cứng không có "sleep"; muốn chờ N chu kỳ phải dùng counter</button>
+          <button class="qz-opt" data-key="D">Vì <code>#100</code> làm chậm clock toàn hệ thống</button>
+          <div class="qz-expl"><b>Giải thích:</b> thời gian trong phần cứng chỉ trôi theo cạnh clock; "chờ" nghĩa là đếm đủ số cạnh (counter T5). <code>#delay</code> sống trong testbench để dựng kịch bản mô phỏng. Xem C6.</div>
+        </div>
+        <div class="qz-item" data-answer="B">
+          <p class="qz-q">5. Hai học viên viết cùng một FSM: bạn A để output trong <code>always_comb</code> (Moore chuẩn 3 khối), bạn B chuyển phép gán output vào trong <code>always_ff</code>. Khác biệt thực sự là gì?</p>
+          <button class="qz-opt" data-key="A">Không khác gì — hai cách viết tương đương tuyệt đối</button>
+          <button class="qz-opt" data-key="B">Bản B thêm một tầng FF cho output: sạch glitch hơn; đăng ký <code>g(state)</code> thì trễ thêm 1 chu kỳ, đăng ký <code>g(next_state)</code> thì không trễ — phần cứng KHÁC nhau, phải chọn có chủ đích</button>
+          <button class="qz-opt" data-key="C">Bản B sai cú pháp vì output không được gán trong always_ff</button>
+          <button class="qz-opt" data-key="D">Bản A sinh latch</button>
+          <div class="qz-expl"><b>Giải thích:</b> gán trong <code>always_ff</code> = thêm thanh ghi trên đường output (registered output). Hai hành vi giống nhau "về ý" nhưng khác phần cứng và khác thời điểm đổi — đúng tinh thần câu hỏi "hai cách viết, phần cứng nào được suy ra?". Xem C3, C7.</div>
+        </div>
+        <div class="qz-bar"><span class="qz-score"></span><span class="qz-verdict"></span><button class="qz-reset">Làm lại</button></div>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <h3>Bài tập bắt buộc <span class="badge badge-req">nộp trước buổi 8</span></h3>
+        <p><b>1) Style card cá nhân</b> — 1 trang, 10 luật viết RTL của chính bạn (từ C2–C6), trong đó 3 luật quan trọng nhất kèm cặp ví dụ đúng/sai do bạn tự viết (không chép ví dụ của bài).</p>
+        <p><b>2) Sửa 3 đoạn RTL lỗi</b> ở C7 (bài săn bug): viết lại bản đúng hoàn chỉnh + mỗi lỗi 2 dòng giải thích <em>hậu quả nếu giữ nguyên</em> (trên mô phỏng và trên phần cứng).</p>
+        <p class="small"><b>Nộp:</b> style card (PDF/ảnh) + file .sv đã sửa + phần giải thích.</p>
+      </div>
+      <div class="card">
+        <h3>Thử thách nâng cao <span class="badge badge-opt">tự chọn</span></h3>
+        <p>Viết <code>register_file_4x8.sv</code>: 4 thanh ghi 8 bit, 1 cổng ghi (we, waddr, wdata), 1 cổng đọc tổ hợp (raddr, rdata). Trước khi viết: vẽ block diagram, trả lời "bao nhiêu FF? phần đọc là phần cứng gì?" — rồi mới code + testbench.</p>
+        <div class="eqrq">
+          <div class="eq"><b>Câu hỏi kỹ thuật</b>Thanh ghi nào trong thiết kế của tôi cần reset?</div>
+          <div class="arr">→</div>
+          <div class="rq"><b>Câu hỏi nghiên cứu</b>Chiến lược reset (toàn bộ / chọn lọc / đồng bộ / bất đồng bộ) ảnh hưởng thế nào tới diện tích, routing, timing và công suất? Thí nghiệm khả dĩ: cùng một thiết kế, hai chiến lược reset, so sánh báo cáo synthesis.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Rubric tuần 7</h3>
+      <div class="tblwrap">
+      <table class="tbl rubric">
+        <tr><th>Tiêu chí</th><th>Trọng số</th><th>Đạt khi…</th></tr>
+        <tr><td>Hiểu khái niệm</td><td class="pct">25%</td><td>Giải thích được ngữ nghĩa song song, hai luật gán, và vì sao <code>reg</code> không phải "thanh ghi".</td></tr>
+        <tr><td>Kiến trúc</td><td class="pct">20%</td><td>Chọn đúng "ngôi nhà" (assign/always_comb/always_ff) cho từng phần của thiết kế; hierarchy nối port theo tên.</td></tr>
+        <tr><td>RTL đúng</td><td class="pct">20%</td><td>Bản sửa 3 đoạn lỗi compile sạch, không latch trong log, đúng luật gán.</td></tr>
+        <tr><td>Verification</td><td class="pct">20%</td><td>Chỉ ra được hậu quả của từng lỗi trên mô phỏng/phần cứng — không dừng ở "thiếu else".</td></tr>
+        <tr><td>Giao tiếp kỹ thuật</td><td class="pct">15%</td><td>Style card rõ ràng, ví dụ tự viết, dùng đúng thuật ngữ (latch, blocking, driver…).</td></tr>
+      </table>
+      </div>
+      <p class="small muted">Code chạy được chưa phải điểm tối đa — phải giải thích được vì sao nó đúng.</p>
+    </div>
+
+    <div class="card">
+      <h3>Tổng kết tuần 7</h3>
+      <div class="ican">
+        <div><b>I can explain</b>① Vì sao RTL là mô tả phần cứng song song, không phải chương trình tuần tự. ② Hai luật gán <code>=</code>/<code>&lt;=</code> và hậu quả khi dùng sai. ③ <code>wire</code>/<code>reg</code>/<code>logic</code> chính xác là gì.</div>
+        <div><b>I can design</b>Chọn đúng construct cho từng phần thiết kế và viết module + hierarchy sạch, nối port theo tên.</div>
+        <div><b>I can verify</b>Review một đoạn RTL lạ: chỉ ra latch/blocking/reset/width và mô tả hậu quả từng lỗi.</div>
+        <div><b>I can connect</b>Toàn bộ code project T9–11 dùng đúng bộ luật tuần này — style card của bạn là "luật chơi" của nhóm.</div>
+        <div class="unsure"><b>I am still unsure about…</b><textarea class="reflect" id="unsure7" placeholder="Điều tôi giải thích được tuần này mà tuần trước chưa giải thích được là… / Điều tôi còn mơ hồ là… (tự động lưu trên máy bạn)"></textarea></div>
+        <div class="nextwk"><b>Next week</b>Bạn viết RTL sạch rồi — T8 trả lời: cùng RTL đó "đổ" vào FPGA (LUT/FF/BRAM) hay ASIC (standard cell) thì khác gì nhau, và chọn nền tảng nào cho sản phẩm nào.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="weeknav">
+      <a href="Week06.html"><small>← Tuần trước</small><b>T6 · Finite-State Machines</b></a>
+      <a class="next" href="Week08.html"><small>Tuần sau →</small><b>T8 · FPGA vs ASIC</b></a>
+    </div>
+    <div class="footer">
+      <b>IC Design Mentoring — Version 3 · Phase 1</b>
+      <span class="org">Khoa Điện – Điện tử · Trường Kỹ thuật · Đại học Phenikaa</span>
+      <span>Biên soạn: <b style="display:inline">Giảng Viên Đinh Văn Nam</b></span>
+      <span class="cr">© 2026 · Bản quyền thuộc về Giảng Viên Đinh Văn Nam, Khoa Điện-Điện Tử, Trường Kỹ Thuật, Đại học Phenikaa. Tài liệu phục vụ đào tạo — vui lòng giữ nguyên thông tin tác giả khi chia sẻ.</span>
+      <span class="cr">Hoạt động offline — không cần Internet.</span>
+    </div>
+  </div>
+</footer>
+</body>
+</html>
