@@ -29,7 +29,8 @@ export const SITE = {
    * Ví dụ: "https://username.github.io"
    * Có thể ghi đè lúc build bằng biến môi trường ASTRO_SITE (CI tự làm việc này).
    */
-  siteUrl: "https://Lucero6886.github.io",
+ siteUrl: "https://lucero6886.github.io",
+ repoUrl: "https://github.com/Lucero6886/ic-design-hub",
 
   /**
    * Đường dẫn con khi deploy dạng project site GitHub Pages: "/TEN-REPO".
