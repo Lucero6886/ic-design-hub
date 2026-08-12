@@ -26,10 +26,11 @@ const historical = versionsManifest.versions.filter((v) => v.status === "histori
         từ nền tảng số, qua project kỹ thuật, tới nghiên cứu độc lập.
       </p>
       <div class="btn-row">
-        <a class="btn primary" href={href("learn/")}>Bắt đầu học</a>
+        <a class="btn primary" href={href("articles/bat-dau-tu-day/")}>Sinh viên mới? Bắt đầu tại đây</a>
+        <a class="btn" href={href("learn/")}>Vào khu Học</a>
         <a class="btn" href={href("projects/")}>Khám phá project</a>
         <a class="btn" href={href("research/")}>Nghiên cứu</a>
-        <a class="btn" href={href("community/")}>Tham gia cộng đồng</a>
+        <a class="btn" href={href("community/")}>Cộng đồng</a>
       </div>
       <div class="pill-row">
         <span class="pill">{AUTHOR.affiliationDisplay}</span>
@@ -43,7 +44,7 @@ const historical = versionsManifest.versions.filter((v) => v.status === "histori
       <h2 id="goals-h" class="sec">Bạn đang cần gì?</h2>
       <p class="sec-sub">Chọn đúng lối vào — mỗi mục tiêu có một đường đi rõ ràng.</p>
       <div class="goal-tiles">
-        <a href={href("learn/")}><span class="q">Tôi mới bắt đầu học IC Design — bắt đầu ở đâu?</span><span class="arrow">→</span></a>
+        <a href={href("articles/bat-dau-tu-day/")}><span class="q">Tôi mới bắt đầu học IC Design — bắt đầu ở đâu?</span><span class="arrow">→</span></a>
         <a href={href("learn/#paths")}><span class="q">Tôi muốn học RTL / FPGA — đi đường nào?</span><span class="arrow">→</span></a>
         <a href={href("projects/")}><span class="q">Tôi đang làm project — xem project nào?</span><span class="arrow">→</span></a>
         <a href={href("research/")}><span class="q">Tôi muốn bắt đầu nghiên cứu — đọc gì trước?</span><span class="arrow">→</span></a>

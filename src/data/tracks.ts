@@ -35,6 +35,7 @@ export const TRACKS: Track[] = [
   { id: "ai-for-ic", label: "AI cho thiết kế IC", labelEn: "AI for IC Design", status: "planned", description: "ML trong EDA, tối ưu hóa thiết kế bằng AI." },
   { id: "hardware-ai", label: "Phần cứng cho AI", labelEn: "Hardware-Aware AI / AI Accelerator", status: "planned", description: "Neural accelerator, quantization, mixed precision, FPGA inference." },
   { id: "research-methodology", label: "Phương pháp nghiên cứu", labelEn: "Research Methodology", status: "active", description: "EQ→RQ, thiết kế thí nghiệm, baseline công bằng, bằng chứng trước kết luận." },
+  { id: "industry", label: "Công nghiệp & thị trường bán dẫn", labelEn: "Semiconductor Industry & Market", status: "active", description: "Chuỗi giá trị bán dẫn, hệ sinh thái trong nước và quốc tế, chiến lược quốc gia, con đường nghề nghiệp." },
   { id: "academic-writing", label: "Viết học thuật", labelEn: "Academic Writing", status: "planned", description: "Viết paper, trình bày kết quả, trích dẫn đúng chuẩn." },
   { id: "reproducible-research", label: "Nghiên cứu tái lập được", labelEn: "Reproducible Research", status: "planned", description: "Log thí nghiệm, phiên bản hóa dữ liệu/script, môi trường tái lập." },
 ];
