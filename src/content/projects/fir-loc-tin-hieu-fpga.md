@@ -1,9 +1,8 @@
 ---
-# ĐỀ BÀI MẪU — duyệt xong chuyển vào src/content/projects/ và đổi draft: false khi giao đề
 title: "FIR filter fixed-point — thí nghiệm bit-width đầu tiên (project nhóm-nghiên cứu 4 tuần)"
 summary: "Hiện thực bộ lọc FIR fixed-point bằng SystemVerilog và chạy một thí nghiệm EQ→RQ đúng nghĩa: độ rộng bit của hệ số ảnh hưởng thế nào tới chất lượng lọc và tài nguyên suy ra — có baseline, có số liệu, có phạm vi kết luận."
 date: 2026-08-13
-draft: true
+draft: false
 kind: research
 status: proposed
 difficulty: intermediate

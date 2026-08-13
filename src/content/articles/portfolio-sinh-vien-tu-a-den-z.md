@@ -1,12 +1,8 @@
 ---
-# HƯỚNG DẪN PORTFOLIO A–Z — BẢN NHÁP CHỜ THẦY DUYỆT
-# Duyệt xong: chuyển vào src/content/articles/ và đổi draft: false.
-# Nguồn gốc: yêu cầu "portfolio 12 mục + 10 slide" là yêu cầu THẬT của Tuần 12 (V3);
-# danh mục artifact từng tuần lấy đúng cột "Artifact bắt buộc" trong CURRICULUM_MAP.
 title: "Portfolio sinh viên từ A đến Z — repo GitHub kể câu chuyện 12 tuần của bạn"
 summary: "Hướng dẫn cầm tay chỉ việc: lập repo portfolio từ Tuần 1, cấu trúc thư mục chuẩn cho 12 artifact, thói quen 15 phút mỗi tuần, và cách biến nó thành bộ hồ sơ bảo vệ Tuần 12 kiêm CV kỹ thuật khi đi thực tập."
 date: 2026-08-13
-draft: true
+draft: false
 category: mentoring
 difficulty: foundation
 track: foundations

@@ -4,3 +4,4 @@ dist/
 public/search-index.json
 *.log
 .DS_Store
+_to_delete/

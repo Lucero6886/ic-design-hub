@@ -1,20 +1,8 @@
 ---
-# NGÂN HÀNG CÂU HỎI THẢO LUẬN 12 TUẦN — BẢN NHÁP CHỜ THẦY DUYỆT
-#
-# Cách dùng (khuyến nghị — không cần sửa website):
-#   Mỗi tuần, mở GitHub Discussions → chuyên mục "IC Design Q&A" → tạo thread
-#   "[Tuần N] Thảo luận tuần này" → dán 3 câu hỏi của tuần đó → ghim trong tuần.
-#   Cuối tuần, mentor tổng kết 3-5 dòng ngay trong thread (câu trả lời hay nhất + hiểu sai lộ ra).
-#
-# Hoặc: duyệt xong chuyển file này vào src/content/articles/ + đổi draft: false
-#   để thành bài viết cố định trên hub (sinh viên tra cứu cả 12 tuần một chỗ).
-#
-# Nguồn gốc: mọi câu hỏi đều bám trực tiếp câu-hỏi-cốt-lõi, hiểu-sai-kinh-điển và EQ→RQ
-# đã có trong CURRICULUM_MAP + MENTOR_GUIDE + các trang tuần V3 — không thêm chủ đề ngoài giáo trình.
 title: "Ngân hàng câu hỏi thảo luận theo tuần (Phase 1)"
 summary: "36 câu hỏi thảo luận cho 12 tuần — mỗi tuần 3 câu: một câu đào bản chất, một câu bắt hiểu sai kinh điển, một câu mở sang trade-off/nghiên cứu. Dùng cho thread Discussions hằng tuần hoặc 10 phút đầu buổi mentoring."
 date: 2026-08-13
-draft: true
+draft: false
 category: mentoring
 track: foundations
 tags: [thao-luan, mentoring, phase-1]

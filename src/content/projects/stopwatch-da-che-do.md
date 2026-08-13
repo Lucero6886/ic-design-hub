@@ -1,9 +1,8 @@
 ---
-# ĐỀ BÀI MẪU — duyệt xong chuyển vào src/content/projects/ và đổi draft: false khi giao đề
 title: "Stopwatch đa chế độ — FSM chế độ trên datapath quen thuộc (project nhóm 3–4 tuần)"
 summary: "Đồng hồ bấm giờ chạy trên nền các khối đã học: đếm phút:giây hiển thị 7-segment, ba chế độ (chạy/tạm dừng/lap), nút bấm có chống dội — bài tập tích hợp đầu tay cho nhóm mới ghép."
 date: 2026-08-13
-draft: true
+draft: false
 kind: student
 status: proposed
 difficulty: foundation

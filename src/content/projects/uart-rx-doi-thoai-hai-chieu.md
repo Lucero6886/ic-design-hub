@@ -1,9 +1,8 @@
 ---
-# ĐỀ BÀI MẪU — duyệt xong chuyển vào src/content/projects/ và đổi draft: false khi giao đề
 title: "UART RX — cho hệ đèn giao thông biết lắng nghe (project nhóm 4 tuần)"
 summary: "Nâng cấp hệ Smart Traffic Controller từ chỉ-nói (TX) thành đối thoại hai chiều: nhận lệnh từ PC qua UART RX để đổi thời lượng đèn ngay khi hệ đang chạy — không reset, không nạp lại bitstream."
 date: 2026-08-13
-draft: true
+draft: false
 kind: student
 status: proposed
 difficulty: intermediate
