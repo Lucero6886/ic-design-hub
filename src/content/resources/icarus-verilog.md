@@ -8,6 +8,7 @@ license: "GPL-2.0 (mã nguồn mở)"
 track: verification
 tags: [simulation, verilog, systemverilog, toolchain]
 whyRecommended: "Toàn bộ RTL của giáo trình V3 được biên dịch và mô phỏng thật bằng `iverilog -g2012` trong quá trình kiểm định (0 lỗi trên 22 khối RTL/testbench) — học viên dùng đúng công cụ mà giáo trình đã dùng để tự kiểm chứng bài của mình, miễn phí và không cần license."
+relatedArticles: [chay-mo-phong-systemverilog-dau-tien, icarus-verilog-tu-ban-chat-den-thanh-thao]
 ---
 
 Cài đặt nhanh: có sẵn trong hầu hết package manager (`apt install iverilog`,
@@ -20,3 +21,8 @@ vvp sim
 
 Xem dạng sóng: kết hợp `$dumpfile`/`$dumpvars` trong testbench và mở file `.vcd` bằng một
 trình xem waveform (ví dụ GTKWave).
+
+Trên hub có hai bài đi kèm công cụ này: [cầm tay chỉ việc cài đặt và chạy mô phỏng đầu
+tiên](../articles/chay-mo-phong-systemverilog-dau-tien/), và [bài chuyên sâu về bản chất
+công cụ](../articles/icarus-verilog-tu-ban-chat-den-thanh-thao/) (event-driven, blocking vs
+non-blocking, X, giới hạn cần biết — kèm waveform từ mô phỏng thật).

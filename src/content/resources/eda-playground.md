@@ -8,8 +8,13 @@ license: "Dịch vụ web miễn phí (đăng ký tài khoản; có điều kho�
 track: systemverilog
 tags: [simulation, systemverilog, online-tool]
 whyRecommended: "Được giáo trình sử dụng làm môi trường thực hành từ phiên bản V2: học viên chạy được ví dụ RTL ngay trên trình duyệt trong buổi học hoặc ở nhà, hạ rào cản cài đặt về 0 — phù hợp cho các tuần đầu trước khi chuyển sang toolchain cài máy."
+relatedArticles: [eda-playground-dung-dung-cach]
 ---
 
 Lưu ý khi dùng: chọn simulator hỗ trợ SystemVerilog 2012 trở lên khi chạy code của giáo
 trình; bài có `$error`/assertion cần simulator tương thích. Code chạy trên EDA Playground là
 code bạn đưa lên dịch vụ bên thứ ba — không dán nội dung nhạy cảm/chưa công bố.
+
+Hướng dẫn đầy đủ trên hub: [EDA Playground dùng đúng
+cách](../articles/eda-playground-dung-dung-cach/) — 6 vùng giao diện, quy trình 5 bước,
+chia sẻ link để hỏi bài/làm nhóm, và cách nếm thử simulator thương mại.

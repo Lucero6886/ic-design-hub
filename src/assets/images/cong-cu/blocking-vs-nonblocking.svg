@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 338" font-family="ui-monospace,Consolas,Menlo,monospace" font-size="12">
+<rect width="760" height="338" rx="10" fill="#fcfcfb" stroke="#e3e7eb"/>
+<defs><pattern id="hx" width="7" height="7" patternTransform="rotate(45)" patternUnits="userSpaceOnUse"><line x1="0" y1="0" x2="0" y2="7" stroke="#d03b3b" stroke-width="1.6" opacity="0.55"/></pattern></defs>
+<text x="92" y="24" fill="#17222e" font-size="13.5" font-weight="700" font-family="system-ui,sans-serif">Cùng một cạnh clock t=5: &lt;= hoán đổi đúng, = thì không</text>
+<line x1="92.0" y1="38" x2="92.0" y2="308" stroke="#e3e7eb" stroke-width="1"/>
+<text x="92.0" y="324" fill="#5a6d7f" text-anchor="middle" font-size="10.5">0</text>
+<line x1="628.7" y1="38" x2="628.7" y2="308" stroke="#e3e7eb" stroke-width="1"/>
+<text x="628.7" y="324" fill="#5a6d7f" text-anchor="middle" font-size="10.5">10</text>
+<text x="746" y="324" fill="#5a6d7f" text-anchor="end" font-size="10.5">ns</text>
+<text x="84" y="67.0" fill="#17222e" text-anchor="end" font-weight="600">clk</text>
+<polyline points="92.0,76 360.3,76 360.3,76 360.3,50 628.7,50 628.7,50 628.7,76 736.0,76" fill="none" stroke="#17222e" stroke-width="2" stroke-linejoin="miter"/>
+<text x="84" y="115.0" fill="#17222e" text-anchor="end" font-weight="600">a</text>
+<polygon points="97.0,98 355.3,98 360.3,111.0 355.3,124 97.0,124 92.0,111.0" fill="#e7f0fb" stroke="#2a78d6" stroke-width="1.4"/>
+<text x="226.2" y="115.0" fill="#17222e" text-anchor="middle" font-weight="600">AA</text>
+<polygon points="365.3,98 731.0,98 736.0,111.0 731.0,124 365.3,124 360.3,111.0" fill="#e7f0fb" stroke="#2a78d6" stroke-width="1.4"/>
+<text x="548.2" y="115.0" fill="#17222e" text-anchor="middle" font-weight="600">BB</text>
+<text x="84" y="163.0" fill="#17222e" text-anchor="end" font-weight="600">b</text>
+<polygon points="97.0,146 355.3,146 360.3,159.0 355.3,172 97.0,172 92.0,159.0" fill="#e7f0fb" stroke="#2a78d6" stroke-width="1.4"/>
+<text x="226.2" y="163.0" fill="#17222e" text-anchor="middle" font-weight="600">BB</text>
+<polygon points="365.3,146 731.0,146 736.0,159.0 731.0,172 365.3,172 360.3,159.0" fill="#e7f0fb" stroke="#2a78d6" stroke-width="1.4"/>
+<text x="548.2" y="163.0" fill="#17222e" text-anchor="middle" font-weight="600">AA</text>
+<text x="84" y="211.0" fill="#17222e" text-anchor="end" font-weight="600">x</text>
+<polygon points="97.0,194 355.3,194 360.3,207.0 355.3,220 97.0,220 92.0,207.0" fill="#e7f0fb" stroke="#2a78d6" stroke-width="1.4"/>
+<text x="226.2" y="211.0" fill="#17222e" text-anchor="middle" font-weight="600">AA</text>
+<polygon points="365.3,194 731.0,194 736.0,207.0 731.0,220 365.3,220 360.3,207.0" fill="#e7f0fb" stroke="#2a78d6" stroke-width="1.4"/>
+<text x="548.2" y="211.0" fill="#17222e" text-anchor="middle" font-weight="600">BB</text>
+<text x="84" y="259.0" fill="#17222e" text-anchor="end" font-weight="600">y</text>
+<polygon points="97.0,242 731.0,242 736.0,255.0 731.0,268 97.0,268 92.0,255.0" fill="#e7f0fb" stroke="#2a78d6" stroke-width="1.4"/>
+<text x="414.0" y="259.0" fill="#17222e" text-anchor="middle" font-weight="600">BB</text>
+<line x1="360.3" y1="90" x2="360.3" y2="130" stroke="#2a78d6" stroke-width="1.6" stroke-dasharray="4 3"/>
+<text x="365.3" y="86" fill="#2a78d6" font-size="11" font-weight="600" text-anchor="start" font-family="system-ui,sans-serif">a&lt;=b, b&lt;=a → đọc giá trị CŨ</text>
+<line x1="360.3" y1="186" x2="360.3" y2="226" stroke="#2a78d6" stroke-width="1.6" stroke-dasharray="4 3"/>
+<text x="365.3" y="182" fill="#2a78d6" font-size="11" font-weight="600" text-anchor="start" font-family="system-ui,sans-serif">x=y; y=x → y chép giá trị MỚI của x</text>
+</svg>

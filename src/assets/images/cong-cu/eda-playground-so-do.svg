@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 430" font-family="system-ui,-apple-system,'Segoe UI',sans-serif" font-size="12.5">
+<rect width="760" height="430" rx="10" fill="#fcfcfb" stroke="#e3e7eb"/>
+<text x="20" y="28" fill="#17222e" font-size="14" font-weight="700">Sơ đồ giao diện EDA Playground — 6 vùng cần biết</text>
+
+<!-- 1. Sidebar trái -->
+<rect x="20" y="44" width="170" height="330" rx="8" fill="#ffffff" stroke="#2a78d6" stroke-width="1.6"/>
+<circle cx="38" cy="62" r="9" fill="#2a78d6"/><text x="38" y="66" fill="#fff" text-anchor="middle" font-weight="700" font-size="11">1</text>
+<text x="54" y="66" fill="#17222e" font-weight="700">Bảng chọn công cụ</text>
+<text x="34" y="90" fill="#5a6d7f">Languages &amp; Libraries:</text>
+<rect x="34" y="98" width="142" height="22" rx="4" fill="#e7f0fb" stroke="#2a78d6"/><text x="42" y="113" fill="#17222e">SystemVerilog/Verilog</text>
+<text x="34" y="142" fill="#5a6d7f">Tools &amp; Simulators:</text>
+<rect x="34" y="150" width="142" height="22" rx="4" fill="#e7f0fb" stroke="#2a78d6"/><text x="42" y="165" fill="#17222e">Icarus Verilog 12.0</text>
+<text x="34" y="192" fill="#5a6d7f">…hoặc bản thương mại:</text>
+<text x="34" y="209" fill="#17222e">Questa · VCS · Xcelium</text>
+<text x="34" y="224" fill="#17222e">Riviera-PRO · Yosys</text>
+<rect x="34" y="240" width="142" height="20" rx="4" fill="#ffffff" stroke="#e3e7eb"/><text x="42" y="254" fill="#17222e">☑ Open EPWave after run</text>
+<text x="34" y="282" fill="#5a6d7f">Compile options:</text>
+<rect x="34" y="290" width="142" height="20" rx="4" fill="#ffffff" stroke="#e3e7eb"/><text x="42" y="304" fill="#17222e" font-family="ui-monospace,monospace" font-size="11.5">-g2012</text>
+<circle cx="38" cy="340" r="9" fill="#2a78d6"/><text x="38" y="344" fill="#fff" text-anchor="middle" font-weight="700" font-size="11">2</text>
+<rect x="54" y="328" width="70" height="24" rx="5" fill="#2a78d6"/><text x="89" y="344" fill="#fff" text-anchor="middle" font-weight="700">Run ▶</text>
+
+<!-- 2. Hai khung soạn thảo -->
+<rect x="204" y="44" width="266" height="220" rx="8" fill="#ffffff" stroke="#e3e7eb" stroke-width="1.4"/>
+<circle cx="222" cy="62" r="9" fill="#2a78d6"/><text x="222" y="66" fill="#fff" text-anchor="middle" font-weight="700" font-size="11">3</text>
+<text x="238" y="66" fill="#17222e" font-weight="700">testbench.sv (bên trái)</text>
+<text x="220" y="92" fill="#5a6d7f" font-family="ui-monospace,monospace" font-size="11.5">module tb_counter_mod10;</text>
+<text x="220" y="108" fill="#5a6d7f" font-family="ui-monospace,monospace" font-size="11.5">  $dumpfile("dump.vcd");</text>
+<text x="220" y="124" fill="#5a6d7f" font-family="ui-monospace,monospace" font-size="11.5">  $dumpvars(0, ...);</text>
+<text x="220" y="148" fill="#d03b3b" font-size="11.5">← bắt buộc có 2 dòng dump</text>
+<text x="220" y="164" fill="#d03b3b" font-size="11.5">   thì EPWave mới có sóng</text>
+
+<rect x="482" y="44" width="258" height="220" rx="8" fill="#ffffff" stroke="#e3e7eb" stroke-width="1.4"/>
+<circle cx="500" cy="62" r="9" fill="#2a78d6"/><text x="500" y="66" fill="#fff" text-anchor="middle" font-weight="700" font-size="11">4</text>
+<text x="516" y="66" fill="#17222e" font-weight="700">design.sv (bên phải)</text>
+<text x="498" y="92" fill="#5a6d7f" font-family="ui-monospace,monospace" font-size="11.5">module counter_mod10 (</text>
+<text x="498" y="108" fill="#5a6d7f" font-family="ui-monospace,monospace" font-size="11.5">  input logic clk, ...</text>
+<text x="498" y="132" fill="#5a6d7f">RTL của bạn — tách khỏi</text>
+<text x="498" y="148" fill="#5a6d7f">testbench đúng kỷ luật T5</text>
+
+<!-- 3. Log + EPWave -->
+<rect x="204" y="278" width="536" height="96" rx="8" fill="#ffffff" stroke="#e3e7eb" stroke-width="1.4"/>
+<circle cx="222" cy="296" r="9" fill="#2a78d6"/><text x="222" y="300" fill="#fff" text-anchor="middle" font-weight="700" font-size="11">5</text>
+<text x="238" y="300" fill="#17222e" font-weight="700">Log biên dịch &amp; mô phỏng (dưới cùng)</text>
+<text x="220" y="322" fill="#5a6d7f" font-family="ui-monospace,monospace" font-size="11.5">KET THUC: count=5 ... — đọc log TRƯỚC khi mở sóng</text>
+<circle cx="222" cy="348" r="9" fill="#2a78d6"/><text x="222" y="352" fill="#fff" text-anchor="middle" font-weight="700" font-size="11">6</text>
+<text x="238" y="352" fill="#17222e" font-weight="700">EPWave</text>
+<text x="300" y="352" fill="#5a6d7f">— cửa sổ waveform mở sau khi Run (Get Signals → chọn tín hiệu)</text>
+
+<!-- Share -->
+<rect x="588" y="392" width="152" height="26" rx="5" fill="#ffffff" stroke="#2a78d6"/>
+<text x="664" y="409" fill="#2a78d6" text-anchor="middle" font-weight="600">Share → gửi link cho nhóm</text>
+<text x="20" y="409" fill="#5a6d7f" font-size="11.5">Vẽ theo giao diện edaplayground.com (Doulos) — đăng nhập miễn phí để Run.</text>
+</svg>

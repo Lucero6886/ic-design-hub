@@ -149,7 +149,7 @@ kiểu Tuần 5 cho portfolio của bạn.
 | Triệu chứng | Nguyên nhân | Sửa |
 |---|---|---|
 | `iverilog: command not found` | chưa cài / chưa chạy `environment.bat` (Windows) | làm lại Bước 1; Windows phải chạy environment.bat trong MỖI cửa sổ lệnh mới |
-| Lỗi cú pháp tại `always_ff` / `logic` | quên cờ `-g2012` | luôn biên dịch với `iverilog -g2012 …` |
+| Lỗi cú pháp tại `always_ff` / `logic` | máy đang có bản Icarus cũ (10/11 trong kho gói Linux cũ) và thiếu cờ `-g2012` | luôn viết `iverilog -g2012 …` (từ bản 12, SystemVerilog-2012 đã là mặc định — cờ vô hại nhưng cứu bạn trên bản cũ) |
 | Chạy xong không thấy `wave.vcd` | testbench thiếu `$dumpfile`/`$dumpvars` | kiểm tra hai dòng đầu khối `initial` |
 | GTKWave mở ra trống trơn | chưa kéo tín hiệu vào khung sóng | chọn scope bên trái → Append tín hiệu |
 | Kết quả khác dự đoán | thường là bạn đếm cạnh clock sai — như người viết bài này | đếm lại trên giấy trước khi đổ lỗi cho công cụ |

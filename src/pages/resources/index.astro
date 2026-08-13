@@ -41,6 +41,14 @@ const byKind = kinds
                 </h3>
                 <p>{r.data.summary}</p>
                 <p class="small" style="color:var(--ink-soft)"><b>Vì sao đáng dùng:</b> {r.data.whyRecommended}</p>
+                {r.data.relatedArticles.length > 0 && (
+                  <p class="small" style="margin:0">
+                    <b>Bài hướng dẫn trên hub:</b>{" "}
+                    {r.data.relatedArticles.map((slug, i) => (
+                      <span>{i > 0 && " · "}<a href={href(`articles/${slug}/`)}>{slug}</a></span>
+                    ))}
+                  </p>
+                )}
                 <div class="meta">
                   {r.data.license && <span class="badge gray">{r.data.license}</span>}
                   {r.data.tags.slice(0, 4).map((t) => <a class="tag" href={href(`tags/${t}/`)}>#{t}</a>)}

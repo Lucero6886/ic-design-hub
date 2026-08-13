@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 290" font-family="ui-monospace,Consolas,Menlo,monospace" font-size="12">
+<rect width="760" height="290" rx="10" fill="#fcfcfb" stroke="#e3e7eb"/>
+<defs><pattern id="hx" width="7" height="7" patternTransform="rotate(45)" patternUnits="userSpaceOnUse"><line x1="0" y1="0" x2="0" y2="7" stroke="#d03b3b" stroke-width="1.6" opacity="0.55"/></pattern></defs>
+<text x="92" y="24" fill="#17222e" font-size="13.5" font-weight="700" font-family="system-ui,sans-serif">Reset là SỰ KIỆN: khai báo =0 không tạo cạnh xuống → X mãi mãi</text>
+<line x1="92.0" y1="38" x2="92.0" y2="260" stroke="#e3e7eb" stroke-width="1"/>
+<text x="92.0" y="276" fill="#5a6d7f" text-anchor="middle" font-size="10.5">0</text>
+<line x1="287.2" y1="38" x2="287.2" y2="260" stroke="#e3e7eb" stroke-width="1"/>
+<text x="287.2" y="276" fill="#5a6d7f" text-anchor="middle" font-size="10.5">10</text>
+<line x1="482.3" y1="38" x2="482.3" y2="260" stroke="#e3e7eb" stroke-width="1"/>
+<text x="482.3" y="276" fill="#5a6d7f" text-anchor="middle" font-size="10.5">20</text>
+<line x1="677.5" y1="38" x2="677.5" y2="260" stroke="#e3e7eb" stroke-width="1"/>
+<text x="677.5" y="276" fill="#5a6d7f" text-anchor="middle" font-size="10.5">30</text>
+<text x="746" y="276" fill="#5a6d7f" text-anchor="end" font-size="10.5">ns</text>
+<text x="84" y="67.0" fill="#17222e" text-anchor="end" font-weight="600">rstA</text>
+<polyline points="92.0,76 150.5,76 150.5,76 150.5,50 736.0,50" fill="none" stroke="#17222e" stroke-width="2" stroke-linejoin="miter"/>
+<text x="84" y="115.0" fill="#17222e" text-anchor="end" font-weight="600">cA</text>
+<polygon points="97.0,98 731.0,98 736.0,111.0 731.0,124 97.0,124 92.0,111.0" fill="url(#hx)" stroke="#d03b3b" stroke-width="1.4"/>
+<text x="414.0" y="115.0" fill="#d03b3b" text-anchor="middle" font-weight="700">X</text>
+<text x="84" y="163.0" fill="#17222e" text-anchor="end" font-weight="600">rstB</text>
+<polyline points="92.0,172 150.5,172 150.5,172 150.5,146 736.0,146" fill="none" stroke="#17222e" stroke-width="2" stroke-linejoin="miter"/>
+<text x="84" y="211.0" fill="#17222e" text-anchor="end" font-weight="600">cB</text>
+<polygon points="97.0,194 184.6,194 189.6,207.0 184.6,220 97.0,220 92.0,207.0" fill="#e7f0fb" stroke="#2a78d6" stroke-width="1.4"/>
+<text x="140.8" y="211.0" fill="#17222e" text-anchor="middle" font-weight="600">0</text>
+<polygon points="194.6,194 379.7,194 384.7,207.0 379.7,220 194.6,220 189.6,207.0" fill="#e7f0fb" stroke="#2a78d6" stroke-width="1.4"/>
+<text x="287.2" y="211.0" fill="#17222e" text-anchor="middle" font-weight="600">1</text>
+<polygon points="389.7,194 574.9,194 579.9,207.0 574.9,220 389.7,220 384.7,207.0" fill="#e7f0fb" stroke="#2a78d6" stroke-width="1.4"/>
+<text x="482.3" y="211.0" fill="#17222e" text-anchor="middle" font-weight="600">2</text>
+<polygon points="584.9,194 731.0,194 736.0,207.0 731.0,220 584.9,220 579.9,207.0" fill="#e7f0fb" stroke="#2a78d6" stroke-width="1.4"/>
+<text x="657.9" y="211.0" fill="#17222e" text-anchor="middle" font-weight="600">3</text>
+<line x1="92.0" y1="138" x2="92.0" y2="178" stroke="#2a78d6" stroke-width="1.6" stroke-dasharray="4 3"/>
+<text x="97.0" y="134" fill="#2a78d6" font-size="11" font-weight="600" text-anchor="start" font-family="system-ui,sans-serif">x→0 = có cạnh xuống → reset chạy</text>
+<line x1="150.5" y1="42" x2="150.5" y2="82" stroke="#2a78d6" stroke-width="1.6" stroke-dasharray="4 3"/>
+<text x="155.5" y="38" fill="#2a78d6" font-size="11" font-weight="600" text-anchor="start" font-family="system-ui,sans-serif">rstA chỉ có cạnh LÊN</text>
+</svg>

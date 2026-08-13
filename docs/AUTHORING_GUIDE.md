@@ -59,9 +59,11 @@ không phải sự cố.
 
 Markdown bình thường: `##` cho mục, ` ```systemverilog ` cho code (tô màu tự động), bảng, ảnh.
 
-- **Ảnh:** đặt file vào `public/images/ten-bai/` rồi chèn
-  `![mô tả ảnh](../../images/ten-bai/hinh-1.png)` — LUÔN viết mô tả ảnh (alt) và chỉ dùng
-  ảnh mình có quyền dùng (ảnh bên thứ ba: ghi nguồn vào trường `attribution`).
+- **Ảnh:** đặt file vào `src/assets/images/ten-bai/` rồi chèn
+  `![mô tả ảnh](../../assets/images/ten-bai/hinh-1.png)` — Astro tự xử lý đường dẫn và tối
+  ưu ảnh khi build (đặt trong `public/` sẽ bị BÁO LỖI build với đường dẫn tương đối — thư mục
+  `public/` chỉ dành cho file tĩnh đặc biệt như cây legacy). LUÔN viết mô tả ảnh (alt) và chỉ
+  dùng ảnh mình có quyền dùng (ảnh bên thứ ba: ghi nguồn vào trường `attribution`).
 - **Link nội bộ:** từ trang bài viết, đường dẫn bắt đầu bằng `../../` là về gốc site.
   Ví dụ: `[giáo trình V3](../../legacy/versions/v3/index.html)`,
   `[bài khác](../../articles/slug-bai-khac/)`.
