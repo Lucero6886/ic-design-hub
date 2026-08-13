@@ -136,6 +136,39 @@ Mục này ghi lại **vì sao** các lỗi của đợt rà soát cuối tồn 
 
 **7.6 Mô hình tham chiếu phải hỏng ồn ào.** Testbench W10 §C5 để sẵn bảng giải mã thiếu hàng cho học viên chép nốt, với `default` trả về một mẫu 7 đoạn trông hợp lệ. Hậu quả: học viên chạy thử sẽ thấy hàng loạt `$error` và kết luận **RTL** sai, trong khi lỗi ở testbench. Đã đổi `default` thành trả `x` kèm thông báo riêng. Nguyên tắc này đã viết thành một mục học trong trang: trọng tài mà đoán thì hết là trọng tài.
 
+## 8. Cập nhật 08/2026 — V3 vận hành bên trong Community Hub
+
+Từ 12/08/2026, bộ V3 này là **giáo trình hiện hành** bên trong repository
+*IC Design Learning & Research Hub* (site Astro), đặt tại `public/legacy/versions/v3/`.
+Tính tự chứa của V3 giữ nguyên: cả thư mục vẫn mở offline độc lập được, quiz/tiến độ/
+chế độ mentor không đổi (namespace localStorage `licv3:` giữ nguyên).
+
+**Thay đổi đã thực hiện trong cây này (đều có ghi chép):**
+
+- **12/08/2026 — bản vá attribution/metadata pháp lý:** danh tính hiển thị đổi sang chuẩn
+  **Giảng Viên Đinh Văn Nam**; chủ sở hữu bản quyền cập nhật ở meta tag, footer, câu hướng
+  dẫn trích dẫn và template `tools/mkdocs.mjs` (để tái sinh tài liệu không làm mất danh tính
+  mới). **Nội dung giảng dạy không đổi một chữ.** Danh sách từng file + số lượt thay thế:
+  `docs/CONTENT_CHANGELOG.md` của repo.
+- **13/08/2026 — chính tài liệu này:** bổ sung mục 8 (bối cảnh hub + quy trình bảo trì mới).
+
+**Quy trình bảo trì V3 từ nay (thay cho mô tả "standalone" ở mục 5):**
+
+1. Sửa tài liệu vận hành: sửa bản `.md` (nguồn sự thật) → trong thư mục v3 chạy
+   `npm install marked` (một lần) rồi `node tools/mkdocs.mjs` → bản `.html` tái sinh.
+   Riêng trang implementation-notes biên soạn tay — sửa thủ công cả hai bản (như chính
+   bản cập nhật này).
+2. Ở cấp repo: `npm run check` chạy validator nguyên bản trên toàn cây legacy **và** đối
+   chiếu hash SHA-256 của `_source/` (bất biến — hồ sơ tại `docs/audit/PROVENANCE_RECORD.md`);
+   CI lặp lại toàn bộ kiểm này mỗi lần push trước khi deploy. Tìm kiếm của hub tự index lại
+   tiêu đề/đề mục V3 khi build — không phải cập nhật chỉ mục tay.
+3. Ghi chép: mọi thay đổi trong cây legacy ghi vào `docs/CONTENT_CHANGELOG.md` theo phân
+   loại của `docs/VERSIONING_POLICY.md` (bản hiện hành, đã bổ sung hạng mục
+   "Attribution / legal metadata correction").
+4. Phạm vi sửa: V3 là bản hiện hành nên **được** sửa lỗi kỹ thuật nội dung (kèm nguồn đối
+   chiếu, qua Pull Request theo `CONTRIBUTING.md`); V1/V2 là lưu trữ bất biến — không sửa
+   nội dung giảng dạy dưới mọi hình thức.
+
 ---
 
 **Khoa Điện – Điện tử · Trường Kỹ thuật · Đại học Phenikaa** · Biên soạn: **Giảng Viên Đinh Văn Nam**  

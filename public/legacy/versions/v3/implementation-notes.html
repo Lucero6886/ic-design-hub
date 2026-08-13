@@ -22,6 +22,7 @@
       <a class="chip" href="#dod">Definition of Done</a>
       <a class="chip" href="#system">Bản chất hệ thống</a>
       <a class="chip" href="#maintain">Bảo trì</a>
+      <a class="chip" href="#hub2026">Hub 2026</a>
       <a class="chip" href="index.html">← Mục lục</a>
     </nav>
   </div>
@@ -206,6 +207,29 @@ Tham số mô phỏng thu nhỏ nhất quán: DIV=10 · GREEN=6/YELLOW=2 · CLK_
         <h3>6 · Mô hình tham chiếu phải hỏng ồn ào</h3>
         <p class="small">Testbench W10 §C5 để sẵn bảng giải mã thiếu hàng cho học viên chép nốt, với <code>default</code> trả về một mẫu 7 đoạn <em>trông hợp lệ</em>. Hậu quả: học viên chạy thử thấy hàng loạt <code>$error</code> và kết luận <b>RTL</b> sai, trong khi lỗi ở testbench.</p>
         <p class="small">Đã đổi <code>default</code> thành trả <code>x</code> kèm thông báo riêng, và viết nguyên tắc này thành một mục học ngay trong trang: trọng tài mà đoán thì hết là trọng tài.</p>
+      </div>
+    </div>
+
+    <div class="wrap layer-head" id="hub2026" style="padding-top:26px"><div class="band"><span class="layer-badge">7</span><h2>Cập nhật 08/2026 — V3 vận hành bên trong Community Hub</h2></div>
+    <p class="lead">Từ 12/08/2026, bộ V3 này là <b>giáo trình hiện hành</b> bên trong repository <em>IC Design Learning &amp; Research Hub</em> (site Astro), đặt tại <code>public/legacy/versions/v3/</code>. Tính tự chứa của V3 giữ nguyên: cả thư mục vẫn mở offline độc lập được; quiz, tiến độ, chế độ mentor không đổi (namespace <code>licv3:</code> giữ nguyên).</p></div>
+    <div class="wrap layer-body">
+      <div class="grid2">
+        <div class="card">
+          <h3>Thay đổi đã thực hiện trong cây này (đều có ghi chép)</h3>
+          <ul class="small">
+            <li><b>12/08/2026 — bản vá attribution/metadata pháp lý:</b> danh tính hiển thị đổi sang chuẩn <b>Giảng Viên Đinh Văn Nam</b>; chủ sở hữu bản quyền cập nhật ở meta tag, footer, câu hướng dẫn trích dẫn và template <code>tools/mkdocs.mjs</code>. <b>Nội dung giảng dạy không đổi một chữ.</b> Danh sách từng file: <code>docs/CONTENT_CHANGELOG.md</code> của repo.</li>
+            <li><b>13/08/2026 — chính tài liệu này:</b> bổ sung mục "Hub 2026" (bối cảnh + quy trình bảo trì mới) ở cả bản .md lẫn .html.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Quy trình bảo trì V3 từ nay</h3>
+          <ul class="small">
+            <li><b>Sửa tài liệu vận hành:</b> sửa bản <code>.md</code> → trong thư mục v3 chạy <code>npm install marked</code> (một lần) rồi <code>node tools/mkdocs.mjs</code> → bản <code>.html</code> tái sinh. Riêng trang này biên soạn tay — sửa thủ công cả hai bản.</li>
+            <li><b>Kiểm ở cấp repo:</b> <code>npm run check</code> chạy validator nguyên bản trên toàn cây legacy và đối chiếu hash SHA-256 của <code>_source/</code> (bất biến); CI lặp lại toàn bộ trước mỗi lần deploy. Tìm kiếm của hub tự index lại V3 khi build.</li>
+            <li><b>Ghi chép:</b> mọi thay đổi trong cây legacy ghi vào <code>docs/CONTENT_CHANGELOG.md</code> theo phân loại của <code>docs/VERSIONING_POLICY.md</code>.</li>
+            <li><b>Phạm vi sửa:</b> V3 (hiện hành) được sửa lỗi kỹ thuật kèm nguồn đối chiếu qua Pull Request; V1/V2 là lưu trữ bất biến — không sửa nội dung giảng dạy dưới mọi hình thức.</li>
+          </ul>
+        </div>
       </div>
     </div>
 

@@ -5,6 +5,12 @@ biệt so với `_source/*.zip` đều truy nguyên được. Phân loại theo 
 Ghi các sự kiện: di trú phiên bản, hiệu chỉnh kỹ thuật, hiệu chỉnh attribution, thay đổi kiến
 trúc ảnh hưởng URL/nội dung, phát hành giáo trình lớn — KHÔNG ghi sửa chính tả lặt vặt.
 
+## 2026-08-13 — Cập nhật tài liệu vận hành V3: implementation-notes
+
+| Thay đổi | Loại | Chi tiết |
+|---|---|---|
+| Bổ sung mục 8 "Cập nhật 08/2026 — V3 vận hành bên trong Community Hub" vào `public/legacy/versions/v3/implementation-notes.md` và section tương ứng (`#hub2026`, badge 7) + 1 chip điều hướng trong `implementation-notes.html` | TÀI LIỆU VẬN HÀNH (bản hiện hành V3) | Ghi bối cảnh mới (V3 nằm trong hub tại `public/legacy/versions/v3/`), hồ sơ bản vá attribution 12/08, và quy trình bảo trì mới (mkdocs + `npm run check` + CI + changelog). Không đụng nội dung giảng dạy; trang này vốn biên soạn tay nên sửa thủ công cả hai bản như quy ước của chính nó. |
+
 ## 2026-08-12 — Chuyển đổi thành IC Design Learning & Research Community Hub
 
 ### Kiến trúc & vị trí nội dung
