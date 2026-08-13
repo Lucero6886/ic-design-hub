@@ -1,0 +1,33 @@
+{
+  "$comment": "DANH SÁCH NGUỒN TIN — nơi DUY NHẤT quản lý nguồn cho trang Tin tức. Tiêu chí nhận nguồn: cơ quan báo chí/xuất bản chuyên ngành có danh tiếng, có RSS chính thức, nội dung liên quan bán dẫn/vi mạch/FPGA/ASIC/thị trường. Feed đã kiểm chứng hoạt động ngày 13/08/2026. Muốn thêm nguồn: thêm một entry + mở PR (hoặc issue 'Gợi ý tài nguyên'); nguồn tiếng Việt tổng hợp công nghệ BẮT BUỘC có 'keywords' để lọc đúng chủ đề.",
+  "sources": [
+    {
+      "id": "semiengineering",
+      "name": "Semiconductor Engineering",
+      "homepage": "https://semiengineering.com",
+      "feedUrl": "https://semiengineering.com/feed/",
+      "lang": "en",
+      "group": "Quốc tế — kỹ thuật & công nghiệp",
+      "note": "Tạp chí chuyên sâu cho kỹ sư bán dẫn: thiết kế, EDA, kiểm thử, sản xuất, đóng gói."
+    },
+    {
+      "id": "ieee-spectrum-semi",
+      "name": "IEEE Spectrum — Semiconductors",
+      "homepage": "https://spectrum.ieee.org/topic/semiconductors/",
+      "feedUrl": "https://spectrum.ieee.org/feeds/topic/semiconductors.rss",
+      "lang": "en",
+      "group": "Quốc tế — kỹ thuật & công nghiệp",
+      "note": "Chuyên mục bán dẫn của tạp chí IEEE — công nghệ mới, nghiên cứu, xu hướng."
+    },
+    {
+      "id": "vnexpress-sohoa",
+      "name": "VnExpress — Số hóa (lọc chủ đề chip/bán dẫn)",
+      "homepage": "https://vnexpress.net/so-hoa",
+      "feedUrl": "https://vnexpress.net/rss/so-hoa.rss",
+      "lang": "vi",
+      "group": "Việt Nam — thị trường & chính sách",
+      "note": "Báo tiếng Việt lớn; hub chỉ giữ các tin khớp từ khóa bán dẫn/chip/vi mạch/FPGA/ASIC/tuyển dụng kỹ sư.",
+      "keywords": ["ban dan", "chip", "vi mach", "semiconductor", "fpga", "asic", "wafer", "tsmc", "fab ", "dram", "ky su ban dan"]
+    }
+  ]
+}

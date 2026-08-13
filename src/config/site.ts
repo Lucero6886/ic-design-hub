@@ -73,6 +73,7 @@ export const NAV = [
   { href: "projects/", label: "Project" },
   { href: "mentoring/", label: "Mentoring" },
   { href: "resources/", label: "Tài nguyên" },
+  { href: "news/", label: "Tin tức" },
   { href: "community/", label: "Cộng đồng" },
   { href: "about/", label: "Giới thiệu" },
 ] as const;

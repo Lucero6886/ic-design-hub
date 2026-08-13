@@ -1,0 +1,138 @@
+---
+import BaseLayout from "~/layouts/BaseLayout.astro";
+import EntryList from "~/components/EntryList.astro";
+import { href, fmtDate } from "~/utils/url";
+import { getPublished, label } from "~/utils/content";
+import newsData from "../../data/news-items.json";
+import sourcesData from "../../data/news-sources.json";
+
+const items = newsData.items;
+const fetchedAt = new Date(newsData.fetchedAt);
+const isSeed = newsData.seed === true;
+const groups = [...new Set(items.map((i) => i.group))];
+
+// Bài phân tích của hub (category: news) — sản phẩm seminar "Radar bán dẫn"
+const hubNewsArticles = (await getPublished("articles")).filter((a) => a.data.category === "news");
+---
+
+<BaseLayout
+  title="Tin tức ngành"
+  description="Tin mới về công nghệ bán dẫn, thiết kế vi mạch, FPGA/ASIC và thị trường — tổng hợp tự động hằng ngày từ danh sách nguồn uy tín đã chọn lọc, kèm khu vực việc làm & nghề nghiệp."
+  path="news/"
+>
+  <section class="hero">
+    <div class="wrap">
+      <div class="kicker">Industry Radar</div>
+      <h1>Tin tức ngành</h1>
+      <p class="sub">
+        Công nghệ bán dẫn · thiết kế vi mạch · FPGA/ASIC · thị trường & nghề nghiệp —
+        tổng hợp tự động từ các nguồn uy tín, cập nhật hằng ngày.
+      </p>
+      <div class="pill-row">
+        <span class="pill">Cập nhật lần cuối: {fmtDate(fetchedAt)}</span>
+        <span class="pill">{items.length} tin · {sourcesData.sources.length} nguồn chọn lọc</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      {isSeed && (
+        <div class="co warn">
+          <b>Dữ liệu khởi tạo:</b> danh sách dưới đây là bản mồi lúc dựng trang (tiêu đề thật,
+          link trỏ về trang chuyên mục của nguồn). Sau lần cập nhật tự động đầu tiên, mỗi tin
+          sẽ có link trực tiếp tới bài gốc và danh sách tự làm mới hằng ngày.
+        </div>
+      )}
+      <div class="co info">
+        <b>Cách trang này hoạt động &amp; bản quyền:</b> hub chỉ hiển thị <i>tiêu đề + nguồn +
+        ngày</i> và dẫn link về bài gốc — nội dung tin thuộc bản quyền của nguồn tương ứng.
+        Nguồn được chọn lọc thủ công theo tiêu chí uy tín (danh sách ở cuối trang); tin tiếng
+        Việt tổng hợp được lọc đúng chủ đề bán dẫn/vi mạch. Đọc tin bằng tư duy của khóa:&nbsp;<i>số liệu phải có nguồn và thời điểm</i>.
+      </div>
+
+      {groups.map((g) => (
+        <section aria-label={g}>
+          <h2 class="sec" style="margin-top:26px">{g}</h2>
+          <ul class="entry-list">
+            {items.filter((i) => i.group === g).map((i) => (
+              <li>
+                <div class="title">
+                  <a href={i.url} rel="noopener external">{i.title}</a>
+                </div>
+                <div class="meta">
+                  <span class="badge acc">{i.source}</span>
+                  {i.date && <span>{fmtDate(new Date(i.date))}</span>}
+                  <span class="muted">↗ đọc tại nguồn</span>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
+
+      <h2 class="sec" style="margin-top:30px">Bài phân tích của hub</h2>
+      <p class="sec-sub">
+        Sản phẩm của seminar "Radar bán dẫn" hằng tháng: một tin đáng chú ý + phân tích
+        "điều này nghĩa là gì với kỹ năng mình đang học".
+      </p>
+      <EntryList
+        items={hubNewsArticles.map((a) => ({
+          url: href(`articles/${a.id}/`),
+          title: a.data.title,
+          summary: a.data.summary,
+          date: a.data.date,
+          tags: a.data.tags,
+          badges: [{ text: label(a.data.category), tone: "acc" }],
+        }))}
+        emptyText="Chưa có bài phân tích — bài đầu tiên sẽ ra đời từ seminar Radar bán dẫn (xem docs/EXPANSION_REVIEW.md). Viết bài: category: news."
+      />
+
+      <h2 class="sec" style="margin-top:30px" id="viec-lam">Việc làm &amp; nghề nghiệp</h2>
+      <p class="sec-sub">
+        Không có "feed việc làm" đáng tin — cách đúng là tìm chủ động với từ khóa chuẩn ở các
+        kênh sau (và trang tuyển dụng của chính các công ty).
+      </p>
+      <div class="grid cols-2">
+        <div class="card">
+          <h3>Từ khóa tìm việc hiệu quả</h3>
+          <p class="small">
+            Tiếng Anh: <code>IC design</code> · <code>RTL design</code> ·
+            <code>design verification (DV)</code> · <code>physical design</code> ·
+            <code>FPGA engineer</code> · <code>ASIC</code> · <code>DFT</code><br />
+            Tiếng Việt: <code>thiết kế vi mạch</code> · <code>kỹ sư bán dẫn</code> ·
+            <code>kiểm chứng thiết kế</code>
+          </p>
+          <p class="small" style="margin-top:6px">
+            Kỹ năng Phase 1 của hub khớp trực tiếp các vị trí entry-level: RTL design,
+            design verification, FPGA engineer.
+          </p>
+        </div>
+        <div class="card">
+          <h3>Kênh tìm kiếm</h3>
+          <ul class="small" style="margin:0;padding-left:18px">
+            <li><a href="https://www.linkedin.com/jobs/search/?keywords=IC%20Design&location=Vietnam" rel="noopener">LinkedIn Jobs — "IC Design" tại Việt Nam</a></li>
+            <li><a href="https://www.vietnamworks.com" rel="noopener">VietnamWorks</a> · <a href="https://itviec.com" rel="noopener">ITviec</a> · <a href="https://www.topcv.vn" rel="noopener">TopCV</a> — tìm với từ khóa bên trái</li>
+            <li>Trang career của các công ty có trung tâm thiết kế tại VN (xem <a href={href("tags/industry/")}>track Công nghiệp &amp; thị trường</a> và Chiến lược 1018/QĐ-TTg trong Tài nguyên)</li>
+          </ul>
+        </div>
+      </div>
+
+      <h2 class="sec" style="margin-top:30px">Nguồn được chọn lọc</h2>
+      <div class="grid cols-3">
+        {sourcesData.sources.map((s) => (
+          <div class="card flat">
+            <h3 style="font-size:15.5px"><a href={s.homepage} rel="noopener">{s.name}</a></h3>
+            <p class="small">{s.note}</p>
+            <div class="meta"><span class="badge gray">{s.lang === "vi" ? "Tiếng Việt" : "Tiếng Anh"}</span></div>
+          </div>
+        ))}
+      </div>
+      <p class="muted small" style="margin-top:12px">
+        Đề xuất nguồn mới: mở issue "Gợi ý tài nguyên" trên repo — tiêu chí: cơ quan báo
+        chí/xuất bản chuyên ngành uy tín, có RSS chính thức, liên quan trực tiếp tới bán
+        dẫn/vi mạch/FPGA/ASIC/thị trường tuyển dụng.
+      </p>
+    </div>
+  </section>
+</BaseLayout>

@@ -116,6 +116,7 @@ const STATIC_PAGES = [
   ["Project", "projects/", ["project sinh viên", "FPGA", "nghiên cứu"]],
   ["Mentoring", "mentoring/", ["mentor guide", "khung 60 phút", "chẩn đoán hiểu sai"]],
   ["Tài nguyên", "resources/", ["công cụ", "sách", "paper", "EDA"]],
+  ["Tin tức ngành — bán dẫn, vi mạch, FPGA/ASIC, việc làm", "news/", ["tin tức", "industry radar", "thị trường", "tuyển dụng", "nghề nghiệp", "việc làm"]],
   ["Cộng đồng", "community/", ["hỏi đáp", "GitHub Discussions", "đóng góp", "pull request"]],
   ["Giới thiệu hub", "about/", ["về hub", "người phụ trách", "trích dẫn"]],
   ["Bản quyền & Attribution", "about/copyright/", ["bản quyền", "trích dẫn", "attribution", "giấy phép"]],

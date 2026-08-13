@@ -79,6 +79,19 @@ git add -A && git commit -m "..." && git push
 
 Không cần chạy build tay, không cần sinh chỉ mục tay — CI làm hết.
 
+## Trang Tin tức tự cập nhật (từ 13/08/2026)
+
+Workflow có thêm lịch chạy **hằng ngày 22:00 UTC (~5:00 sáng VN)**: bước
+`node tools/fetch-news.mjs` lấy tin mới từ danh sách nguồn trong
+`src/data/news-sources.json` (RSS chính thức, đã kiểm chứng) → ghi
+`src/data/news-items.json` → build + deploy lại. Ba điều cần biết:
+
+1. Nguồn lỗi/mất mạng KHÔNG chặn deploy — bước này luôn kết thúc thành công, tin cũ được giữ.
+2. **GitHub tự tắt scheduled workflow nếu repo im ắng 60 ngày** — vào tab Actions, chọn
+   workflow, bấm *Enable* là chạy lại (một commit bất kỳ cũng kích hoạt lại).
+3. Thêm/bớt nguồn tin: sửa MỘT file `src/data/news-sources.json` (tiêu chí ghi ngay trong
+   file); parser có self-test không cần mạng, chạy trong `npm run check`.
+
 ## Domain riêng (tùy chọn)
 
 Settings → Pages → Custom domain (+ file `CNAME` trong `public/`). Sau đó sửa

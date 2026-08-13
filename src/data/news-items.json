@@ -1,0 +1,79 @@
+{
+ "$comment": "DỮ LIỆU MỒI khởi tạo 13/08/2026 — tiêu đề THẬT chép tay từ trang các nguồn lúc khởi tạo (link trỏ về trang chuyên mục của nguồn vì bản mồi không có URL bài trực tiếp). File này được tools/fetch-news.mjs GHI ĐÈ với tin mới + link trực tiếp sau mỗi lần CI chạy (hằng ngày). Không sửa tay.",
+ "fetchedAt": "2026-08-13T09:00:00.000Z",
+ "seed": true,
+ "items": [
+  {
+   "title": "Việt Nam cần có phòng thí nghiệm phát triển chip dùng chung",
+   "url": "https://vnexpress.net/so-hoa",
+   "date": "2026-08-13T00:00:00.000Z",
+   "source": "VnExpress — Số hóa (lọc chủ đề chip/bán dẫn)",
+   "sourceId": "vnexpress-sohoa",
+   "lang": "vi",
+   "group": "Việt Nam — thị trường & chính sách"
+  },
+  {
+   "title": "Chi phí sản xuất iPhone 18 Pro có thể tăng 40% do giá chip nhớ",
+   "url": "https://vnexpress.net/so-hoa",
+   "date": "2026-08-12T00:00:00.000Z",
+   "source": "VnExpress — Số hóa (lọc chủ đề chip/bán dẫn)",
+   "sourceId": "vnexpress-sohoa",
+   "lang": "vi",
+   "group": "Việt Nam — thị trường & chính sách"
+  },
+  {
+   "title": "How Long Does A Measurement Remain Valid?",
+   "url": "https://semiengineering.com",
+   "date": "2026-08-11T00:00:00.000Z",
+   "source": "Semiconductor Engineering",
+   "sourceId": "semiengineering",
+   "lang": "en",
+   "group": "Quốc tế — kỹ thuật & công nghiệp"
+  },
+  {
+   "title": "CPO Test Won't Scale Without Standardization",
+   "url": "https://semiengineering.com",
+   "date": "2026-08-11T00:00:00.000Z",
+   "source": "Semiconductor Engineering",
+   "sourceId": "semiengineering",
+   "lang": "en",
+   "group": "Quốc tế — kỹ thuật & công nghiệp"
+  },
+  {
+   "title": "'Kỹ sư bán dẫn Việt đang từng bước sẵn sàng cho môi trường toàn cầu'",
+   "url": "https://vnexpress.net/so-hoa",
+   "date": "2026-08-06T00:00:00.000Z",
+   "source": "VnExpress — Số hóa (lọc chủ đề chip/bán dẫn)",
+   "sourceId": "vnexpress-sohoa",
+   "lang": "vi",
+   "group": "Việt Nam — thị trường & chính sách"
+  },
+  {
+   "title": "The Next Big Chip Failure May Be A Security One",
+   "url": "https://semiengineering.com",
+   "date": "2026-08-06T00:00:00.000Z",
+   "source": "Semiconductor Engineering",
+   "sourceId": "semiengineering",
+   "lang": "en",
+   "group": "Quốc tế — kỹ thuật & công nghiệp"
+  },
+  {
+   "title": "Identifying the Root Cause of Electronics Failures With Simulation Apps",
+   "url": "https://spectrum.ieee.org/topic/semiconductors/",
+   "date": "2026-08-03T00:00:00.000Z",
+   "source": "IEEE Spectrum — Semiconductors",
+   "sourceId": "ieee-spectrum-semi",
+   "lang": "en",
+   "group": "Quốc tế — kỹ thuật & công nghiệp"
+  },
+  {
+   "title": "Exotic Quasiparticles Promise Next-Gen Interconnects",
+   "url": "https://spectrum.ieee.org/topic/semiconductors/",
+   "date": "2026-07-27T00:00:00.000Z",
+   "source": "IEEE Spectrum — Semiconductors",
+   "sourceId": "ieee-spectrum-semi",
+   "lang": "en",
+   "group": "Quốc tế — kỹ thuật & công nghiệp"
+  }
+ ]
+}
