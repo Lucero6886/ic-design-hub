@@ -5,7 +5,9 @@ import { SITE, AUTHOR, LEGACY, COMMUNITY } from "~/config/site";
 import { href, fmtDate } from "~/utils/url";
 import { getPublished, label } from "~/utils/content";
 import versionsManifest from "../../public/legacy/data/versions.json";
+import newsData from "../data/news-items.json";
 
+const latestNews = newsData.items.slice(0, 4);
 const articles = (await getPublished("articles")).slice(0, 4);
 const research = (await getPublished("research")).slice(0, 3);
 const projects = (await getPublished("projects")).slice(0, 3);
@@ -212,6 +214,31 @@ const historical = versionsManifest.versions.filter((v) => v.status === "histori
           </div>
         </div>
       </div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="industrynews-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <h2 id="industrynews-h" class="sec">Tin tức ngành mới nhất</h2>
+        <a class="more" href={href("news/")}>Tất cả tin tức + việc làm →</a>
+      </div>
+      <p class="sec-sub">
+        Bán dẫn · vi mạch · FPGA/ASIC · thị trường — tổng hợp tự động hằng ngày từ nguồn uy tín,
+        dẫn link về bài gốc.
+      </p>
+      <ul class="entry-list">
+        {latestNews.map((n) => (
+          <li>
+            <div class="title"><a href={n.url} rel="noopener external">{n.title}</a></div>
+            <div class="meta">
+              <span class="badge acc">{n.source}</span>
+              {n.date && <span>{fmtDate(new Date(n.date))}</span>}
+              <span class="muted">↗ đọc tại nguồn</span>
+            </div>
+          </li>
+        ))}
+      </ul>
     </div>
   </section>
 
