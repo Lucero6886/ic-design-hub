@@ -17,7 +17,7 @@ Một project duy nhất, lớn dần qua ba tuần, bảo vệ ở tuần 12. T
 **Ràng buộc thiết kế**
 - MỘT clock duy nhất `clk` (50 MHz mặc định, parameter hóa). Mọi nhịp chậm (1 Hz, baud) đều là **clock-enable** từ counter — cấm derived clock (`@(posedge tick)`, lấy bit counter làm clock).
 - Reset `rst_n` bất đồng bộ, tích cực mức thấp, dùng thống nhất.
-- SystemVerilog synthesizable; style theo Week07 (3 ngôi nhà, `<=` tuần tự, default-trước tổ hợp, nối port theo tên).
+- SystemVerilog synthesizable; style theo Week07 — "ba ngôi nhà" của mô tả RTL (thuật ngữ dạy ở Week07 §C3): `assign` (tổ hợp một biểu thức) · `always_comb` (tổ hợp nhiều nhánh, default trước, gán `=`) · `always_ff` (tuần tự, gán `<=`, có chiến lược reset); hierarchy nối port theo tên.
 
 ## 2. Kiến trúc &amp; sơ đồ khối
 

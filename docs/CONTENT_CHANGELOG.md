@@ -5,6 +5,12 @@ biệt so với `_source/*.zip` đều truy nguyên được. Phân loại theo 
 Ghi các sự kiện: di trú phiên bản, hiệu chỉnh kỹ thuật, hiệu chỉnh attribution, thay đổi kiến
 trúc ảnh hưởng URL/nội dung, phát hành giáo trình lớn — KHÔNG ghi sửa chính tả lặt vặt.
 
+## 2026-08-14 — Chú giải biệt ngữ trong PROJECT_GUIDE (V3, bản hiện hành)
+
+| Thay đổi | Loại | Chi tiết |
+|---|---|---|
+| `versions/v3/PROJECT_GUIDE.md` + `.html` §1 "Ràng buộc thiết kế": mở rộng dòng "style theo Week07 (3 ngôi nhà…)" thành câu tự giải nghĩa — nêu rõ "ba ngôi nhà" = `assign` / `always_comb` / `always_ff` kèm trỏ về Week07 §C3 (bản .html thêm link) | LÀM RÕ TÀI LIỆU (không đổi nội dung kỹ thuật) | Phát hiện từ rà soát của tác giả 14/08/2026: PROJECT_GUIDE tự nhận là đặc tả đứng độc lập nhưng dùng biệt ngữ sư phạm của Week07 không kèm chú giải. Ý nghĩa kỹ thuật giữ nguyên; sửa tay đồng bộ cả `.md` lẫn `.html` (KHÔNG chạy lại mkdocs.mjs để tránh khác biệt render hàng loạt do phiên bản thư viện `marked` khác thời điểm gốc — ghi nhận đánh đổi này tại đây). |
+
 ## 2026-08-13 — Cập nhật tài liệu vận hành V3: implementation-notes
 
 | Thay đổi | Loại | Chi tiết |

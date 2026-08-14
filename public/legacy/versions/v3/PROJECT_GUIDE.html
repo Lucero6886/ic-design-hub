@@ -66,7 +66,7 @@
 <ul>
 <li>MỘT clock duy nhất <code>clk</code> (50 MHz mặc định, parameter hóa). Mọi nhịp chậm (1 Hz, baud) đều là <strong>clock-enable</strong> từ counter — cấm derived clock (<code>@(posedge tick)</code>, lấy bit counter làm clock).</li>
 <li>Reset <code>rst_n</code> bất đồng bộ, tích cực mức thấp, dùng thống nhất.</li>
-<li>SystemVerilog synthesizable; style theo Week07 (3 ngôi nhà, <code>&lt;=</code> tuần tự, default-trước tổ hợp, nối port theo tên).</li>
+<li>SystemVerilog synthesizable; style theo Week07 — "ba ngôi nhà" của mô tả RTL (thuật ngữ dạy ở <a href="Week07.html">Week07 §C3</a>): <code>assign</code> (tổ hợp một biểu thức) · <code>always_comb</code> (tổ hợp nhiều nhánh, default trước, gán <code>=</code>) · <code>always_ff</code> (tuần tự, gán <code>&lt;=</code>, có chiến lược reset); hierarchy nối port theo tên.</li>
 </ul>
 <h2 id="m-2-kien-truc-amp-so-do-khoi">2. Kiến trúc &amp; sơ đồ khối</h2>
 <p>Mục này mô tả kiến trúc ở hai mức: <strong>mức đỉnh</strong> (các module nối với nhau ra sao) và <strong>mức bên trong <code>traffic_ctrl</code></strong> (controller và datapath phối hợp thế nào). Hình vẽ để hình dung; <strong>bảng liên kết tín hiệu ở §2.4 mới là bản đặc tả chuẩn</strong> — khi hình và bảng khác nhau, lấy bảng làm gốc, và bảng này khớp từng dòng với <code>traffic_system_top.sv</code> (Tuần 11).</p>
