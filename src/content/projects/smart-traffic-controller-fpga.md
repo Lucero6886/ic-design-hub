@@ -43,8 +43,9 @@ relatedResearch: [eq-to-rq-framework]
 
 Điều khiển đèn ngã tư hai hướng NS/EW theo chu trình GREEN_NS → YELLOW_NS → GREEN_EW →
 YELLOW_EW; hiển thị số giây còn lại của pha trên LED 7 đoạn; mỗi giây gửi một dòng trạng thái
-(`GN 09\n`) về PC qua UART. Toàn hệ chạy **một clock duy nhất** — mọi nhịp chậm (1 Hz, baud)
-đều là clock-enable, cấm derived clock.
+`GN 09\n` — đúng 6 byte ASCII `47 4E 20 30 39 0A`, trong đó `\n` là ký hiệu escape cho MỘT
+byte xuống dòng (LF) — về PC qua UART. Toàn hệ chạy **một clock duy nhất** — mọi nhịp chậm
+(1 Hz, baud) đều là clock-enable, cấm derived clock.
 
 ## Yêu cầu an toàn (safety invariant)
 

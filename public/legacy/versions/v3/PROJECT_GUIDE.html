@@ -55,7 +55,7 @@
 <li>Điều khiển đèn ngã tư hai hướng NS/EW, mỗi hướng {đỏ, vàng, xanh}; chu trình GREEN_NS → YELLOW_NS → GREEN_EW → YELLOW_EW → lặp.</li>
 <li>Thời lượng xanh/vàng là parameter (<code>GREEN_TICKS</code> mặc định 10, <code>YELLOW_TICKS</code> mặc định 3, đơn vị giây, mỗi pha ≤ 15 s để timer 4 bit đủ).</li>
 <li>Hiển thị số giây còn lại của pha trên LED 7 đoạn (1 digit; 2 digit multiplexed là mở rộng).</li>
-<li>Mỗi giây gửi một dòng trạng thái dạng <code>GN 09\n</code> (6 byte ASCII) về PC qua UART 8N1, baud mặc định 115200.</li>
+<li>Mỗi giây gửi một dòng trạng thái dạng <code>GN 09\n</code> (6 byte ASCII: <code>G</code>·<code>N</code>·khoảng trắng·<code>0</code>·<code>9</code>·LF <code>0x0A</code> — <code>\n</code> là ký hiệu escape chuẩn cho MỘT byte xuống dòng, không phải hai ký tự) về PC qua UART 8N1, baud mặc định 115200.</li>
 <li>Sau reset (<code>rst_n</code> = 0): hệ ở GREEN_NS, timer nạp đầy — hành vi xác định.</li>
 </ol>
 <p><strong>Yêu cầu an toàn (safety invariant)</strong> — kiểm tự động trong testbench ở MỌI cạnh clock:</p>
