@@ -10,6 +10,11 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  schedule:
+    # Hằng ngày 22:00 UTC (≈ 5:00 sáng giờ Việt Nam): lấy tin mới cho trang /news/
+    # rồi build + deploy lại. Lưu ý của GitHub: scheduled workflow tự tắt nếu repo
+    # không có hoạt động nào trong 60 ngày — vào tab Actions bấm Enable lại là chạy tiếp.
+    - cron: "0 22 * * *"
 
 permissions:
   contents: read
@@ -47,6 +52,9 @@ jobs:
 
       - name: Provenance — _source/ phải bất biến
         run: node tools/check-source-hashes.mjs
+
+      - name: Tin tức — lấy tin mới từ nguồn chọn lọc (lỗi nguồn KHÔNG chặn deploy)
+        run: node tools/fetch-news.mjs || echo "fetch-news lỗi — dùng dữ liệu tin sẵn có"
 
       - name: Validate — cây legacy + schema nội dung
         run: |
