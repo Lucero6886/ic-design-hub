@@ -1,0 +1,41 @@
+# CI TỰ ĐỘNG MÔ PHỎNG cho repo nhóm — "trọng tài" chạy mỗi lần push/PR.
+#
+# CÁCH DÙNG (một lần, khi tạo repo nhóm):
+#   1. Copy toàn bộ thư mục team-repo/ này làm gốc repo của nhóm.
+#   2. ĐỔI TÊN thư mục github-workflows/  →  .github/workflows/
+#      (trong repo hub nó cố ý KHÔNG nằm ở .github/ để không chạy nhầm trên repo hub)
+#   3. Push — tab Actions của repo nhóm sẽ tự chạy: biên dịch + mô phỏng toàn bộ testbench.
+#
+# Ý nghĩa sư phạm: "PR chỉ được merge khi CI xanh" = kỷ luật verification công nghiệp thật.
+# Testbench có self-check ($error/$fatal) sẽ làm CI ĐỎ khi thiết kế sai — đúng vai trò trọng tài.
+name: Mô phỏng RTL
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  sim:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cài Icarus Verilog
+        run: sudo apt-get update && sudo apt-get install -y iverilog
+
+      - name: Biên dịch + chạy toàn bộ testbench (make sim)
+        run: make sim
+
+      # Testbench dùng $error sẽ in ERROR nhưng vvp vẫn exit 0 — bước này ép CI đỏ khi có ERROR.
+      - name: Không được có dòng ERROR trong log mô phỏng
+        run: |
+          make sim 2>&1 | tee sim.log
+          ! grep -q "ERROR" sim.log
+
+      - name: Lưu waveform làm bằng chứng (tải về từ tab Actions)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: waveforms
+          path: "*.vcd"
+          if-no-files-found: ignore

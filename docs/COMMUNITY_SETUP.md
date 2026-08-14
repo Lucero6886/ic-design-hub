@@ -1,5 +1,9 @@
 # COMMUNITY_SETUP — bật và cấu hình cộng đồng GitHub (làm MỘT lần)
 
+> Đọc kèm: **`docs/GITHUB_PLAYBOOK.md`** — bức tranh đầy đủ về khai thác GitHub
+> (Projects/board điều phối đợt project, template repo nhóm + CI mô phỏng, Classroom,
+> Organization, topics/discoverability, nhịp vận hành hằng tuần).
+
 Website là site tĩnh; phần cộng đồng chạy trên hạ tầng GitHub của repo. Các bước dưới đây do
 chủ repo thực hiện thủ công trên giao diện GitHub — tổng cộng ~15 phút.
 
