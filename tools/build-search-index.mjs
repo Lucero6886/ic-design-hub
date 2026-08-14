@@ -111,6 +111,7 @@ for (const c of COLLECTIONS) {
 const STATIC_PAGES = [
   ["Trang chủ — IC Design Learning & Research Hub", "", ["học IC design", "project", "nghiên cứu", "cộng đồng"]],
   ["Học IC Design — giáo trình & lộ trình", "learn/", ["giáo trình V3", "lộ trình học", "bản đồ chủ đề", "phiên bản lưu trữ"]],
+  ["Lộ trình cộng đồng — FPGA, ASIC, PPA, nghề nghiệp, nghiên cứu", "learn/roadmap/", ["lộ trình", "roadmap", "dual target", "hai đích", "PPA", "RTL to GDS", "engineering review", "nghề nghiệp"]],
   ["Tiến hóa giáo trình V1 → V2 → V3", "learn/evolution/", ["phiên bản", "lịch sử giáo trình", "immutable"]],
   ["Bài viết", "articles/", ["tutorial", "khái niệm", "ghi chú kỹ thuật"]],
   ["Nghiên cứu", "research/", ["research roadmap", "paper reading", "câu hỏi nghiên cứu", "EQ RQ"]],

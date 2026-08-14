@@ -34,6 +34,8 @@ export const TRACKS: Track[] = [
   { id: "eda", label: "Công cụ EDA", labelEn: "EDA", status: "planned", description: "Simulator, synthesizer, formal tool, flow tự động hóa." },
   { id: "ai-for-ic", label: "AI cho thiết kế IC", labelEn: "AI for IC Design", status: "planned", description: "ML trong EDA, tối ưu hóa thiết kế bằng AI." },
   { id: "hardware-ai", label: "Phần cứng cho AI", labelEn: "Hardware-Aware AI / AI Accelerator", status: "planned", description: "Neural accelerator, quantization, mixed precision, FPGA inference." },
+  { id: "rtl-to-gds", label: "RTL → GDS (flow ASIC)", labelEn: "RTL-to-GDS Flow", status: "planned", description: "Chuỗi hiện thực ASIC: synthesis → floorplan → place & route → signoff → layout/GDS. Nút 'ASIC track' của lộ trình cộng đồng — xem docs/ROADMAP_ALIGNMENT.md." },
+  { id: "embedded-systems", label: "Hệ nhúng & tích hợp", labelEn: "Embedded Systems", status: "planned", description: "Ghép thiết kế số với vi điều khiển/máy tính: giao tiếp, firmware, hệ hoàn chỉnh — nhánh Industry/Project của lộ trình." },
   { id: "research-methodology", label: "Phương pháp nghiên cứu", labelEn: "Research Methodology", status: "active", description: "EQ→RQ, thiết kế thí nghiệm, baseline công bằng, bằng chứng trước kết luận." },
   { id: "industry", label: "Công nghiệp & thị trường bán dẫn", labelEn: "Semiconductor Industry & Market", status: "active", description: "Chuỗi giá trị bán dẫn, hệ sinh thái trong nước và quốc tế, chiến lược quốc gia, con đường nghề nghiệp." },
   { id: "academic-writing", label: "Viết học thuật", labelEn: "Academic Writing", status: "planned", description: "Viết paper, trình bày kết quả, trích dẫn đúng chuẩn." },

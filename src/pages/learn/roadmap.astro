@@ -1,0 +1,196 @@
+---
+import BaseLayout from "~/layouts/BaseLayout.astro";
+import { LEGACY, COMMUNITY } from "~/config/site";
+import { href } from "~/utils/url";
+
+/** Mỗi nút = một chặng của lộ trình cộng đồng. status: 'live' = đang có nội dung thật;
+ *  'planned' = định hướng, CHƯA có giáo trình (không bịa nội dung để lấp).
+ *  Nguồn đối chiếu: docs/ROADMAP_ALIGNMENT.md */
+const NODES = [
+  {
+    id: "community", n: "0", title: "Cộng đồng IC Design", status: "live",
+    what: "Nơi hỏi đáp, phản biện và đóng góp: Discussions theo chuyên mục, Issues, Pull Request review chéo.",
+    links: [{ t: "Khu Cộng đồng", u: href("community/") }, { t: "GitHub Discussions", u: COMMUNITY.discussionsUrl(), ext: true }],
+  },
+  {
+    id: "foundation", n: "1", title: "Nền tảng 12 tuần", status: "live",
+    what: "Từ 'vì sao có chip' đến một hệ FPGA tích hợp chạy được. Mô hình 4 lớp, quiz, mentor mode, project T9–11.",
+    links: [{ t: "Bắt đầu tại đây", u: href("articles/bat-dau-tu-day/") }, { t: "Lộ trình Phase 1", u: href("learn/ic-design-foundations-phase-1/") }, { t: "Giáo trình V3", u: href(LEGACY.v3) }],
+  },
+  {
+    id: "rtlverif", n: "2", title: "RTL + Verification", status: "live",
+    what: "Viết RTL sạch bằng SystemVerilog và tự chứng minh nó đúng: testbench self-check, invariant, đọc waveform. Đây là năng lực lõi mà mọi nhánh phía sau đều dựa vào.",
+    links: [{ t: "Chạy mô phỏng đầu tiên", u: href("articles/chay-mo-phong-systemverilog-dau-tien/") }, { t: "Track RTL", u: href("tags/rtl/") }, { t: "Track Verification", u: href("tags/verification/") }],
+  },
+];
+
+const BRANCH = [
+  {
+    id: "fpga", title: "Nhánh FPGA", sub: "Phần cứng chạy thật", status: "partial",
+    what: "Nạp thiết kế lên board, đo đạc trên phần cứng thật: pipelining, BRAM/DSP, ràng buộc thời gian, tối ưu tài nguyên.",
+    now: "Đang có: nền FPGA của Phase 1 (Tuần 8–11) + 2 đề bài nhóm nối tiếp hệ đèn giao thông.",
+    links: [{ t: "Track FPGA", u: href("tags/fpga/") }, { t: "Project UART RX", u: href("projects/uart-rx-doi-thoai-hai-chieu/") }],
+  },
+  {
+    id: "asic", title: "Nhánh ASIC", sub: "RTL → GDS", status: "planned",
+    what: "Cùng một RTL nhưng đi con đường khác: synthesis sâu → floorplan → place & route → signoff → layout.",
+    now: "Định hướng — hub CHƯA có giáo trình cho chặng này. Phase 1 dừng ở mức nói rõ ranh giới (Tuần 8, Tuần 12).",
+    links: [{ t: "Bản đồ chủ đề (xem track định hướng)", u: href("learn/#tracks-h") }, { t: "Vì sao chưa có: kế hoạch", u: "#ke-hoach" }],
+  },
+];
+
+const MERGE = [
+  {
+    id: "dual", title: "Project hai đích (dual-target)", status: "planned",
+    what: "Một thiết kế, chạy cả hai con đường FPGA và ASIC-flow — để thấy tận mắt điều Tuần 8 dạy: cùng RTL, hiện thực khác nhau.",
+    now: "Định hướng — đề bài đang được chuẩn bị; sẽ tái sử dụng chính traffic_ctrl hoặc FIR đã có.",
+  },
+  {
+    id: "ppa", title: "So sánh PPA", status: "planned",
+    what: "Đọc report và so sánh Performance · Power · Area giữa hai đích, với baseline công bằng và kết luận có phạm vi.",
+    now: "Định hướng — đã có mầm ở project FIR (bit-width ↔ tài nguyên) và khung EQ→RQ.",
+  },
+  {
+    id: "review", title: "Engineering review", status: "live",
+    what: "Trình bày và bảo vệ quyết định thiết kế bằng LÝ DO và bằng chứng — nghề đánh giá kỹ sư đúng cách này.",
+    now: "Đang có: mini-defense Tuần 12 (rubric 5 tiêu chí, ngân hàng 10 câu vấn đáp) + PR review chéo trong repo nhóm.",
+  },
+];
+
+const OUTCOMES = [
+  {
+    id: "industry", title: "Hướng Công nghiệp / Project", status: "partial",
+    items: ["FPGA nâng cao (pipelining, timing, deploy board)", "Hệ nhúng & tích hợp (định hướng)", "Hiểu thị trường & con đường nghề nghiệp"],
+    links: [{ t: "Track Công nghiệp & thị trường", u: href("tags/industry/") }, { t: "Tin tức & việc làm", u: href("news/#viec-lam") }],
+  },
+  {
+    id: "research", title: "Hướng Nghiên cứu", status: "partial",
+    items: ["Kiến trúc phần cứng", "Tối ưu hóa (fixed-point, low-power)", "Hardware-aware AI / AI accelerator", "Nghiên cứu thiết kế IC"],
+    links: [{ t: "Khu Nghiên cứu", u: href("research/") }, { t: "Khung EQ→RQ", u: href("research/eq-to-rq-framework/") }, { t: "5 track Phase 2", u: href("research/phase-2-tracks/") }],
+  },
+];
+
+const badge = (s: string) =>
+  s === "live" ? { text: "Đang có nội dung", tone: "green" }
+  : s === "partial" ? { text: "Có một phần", tone: "acc" }
+  : { text: "Định hướng — chưa có giáo trình", tone: "warn" };
+---
+
+<BaseLayout
+  title="Lộ trình cộng đồng — từ nền tảng đến nghề nghiệp và nghiên cứu"
+  description="Bản đồ toàn cảnh: cộng đồng → nền tảng 12 tuần → RTL + verification → nhánh FPGA/ASIC → project hai đích → so sánh PPA → engineering review → nghề nghiệp hoặc nghiên cứu. Mỗi chặng ghi rõ đang có nội dung hay mới là định hướng."
+  path="learn/roadmap/"
+>
+  <section class="hero">
+    <div class="wrap">
+      <div class="kicker">Roadmap</div>
+      <h1>Lộ trình cộng đồng IC Design</h1>
+      <p class="sub">
+        Bạn đang ở đâu, phía trước là gì. Mỗi chặng dưới đây ghi <b>trung thực</b> trạng thái:
+        đang có nội dung thật, có một phần, hay mới là định hướng.
+      </p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="co info">
+        <b>Quy ước đọc:</b> <span class="badge green">Đang có nội dung</span> — học được ngay ·
+        <span class="badge acc">Có một phần</span> — có nền, đang mở rộng ·
+        <span class="badge warn">Định hướng</span> — hub chưa có giáo trình cho chặng này, và&nbsp;<b>không</b> đăng nội dung tự sinh để lấp chỗ trống.
+      </div>
+
+      <h2 class="sec" style="margin-top:26px">Thân chính — ai cũng đi qua</h2>
+      {NODES.map((nd) => (
+        <div class="card" style="margin-bottom:12px">
+          <span>
+            <span class="badge gray">Chặng {nd.n}</span>
+            <span class={`badge ${badge(nd.status).tone}`}>{badge(nd.status).text}</span>
+          </span>
+          <h3>{nd.title}</h3>
+          <p>{nd.what}</p>
+          <div class="btn-row" style="margin-top:6px">
+            {nd.links.map((l) => (
+              <a class="btn" href={l.u} rel={l.ext ? "noopener" : undefined}>{l.t}</a>
+            ))}
+          </div>
+        </div>
+      ))}
+
+      <p class="chainflow" style="justify-content:center;margin:18px 0">
+        <span class="node">Nền tảng vững</span><span class="arr">→</span>
+        <span class="node">rẽ hai nhánh hiện thực</span>
+      </p>
+
+      <h2 class="sec">Rẽ nhánh — hai con đường hiện thực cùng một RTL</h2>
+      <div class="grid cols-2">
+        {BRANCH.map((b) => (
+          <div class="card">
+            <span><span class={`badge ${badge(b.status).tone}`}>{badge(b.status).text}</span></span>
+            <h3>{b.title} <span class="muted small">· {b.sub}</span></h3>
+            <p>{b.what}</p>
+            <p class="small" style="color:var(--ink-soft)"><b>Hiện trạng:</b> {b.now}</p>
+            <div class="btn-row" style="margin-top:6px">
+              {b.links.map((l) => <a class="btn" href={l.u}>{l.t}</a>)}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <p class="chainflow" style="justify-content:center;margin:18px 0">
+        <span class="node">FPGA</span><span class="arr">↘</span>
+        <span class="node">hợp lưu</span><span class="arr">↙</span><span class="node">ASIC</span>
+      </p>
+
+      <h2 class="sec">Hợp lưu — nơi hai nhánh gặp nhau</h2>
+      <div class="grid cols-3">
+        {MERGE.map((m) => (
+          <div class="card">
+            <span><span class={`badge ${badge(m.status).tone}`}>{badge(m.status).text}</span></span>
+            <h3 style="font-size:16px">{m.title}</h3>
+            <p class="small">{m.what}</p>
+            <p class="small" style="color:var(--ink-soft)">{m.now}</p>
+          </div>
+        ))}
+      </div>
+
+      <h2 class="sec" style="margin-top:30px">Sau engineering review — hai hướng đi</h2>
+      <div class="grid cols-2">
+        {OUTCOMES.map((o) => (
+          <div class="card">
+            <span><span class={`badge ${badge(o.status).tone}`}>{badge(o.status).text}</span></span>
+            <h3>{o.title}</h3>
+            <ul class="small" style="margin:0;padding-left:18px">
+              {o.items.map((i) => <li>{i}</li>)}
+            </ul>
+            <div class="btn-row" style="margin-top:8px">
+              {o.links.map((l) => <a class="btn" href={l.u}>{l.t}</a>)}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <h2 class="sec" style="margin-top:30px" id="ke-hoach">Những chặng chưa có — kế hoạch, không phải lời hứa</h2>
+      <p style="max-width:76ch">
+        Ba chặng <b>RTL → GDS</b>, <b>project hai đích</b> và <b>so sánh PPA</b> hiện chưa có
+        giáo trình trên hub. Đây đúng là ranh giới mà giáo trình Phase 1 đã tuyên bố từ Tuần 8
+        và Tuần 12: nền tảng, chứ không phải sự thành thạo. Thứ tự dự kiến bổ sung — và quy
+        tắc bất di của hub: <b>chạy được thật rồi mới viết bài</b>, kèm số liệu và phạm vi kết luận.
+      </p>
+      <div class="tblwrap">
+        <table class="tbl">
+          <thead><tr><th>Thứ tự</th><th>Chặng</th><th>Vì sao thứ tự này</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>Đề bài <b>hai đích</b> trên thiết kế đã có (traffic_ctrl / FIR)</td><td>Dùng lại thiết kế cũ nên rẻ nhất; tạo ra số liệu thật để dạy bước sau</td></tr>
+            <tr><td>2</td><td>Bài <b>đọc &amp; so sánh PPA</b></td><td>Không có bài này thì hai bộ số liệu chỉ là hai đống số vô nghĩa</td></tr>
+            <tr><td>3</td><td>Chuỗi <b>RTL → GDS</b> nhập môn (PDK mã nguồn mở)</td><td>Chặng nặng nhất; cần #1 và #2 làm nền</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="muted small">
+        Chi tiết đối chiếu từng nút của lộ trình với nội dung thật:
+        <code>docs/ROADMAP_ALIGNMENT.md</code> trong repository.
+      </p>
+    </div>
+  </section>
+</BaseLayout>
