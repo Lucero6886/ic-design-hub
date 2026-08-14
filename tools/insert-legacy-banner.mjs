@@ -10,8 +10,9 @@
  */
 import fs from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
-const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..");
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const LEGACY = path.join(ROOT, "public/legacy");
 
 const BANNER = `<div id="icdh-legacy-banner" style="background:#12314a;color:#cfe3f5;font:14px/1.5 system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;padding:9px 16px;text-align:center">

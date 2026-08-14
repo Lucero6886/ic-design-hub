@@ -6,8 +6,9 @@
  */
 import { spawnSync } from "node:child_process";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
-const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..");
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const r = spawnSync(process.execPath, ["tools/validate.mjs"], {
   cwd: path.join(ROOT, "public/legacy"),
   stdio: "inherit",
