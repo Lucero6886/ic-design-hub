@@ -418,3 +418,6 @@ details.reveal .rv-body{padding:2px 14px 12px;font-size:.88rem}
   details.dd{break-inside:avoid}
   details.dd:not([open])>.dd-body{display:block}
 }
+
+/* [Hub 2026-08-14] Tắt ligature vùng code: font Cascadia Code/JetBrains Mono vẽ "<=" thành ≤ — sai ký hiệu toán tử non-blocking. Byte không đổi, chỉ ép hiển thị đúng từng ký tự. */
+code, pre, kbd, samp, .code-block, .mono { font-variant-ligatures: none; font-feature-settings: "liga" 0, "calt" 0, "dlig" 0; }

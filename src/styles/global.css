@@ -295,6 +295,7 @@ main { display: block; }
 .entry-list .title a:hover { color: var(--acc-ink); text-decoration: underline; }
 .entry-list .summary { color: var(--ink-soft); font-size: 14.5px; margin: 4px 0 6px; }
 .entry-list .meta { color: var(--ink-faint); font-size: 12.5px; display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; }
+.entry-list .meta .badge { white-space: normal; text-align: left; }
 
 /* ---------- prose (bài viết) ---------- */
 .prose { max-width: var(--maxw-prose); }
@@ -311,6 +312,13 @@ main { display: block; }
   border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
   color: var(--ink-soft);
 }
+/* Vùng code KHÔNG được dùng ligature: font như Cascadia Code/JetBrains Mono vẽ "<="
+   thành hình ≤ — sai ký hiệu với toán tử non-blocking của SystemVerilog. */
+code, pre, kbd, samp {
+  font-variant-ligatures: none;
+  font-feature-settings: "liga" 0, "calt" 0, "dlig" 0;
+}
+
 .prose code {
   font-family: var(--font-mono);
   font-size: 0.88em;

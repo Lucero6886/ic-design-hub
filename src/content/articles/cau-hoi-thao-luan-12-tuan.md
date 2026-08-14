@@ -68,7 +68,7 @@ không phản biện người.
 
 1. Đọc một đoạn RTL của bạn cùng nhóm và nói ra **phần cứng suy ra** (hardware inference).
    Ai nói được phần cứng trước khi nói cú pháp, người đó hiểu.
-2. Blocking (=) vs non-blocking (<=): quy tắc thực dụng của khóa là gì, và điều gì sai nếu
+2. Blocking (`=`) vs non-blocking (`<=`): quy tắc thực dụng của khóa là gì, và điều gì sai nếu
    trộn chúng trong một always_ff? Minh họa bằng ví dụ 2 thanh ghi hoán đổi giá trị.
 3. (EQ→RQ) "Thanh ghi nào cần reset?" — vì sao đây là quyết định kiến trúc có chi phí chứ
    không phải quy tắc phổ quát? (Gợi ý đọc thêm: bài viết về reset trên hub.)
